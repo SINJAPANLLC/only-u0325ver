@@ -229,8 +229,8 @@ function EmptyProductState() {
 const demoProducts: ProductCardProps[] = [
   {
     id: "prod-1",
-    name: "【写真集】秘密のプライベートショット 50枚セット",
-    description: "ここでしか見れない限定ショット",
+    name: "【過激写真集】全裸ギリギリショット 100枚",
+    description: "モザイク無し・修正無しの限界ショット",
     price: 3500,
     originalPrice: 5000,
     creatorName: "Risa",
@@ -243,8 +243,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-2",
-    name: "【動画】ランジェリーコレクション 完全版 30分",
-    description: "最新ランジェリーの着用動画",
+    name: "【18禁動画】シースルー下着コレクション 60分",
+    description: "透け透け下着で誘惑...最後まで見せます",
     price: 5800,
     creatorName: "Yua",
     productType: "digital",
@@ -255,8 +255,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-3",
-    name: "【ASMR音声】耳元で囁く30分 〜眠れない夜に〜",
-    description: "高音質バイノーラル録音",
+    name: "【エロASMR】耳舐め＆喘ぎ声60分",
+    description: "バイノーラル録音で臨場感MAX",
     price: 1500,
     creatorName: "Mio",
     productType: "digital",
@@ -267,8 +267,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-4",
-    name: "【写真集】銀座の夜 グラビアフォトブック",
-    description: "プロカメラマン撮影の本格グラビア",
+    name: "【ヌード写真集】ホテル撮影 完全版",
+    description: "プロ撮影の本格ヌードグラビア",
     price: 8900,
     creatorName: "Reina",
     productType: "digital",
@@ -280,8 +280,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-5",
-    name: "【サイン入りチェキ】3枚セット + メッセージカード",
-    description: "直筆サイン&メッセージ付き",
+    name: "【使用済み】私の下着セット",
+    description: "直筆サイン＆香り付き",
     price: 4500,
     creatorName: "Hina",
     productType: "physical",
@@ -292,8 +292,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-6",
-    name: "【動画】水着撮影メイキング 完全ノーカット版",
-    description: "ビーチ撮影の裏側を全て公開",
+    name: "【無修正動画】Tバック撮影 ノーカット版",
+    description: "際どすぎて一般公開不可能",
     price: 6500,
     creatorName: "Saki",
     productType: "digital",
@@ -304,8 +304,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-7",
-    name: "【月額プラン】VIPメンバーシップ",
-    description: "全コンテンツ見放題 + 限定配信",
+    name: "【月額プラン】全裸VIPメンバーシップ",
+    description: "過激コンテンツ全て見放題",
     price: 9800,
     creatorName: "Aya",
     productType: "digital",
@@ -316,8 +316,8 @@ const demoProducts: ProductCardProps[] = [
   },
   {
     id: "prod-8",
-    name: "【香水】オリジナルフレグランス 30ml",
-    description: "私のお気に入りの香り",
+    name: "【私物】愛用バイブレーター",
+    description: "実際に使っていたアダルトグッズ",
     price: 12000,
     creatorName: "Risa",
     productType: "physical",

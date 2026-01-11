@@ -268,7 +268,7 @@ function VideoPage({
 const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
-    title: "深夜のプライベートトーク💋 今夜だけの秘密の時間...メンバー限定で特別な姿をお見せします #大人の時間 #セクシー",
+    title: "【過激注意】深夜の脱衣配信💋 今夜はどこまで脱ぐ？リクエストに応えちゃう #18禁 #脱衣",
     creatorName: "Risa",
     viewCount: 285000,
     likeCount: 24800,
@@ -281,7 +281,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-2",
-    title: "新作ランジェリーの着用レビュー🖤 大人のセクシーを追求した最新コレクション #ランジェリー #下着",
+    title: "シースルーランジェリー着用配信🖤 透けちゃってる...全部見せます #下着 #エロ",
     creatorName: "Yua",
     viewCount: 456000,
     likeCount: 38200,
@@ -294,7 +294,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-3",
-    title: "バスタイムASMR🛁 リラックスした夜のひととき...囁き声でお話しします #ASMR #癒し",
+    title: "お風呂配信🛁 泡で隠れてる？隠れてない？ギリギリを攻めます #入浴 #セクシー",
     creatorName: "Mio",
     viewCount: 189000,
     likeCount: 15600,
@@ -307,7 +307,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-4",
-    title: "銀座ホステスの夜のメイク術💄 男性を虜にする大人の色気メイク完全版 #銀座 #ホステス",
+    title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
     creatorName: "Reina",
     viewCount: 523000,
     likeCount: 42000,
@@ -320,7 +320,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-5",
-    title: "ベッドルームからこんばんは🌙 パジャマ姿でまったり雑談...今夜は何を話そうかな #おやすみ配信",
+    title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
     creatorName: "Hina",
     viewCount: 178000,
     likeCount: 13400,
@@ -333,7 +333,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-6",
-    title: "水着グラビア撮影の裏側📸 ビーチでのセクシーショット撮影に密着！ #グラビア #水着",
+    title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #過激",
     creatorName: "Saki",
     viewCount: 612000,
     likeCount: 51000,
@@ -346,7 +346,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-7",
-    title: "コスプレ撮影会🎀 ナース服でちょっとセクシーに...リクエストにお応えします #コスプレ #ナース",
+    title: "エロコス撮影会🎀 セクシーバニー＆メイド...ご主人様のリクエスト受付中 #コスプレ #エロコス",
     creatorName: "Aya",
     viewCount: 398000,
     likeCount: 32000,
