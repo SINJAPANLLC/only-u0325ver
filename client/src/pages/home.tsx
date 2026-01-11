@@ -1,40 +1,39 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Play, Heart, Eye, Clock, Video, Crown, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Pause } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { Video as VideoType } from "@shared/schema";
 
-interface VideoCardProps {
+interface VideoPageProps {
   id: string;
   title: string;
-  thumbnailUrl?: string | null;
-  creatorName?: string;
+  creatorName: string;
   creatorAvatar?: string;
   viewCount: number;
   likeCount: number;
+  commentCount: number;
   duration: number;
   isPremium?: boolean;
+  isActive: boolean;
+  musicName?: string;
 }
 
-function VideoCard({
+function VideoPage({
   id,
   title,
-  creatorName = "Creator",
+  creatorName,
   creatorAvatar,
-  viewCount,
   likeCount,
-  duration,
+  commentCount,
   isPremium,
-}: VideoCardProps) {
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  isActive,
+  musicName = "オリジナル音源",
+}: VideoPageProps) {
+  const [isLiked, setIsLiked] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [likes, setLikes] = useState(likeCount);
 
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -42,308 +41,309 @@ function VideoCard({
     return count.toString();
   };
 
+  const handleLike = () => {
+    if (isLiked) {
+      setLikes(likes - 1);
+    } else {
+      setLikes(likes + 1);
+    }
+    setIsLiked(!isLiked);
+  };
+
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
-      className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer"
-      data-testid={`card-video-${id}`}
+    <div 
+      className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black"
+      data-testid={`video-page-${id}`}
     >
-      {/* Thumbnail */}
-      <div className="aspect-[9/16] bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 relative overflow-hidden">
-        {/* Play button */}
+      {/* Video background with gradient overlay */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-pink-900/80 via-purple-900/60 to-black cursor-pointer"
+        onClick={togglePause}
+      >
+        {/* Simulated video content */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div 
-            whileHover={{ scale: 1.1 }}
-            className="h-14 w-14 rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:bg-pink-500 transition-colors duration-300"
-          >
-            <Play className="h-6 w-6 text-pink-500 group-hover:text-white ml-1 transition-colors" fill="currentColor" />
-          </motion.div>
+          {isPaused && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="h-20 w-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+            >
+              <Play className="h-10 w-10 text-white ml-1" fill="white" />
+            </motion.div>
+          )}
         </div>
-
-        {/* Premium badge */}
-        {isPremium && (
-          <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 border-0 text-amber-900 font-semibold shadow-lg gap-1">
-            <Crown className="h-3 w-3" />
-            Premium
-          </Badge>
+        
+        {/* Animated gradient background for demo */}
+        {isActive && !isPaused && (
+          <motion.div
+            className="absolute inset-0 opacity-30"
+            animate={{
+              background: [
+                "radial-gradient(circle at 20% 80%, rgba(236,72,153,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 80% 20%, rgba(168,85,247,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 50% 50%, rgba(236,72,153,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 20% 80%, rgba(236,72,153,0.4) 0%, transparent 50%)",
+              ],
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          />
         )}
-
-        {/* Duration */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 text-xs text-white font-medium">
-          <Clock className="h-3 w-3" />
-          {formatDuration(duration)}
-        </div>
-
-        {/* Gradient overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
       </div>
 
-      {/* Info */}
-      <div className="p-3.5 space-y-2.5">
-        <div className="flex items-start gap-2.5">
-          <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-pink-200 dark:ring-pink-800 ring-offset-2 ring-offset-background">
+      {/* Premium badge */}
+      {isPremium && (
+        <div className="absolute top-20 left-4 z-10">
+          <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 px-3 py-1.5 text-xs font-bold text-amber-900 shadow-lg">
+            <Crown className="h-3.5 w-3.5" />
+            Premium
+          </div>
+        </div>
+      )}
+
+      {/* Right side actions */}
+      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-5">
+        {/* Creator avatar */}
+        <div className="relative">
+          <Avatar className="h-12 w-12 ring-2 ring-white shadow-lg">
             <AvatarImage src={creatorAvatar} />
-            <AvatarFallback className="text-xs bg-gradient-to-br from-pink-400 to-rose-500 text-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm line-clamp-2 leading-snug" data-testid={`text-video-title-${id}`}>
-              {title}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1 font-medium" data-testid={`text-creator-name-${id}`}>
-              {creatorName}
-            </p>
-          </div>
+          <Button
+            size="icon"
+            className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
+            data-testid={`button-follow-${id}`}
+          >
+            <Plus className="h-3.5 w-3.5 text-white" />
+          </Button>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5 font-medium" data-testid={`text-view-count-${id}`}>
-            <Eye className="h-3.5 w-3.5" />
-            {formatCount(viewCount)}
+        {/* Like */}
+        <button
+          onClick={handleLike}
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-like-${id}`}
+        >
+          <motion.div
+            whileTap={{ scale: 1.3 }}
+            className={`h-12 w-12 rounded-full flex items-center justify-center ${
+              isLiked ? "bg-pink-500/20" : "bg-white/10"
+            } backdrop-blur-sm transition-colors`}
+          >
+            <Heart
+              className={`h-7 w-7 transition-colors ${
+                isLiked ? "text-pink-500 fill-pink-500" : "text-white"
+              }`}
+            />
+          </motion.div>
+          <span className="text-xs text-white font-semibold" data-testid={`text-likes-${id}`}>
+            {formatCount(likes)}
           </span>
-          <span className="flex items-center gap-1.5 font-medium" data-testid={`text-like-count-${id}`}>
-            <Heart className="h-3.5 w-3.5 text-pink-500" fill="currentColor" />
-            {formatCount(likeCount)}
+        </button>
+
+        {/* Comment */}
+        <button
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-comment-${id}`}
+        >
+          <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="h-7 w-7 text-white" />
+          </div>
+          <span className="text-xs text-white font-semibold">{formatCount(commentCount)}</span>
+        </button>
+
+        {/* Share */}
+        <button
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-share-${id}`}
+        >
+          <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-xs text-white font-semibold">シェア</span>
+        </button>
+
+        {/* Music disc animation */}
+        <motion.div
+          animate={{ rotate: isActive && !isPaused ? 360 : 0 }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-gray-700 flex items-center justify-center shadow-lg"
+        >
+          <div className="h-4 w-4 rounded-full bg-gray-600" />
+        </motion.div>
+      </div>
+
+      {/* Bottom content info */}
+      <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
+        {/* Creator name */}
+        <div className="flex items-center gap-2">
+          <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
+            @{creatorName}
           </span>
         </div>
-      </div>
-    </motion.div>
-  );
-}
 
-function VideoCardSkeleton() {
-  return (
-    <div className="rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30">
-      <Skeleton className="aspect-[9/16]" />
-      <div className="p-3.5 space-y-2.5">
-        <div className="flex items-start gap-2.5">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <div className="flex-1 space-y-1.5">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-1/2" />
+        {/* Title/description */}
+        <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-title-${id}`}>
+          {title}
+        </p>
+
+        {/* Music info */}
+        <div className="flex items-center gap-2">
+          <Music2 className="h-4 w-4 text-white" />
+          <div className="overflow-hidden">
+            <motion.p
+              animate={{ x: isActive ? [0, -100, 0] : 0 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              className="text-white/80 text-sm whitespace-nowrap"
+            >
+              {musicName}
+            </motion.p>
           </div>
         </div>
-        <Skeleton className="h-3 w-1/3" />
       </div>
+
+      {/* Progress bar */}
+      {isActive && (
+        <motion.div
+          className="absolute bottom-24 left-0 right-0 h-0.5 bg-white/20"
+        >
+          <motion.div
+            className="h-full bg-white"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 15, ease: "linear", repeat: Infinity }}
+          />
+        </motion.div>
+      )}
     </div>
   );
 }
 
-function EmptyState() {
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-24 text-center"
-    >
-      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 flex items-center justify-center mb-5">
-        <Video className="h-10 w-10 text-pink-400" />
-      </div>
-      <h3 className="font-bold text-lg mb-2" data-testid="text-empty-videos">コンテンツがまだありません</h3>
-      <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-        クリエイターが動画を投稿するとここに表示されます
-      </p>
-    </motion.div>
-  );
-}
-
 // Demo data for UI showcase
-const demoVideos: VideoCardProps[] = [
+const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
-    title: "最新のファッションコーデを紹介します",
+    title: "今日のコーデを紹介するよ！春の新作アイテムでおしゃれに決めてみた✨ #ファッション #春コーデ",
     creatorName: "Yuki",
-    viewCount: 12500,
-    likeCount: 890,
-    duration: 180,
+    viewCount: 125000,
+    likeCount: 8900,
+    commentCount: 234,
+    duration: 30,
     isPremium: false,
+    isActive: false,
+    musicName: "オリジナル音源 - Yuki",
   },
   {
     id: "demo-2",
-    title: "朝のルーティン - モーニングルーティン",
+    title: "モーニングルーティン💄朝のスキンケアとメイクの全工程を見せちゃいます",
     creatorName: "Sakura",
-    viewCount: 45000,
-    likeCount: 3200,
-    duration: 420,
+    viewCount: 450000,
+    likeCount: 32000,
+    commentCount: 1200,
+    duration: 60,
     isPremium: true,
+    isActive: false,
+    musicName: "Chill Morning Vibes",
   },
   {
     id: "demo-3",
-    title: "カフェ巡り in 表参道",
+    title: "表参道の隠れ家カフェ発見！雰囲気最高すぎた☕️",
     creatorName: "Miki",
-    viewCount: 8900,
-    likeCount: 560,
-    duration: 240,
+    viewCount: 89000,
+    likeCount: 5600,
+    commentCount: 189,
+    duration: 45,
     isPremium: false,
+    isActive: false,
+    musicName: "Cafe Jazz BGM",
   },
   {
     id: "demo-4",
-    title: "メイクアップチュートリアル",
+    title: "韓国コスメの新作レビュー！正直な感想言います💄",
     creatorName: "Rina",
-    viewCount: 23000,
-    likeCount: 1800,
-    duration: 600,
+    viewCount: 230000,
+    likeCount: 18000,
+    commentCount: 890,
+    duration: 55,
     isPremium: true,
+    isActive: false,
+    musicName: "K-Pop Hits",
   },
   {
     id: "demo-5",
-    title: "週末のおでかけVlog",
+    title: "週末の過ごし方Vlog🌸彼氏とデートしてきた",
     creatorName: "Hana",
-    viewCount: 15600,
-    likeCount: 980,
-    duration: 320,
+    viewCount: 156000,
+    likeCount: 9800,
+    commentCount: 445,
+    duration: 40,
     isPremium: false,
-  },
-  {
-    id: "demo-6",
-    title: "新作コスメレビュー",
-    creatorName: "Yuki",
-    viewCount: 31000,
-    likeCount: 2100,
-    duration: 510,
-    isPremium: false,
+    isActive: false,
+    musicName: "Sweet Love Song",
   },
 ];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("for-you");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: videos, isLoading, error } = useQuery<VideoType[]>({
+  const { data: videos } = useQuery<VideoType[]>({
     queryKey: ["/api/videos"],
   });
 
-  // Use demo data for UI showcase, real data when available
-  const displayVideos: VideoCardProps[] = videos && videos.length > 0
+  // Use demo data for UI showcase
+  const displayVideos: VideoPageProps[] = videos && videos.length > 0
     ? videos.map(v => ({
         id: v.id,
         title: v.title,
-        thumbnailUrl: v.thumbnailUrl,
         creatorName: "Creator",
         viewCount: v.viewCount || 0,
         likeCount: v.likeCount || 0,
+        commentCount: 0,
         duration: v.duration || 0,
         isPremium: v.contentType === "premium",
+        isActive: false,
+        musicName: "オリジナル音源",
       }))
     : demoVideos;
 
+  // Track scroll position to determine active video
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const itemHeight = container.clientHeight;
+      const newIndex = Math.round(scrollTop / itemHeight);
+      if (newIndex !== activeIndex && newIndex >= 0 && newIndex < displayVideos.length) {
+        setActiveIndex(newIndex);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [activeIndex, displayVideos.length]);
+
   return (
-    <div className="pb-24 min-h-screen bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
-      {/* Featured banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 p-4 text-white shadow-lg shadow-pink-500/20"
-      >
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">新着コンテンツ</p>
-            <p className="text-xs text-white/80">お気に入りのクリエイターをフォローしよう</p>
-          </div>
-        </div>
-      </motion.div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-14 z-30 glass border-b border-border/30">
-          <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-6">
-            <TabsTrigger 
-              value="for-you" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
-              data-testid="tab-for-you"
-            >
-              おすすめ
-            </TabsTrigger>
-            <TabsTrigger 
-              value="following" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
-              data-testid="tab-following"
-            >
-              フォロー中
-            </TabsTrigger>
-            <TabsTrigger 
-              value="trending" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
-              data-testid="tab-trending"
-            >
-              トレンド
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="for-you" className="mt-0 p-4">
-          {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <VideoCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-destructive mb-4" data-testid="text-error">データの読み込みに失敗しました</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {displayVideos.map((video, index) => (
-                <motion.div
-                  key={video.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <VideoCard {...video} />
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="following" className="mt-0 p-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center"
-          >
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 flex items-center justify-center mb-5">
-              <Heart className="h-10 w-10 text-pink-400" />
-            </div>
-            <h3 className="font-bold text-lg mb-2" data-testid="text-empty-following">フォロー中のコンテンツがありません</h3>
-            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-              クリエイターをフォローして、最新の動画をチェックしよう
-            </p>
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="trending" className="mt-0 p-4">
-          {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <VideoCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {[...displayVideos]
-                .sort((a, b) => b.viewCount - a.viewCount)
-                .map((video, index) => (
-                  <motion.div
-                    key={video.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <VideoCard {...video} />
-                  </motion.div>
-                ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+    <div 
+      ref={containerRef}
+      className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
+      data-testid="video-feed"
+    >
+      {displayVideos.map((video, index) => (
+        <VideoPage
+          key={video.id}
+          {...video}
+          isActive={index === activeIndex}
+        />
+      ))}
     </div>
   );
 }

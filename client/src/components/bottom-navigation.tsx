@@ -20,9 +20,9 @@ export function BottomNavigation() {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 z-40 bg-transparent backdrop-blur-xl border-t border-white/10 dark:border-white/5 pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-black/60 via-black/30 to-transparent pb-safe pointer-events-none"
     >
-      <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2">
+      <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2 pointer-events-auto">
         {navItems.map((item) => {
           const isActive = location === item.path;
           const Icon = item.icon;
@@ -34,8 +34,8 @@ export function BottomNavigation() {
                 className={cn(
                   "relative flex flex-col items-center justify-center gap-1.5 w-16 h-full rounded-2xl transition-all duration-200",
                   isActive 
-                    ? "text-pink-500" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-white" 
+                    : "text-white/70 hover:text-white"
                 )}
                 data-testid={`nav-${item.path === "/" ? "home" : item.path.slice(1)}`}
               >
@@ -43,7 +43,7 @@ export function BottomNavigation() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-active-bg"
-                    className="absolute inset-1 bg-pink-100 dark:bg-pink-900/30 rounded-xl"
+                    className="absolute inset-1 bg-white/20 backdrop-blur-sm rounded-xl"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -75,7 +75,7 @@ export function BottomNavigation() {
                 
                 <span className={cn(
                   "relative z-10 text-[10px] font-medium tracking-wide",
-                  isActive && "font-bold text-pink-600 dark:text-pink-400"
+                  isActive && "font-bold"
                 )}>
                   {item.label}
                 </span>

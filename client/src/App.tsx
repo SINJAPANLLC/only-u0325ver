@@ -22,18 +22,46 @@ import NotFound from "@/pages/not-found";
 function AuthenticatedApp() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <main className="min-h-[calc(100vh-3.5rem-4rem)]">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/live" component={Live} />
-          <Route path="/shop" component={Shop} />
-          <Route path="/messages" component={Messages} />
-          <Route path="/account" component={Account} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <BottomNavigation />
+      <Switch>
+        {/* Home uses full-screen TikTok-style layout with overlay nav */}
+        <Route path="/">
+          <div className="relative h-[100svh] overflow-hidden">
+            <Header />
+            <Home />
+            <BottomNavigation />
+          </div>
+        </Route>
+        {/* Other pages use standard layout */}
+        <Route path="/live">
+          <Header />
+          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
+            <Live />
+          </main>
+          <BottomNavigation />
+        </Route>
+        <Route path="/shop">
+          <Header />
+          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
+            <Shop />
+          </main>
+          <BottomNavigation />
+        </Route>
+        <Route path="/messages">
+          <Header />
+          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
+            <Messages />
+          </main>
+          <BottomNavigation />
+        </Route>
+        <Route path="/account">
+          <Header />
+          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
+            <Account />
+          </main>
+          <BottomNavigation />
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
     </div>
   );
 }

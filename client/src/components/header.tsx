@@ -31,9 +31,9 @@ export function Header({ onSearchClick }: HeaderProps) {
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-40 w-full bg-transparent backdrop-blur-xl border-b border-white/10 dark:border-white/5"
+      className="fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-b from-black/40 to-transparent pointer-events-none"
     >
-      <div className="flex h-14 items-center justify-between px-4 gap-2">
+      <div className="flex h-14 items-center justify-between px-4 gap-2 pointer-events-auto">
         <motion.div 
           className="flex items-center gap-2"
           whileHover={{ scale: 1.02 }}
@@ -41,7 +41,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-10 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
+            className="h-10 object-contain brightness-0 invert"
             data-testid="img-logo"
           />
         </motion.div>
@@ -52,10 +52,10 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-10 w-10 hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
+                className="rounded-full h-10 w-10 hover:bg-white/20 transition-colors text-white"
                 data-testid="button-language"
               >
-                <Globe className="h-5 w-5 stroke-[1.5]" />
+                <Globe className="h-5 w-5 stroke-[1.5] text-white" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
@@ -75,10 +75,10 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 relative hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
+            className="rounded-full h-10 w-10 relative hover:bg-white/20 transition-colors text-white"
             data-testid="button-notifications"
           >
-            <Bell className="h-5 w-5 stroke-[1.5]" />
+            <Bell className="h-5 w-5 stroke-[1.5] text-white" />
             {notificationCount > 0 && (
               <Badge 
                 className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 animate-pulse"
@@ -91,11 +91,11 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
+            className="rounded-full h-10 w-10 hover:bg-white/20 transition-colors text-white"
             onClick={onSearchClick}
             data-testid="button-search"
           >
-            <Search className="h-5 w-5 stroke-[1.5]" />
+            <Search className="h-5 w-5 stroke-[1.5] text-white" />
           </Button>
 
           <ThemeToggle />
