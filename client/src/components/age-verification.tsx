@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle } from "lucide-react";
+import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
 
 interface AgeVerificationProps {
   onVerified: () => void;
@@ -78,10 +79,12 @@ export function AgeVerification({ onVerified }: AgeVerificationProps) {
         >
           <div className="flex flex-col items-center gap-6">
             <div className="flex flex-col items-center gap-3">
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-pink-400 flex items-center justify-center shadow-lg">
-                <span className="text-2xl font-bold text-white">U</span>
-              </div>
-              <h1 className="text-xl font-bold" data-testid="text-age-verification-title">Only-U</h1>
+              <img 
+                src={logoImage} 
+                alt="Only-U" 
+                className="h-12 object-contain"
+                data-testid="img-logo-age-verification"
+              />
             </div>
 
             <div className="w-full space-y-4">

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Play, Heart, ShoppingBag, Radio, Shield, Sparkles } from "lucide-react";
+import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
 
 export default function Landing() {
   const features = [
@@ -42,10 +43,12 @@ export default function Landing() {
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-pink-400 flex items-center justify-center shadow-md">
-              <span className="text-xl font-bold text-white">U</span>
-            </div>
-            <span className="text-xl font-bold gradient-text">Only-U</span>
+            <img 
+              src={logoImage} 
+              alt="Only-U" 
+              className="h-10 object-contain"
+              data-testid="img-logo-landing"
+            />
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -232,10 +235,11 @@ export default function Landing() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-pink-400 flex items-center justify-center">
-                  <span className="text-sm font-bold text-white">U</span>
-                </div>
-                <span className="font-bold gradient-text">Only-U</span>
+                <img 
+                  src={logoImage} 
+                  alt="Only-U" 
+                  className="h-8 object-contain"
+                />
               </div>
               <p className="text-sm text-muted-foreground">
                 クリエイターと繋がる、新しいプラットフォーム

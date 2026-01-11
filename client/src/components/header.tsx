@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
 
 interface HeaderProps {
   onSearchClick?: () => void;
@@ -29,10 +30,12 @@ export function Header({ onSearchClick }: HeaderProps) {
     <header className="sticky top-0 z-40 w-full glass border-b border-border/50">
       <div className="flex h-14 items-center justify-between px-4 gap-2">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-pink-400 flex items-center justify-center shadow-sm">
-            <span className="text-lg font-bold text-white">U</span>
-          </div>
-          <span className="text-lg font-bold gradient-text hidden sm:inline">Only-U</span>
+          <img 
+            src={logoImage} 
+            alt="Only-U" 
+            className="h-9 object-contain"
+            data-testid="img-logo"
+          />
         </div>
 
         <div className="flex items-center gap-1">
