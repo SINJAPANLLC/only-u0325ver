@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
 
 interface HeaderProps {
@@ -27,16 +28,23 @@ export function Header({ onSearchClick }: HeaderProps) {
   const notificationCount = 3;
 
   return (
-    <header className="sticky top-0 z-40 w-full glass border-b border-border/50">
+    <motion.header 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="sticky top-0 z-40 w-full glass border-b border-border/30"
+    >
       <div className="flex h-14 items-center justify-between px-4 gap-2">
-        <div className="flex items-center gap-2">
+        <motion.div 
+          className="flex items-center gap-2"
+          whileHover={{ scale: 1.02 }}
+        >
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-9 object-contain"
+            className="h-8 object-contain"
             data-testid="img-logo"
           />
-        </div>
+        </motion.div>
 
         <div className="flex items-center gap-1">
           <DropdownMenu>
@@ -44,18 +52,18 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full"
+                className="rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/30"
                 data-testid="button-language"
               >
                 <Globe className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[120px]">
+            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setCurrentLang(lang.code)}
-                  className={currentLang === lang.code ? "bg-accent" : ""}
+                  className={`rounded-lg ${currentLang === lang.code ? "bg-pink-100 dark:bg-pink-900/30" : ""}`}
                   data-testid={`menu-item-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -67,14 +75,13 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full relative"
+            className="rounded-full relative hover:bg-pink-100 dark:hover:bg-pink-900/30"
             data-testid="button-notifications"
           >
             <Bell className="h-5 w-5" />
             {notificationCount > 0 && (
               <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs"
+                className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 animate-pulse"
               >
                 {notificationCount}
               </Badge>
@@ -84,7 +91,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full"
+            className="rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/30"
             onClick={onSearchClick}
             data-testid="button-search"
           >
@@ -94,6 +101,6 @@ export function Header({ onSearchClick }: HeaderProps) {
           <ThemeToggle />
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }
