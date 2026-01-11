@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { Video as VideoType } from "@shared/schema";
 
-// Stock images for mock content
-import img1 from "@assets/stock_images/beautiful_asian_woma_41d68ca0.jpg";
-import img2 from "@assets/stock_images/beautiful_asian_woma_ec784f28.jpg";
-import img3 from "@assets/stock_images/beautiful_asian_woma_65338f70.jpg";
-import img4 from "@assets/stock_images/beautiful_asian_woma_4bdb50b5.jpg";
-import img5 from "@assets/stock_images/beautiful_asian_woma_c08f4c34.jpg";
-import img6 from "@assets/stock_images/beautiful_asian_woma_854beb27.jpg";
-import img7 from "@assets/stock_images/asian_woman_selfie_l_c1d888d4.jpg";
+// AI-generated images for adult content
+import img1 from "@assets/generated_images/glamour_lingerie_1.jpg";
+import img2 from "@assets/generated_images/bedroom_scene_2.jpg";
+import img3 from "@assets/generated_images/bath_scene_3.jpg";
+import img4 from "@assets/generated_images/bunny_cosplay_4.jpg";
+import img5 from "@assets/generated_images/bikini_beach_5.jpg";
+import img6 from "@assets/generated_images/asmr_scene_6.jpg";
+import img7 from "@assets/generated_images/casual_home_7.jpg";
+import img8 from "@assets/generated_images/maid_cosplay_8.jpg";
 
 interface VideoPageProps {
   id: string;
@@ -264,11 +265,11 @@ function VideoPage({
   );
 }
 
-// Adult content mock data for 18+ platform with real images
+// Adult content mock data for 18+ platform with AI-generated images
 const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
-    title: "【過激注意】深夜の脱衣配信💋 今夜はどこまで脱ぐ？リクエストに応えちゃう #18禁 #脱衣",
+    title: "【過激注意】深夜のランジェリー配信💋 今夜はどこまで見せる？リクエストに応えちゃう #18禁 #下着",
     creatorName: "Risa",
     viewCount: 285000,
     likeCount: 24800,
@@ -281,7 +282,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-2",
-    title: "シースルーランジェリー着用配信🖤 透けちゃってる...全部見せます #下着 #エロ",
+    title: "【VIP限定】ベッドルームからお届け🖤 シルクローブで誘惑...寝室の秘密 #寝室配信 #エロ",
     creatorName: "Yua",
     viewCount: 456000,
     likeCount: 38200,
@@ -307,7 +308,7 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-4",
-    title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
+    title: "バニーガール登場🐰 今夜はご主人様のために...リクエスト受付中 #コスプレ #バニー",
     creatorName: "Reina",
     viewCount: 523000,
     likeCount: 42000,
@@ -320,21 +321,8 @@ const demoVideos: VideoPageProps[] = [
   },
   {
     id: "demo-5",
-    title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
+    title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #過激 #グラビア",
     creatorName: "Hina",
-    viewCount: 178000,
-    likeCount: 13400,
-    commentCount: 780,
-    duration: 40,
-    isPremium: false,
-    isActive: false,
-    musicName: "Lo-fi Chill Beats",
-    thumbnailUrl: img5,
-  },
-  {
-    id: "demo-6",
-    title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #過激",
-    creatorName: "Saki",
     viewCount: 612000,
     likeCount: 51000,
     commentCount: 4200,
@@ -342,20 +330,46 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Summer Beach House",
+    thumbnailUrl: img5,
+  },
+  {
+    id: "demo-6",
+    title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
+    creatorName: "Saki",
+    viewCount: 178000,
+    likeCount: 13400,
+    commentCount: 780,
+    duration: 40,
+    isPremium: false,
+    isActive: false,
+    musicName: "Lo-fi Chill Beats",
     thumbnailUrl: img6,
   },
   {
     id: "demo-7",
-    title: "エロコス撮影会🎀 セクシーバニー＆メイド...ご主人様のリクエスト受付中 #コスプレ #エロコス",
+    title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
     creatorName: "Aya",
     viewCount: 398000,
     likeCount: 32000,
     commentCount: 2800,
     duration: 45,
-    isPremium: true,
+    isPremium: false,
     isActive: false,
     musicName: "Kawaii EDM Mix",
     thumbnailUrl: img7,
+  },
+  {
+    id: "demo-8",
+    title: "メイドコス配信🎀 ご主人様のお帰りをお待ちしてます...何でもいたします #メイド #エロコス",
+    creatorName: "Nana",
+    viewCount: 445000,
+    likeCount: 36500,
+    commentCount: 2650,
+    duration: 50,
+    isPremium: true,
+    isActive: false,
+    musicName: "Kawaii Pop Mix",
+    thumbnailUrl: img8,
   },
 ];
 

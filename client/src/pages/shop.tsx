@@ -9,15 +9,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import type { Product } from "@shared/schema";
 
-// Stock images for mock content
-import img1 from "@assets/stock_images/beautiful_asian_woma_41d68ca0.jpg";
-import img2 from "@assets/stock_images/beautiful_asian_woma_ec784f28.jpg";
-import img3 from "@assets/stock_images/beautiful_asian_woma_65338f70.jpg";
-import img4 from "@assets/stock_images/beautiful_asian_woma_4bdb50b5.jpg";
-import img5 from "@assets/stock_images/beautiful_asian_woma_c08f4c34.jpg";
-import img6 from "@assets/stock_images/beautiful_asian_woma_854beb27.jpg";
-import img7 from "@assets/stock_images/asian_woman_selfie_l_c1d888d4.jpg";
-import img8 from "@assets/stock_images/asian_woman_selfie_l_145e1ef8.jpg";
+// AI-generated images for adult content
+import img1 from "@assets/generated_images/glamour_lingerie_1.jpg";
+import img2 from "@assets/generated_images/bedroom_scene_2.jpg";
+import img3 from "@assets/generated_images/bath_scene_3.jpg";
+import img4 from "@assets/generated_images/bunny_cosplay_4.jpg";
+import img5 from "@assets/generated_images/bikini_beach_5.jpg";
+import img6 from "@assets/generated_images/asmr_scene_6.jpg";
+import img7 from "@assets/generated_images/casual_home_7.jpg";
+import img8 from "@assets/generated_images/maid_cosplay_8.jpg";
 
 interface ProductCardProps {
   id: string;
