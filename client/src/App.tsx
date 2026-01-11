@@ -111,7 +111,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <TooltipProvider>
-          <AppContent />
+          {/* Mobile-only container - fixed to smartphone dimensions */}
+          <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+            <div className="w-full max-w-[430px] h-screen max-h-[932px] relative overflow-hidden bg-background shadow-2xl md:rounded-[2.5rem] md:border md:border-gray-800">
+              <AppContent />
+            </div>
+          </div>
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
