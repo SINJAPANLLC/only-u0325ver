@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle } from "lucide-react";
-import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
+import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 interface AgeVerificationProps {
   onVerified: () => void;

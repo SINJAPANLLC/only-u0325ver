@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Play, Heart, ShoppingBag, Radio, Shield, Sparkles, Star, Zap, Crown, Lock } from "lucide-react";
-import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
+import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 export default function Landing() {
   const features = [

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import logoImage from "@assets/IMG_7372_2_1768100530058.JPG";
+import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 export function LoadingScreen() {
   return (
