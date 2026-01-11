@@ -6,6 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { Video as VideoType } from "@shared/schema";
 
+// Stock images for mock content
+import img1 from "@assets/stock_images/beautiful_asian_woma_41d68ca0.jpg";
+import img2 from "@assets/stock_images/beautiful_asian_woma_ec784f28.jpg";
+import img3 from "@assets/stock_images/beautiful_asian_woma_65338f70.jpg";
+import img4 from "@assets/stock_images/beautiful_asian_woma_4bdb50b5.jpg";
+import img5 from "@assets/stock_images/beautiful_asian_woma_c08f4c34.jpg";
+import img6 from "@assets/stock_images/beautiful_asian_woma_854beb27.jpg";
+import img7 from "@assets/stock_images/asian_woman_selfie_l_c1d888d4.jpg";
+
 interface VideoPageProps {
   id: string;
   title: string;
@@ -18,7 +27,7 @@ interface VideoPageProps {
   isPremium?: boolean;
   isActive: boolean;
   musicName?: string;
-  gradientColors?: string;
+  thumbnailUrl?: string;
 }
 
 function VideoPage({
@@ -31,7 +40,7 @@ function VideoPage({
   isPremium,
   isActive,
   musicName = "オリジナル音源",
-  gradientColors = "from-pink-900/80 via-purple-900/60 to-black",
+  thumbnailUrl,
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -61,12 +70,24 @@ function VideoPage({
       className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black"
       data-testid={`video-page-${id}`}
     >
-      {/* Video background with gradient overlay */}
+      {/* Video background with image */}
       <div 
-        className={`absolute inset-0 bg-gradient-to-br ${gradientColors} cursor-pointer`}
+        className="absolute inset-0 cursor-pointer"
         onClick={togglePause}
       >
-        {/* Simulated video content */}
+        {/* Background image */}
+        {thumbnailUrl && (
+          <img 
+            src={thumbnailUrl} 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        
+        {/* Play/Pause indicator */}
         <div className="absolute inset-0 flex items-center justify-center">
           {isPaused && (
             <motion.div
@@ -80,16 +101,16 @@ function VideoPage({
           )}
         </div>
         
-        {/* Animated gradient background for demo */}
+        {/* Animated shimmer effect */}
         {isActive && !isPaused && (
           <motion.div
-            className="absolute inset-0 opacity-40"
+            className="absolute inset-0 opacity-20"
             animate={{
               background: [
-                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.5) 0%, transparent 50%)",
-                "radial-gradient(circle at 70% 30%, rgba(168,85,247,0.5) 0%, transparent 50%)",
-                "radial-gradient(circle at 50% 50%, rgba(244,63,94,0.5) 0%, transparent 50%)",
-                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.5) 0%, transparent 50%)",
+                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 70% 30%, rgba(168,85,247,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 50% 50%, rgba(244,63,94,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.4) 0%, transparent 50%)",
               ],
             }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -243,7 +264,7 @@ function VideoPage({
   );
 }
 
-// Adult content mock data for 18+ platform
+// Adult content mock data for 18+ platform with real images
 const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
@@ -256,7 +277,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Midnight Jazz - Lounge Mix",
-    gradientColors: "from-rose-900/90 via-pink-900/70 to-black",
+    thumbnailUrl: img1,
   },
   {
     id: "demo-2",
@@ -269,7 +290,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Sensual R&B Mix",
-    gradientColors: "from-purple-900/90 via-pink-900/70 to-black",
+    thumbnailUrl: img2,
   },
   {
     id: "demo-3",
@@ -282,7 +303,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: false,
     isActive: false,
     musicName: "Ambient Relaxation",
-    gradientColors: "from-blue-900/80 via-purple-900/60 to-black",
+    thumbnailUrl: img3,
   },
   {
     id: "demo-4",
@@ -295,7 +316,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Tokyo Night Vibes",
-    gradientColors: "from-amber-900/80 via-rose-900/60 to-black",
+    thumbnailUrl: img4,
   },
   {
     id: "demo-5",
@@ -308,7 +329,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: false,
     isActive: false,
     musicName: "Lo-fi Chill Beats",
-    gradientColors: "from-indigo-900/80 via-purple-900/60 to-black",
+    thumbnailUrl: img5,
   },
   {
     id: "demo-6",
@@ -321,7 +342,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Summer Beach House",
-    gradientColors: "from-cyan-900/80 via-pink-900/60 to-black",
+    thumbnailUrl: img6,
   },
   {
     id: "demo-7",
@@ -334,7 +355,7 @@ const demoVideos: VideoPageProps[] = [
     isPremium: true,
     isActive: false,
     musicName: "Kawaii EDM Mix",
-    gradientColors: "from-pink-900/90 via-red-900/60 to-black",
+    thumbnailUrl: img7,
   },
 ];
 
@@ -359,6 +380,7 @@ export default function Home() {
         isPremium: v.contentType === "premium",
         isActive: false,
         musicName: "オリジナル音源",
+        thumbnailUrl: v.thumbnailUrl || undefined,
       }))
     : demoVideos;
 

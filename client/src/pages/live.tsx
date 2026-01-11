@@ -9,10 +9,17 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 
+// Stock images for mock content
+import img1 from "@assets/stock_images/beautiful_asian_woma_41d68ca0.jpg";
+import img2 from "@assets/stock_images/beautiful_asian_woma_ec784f28.jpg";
+import img3 from "@assets/stock_images/asian_woman_selfie_l_dd2af7e7.jpg";
+import img4 from "@assets/stock_images/asian_woman_selfie_l_2ca3cc7a.jpg";
+import img5 from "@assets/stock_images/beautiful_asian_woma_c08f4c34.jpg";
+
 interface LiveStreamCardProps {
   id: string;
   title: string;
-  thumbnailUrl?: string | null;
+  thumbnailUrl?: string;
   creatorName: string;
   creatorAvatar?: string;
   viewerCount: number;
@@ -20,19 +27,18 @@ interface LiveStreamCardProps {
   category?: string;
   duration?: number;
   isPremium?: boolean;
-  gradientColors?: string;
 }
 
 function LiveStreamCard({
   id,
   title,
+  thumbnailUrl,
   creatorName,
   creatorAvatar,
   viewerCount,
   isLive,
   category,
   isPremium,
-  gradientColors = "from-pink-600 to-rose-700",
 }: LiveStreamCardProps) {
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -49,19 +55,20 @@ function LiveStreamCard({
       className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer"
       data-testid={`card-live-${id}`}
     >
-      <div className={`aspect-video bg-gradient-to-br ${gradientColors} relative overflow-hidden`}>
-        {/* Animated background */}
-        <motion.div
-          className="absolute inset-0 opacity-50"
-          animate={{
-            background: [
-              "radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            ],
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
+      <div className="aspect-video relative overflow-hidden">
+        {/* Thumbnail image */}
+        {thumbnailUrl ? (
+          <img 
+            src={thumbnailUrl} 
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-rose-700" />
+        )}
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         {/* Play button */}
         <div className="absolute inset-0 flex items-center justify-center">
@@ -108,9 +115,6 @@ function LiveStreamCard({
           <Users className="h-4 w-4" />
           {formatCount(viewerCount)}
         </div>
-
-        {/* Gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
       </div>
 
       <div className="p-4 space-y-3">
@@ -166,7 +170,7 @@ function EmptyLiveState() {
   );
 }
 
-// Adult content mock data for live streams
+// Adult content mock data for live streams with real images
 const demoLiveStreams: LiveStreamCardProps[] = [
   {
     id: "live-1",
@@ -176,7 +180,7 @@ const demoLiveStreams: LiveStreamCardProps[] = [
     isLive: true,
     category: "VIP雑談",
     isPremium: true,
-    gradientColors: "from-amber-600 via-rose-600 to-purple-700",
+    thumbnailUrl: img1,
   },
   {
     id: "live-2",
@@ -186,7 +190,7 @@ const demoLiveStreams: LiveStreamCardProps[] = [
     isLive: true,
     category: "ファッション",
     isPremium: true,
-    gradientColors: "from-purple-600 via-pink-600 to-rose-700",
+    thumbnailUrl: img2,
   },
   {
     id: "live-3",
@@ -196,7 +200,7 @@ const demoLiveStreams: LiveStreamCardProps[] = [
     isLive: true,
     category: "まったり",
     isPremium: false,
-    gradientColors: "from-blue-600 via-purple-600 to-pink-600",
+    thumbnailUrl: img3,
   },
   {
     id: "live-4",
@@ -206,7 +210,7 @@ const demoLiveStreams: LiveStreamCardProps[] = [
     isLive: true,
     category: "ASMR",
     isPremium: false,
-    gradientColors: "from-indigo-600 via-purple-600 to-pink-600",
+    thumbnailUrl: img4,
   },
   {
     id: "live-5",
@@ -216,7 +220,7 @@ const demoLiveStreams: LiveStreamCardProps[] = [
     isLive: true,
     category: "ダンス",
     isPremium: true,
-    gradientColors: "from-red-600 via-pink-600 to-purple-700",
+    thumbnailUrl: img5,
   },
 ];
 
@@ -260,7 +264,7 @@ export default function Live() {
     ? liveStreams.map(s => ({
         id: s.id,
         title: s.title,
-        thumbnailUrl: s.thumbnailUrl,
+        thumbnailUrl: s.thumbnailUrl || undefined,
         creatorName: "Creator",
         viewerCount: s.viewerCount || 0,
         isLive: s.status === "live",

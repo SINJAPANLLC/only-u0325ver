@@ -9,13 +9,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import type { Product } from "@shared/schema";
 
+// Stock images for mock content
+import img1 from "@assets/stock_images/beautiful_asian_woma_41d68ca0.jpg";
+import img2 from "@assets/stock_images/beautiful_asian_woma_ec784f28.jpg";
+import img3 from "@assets/stock_images/beautiful_asian_woma_65338f70.jpg";
+import img4 from "@assets/stock_images/beautiful_asian_woma_4bdb50b5.jpg";
+import img5 from "@assets/stock_images/beautiful_asian_woma_c08f4c34.jpg";
+import img6 from "@assets/stock_images/beautiful_asian_woma_854beb27.jpg";
+import img7 from "@assets/stock_images/asian_woman_selfie_l_c1d888d4.jpg";
+import img8 from "@assets/stock_images/asian_woman_selfie_l_145e1ef8.jpg";
+
 interface ProductCardProps {
   id: string;
   name: string;
   description?: string | null;
   price: number;
   originalPrice?: number;
-  imageUrl?: string | null;
+  imageUrl?: string;
   creatorName: string;
   creatorAvatar?: string;
   productType: "digital" | "physical";
@@ -23,7 +33,6 @@ interface ProductCardProps {
   isPremium?: boolean;
   isLimited?: boolean;
   salesCount?: number;
-  gradientColors?: string;
 }
 
 function ProductCard({
@@ -32,6 +41,7 @@ function ProductCard({
   description,
   price,
   originalPrice,
+  imageUrl,
   creatorName,
   creatorAvatar,
   productType,
@@ -39,7 +49,6 @@ function ProductCard({
   isPremium,
   isLimited,
   salesCount,
-  gradientColors = "from-pink-500 to-rose-500",
 }: ProductCardProps) {
   const formatPrice = (price: number) => {
     return `¥${price.toLocaleString()}`;
@@ -54,28 +63,26 @@ function ProductCard({
       className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer"
       data-testid={`card-product-${id}`}
     >
-      <div className={`aspect-square bg-gradient-to-br ${gradientColors} relative overflow-hidden`}>
-        {/* Animated background */}
-        <motion.div
-          className="absolute inset-0 opacity-30"
-          animate={{
-            background: [
-              "radial-gradient(circle at 30% 70%, rgba(255,255,255,0.2) 0%, transparent 50%)",
-              "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)",
-              "radial-gradient(circle at 30% 70%, rgba(255,255,255,0.2) 0%, transparent 50%)",
-            ],
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
+      <div className="aspect-square relative overflow-hidden">
+        {/* Product image */}
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={name}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+            {productType === "digital" ? (
+              <Download className="h-16 w-16 text-white/30" />
+            ) : (
+              <Package className="h-16 w-16 text-white/30" />
+            )}
+          </div>
+        )}
 
-        {/* Product type icon */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {productType === "digital" ? (
-            <Download className="h-16 w-16 text-white/30" />
-          ) : (
-            <Package className="h-16 w-16 text-white/30" />
-          )}
-        </div>
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
         {/* Premium lock */}
         {isPremium && (
@@ -218,7 +225,7 @@ function EmptyProductState() {
   );
 }
 
-// Adult content mock data for shop
+// Adult content mock data for shop with real images
 const demoProducts: ProductCardProps[] = [
   {
     id: "prod-1",
@@ -232,7 +239,7 @@ const demoProducts: ProductCardProps[] = [
     isPremium: false,
     isLimited: true,
     salesCount: 234,
-    gradientColors: "from-pink-500 via-rose-500 to-purple-500",
+    imageUrl: img1,
   },
   {
     id: "prod-2",
@@ -244,7 +251,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: true,
     isPremium: true,
     salesCount: 189,
-    gradientColors: "from-purple-500 via-pink-500 to-rose-500",
+    imageUrl: img2,
   },
   {
     id: "prod-3",
@@ -256,7 +263,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: true,
     isPremium: false,
     salesCount: 456,
-    gradientColors: "from-blue-500 via-purple-500 to-pink-500",
+    imageUrl: img3,
   },
   {
     id: "prod-4",
@@ -269,7 +276,7 @@ const demoProducts: ProductCardProps[] = [
     isPremium: true,
     isLimited: true,
     salesCount: 87,
-    gradientColors: "from-amber-500 via-rose-500 to-pink-500",
+    imageUrl: img4,
   },
   {
     id: "prod-5",
@@ -281,7 +288,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: true,
     isPremium: false,
     salesCount: 156,
-    gradientColors: "from-indigo-500 via-purple-500 to-pink-500",
+    imageUrl: img5,
   },
   {
     id: "prod-6",
@@ -293,7 +300,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: false,
     isPremium: true,
     salesCount: 312,
-    gradientColors: "from-cyan-500 via-blue-500 to-purple-500",
+    imageUrl: img6,
   },
   {
     id: "prod-7",
@@ -305,7 +312,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: true,
     isPremium: true,
     salesCount: 523,
-    gradientColors: "from-rose-500 via-pink-500 to-amber-500",
+    imageUrl: img7,
   },
   {
     id: "prod-8",
@@ -317,7 +324,7 @@ const demoProducts: ProductCardProps[] = [
     isAvailable: true,
     isPremium: false,
     salesCount: 78,
-    gradientColors: "from-pink-400 via-rose-400 to-purple-400",
+    imageUrl: img8,
   },
 ];
 
@@ -335,10 +342,10 @@ export default function Shop() {
         name: p.name,
         description: p.description,
         price: p.price,
-        imageUrl: p.imageUrl,
+        imageUrl: p.imageUrl || undefined,
         creatorName: "Creator",
         productType: p.productType as "digital" | "physical",
-        isAvailable: p.isAvailable,
+        isAvailable: p.isAvailable ?? true,
       }))
     : demoProducts;
 
