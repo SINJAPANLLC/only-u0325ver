@@ -31,7 +31,7 @@ export function Header({ onSearchClick }: HeaderProps) {
     <motion.header 
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-40 w-full glass border-b border-border/30"
+      className="sticky top-0 z-40 w-full bg-transparent backdrop-blur-xl border-b border-white/10 dark:border-white/5"
     >
       <div className="flex h-14 items-center justify-between px-4 gap-2">
         <motion.div 
@@ -41,7 +41,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-8 object-contain"
+            className="h-8 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
             data-testid="img-logo"
           />
         </motion.div>

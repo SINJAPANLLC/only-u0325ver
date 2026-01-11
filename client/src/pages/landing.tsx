@@ -54,7 +54,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-xl border-b border-white/10 dark:border-white/5">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -64,7 +64,7 @@ export default function Landing() {
             <img 
               src={logoImage} 
               alt="Only-U" 
-              className="h-9 object-contain"
+              className="h-9 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
               data-testid="img-logo-landing"
             />
           </motion.div>
@@ -387,7 +387,7 @@ export default function Landing() {
               <img 
                 src={logoImage} 
                 alt="Only-U" 
-                className="h-8 object-contain"
+                className="h-8 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
               />
               <p className="text-sm text-muted-foreground leading-relaxed">
                 クリエイターと繋がる、

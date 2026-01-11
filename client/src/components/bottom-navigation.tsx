@@ -20,7 +20,7 @@ export function BottomNavigation() {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-border/30 pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-transparent backdrop-blur-xl border-t border-white/10 dark:border-white/5 pb-safe"
     >
       <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2">
         {navItems.map((item) => {
