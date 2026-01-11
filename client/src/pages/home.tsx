@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Pause } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ interface VideoPageProps {
   isPremium?: boolean;
   isActive: boolean;
   musicName?: string;
+  gradientColors?: string;
 }
 
 function VideoPage({
@@ -30,6 +31,7 @@ function VideoPage({
   isPremium,
   isActive,
   musicName = "オリジナル音源",
+  gradientColors = "from-pink-900/80 via-purple-900/60 to-black",
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -61,7 +63,7 @@ function VideoPage({
     >
       {/* Video background with gradient overlay */}
       <div 
-        className="absolute inset-0 bg-gradient-to-br from-pink-900/80 via-purple-900/60 to-black cursor-pointer"
+        className={`absolute inset-0 bg-gradient-to-br ${gradientColors} cursor-pointer`}
         onClick={togglePause}
       >
         {/* Simulated video content */}
@@ -81,13 +83,13 @@ function VideoPage({
         {/* Animated gradient background for demo */}
         {isActive && !isPaused && (
           <motion.div
-            className="absolute inset-0 opacity-30"
+            className="absolute inset-0 opacity-40"
             animate={{
               background: [
-                "radial-gradient(circle at 20% 80%, rgba(236,72,153,0.4) 0%, transparent 50%)",
-                "radial-gradient(circle at 80% 20%, rgba(168,85,247,0.4) 0%, transparent 50%)",
-                "radial-gradient(circle at 50% 50%, rgba(236,72,153,0.4) 0%, transparent 50%)",
-                "radial-gradient(circle at 20% 80%, rgba(236,72,153,0.4) 0%, transparent 50%)",
+                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.5) 0%, transparent 50%)",
+                "radial-gradient(circle at 70% 30%, rgba(168,85,247,0.5) 0%, transparent 50%)",
+                "radial-gradient(circle at 50% 50%, rgba(244,63,94,0.5) 0%, transparent 50%)",
+                "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.5) 0%, transparent 50%)",
               ],
             }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -102,6 +104,19 @@ function VideoPage({
             <Crown className="h-3.5 w-3.5" />
             Premium
           </div>
+        </div>
+      )}
+
+      {/* Lock overlay for premium content preview */}
+      {isPremium && (
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3">
+          <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20">
+            <Lock className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-white/90 text-sm font-medium">サブスク限定コンテンツ</p>
+          <Button size="sm" className="rounded-full bg-gradient-to-r from-pink-500 to-rose-500 border-0 text-white font-semibold">
+            今すぐ登録
+          </Button>
         </div>
       )}
 
@@ -186,6 +201,9 @@ function VideoPage({
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             @{creatorName}
           </span>
+          <span className="px-2 py-0.5 rounded-full bg-pink-500/30 text-pink-300 text-xs font-medium">
+            認証済み
+          </span>
         </div>
 
         {/* Title/description */}
@@ -225,67 +243,98 @@ function VideoPage({
   );
 }
 
-// Demo data for UI showcase
+// Adult content mock data for 18+ platform
 const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
-    title: "今日のコーデを紹介するよ！春の新作アイテムでおしゃれに決めてみた✨ #ファッション #春コーデ",
-    creatorName: "Yuki",
-    viewCount: 125000,
-    likeCount: 8900,
-    commentCount: 234,
-    duration: 30,
-    isPremium: false,
+    title: "深夜のプライベートトーク💋 今夜だけの秘密の時間...メンバー限定で特別な姿をお見せします #大人の時間 #セクシー",
+    creatorName: "Risa",
+    viewCount: 285000,
+    likeCount: 24800,
+    commentCount: 1890,
+    duration: 45,
+    isPremium: true,
     isActive: false,
-    musicName: "オリジナル音源 - Yuki",
+    musicName: "Midnight Jazz - Lounge Mix",
+    gradientColors: "from-rose-900/90 via-pink-900/70 to-black",
   },
   {
     id: "demo-2",
-    title: "モーニングルーティン💄朝のスキンケアとメイクの全工程を見せちゃいます",
-    creatorName: "Sakura",
-    viewCount: 450000,
-    likeCount: 32000,
-    commentCount: 1200,
+    title: "新作ランジェリーの着用レビュー🖤 大人のセクシーを追求した最新コレクション #ランジェリー #下着",
+    creatorName: "Yua",
+    viewCount: 456000,
+    likeCount: 38200,
+    commentCount: 2340,
     duration: 60,
     isPremium: true,
     isActive: false,
-    musicName: "Chill Morning Vibes",
+    musicName: "Sensual R&B Mix",
+    gradientColors: "from-purple-900/90 via-pink-900/70 to-black",
   },
   {
     id: "demo-3",
-    title: "表参道の隠れ家カフェ発見！雰囲気最高すぎた☕️",
-    creatorName: "Miki",
-    viewCount: 89000,
-    likeCount: 5600,
-    commentCount: 189,
-    duration: 45,
+    title: "バスタイムASMR🛁 リラックスした夜のひととき...囁き声でお話しします #ASMR #癒し",
+    creatorName: "Mio",
+    viewCount: 189000,
+    likeCount: 15600,
+    commentCount: 890,
+    duration: 35,
     isPremium: false,
     isActive: false,
-    musicName: "Cafe Jazz BGM",
+    musicName: "Ambient Relaxation",
+    gradientColors: "from-blue-900/80 via-purple-900/60 to-black",
   },
   {
     id: "demo-4",
-    title: "韓国コスメの新作レビュー！正直な感想言います💄",
-    creatorName: "Rina",
-    viewCount: 230000,
-    likeCount: 18000,
-    commentCount: 890,
+    title: "銀座ホステスの夜のメイク術💄 男性を虜にする大人の色気メイク完全版 #銀座 #ホステス",
+    creatorName: "Reina",
+    viewCount: 523000,
+    likeCount: 42000,
+    commentCount: 3100,
     duration: 55,
     isPremium: true,
     isActive: false,
-    musicName: "K-Pop Hits",
+    musicName: "Tokyo Night Vibes",
+    gradientColors: "from-amber-900/80 via-rose-900/60 to-black",
   },
   {
     id: "demo-5",
-    title: "週末の過ごし方Vlog🌸彼氏とデートしてきた",
-    creatorName: "Hana",
-    viewCount: 156000,
-    likeCount: 9800,
-    commentCount: 445,
+    title: "ベッドルームからこんばんは🌙 パジャマ姿でまったり雑談...今夜は何を話そうかな #おやすみ配信",
+    creatorName: "Hina",
+    viewCount: 178000,
+    likeCount: 13400,
+    commentCount: 780,
     duration: 40,
     isPremium: false,
     isActive: false,
-    musicName: "Sweet Love Song",
+    musicName: "Lo-fi Chill Beats",
+    gradientColors: "from-indigo-900/80 via-purple-900/60 to-black",
+  },
+  {
+    id: "demo-6",
+    title: "水着グラビア撮影の裏側📸 ビーチでのセクシーショット撮影に密着！ #グラビア #水着",
+    creatorName: "Saki",
+    viewCount: 612000,
+    likeCount: 51000,
+    commentCount: 4200,
+    duration: 50,
+    isPremium: true,
+    isActive: false,
+    musicName: "Summer Beach House",
+    gradientColors: "from-cyan-900/80 via-pink-900/60 to-black",
+  },
+  {
+    id: "demo-7",
+    title: "コスプレ撮影会🎀 ナース服でちょっとセクシーに...リクエストにお応えします #コスプレ #ナース",
+    creatorName: "Aya",
+    viewCount: 398000,
+    likeCount: 32000,
+    commentCount: 2800,
+    duration: 45,
+    isPremium: true,
+    isActive: false,
+    musicName: "Kawaii EDM Mix",
+    gradientColors: "from-pink-900/90 via-red-900/60 to-black",
   },
 ];
 

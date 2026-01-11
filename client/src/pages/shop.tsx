@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Tag, Download, Package } from "lucide-react";
+import { ShoppingBag, Tag, Download, Package, Crown, Lock, Heart, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,21 +14,32 @@ interface ProductCardProps {
   name: string;
   description?: string | null;
   price: number;
+  originalPrice?: number;
   imageUrl?: string | null;
   creatorName: string;
   creatorAvatar?: string;
   productType: "digital" | "physical";
   isAvailable: boolean;
+  isPremium?: boolean;
+  isLimited?: boolean;
+  salesCount?: number;
+  gradientColors?: string;
 }
 
 function ProductCard({
   id,
   name,
+  description,
   price,
+  originalPrice,
   creatorName,
   creatorAvatar,
   productType,
   isAvailable,
+  isPremium,
+  isLimited,
+  salesCount,
+  gradientColors = "from-pink-500 to-rose-500",
 }: ProductCardProps) {
   const formatPrice = (price: number) => {
     return `¥${price.toLocaleString()}`;
@@ -38,39 +49,82 @@ function ProductCard({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative rounded-2xl overflow-hidden bg-card border border-card-border hover-elevate cursor-pointer"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer"
       data-testid={`card-product-${id}`}
     >
-      <div className="aspect-square bg-gradient-to-br from-primary/10 to-pink-400/10 relative">
+      <div className={`aspect-square bg-gradient-to-br ${gradientColors} relative overflow-hidden`}>
+        {/* Animated background */}
+        <motion.div
+          className="absolute inset-0 opacity-30"
+          animate={{
+            background: [
+              "radial-gradient(circle at 30% 70%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+              "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+              "radial-gradient(circle at 30% 70%, rgba(255,255,255,0.2) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+
+        {/* Product type icon */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <ShoppingBag className="h-12 w-12 text-primary/30" />
+          {productType === "digital" ? (
+            <Download className="h-16 w-16 text-white/30" />
+          ) : (
+            <Package className="h-16 w-16 text-white/30" />
+          )}
         </div>
 
-        <Badge 
-          className={`absolute top-2 left-2 gap-1 ${
-            productType === "digital" 
-              ? "bg-blue-500 border-0 text-white" 
-              : "bg-emerald-500 border-0 text-white"
-          }`}
-          data-testid={`badge-product-type-${id}`}
-        >
-          {productType === "digital" ? (
-            <>
-              <Download className="h-3 w-3" />
-              デジタル
-            </>
-          ) : (
-            <>
-              <Package className="h-3 w-3" />
-              物販
-            </>
-          )}
-        </Badge>
+        {/* Premium lock */}
+        {isPremium && (
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+            <Lock className="h-10 w-10 text-white" />
+            <span className="text-white text-xs font-medium">メンバー限定</span>
+          </div>
+        )}
 
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+          <Badge 
+            className={`gap-1 ${
+              productType === "digital" 
+                ? "bg-blue-500 border-0 text-white" 
+                : "bg-emerald-500 border-0 text-white"
+            }`}
+            data-testid={`badge-product-type-${id}`}
+          >
+            {productType === "digital" ? (
+              <>
+                <Download className="h-3 w-3" />
+                デジタル
+              </>
+            ) : (
+              <>
+                <Package className="h-3 w-3" />
+                物販
+              </>
+            )}
+          </Badge>
+          {isLimited && (
+            <Badge className="bg-red-500 border-0 text-white gap-1">
+              <Clock className="h-3 w-3" />
+              期間限定
+            </Badge>
+          )}
+        </div>
+
+        {/* Wishlist button */}
+        <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
+          <Heart className="h-4 w-4 text-white" />
+        </button>
+
+        {/* Sold out overlay */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-            <Badge variant="secondary" className="text-base">
-              売り切れ
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <Badge variant="secondary" className="text-base px-4 py-2">
+              SOLD OUT
             </Badge>
           </div>
         )}
@@ -78,22 +132,47 @@ function ProductCard({
 
       <div className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold line-clamp-2 leading-tight" data-testid={`text-product-name-${id}`}>{name}</h3>
-          <p className="text-lg font-bold text-primary mt-1" data-testid={`text-product-price-${id}`}>{formatPrice(price)}</p>
+          <h3 className="font-bold line-clamp-2 leading-tight text-sm" data-testid={`text-product-name-${id}`}>{name}</h3>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{description}</p>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={creatorAvatar} />
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {creatorName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-muted-foreground" data-testid={`text-product-creator-${id}`}>{creatorName}</span>
+        {/* Price */}
+        <div className="flex items-baseline gap-2">
+          <p className="text-xl font-bold text-pink-500" data-testid={`text-product-price-${id}`}>
+            {formatPrice(price)}
+          </p>
+          {originalPrice && originalPrice > price && (
+            <p className="text-sm text-muted-foreground line-through">
+              {formatPrice(originalPrice)}
+            </p>
+          )}
+        </div>
+
+        {/* Creator and stats */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={creatorAvatar} />
+              <AvatarFallback className="text-xs bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+                {creatorName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground font-medium" data-testid={`text-product-creator-${id}`}>
+              {creatorName}
+            </span>
+          </div>
+          {salesCount && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
+              {salesCount}件販売
+            </span>
+          )}
         </div>
 
         <Button 
-          className="w-full rounded-xl" 
+          className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 font-semibold" 
           disabled={!isAvailable}
           data-testid={`button-buy-${id}`}
         >
@@ -106,7 +185,7 @@ function ProductCard({
 
 function ProductCardSkeleton() {
   return (
-    <div className="rounded-2xl overflow-hidden bg-card border border-card-border">
+    <div className="rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30">
       <Skeleton className="aspect-square" />
       <div className="p-4 space-y-3">
         <Skeleton className="h-5 w-full" />
@@ -123,17 +202,124 @@ function ProductCardSkeleton() {
 
 function EmptyProductState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-        <Tag className="h-8 w-8 text-muted-foreground" />
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-24 text-center"
+    >
+      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 flex items-center justify-center mb-5">
+        <ShoppingBag className="h-10 w-10 text-pink-400" />
       </div>
-      <h3 className="font-semibold mb-2" data-testid="text-empty-products">商品がまだありません</h3>
-      <p className="text-sm text-muted-foreground max-w-xs">
-        クリエイターが商品を追加するとここに表示されます
+      <h3 className="font-bold text-lg mb-2" data-testid="text-empty-products">商品がありません</h3>
+      <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+        クリエイターが商品を出品するとここに表示されます
       </p>
-    </div>
+    </motion.div>
   );
 }
+
+// Adult content mock data for shop
+const demoProducts: ProductCardProps[] = [
+  {
+    id: "prod-1",
+    name: "【写真集】秘密のプライベートショット 50枚セット",
+    description: "ここでしか見れない限定ショット",
+    price: 3500,
+    originalPrice: 5000,
+    creatorName: "Risa",
+    productType: "digital",
+    isAvailable: true,
+    isPremium: false,
+    isLimited: true,
+    salesCount: 234,
+    gradientColors: "from-pink-500 via-rose-500 to-purple-500",
+  },
+  {
+    id: "prod-2",
+    name: "【動画】ランジェリーコレクション 完全版 30分",
+    description: "最新ランジェリーの着用動画",
+    price: 5800,
+    creatorName: "Yua",
+    productType: "digital",
+    isAvailable: true,
+    isPremium: true,
+    salesCount: 189,
+    gradientColors: "from-purple-500 via-pink-500 to-rose-500",
+  },
+  {
+    id: "prod-3",
+    name: "【ASMR音声】耳元で囁く30分 〜眠れない夜に〜",
+    description: "高音質バイノーラル録音",
+    price: 1500,
+    creatorName: "Mio",
+    productType: "digital",
+    isAvailable: true,
+    isPremium: false,
+    salesCount: 456,
+    gradientColors: "from-blue-500 via-purple-500 to-pink-500",
+  },
+  {
+    id: "prod-4",
+    name: "【写真集】銀座の夜 グラビアフォトブック",
+    description: "プロカメラマン撮影の本格グラビア",
+    price: 8900,
+    creatorName: "Reina",
+    productType: "digital",
+    isAvailable: true,
+    isPremium: true,
+    isLimited: true,
+    salesCount: 87,
+    gradientColors: "from-amber-500 via-rose-500 to-pink-500",
+  },
+  {
+    id: "prod-5",
+    name: "【サイン入りチェキ】3枚セット + メッセージカード",
+    description: "直筆サイン&メッセージ付き",
+    price: 4500,
+    creatorName: "Hina",
+    productType: "physical",
+    isAvailable: true,
+    isPremium: false,
+    salesCount: 156,
+    gradientColors: "from-indigo-500 via-purple-500 to-pink-500",
+  },
+  {
+    id: "prod-6",
+    name: "【動画】水着撮影メイキング 完全ノーカット版",
+    description: "ビーチ撮影の裏側を全て公開",
+    price: 6500,
+    creatorName: "Saki",
+    productType: "digital",
+    isAvailable: false,
+    isPremium: true,
+    salesCount: 312,
+    gradientColors: "from-cyan-500 via-blue-500 to-purple-500",
+  },
+  {
+    id: "prod-7",
+    name: "【月額プラン】VIPメンバーシップ",
+    description: "全コンテンツ見放題 + 限定配信",
+    price: 9800,
+    creatorName: "Aya",
+    productType: "digital",
+    isAvailable: true,
+    isPremium: true,
+    salesCount: 523,
+    gradientColors: "from-rose-500 via-pink-500 to-amber-500",
+  },
+  {
+    id: "prod-8",
+    name: "【香水】オリジナルフレグランス 30ml",
+    description: "私のお気に入りの香り",
+    price: 12000,
+    creatorName: "Risa",
+    productType: "physical",
+    isAvailable: true,
+    isPremium: false,
+    salesCount: 78,
+    gradientColors: "from-pink-400 via-rose-400 to-purple-400",
+  },
+];
 
 export default function Shop() {
   const [activeTab, setActiveTab] = useState("all");
@@ -142,7 +328,8 @@ export default function Shop() {
     queryKey: ["/api/products"],
   });
 
-  const displayProducts: ProductCardProps[] = products
+  // Use demo data for UI showcase
+  const displayProducts: ProductCardProps[] = products && products.length > 0
     ? products.map(p => ({
         id: p.id,
         name: p.name,
@@ -150,44 +337,56 @@ export default function Shop() {
         price: p.price,
         imageUrl: p.imageUrl,
         creatorName: "Creator",
-        productType: (p.productType || "digital") as "digital" | "physical",
-        isAvailable: p.isAvailable ?? true,
+        productType: p.productType as "digital" | "physical",
+        isAvailable: p.isAvailable,
       }))
-    : [];
+    : demoProducts;
 
-  const filteredProducts = displayProducts.filter((product) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "digital") return product.productType === "digital";
-    if (activeTab === "physical") return product.productType === "physical";
-    return true;
-  });
+  const filteredProducts = activeTab === "all" 
+    ? displayProducts 
+    : displayProducts.filter(p => p.productType === activeTab);
 
   return (
-    <div className="pb-20">
+    <div className="pb-24 min-h-screen bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
+      {/* Featured banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 p-4 text-white shadow-lg shadow-pink-500/20"
+      >
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+            <Crown className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-bold text-sm">限定アイテム販売中</p>
+            <p className="text-xs text-white/80">ここでしか手に入らない特別なコンテンツ</p>
+          </div>
+        </div>
+      </motion.div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-14 z-30 bg-background/95 backdrop-blur border-b border-border/50">
-          <TabsList className="w-full h-12 bg-transparent rounded-none justify-start px-4 gap-4">
+        <div className="sticky top-14 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
+          <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-4">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
               data-testid="tab-all"
             >
               すべて
             </TabsTrigger>
             <TabsTrigger 
               value="digital" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 gap-1"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
               data-testid="tab-digital"
             >
-              <Download className="h-4 w-4" />
               デジタル
             </TabsTrigger>
             <TabsTrigger 
               value="physical" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-3 gap-1"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
               data-testid="tab-physical"
             >
-              <Package className="h-4 w-4" />
               物販
             </TabsTrigger>
           </TabsList>
@@ -196,11 +395,13 @@ export default function Shop() {
         <TabsContent value={activeTab} className="mt-0 p-4">
           {isLoading ? (
             <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : filteredProducts.length === 0 ? (
+            <EmptyProductState />
+          ) : (
             <div className="grid grid-cols-2 gap-4">
               {filteredProducts.map((product, index) => (
                 <motion.div
@@ -213,8 +414,6 @@ export default function Shop() {
                 </motion.div>
               ))}
             </div>
-          ) : (
-            <EmptyProductState />
           )}
         </TabsContent>
       </Tabs>

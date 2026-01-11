@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Radio, Users, Clock, Play, Sparkles, Zap } from "lucide-react";
+import { Radio, Users, Clock, Play, Sparkles, Zap, Lock, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
@@ -18,6 +19,8 @@ interface LiveStreamCardProps {
   isLive: boolean;
   category?: string;
   duration?: number;
+  isPremium?: boolean;
+  gradientColors?: string;
 }
 
 function LiveStreamCard({
@@ -28,6 +31,8 @@ function LiveStreamCard({
   viewerCount,
   isLive,
   category,
+  isPremium,
+  gradientColors = "from-pink-600 to-rose-700",
 }: LiveStreamCardProps) {
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -44,7 +49,20 @@ function LiveStreamCard({
       className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer"
       data-testid={`card-live-${id}`}
     >
-      <div className="aspect-video bg-gradient-to-br from-pink-200 to-rose-200 dark:from-pink-900/40 dark:to-rose-900/40 relative overflow-hidden">
+      <div className={`aspect-video bg-gradient-to-br ${gradientColors} relative overflow-hidden`}>
+        {/* Animated background */}
+        <motion.div
+          className="absolute inset-0 opacity-50"
+          animate={{
+            background: [
+              "radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+
         {/* Play button */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div 
@@ -55,20 +73,35 @@ function LiveStreamCard({
           </motion.div>
         </div>
 
+        {/* Premium lock overlay */}
+        {isPremium && (
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+            <Lock className="h-8 w-8 text-white" />
+            <span className="text-white text-xs font-medium">メンバー限定</span>
+          </div>
+        )}
+
         {/* Badges */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
           {isLive && (
-            <Badge className="bg-red-500 border-0 text-white gap-1.5 font-bold shadow-lg animate-pulse" data-testid={`badge-live-${id}`}>
+            <Badge className="bg-red-500 border-0 text-white gap-1.5 font-bold shadow-lg" data-testid={`badge-live-${id}`}>
               <span className="h-2 w-2 rounded-full bg-white animate-live-pulse" />
               LIVE
             </Badge>
           )}
-          {category && (
-            <Badge variant="secondary" className="bg-black/60 backdrop-blur-sm border-0 text-white font-medium" data-testid={`badge-category-${id}`}>
-              {category}
+          {isPremium && (
+            <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 border-0 text-amber-900 font-bold shadow-lg gap-1">
+              <Crown className="h-3 w-3" />
+              VIP
             </Badge>
           )}
         </div>
+
+        {category && (
+          <Badge variant="secondary" className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm border-0 text-white font-medium" data-testid={`badge-category-${id}`}>
+            {category}
+          </Badge>
+        )}
 
         {/* Viewer count */}
         <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-sm px-3 py-1.5 text-sm text-white font-semibold" data-testid={`text-viewer-count-${id}`}>
@@ -133,39 +166,85 @@ function EmptyLiveState() {
   );
 }
 
-// Demo data for UI showcase
+// Adult content mock data for live streams
 const demoLiveStreams: LiveStreamCardProps[] = [
   {
-    id: "demo-1",
-    title: "雑談配信 - みんなでおしゃべりしよう",
-    creatorName: "Sakura",
+    id: "live-1",
+    title: "深夜のVIPルーム💋 シャンパン片手にまったりトーク",
+    creatorName: "Reina",
+    viewerCount: 2450,
+    isLive: true,
+    category: "VIP雑談",
+    isPremium: true,
+    gradientColors: "from-amber-600 via-rose-600 to-purple-700",
+  },
+  {
+    id: "live-2",
+    title: "ランジェリー試着配信🖤 新作下着をお見せします",
+    creatorName: "Yua",
+    viewerCount: 1890,
+    isLive: true,
+    category: "ファッション",
+    isPremium: true,
+    gradientColors: "from-purple-600 via-pink-600 to-rose-700",
+  },
+  {
+    id: "live-3",
+    title: "お風呂上がり配信🛁 パジャマ姿でおしゃべり",
+    creatorName: "Mio",
     viewerCount: 1250,
     isLive: true,
-    category: "雑談",
+    category: "まったり",
+    isPremium: false,
+    gradientColors: "from-blue-600 via-purple-600 to-pink-600",
   },
   {
-    id: "demo-2",
-    title: "メイク配信 - 今日のメイクを紹介",
-    creatorName: "Rina",
-    viewerCount: 890,
+    id: "live-4",
+    title: "ASMR配信🎧 耳元で囁きます...眠れない夜に",
+    creatorName: "Hina",
+    viewerCount: 980,
     isLive: true,
+    category: "ASMR",
+    isPremium: false,
+    gradientColors: "from-indigo-600 via-purple-600 to-pink-600",
+  },
+  {
+    id: "live-5",
+    title: "セクシーダンス練習中💃 新しい振り付けをお披露目",
+    creatorName: "Saki",
+    viewerCount: 3200,
+    isLive: true,
+    category: "ダンス",
+    isPremium: true,
+    gradientColors: "from-red-600 via-pink-600 to-purple-700",
+  },
+];
+
+// Scheduled streams
+const scheduledStreams = [
+  {
+    id: "sched-1",
+    title: "メンバー限定 深夜の特別配信",
+    creatorName: "Risa",
+    scheduledTime: "23:00",
+    category: "VIP限定",
+    isPremium: true,
+  },
+  {
+    id: "sched-2",
+    title: "水着撮影会 生配信",
+    creatorName: "Aya",
+    scheduledTime: "20:00",
+    category: "グラビア",
+    isPremium: true,
+  },
+  {
+    id: "sched-3",
+    title: "夜のメイク講座",
+    creatorName: "Reina",
+    scheduledTime: "21:30",
     category: "美容",
-  },
-  {
-    id: "demo-3",
-    title: "ゲーム配信 - 新作ゲームをプレイ",
-    creatorName: "Yuki",
-    viewerCount: 2300,
-    isLive: true,
-    category: "ゲーム",
-  },
-  {
-    id: "demo-4",
-    title: "料理配信 - 簡単レシピを紹介",
-    creatorName: "Miki",
-    viewerCount: 560,
-    isLive: true,
-    category: "料理",
+    isPremium: false,
   },
 ];
 
@@ -214,7 +293,7 @@ export default function Live() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-14 z-30 glass border-b border-border/30">
+        <div className="sticky top-14 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-6">
             <TabsTrigger 
               value="live" 
@@ -276,19 +355,35 @@ export default function Live() {
         </TabsContent>
 
         <TabsContent value="scheduled" className="mt-0 p-4">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center"
-          >
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-gray-100 to-pink-100 dark:from-gray-800 dark:to-pink-900/30 flex items-center justify-center mb-5">
-              <Clock className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h3 className="font-bold text-lg mb-2" data-testid="text-empty-scheduled">予定されている配信はありません</h3>
-            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-              クリエイターをフォローして、配信予定をチェックしよう
-            </p>
-          </motion.div>
+          <div className="space-y-3">
+            {scheduledStreams.map((stream, index) => (
+              <motion.div
+                key={stream.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30"
+              >
+                <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-lg">
+                  {stream.scheduledTime}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-sm truncate">{stream.title}</h3>
+                    {stream.isPremium && (
+                      <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 border-0 text-amber-900 text-xs">
+                        VIP
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{stream.creatorName} • {stream.category}</p>
+                </div>
+                <Button size="sm" variant="outline" className="rounded-full text-xs">
+                  通知ON
+                </Button>
+              </motion.div>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
