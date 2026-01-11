@@ -367,12 +367,12 @@ export default function Home() {
     queryKey: ["/api/videos"],
   });
 
-  // Use demo data for UI showcase
+  // Use API data when available, fallback to demo data for showcase
   const displayVideos: VideoPageProps[] = videos && videos.length > 0
-    ? videos.map(v => ({
+    ? videos.map((v, idx) => ({
         id: v.id,
         title: v.title,
-        creatorName: "Creator",
+        creatorName: v.creatorId?.slice(0, 8) || "Creator",
         viewCount: v.viewCount || 0,
         likeCount: v.likeCount || 0,
         commentCount: 0,
@@ -380,7 +380,7 @@ export default function Home() {
         isPremium: v.contentType === "premium",
         isActive: false,
         musicName: "オリジナル音源",
-        thumbnailUrl: v.thumbnailUrl || undefined,
+        thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
       }))
     : demoVideos;
 

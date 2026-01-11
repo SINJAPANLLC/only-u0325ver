@@ -8,6 +8,7 @@ import {
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema
 } from "@shared/schema";
 import { eq, desc, and, or, sql } from "drizzle-orm";
+import { generateImage } from "./modelslab";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -388,6 +389,40 @@ export async function registerRoutes(
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // ModelsLab image generation endpoint
+  app.post("/api/generate-image", isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt, negative_prompt, width, height, samples } = req.body;
+
+      if (!prompt || typeof prompt !== "string" || prompt.length > 500) {
+        return res.status(400).json({ message: "Prompt is required and must be under 500 characters" });
+      }
+
+      // Validate and clamp numeric parameters
+      const validatedWidth = Math.min(Math.max(Number(width) || 512, 256), 1024);
+      const validatedHeight = Math.min(Math.max(Number(height) || 768, 256), 1024);
+      const validatedSamples = Math.min(Math.max(Number(samples) || 1, 1), 4);
+
+      const images = await generateImage({
+        prompt: prompt.slice(0, 500),
+        negative_prompt: typeof negative_prompt === "string" ? negative_prompt.slice(0, 200) : undefined,
+        width: validatedWidth,
+        height: validatedHeight,
+        samples: validatedSamples,
+      });
+
+      res.json({ 
+        status: "success", 
+        images,
+      });
+    } catch (error: any) {
+      console.error("Error generating image:", error);
+      res.status(500).json({ 
+        message: error.message || "Failed to generate image" 
+      });
+    }
   });
 
   return httpServer;
