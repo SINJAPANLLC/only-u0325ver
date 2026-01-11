@@ -41,7 +41,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-8 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
+            className="h-10 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
             data-testid="img-logo"
           />
         </motion.div>
@@ -52,10 +52,10 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/30"
+                className="rounded-full h-10 w-10 hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
                 data-testid="button-language"
               >
-                <Globe className="h-5 w-5" />
+                <Globe className="h-5 w-5 stroke-[1.5]" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
@@ -75,10 +75,10 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full relative hover:bg-pink-100 dark:hover:bg-pink-900/30"
+            className="rounded-full h-10 w-10 relative hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
             data-testid="button-notifications"
           >
-            <Bell className="h-5 w-5" />
+            <Bell className="h-5 w-5 stroke-[1.5]" />
             {notificationCount > 0 && (
               <Badge 
                 className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 animate-pulse"
@@ -91,11 +91,11 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full hover:bg-pink-100 dark:hover:bg-pink-900/30"
+            className="rounded-full h-10 w-10 hover:bg-pink-500/10 dark:hover:bg-pink-500/20 transition-colors"
             onClick={onSearchClick}
             data-testid="button-search"
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5 stroke-[1.5]" />
           </Button>
 
           <ThemeToggle />

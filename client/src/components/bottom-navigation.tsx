@@ -52,10 +52,10 @@ export function BottomNavigation() {
                   <Icon 
                     className={cn(
                       "h-6 w-6 transition-all duration-200",
-                      isActive && "scale-110"
+                      isActive ? "scale-110 drop-shadow-sm" : "stroke-[1.5]"
                     )} 
                     fill={isActive ? "currentColor" : "none"}
-                    strokeWidth={isActive ? 1.5 : 2}
+                    strokeWidth={isActive ? 1.5 : 1.5}
                   />
                   
                   {/* Live pulse indicator */}

@@ -64,7 +64,7 @@ export default function Landing() {
             <img 
               src={logoImage} 
               alt="Only-U" 
-              className="h-9 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
+              className="h-11 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
               data-testid="img-logo-landing"
             />
           </motion.div>
@@ -387,7 +387,7 @@ export default function Landing() {
               <img 
                 src={logoImage} 
                 alt="Only-U" 
-                className="h-8 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
+                className="h-10 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
               />
               <p className="text-sm text-muted-foreground leading-relaxed">
                 クリエイターと繋がる、

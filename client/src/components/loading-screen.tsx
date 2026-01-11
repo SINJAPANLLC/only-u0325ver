@@ -24,7 +24,7 @@ export function LoadingScreen() {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-16 object-contain"
+            className="h-20 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
             data-testid="img-logo-loading"
           />
           <motion.div
