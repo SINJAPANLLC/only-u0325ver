@@ -41,7 +41,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-16 object-contain brightness-0 invert"
+            className="h-20 object-contain brightness-0 invert"
             data-testid="img-logo"
           />
         </motion.div>
@@ -52,10 +52,10 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-10 w-10 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+                className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
                 data-testid="button-language"
               >
-                <PiGlobeHemisphereEastDuotone className="h-8 w-8 text-white drop-shadow-sm" />
+                <PiGlobeHemisphereEastDuotone className="h-9 w-9 text-white drop-shadow-sm" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20">
@@ -75,10 +75,10 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-12 w-12 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             data-testid="button-notifications"
           >
-            <PiBellSimpleRingingDuotone className="h-8 w-8 text-white drop-shadow-sm" />
+            <PiBellSimpleRingingDuotone className="h-9 w-9 text-white drop-shadow-sm" />
             {notificationCount > 0 && (
               <Badge 
                 className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg shadow-pink-500/50 animate-pulse"
@@ -91,11 +91,11 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             onClick={onSearchClick}
             data-testid="button-search"
           >
-            <PiMagnifyingGlassDuotone className="h-8 w-8 text-white drop-shadow-sm" />
+            <PiMagnifyingGlassDuotone className="h-9 w-9 text-white drop-shadow-sm" />
           </Button>
 
           <ThemeToggle />
