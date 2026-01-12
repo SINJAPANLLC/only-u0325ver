@@ -23,12 +23,10 @@ function AuthenticatedApp() {
   return (
     <div className="min-h-screen bg-background">
       <Switch>
-        {/* Home uses full-screen TikTok-style layout with overlay nav */}
+        {/* Home uses full-screen TikTok-style layout with overlay nav - Header/Nav included in component */}
         <Route path="/">
           <div className="relative h-[100svh] overflow-hidden">
-            <Header />
             <Home />
-            <BottomNavigation />
           </div>
         </Route>
         {/* Live uses full-screen TikTok-style layout like Home */}

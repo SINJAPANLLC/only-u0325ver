@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { Video as VideoType } from "@shared/schema";
+import { Header } from "@/components/header";
+import { BottomNavigation } from "@/components/bottom-navigation";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -363,28 +365,34 @@ const demoVideos: VideoPageProps[] = [
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: videos } = useQuery<VideoType[]>({
     queryKey: ["/api/videos"],
   });
 
+  // Following videos (fewer, simulating followed creators)
+  const followingVideos = demoVideos.filter((_, i) => i % 2 === 0);
+
   // Use API data when available, fallback to demo data for showcase
-  const displayVideos: VideoPageProps[] = videos && videos.length > 0
-    ? videos.map((v, idx) => ({
-        id: v.id,
-        title: v.title,
-        creatorName: v.creatorId?.slice(0, 8) || "Creator",
-        viewCount: v.viewCount || 0,
-        likeCount: v.likeCount || 0,
-        commentCount: 0,
-        duration: v.duration || 0,
-        isPremium: v.contentType === "premium",
-        isActive: false,
-        musicName: "オリジナル音源",
-        thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
-      }))
-    : demoVideos;
+  const displayVideos: VideoPageProps[] = feedType === "following" 
+    ? followingVideos
+    : videos && videos.length > 0
+      ? videos.map((v, idx) => ({
+          id: v.id,
+          title: v.title,
+          creatorName: v.creatorId?.slice(0, 8) || "Creator",
+          viewCount: v.viewCount || 0,
+          likeCount: v.likeCount || 0,
+          commentCount: 0,
+          duration: v.duration || 0,
+          isPremium: v.contentType === "premium",
+          isActive: false,
+          musicName: "オリジナル音源",
+          thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
+        }))
+      : demoVideos;
 
   // Track scroll position to determine active video
   useEffect(() => {
@@ -404,19 +412,32 @@ export default function Home() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [activeIndex, displayVideos.length]);
 
+  const handleFeedTypeChange = (type: "recommend" | "following") => {
+    setFeedType(type);
+    setActiveIndex(0);
+    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div 
-      ref={containerRef}
-      className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
-      data-testid="video-feed"
-    >
-      {displayVideos.map((video, index) => (
-        <VideoPage
-          key={video.id}
-          {...video}
-          isActive={index === activeIndex}
-        />
-      ))}
-    </div>
+    <>
+      <Header 
+        feedType={feedType} 
+        onFeedTypeChange={handleFeedTypeChange} 
+      />
+      <div 
+        ref={containerRef}
+        className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
+        data-testid="video-feed"
+      >
+        {displayVideos.map((video, index) => (
+          <VideoPage
+            key={video.id}
+            {...video}
+            isActive={index === activeIndex}
+          />
+        ))}
+      </div>
+      <BottomNavigation />
+    </>
   );
 }

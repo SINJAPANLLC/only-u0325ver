@@ -21,6 +21,8 @@ import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 interface HeaderProps {
   onSearchClick?: () => void;
+  feedType?: "recommend" | "following";
+  onFeedTypeChange?: (type: "recommend" | "following") => void;
 }
 
 const languages = [
@@ -30,7 +32,7 @@ const languages = [
   { code: "ko", label: "한국어" },
 ];
 
-export function Header({ onSearchClick }: HeaderProps) {
+export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange }: HeaderProps) {
   const [currentLang, setCurrentLang] = useState("ja");
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const notificationCount = 3;
@@ -54,17 +56,43 @@ export function Header({ onSearchClick }: HeaderProps) {
       className="fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-b from-black/40 to-transparent pointer-events-none"
     >
       <div className="flex h-16 items-center justify-between px-4 gap-2 pointer-events-auto pt-2">
-        <motion.div 
-          className="flex items-center gap-2"
-          whileHover={{ scale: 1.02 }}
-        >
-          <img 
-            src={logoImage} 
-            alt="Only-U" 
-            className="h-24 object-contain brightness-0 invert -mt-1"
-            data-testid="img-logo"
-          />
-        </motion.div>
+        <div className="flex flex-col">
+          <motion.div 
+            className="flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+          >
+            <img 
+              src={logoImage} 
+              alt="Only-U" 
+              className="h-24 object-contain brightness-0 invert -mt-1"
+              data-testid="img-logo"
+            />
+          </motion.div>
+          <div className="flex items-center gap-4 -mt-2 ml-1">
+            <button
+              onClick={() => onFeedTypeChange?.("recommend")}
+              className={`text-sm font-medium transition-all ${
+                feedType === "recommend" 
+                  ? "text-white" 
+                  : "text-white/50"
+              }`}
+              data-testid="button-feed-recommend"
+            >
+              おすすめ
+            </button>
+            <button
+              onClick={() => onFeedTypeChange?.("following")}
+              className={`text-sm font-medium transition-all ${
+                feedType === "following" 
+                  ? "text-white" 
+                  : "text-white/50"
+              }`}
+              data-testid="button-feed-following"
+            >
+              フォロー中
+            </button>
+          </div>
+        </div>
 
         <div className="flex items-center gap-1">
           <DropdownMenu>
