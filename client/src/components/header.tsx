@@ -53,7 +53,7 @@ export function Header({ onSearchClick }: HeaderProps) {
       animate={{ y: 0, opacity: 1 }}
       className="fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-b from-black/40 to-transparent pointer-events-none"
     >
-      <div className="flex h-16 items-center justify-between px-4 gap-2 pointer-events-auto pt-2">
+      <div className="flex h-20 items-center justify-between px-4 gap-2 pointer-events-auto pt-6">
         <motion.div 
           className="flex items-center gap-2"
           whileHover={{ scale: 1.02 }}

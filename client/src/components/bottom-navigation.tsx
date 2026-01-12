@@ -42,7 +42,7 @@ export function BottomNavigation() {
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.05 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 w-16 h-full rounded-2xl transition-all duration-300",
+                  "relative flex flex-col items-center justify-center gap-1 w-16 h-full rounded-full transition-all duration-300",
                   isActive 
                     ? "text-white" 
                     : "text-white/60 hover:text-white/90"
@@ -52,7 +52,7 @@ export function BottomNavigation() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-active-bg"
-                    className="absolute inset-1 bg-white/15 backdrop-blur-sm rounded-xl"
+                    className="absolute inset-1 bg-white/15 backdrop-blur-sm rounded-full"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -74,11 +74,9 @@ export function BottomNavigation() {
                   )}
                   
                   {item.badgeCount && item.badgeCount > 0 && (
-                    <Badge 
-                      className="absolute -top-2 -right-3 h-5 min-w-5 flex items-center justify-center p-0 text-[10px] font-bold bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg shadow-pink-500/50 ring-1 ring-white/30"
-                    >
+                    <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg">
                       {item.badgeCount > 99 ? "99+" : item.badgeCount}
-                    </Badge>
+                    </span>
                   )}
                 </div>
                 
