@@ -30,12 +30,10 @@ function AuthenticatedApp() {
             <Home />
           </div>
         </Route>
-        {/* Live uses full-screen TikTok-style layout like Home */}
+        {/* Live uses full-screen TikTok-style layout like Home - Header/Nav included in component */}
         <Route path="/live">
           <div className="relative h-[100svh] overflow-hidden">
-            <Header showFeedTabs={true} />
             <Live />
-            <BottomNavigation />
           </div>
         </Route>
         <Route path="/shop">
