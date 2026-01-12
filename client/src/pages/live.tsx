@@ -373,18 +373,6 @@ function LiveStreamPage({
         </div>
       )}
 
-      {isActive && (
-        <motion.div
-          className="absolute bottom-24 left-0 right-0 h-0.5 bg-white/20"
-        >
-          <motion.div
-            className="h-full bg-pink-500"
-            initial={{ width: "0%" }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 60, ease: "linear", repeat: Infinity }}
-          />
-        </motion.div>
-      )}
     </motion.div>
   );
 }
