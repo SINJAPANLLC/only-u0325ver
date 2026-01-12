@@ -354,7 +354,7 @@ export default function Shop() {
     : displayProducts.filter(p => p.productType === activeTab);
 
   return (
-    <div className="pb-24 min-h-screen bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
+    <div className="pb-24 min-h-screen overflow-y-auto bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
       {/* Featured banner */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
