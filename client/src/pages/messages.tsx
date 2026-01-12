@@ -117,7 +117,8 @@ export default function Messages() {
 
   return (
     <div className="pb-20 overflow-y-auto">
-      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur border-b border-border/50 p-4">
+      <div className="h-16" />
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border/50 p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
