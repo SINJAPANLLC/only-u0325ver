@@ -162,9 +162,13 @@ function LiveStreamPage({
 
       <div className="absolute top-24 left-4 right-4 z-20">
         <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1 text-white text-[10px] font-bold">
-            <span className="h-1.5 w-1.5 rounded-full bg-pink-500 animate-pulse" />
-            LIVE
+          <div className={`flex items-center gap-1 text-[10px] font-bold ${
+            currentMode === "party" ? "text-pink-400" : currentMode === "twoshot" ? "text-purple-400" : "text-white"
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${
+              currentMode === "party" ? "bg-pink-400" : currentMode === "twoshot" ? "bg-purple-400" : "bg-pink-500"
+            }`} />
+            {currentMode === "waiting" ? "待機中" : currentMode === "party" ? "パーティー中" : "2ショット中"}
           </div>
           <div className="flex items-center gap-1 text-white text-[10px] font-medium">
             <Users className="h-3 w-3" />
