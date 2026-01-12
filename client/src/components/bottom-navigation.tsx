@@ -25,10 +25,7 @@ export function BottomNavigation() {
   const [location] = useLocation();
 
   return (
-    <motion.nav 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    <nav 
       className="fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-safe pointer-events-none"
     >
       <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2 pointer-events-auto">
@@ -91,6 +88,6 @@ export function BottomNavigation() {
           );
         })}
       </div>
-    </motion.nav>
+    </nav>
   );
 }

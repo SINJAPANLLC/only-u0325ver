@@ -50,9 +50,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
   };
 
   return (
-    <motion.header 
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+    <header 
       className="fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto bg-gradient-to-b from-black/40 to-transparent pointer-events-none"
     >
       <div className="flex h-20 items-center justify-between px-4 gap-2 pointer-events-auto pt-4">
@@ -204,6 +202,6 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           </div>
         </DialogContent>
       </Dialog>
-    </motion.header>
+    </header>
   );
 }
