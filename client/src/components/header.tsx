@@ -61,7 +61,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-24 object-contain brightness-0 invert"
+            className="h-24 object-contain brightness-0 invert -mt-1"
             data-testid="img-logo"
           />
         </motion.div>
