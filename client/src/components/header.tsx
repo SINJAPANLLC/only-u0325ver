@@ -23,6 +23,7 @@ interface HeaderProps {
   onSearchClick?: () => void;
   feedType?: "recommend" | "following";
   onFeedTypeChange?: (type: "recommend" | "following") => void;
+  showFeedTabs?: boolean;
 }
 
 const languages = [
@@ -32,7 +33,7 @@ const languages = [
   { code: "ko", label: "한국어" },
 ];
 
-export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange }: HeaderProps) {
+export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange, showFeedTabs = false }: HeaderProps) {
   const [currentLang, setCurrentLang] = useState("ja");
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const notificationCount = 3;
@@ -66,30 +67,32 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               data-testid="img-logo"
             />
           </motion.div>
-          <div className="flex items-center gap-4 ml-1 -mt-1">
-            <button
-              onClick={() => onFeedTypeChange?.("recommend")}
-              className={`text-sm font-medium whitespace-nowrap transition-all ${
-                feedType === "recommend" 
-                  ? "text-white" 
-                  : "text-white/50"
-              }`}
-              data-testid="button-feed-recommend"
-            >
-              おすすめ
-            </button>
-            <button
-              onClick={() => onFeedTypeChange?.("following")}
-              className={`text-sm font-medium whitespace-nowrap transition-all ${
-                feedType === "following" 
-                  ? "text-white" 
-                  : "text-white/50"
-              }`}
-              data-testid="button-feed-following"
-            >
-              フォロー中
-            </button>
-          </div>
+          {showFeedTabs && (
+            <div className="flex items-center gap-4 ml-1 -mt-1">
+              <button
+                onClick={() => onFeedTypeChange?.("recommend")}
+                className={`text-sm font-medium whitespace-nowrap transition-all ${
+                  feedType === "recommend" 
+                    ? "text-white" 
+                    : "text-white/50"
+                }`}
+                data-testid="button-feed-recommend"
+              >
+                おすすめ
+              </button>
+              <button
+                onClick={() => onFeedTypeChange?.("following")}
+                className={`text-sm font-medium whitespace-nowrap transition-all ${
+                  feedType === "following" 
+                    ? "text-white" 
+                    : "text-white/50"
+                }`}
+                data-testid="button-feed-following"
+              >
+                フォロー中
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1 -mt-2">

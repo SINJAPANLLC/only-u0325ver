@@ -448,7 +448,8 @@ export default function Home() {
     <>
       <Header 
         feedType={feedType} 
-        onFeedTypeChange={handleFeedTypeChange} 
+        onFeedTypeChange={handleFeedTypeChange}
+        showFeedTabs={true}
       />
       <div 
         ref={containerRef}

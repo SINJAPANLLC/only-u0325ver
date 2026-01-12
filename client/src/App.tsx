@@ -33,7 +33,7 @@ function AuthenticatedApp() {
         {/* Live uses full-screen TikTok-style layout like Home */}
         <Route path="/live">
           <div className="relative h-[100svh] overflow-hidden">
-            <Header />
+            <Header showFeedTabs={true} />
             <Live />
             <BottomNavigation />
           </div>
