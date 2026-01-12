@@ -345,7 +345,7 @@ function LiveStreamPage({
       </div>
 
       {currentMode !== "waiting" && (
-        <div className="absolute left-16 right-16 bottom-24 z-20">
+        <div className="absolute left-4 right-24 bottom-24 z-20">
           <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
             <Input
               value={comment}
