@@ -178,48 +178,39 @@ function LiveStreamPage({
               {formatTime(sessionTime)}
             </Badge>
           )}
-          {category && (
-            <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white font-medium px-3 py-1">
-              {category}
-            </Badge>
-          )}
         </div>
 
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
+            className={`h-6 px-2 text-[10px] font-medium ${
+              currentMode === "party" 
+                ? "bg-pink-500 hover:bg-pink-600 text-white" 
+                : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+            }`}
+            data-testid="button-party-mode"
+          >
+            <UsersRound className="h-2.5 w-2.5 mr-0.5" />
+            パーティー
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
+            className={`h-6 px-2 text-[10px] font-medium ${
+              currentMode === "twoshot" 
+                ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+            }`}
+            data-testid="button-twoshot-mode"
+          >
+            <UserRound className="h-2.5 w-2.5 mr-0.5" />
+            2ショット
+          </Button>
           <Badge className="bg-amber-500/90 border-0 text-white gap-1 font-bold px-2 py-0.5 text-[10px]" data-testid="badge-points">
             <Coins className="h-2.5 w-2.5" />
             {userPoints.toLocaleString()}pt
           </Badge>
-          
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-              className={`h-6 px-2 text-[10px] font-medium ${
-                currentMode === "party" 
-                  ? "bg-pink-500 hover:bg-pink-600 text-white" 
-                  : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-              }`}
-              data-testid="button-party-mode"
-            >
-              <UsersRound className="h-2.5 w-2.5 mr-0.5" />
-              パーティー
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-              className={`h-6 px-2 text-[10px] font-medium ${
-                currentMode === "twoshot" 
-                  ? "bg-purple-500 hover:bg-purple-600 text-white" 
-                  : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
-              }`}
-              data-testid="button-twoshot-mode"
-            >
-              <UserRound className="h-2.5 w-2.5 mr-0.5" />
-              2ショット
-            </Button>
-          </div>
-
           {currentMode !== "waiting" && (
             <div className="text-[8px] text-white/80 bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded">
               {currentRate}pt/分
