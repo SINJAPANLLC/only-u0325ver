@@ -39,9 +39,18 @@ API routes follow RESTful conventions under `/api/*` prefix. The server handles 
 ### Data Storage
 - **Primary Database**: PostgreSQL
 - **Schema Location**: `shared/schema.ts` - contains all table definitions
-- **Key Tables**: users, sessions, videos, liveStreams, products, creatorProfiles, conversations, messages, notifications, follows, subscriptions
+- **Key Tables**: users, sessions, videos, liveStreams, products, creatorProfiles, conversations, messages, notifications, follows, subscriptions, userProfiles, creatorApplications
 
-Content types use PostgreSQL enums for type safety (user_role, content_type, live_status, product_type, message_status).
+Content types use PostgreSQL enums for type safety (user_role, content_type, live_status, product_type, message_status, application_status).
+
+### Creator Application System
+Users must apply to become creators and be approved by an admin:
+1. User submits application with portfolio URL, experience, and reason
+2. Admin reviews applications at `/admin` page
+3. Approved users get a creatorProfile entry created automatically
+4. Only approved creators can access creator features (live streaming, content management)
+
+Admin check is currently email-based (contains "admin") - should be refined for production.
 
 ### Authentication Flow
 Uses Replit's OpenID Connect authentication. Sessions are stored in PostgreSQL with a 1-week TTL. The `isAuthenticated` middleware protects private routes. User data is upserted on login via the auth storage layer.
