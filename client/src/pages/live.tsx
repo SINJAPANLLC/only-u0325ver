@@ -1,14 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, MessageCircle, Share2, Plus, Volume2 } from "lucide-react";
+import { Radio, Users, Heart, MessageCircle, Share2, Plus, Volume2, Coins, UserRound, UsersRound, Clock, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+type RoomMode = "waiting" | "party" | "twoshot";
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
@@ -25,10 +36,14 @@ interface LiveStreamPageProps {
   creatorAvatar?: string;
   viewerCount: number;
   likeCount: number;
-  giftCount: number;
   isLive: boolean;
   category?: string;
   isActive: boolean;
+  partyRatePerMinute: number;
+  twoshotRatePerMinute: number;
+  userPoints: number;
+  currentMode: RoomMode;
+  onModeChange: (mode: RoomMode) => void;
 }
 
 function LiveStreamPage({
@@ -40,14 +55,59 @@ function LiveStreamPage({
   creatorAvatar,
   viewerCount,
   likeCount,
-  giftCount,
   isLive,
   category,
   isActive,
+  partyRatePerMinute,
+  twoshotRatePerMinute,
+  userPoints,
+  currentMode,
+  onModeChange,
 }: LiveStreamPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(likeCount);
   const [, setLocation] = useLocation();
+  const [showModeDialog, setShowModeDialog] = useState(false);
+  const [pendingMode, setPendingMode] = useState<RoomMode | null>(null);
+  const [comment, setComment] = useState("");
+  const [sessionTime, setSessionTime] = useState(0);
+
+  useEffect(() => {
+    if (currentMode !== "waiting" && isActive) {
+      const timer = setInterval(() => {
+        setSessionTime(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [currentMode, isActive]);
+
+  const handleModeRequest = (mode: RoomMode) => {
+    if (mode === "waiting") {
+      onModeChange("waiting");
+      setSessionTime(0);
+    } else {
+      setPendingMode(mode);
+      setShowModeDialog(true);
+    }
+  };
+
+  const confirmModeChange = () => {
+    if (pendingMode) {
+      onModeChange(pendingMode);
+      setSessionTime(0);
+    }
+    setShowModeDialog(false);
+    setPendingMode(null);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const currentRate = currentMode === "party" ? partyRatePerMinute : currentMode === "twoshot" ? twoshotRatePerMinute : 0;
+  const estimatedCost = Math.floor(sessionTime / 60) * currentRate;
 
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0], [0.5, 1]);
@@ -100,23 +160,114 @@ function LiveStreamPage({
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
-      <div className="absolute top-24 left-4 flex items-center gap-2 z-20">
-        {isLive && (
-          <Badge className="bg-pink-500 border-0 text-white gap-1.5 font-bold shadow-lg px-3 py-1" data-testid={`badge-live-${id}`}>
-            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-            LIVE
+      <div className="absolute top-24 left-4 right-4 flex items-start justify-between z-20">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isLive && (
+            <Badge className="bg-pink-500 border-0 text-white gap-1.5 font-bold shadow-lg px-3 py-1" data-testid={`badge-live-${id}`}>
+              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+              LIVE
+            </Badge>
+          )}
+          <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white gap-1.5 font-medium px-3 py-1">
+            <Users className="h-3.5 w-3.5" />
+            {formatCount(viewerCount)}
           </Badge>
-        )}
-        <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white gap-1.5 font-medium px-3 py-1">
-          <Users className="h-3.5 w-3.5" />
-          {formatCount(viewerCount)}
-        </Badge>
-        {category && (
-          <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white font-medium px-3 py-1">
-            {category}
+          {currentMode !== "waiting" && (
+            <Badge className="bg-pink-500/80 border-0 text-white gap-1.5 font-medium px-3 py-1">
+              <Clock className="h-3 w-3" />
+              {formatTime(sessionTime)}
+            </Badge>
+          )}
+          {category && (
+            <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white font-medium px-3 py-1">
+              {category}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex flex-col items-end gap-2">
+          <Badge className="bg-amber-500/90 border-0 text-white gap-1.5 font-bold px-3 py-1.5" data-testid="badge-points">
+            <Coins className="h-3.5 w-3.5" />
+            {userPoints.toLocaleString()}pt
           </Badge>
-        )}
+          
+          <div className="flex gap-1.5">
+            <Button
+              size="sm"
+              onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
+              className={`h-8 px-3 text-xs font-bold ${
+                currentMode === "party" 
+                  ? "bg-pink-500 hover:bg-pink-600 text-white" 
+                  : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+              }`}
+              data-testid="button-party-mode"
+            >
+              <UsersRound className="h-3.5 w-3.5 mr-1" />
+              パーティー
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
+              className={`h-8 px-3 text-xs font-bold ${
+                currentMode === "twoshot" 
+                  ? "bg-purple-500 hover:bg-purple-600 text-white" 
+                  : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+              }`}
+              data-testid="button-twoshot-mode"
+            >
+              <UserRound className="h-3.5 w-3.5 mr-1" />
+              2ショット
+            </Button>
+          </div>
+
+          {currentMode !== "waiting" && (
+            <div className="text-[10px] text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
+              {currentRate}pt/分
+            </div>
+          )}
+        </div>
       </div>
+
+      <Dialog open={showModeDialog} onOpenChange={setShowModeDialog}>
+        <DialogContent className="max-w-[320px] bg-black/90 backdrop-blur-xl border-white/20 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              {pendingMode === "party" ? "パーティー" : "2ショット"}に入室
+            </DialogTitle>
+            <DialogDescription className="text-center text-white/70">
+              入室すると1分ごとにポイントが消費されます
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="flex justify-between items-center bg-white/10 rounded-lg px-4 py-3">
+              <span className="text-sm">料金</span>
+              <span className="font-bold text-pink-400">
+                {pendingMode === "party" ? partyRatePerMinute : twoshotRatePerMinute}pt/分
+              </span>
+            </div>
+            <div className="flex justify-between items-center bg-white/10 rounded-lg px-4 py-3">
+              <span className="text-sm">持ちポイント</span>
+              <span className="font-bold text-amber-400">{userPoints.toLocaleString()}pt</span>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowModeDialog(false)}
+              className="flex-1 border-white/20 text-white hover:bg-white/10"
+            >
+              キャンセル
+            </Button>
+            <Button 
+              onClick={confirmModeChange}
+              className="flex-1 bg-pink-500 hover:bg-pink-600 text-white"
+              data-testid="button-confirm-mode"
+            >
+              入室する
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         <div className="relative mb-1">
@@ -187,7 +338,7 @@ function LiveStreamPage({
         </button>
       </div>
 
-      <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
+      <div className="absolute left-4 right-20 bottom-36 z-10 space-y-3">
         <div className="flex flex-col">
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
@@ -204,8 +355,33 @@ function LiveStreamPage({
         <div className="flex items-center gap-2 text-white/80 text-xs">
           <Radio className="h-3 w-3 text-pink-500" />
           <span>{formatCount(viewerCount)}人が視聴中</span>
+          <span className="text-white/60">•</span>
+          <span className={currentMode === "waiting" ? "text-white/60" : "text-pink-400"}>
+            {currentMode === "waiting" ? "待機中" : currentMode === "party" ? "パーティー中" : "2ショット中"}
+          </span>
         </div>
       </div>
+
+      {currentMode !== "waiting" && (
+        <div className="absolute left-4 right-4 bottom-28 z-20">
+          <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
+            <Input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="コメントを入力..."
+              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-sm h-8 focus-visible:ring-0"
+              data-testid="input-comment"
+            />
+            <Button
+              size="icon"
+              className="h-8 w-8 rounded-full bg-pink-500 hover:bg-pink-600"
+              data-testid="button-send-comment"
+            >
+              <Send className="h-4 w-4 text-white" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {isActive && (
         <motion.div
@@ -223,19 +399,33 @@ function LiveStreamPage({
   );
 }
 
-const demoLiveStreams: LiveStreamPageProps[] = [
+interface DemoStreamData {
+  id: string;
+  title: string;
+  creatorName: string;
+  displayName?: string;
+  viewerCount: number;
+  likeCount: number;
+  isLive: boolean;
+  category?: string;
+  thumbnailUrl: string;
+  partyRatePerMinute: number;
+  twoshotRatePerMinute: number;
+}
+
+const demoLiveStreams: DemoStreamData[] = [
   {
     id: "live-1",
-    title: "【18禁】脱衣リクエスト配信💋 投げ銭でどんどん脱ぐよ",
+    title: "【18禁】脱衣リクエスト配信💋 どんどん脱ぐよ",
     creatorName: "Reina",
     displayName: "れいな💋",
     viewerCount: 2450,
     likeCount: 18500,
-    giftCount: 3200,
     isLive: true,
     category: "脱衣",
-    isActive: false,
     thumbnailUrl: img1,
+    partyRatePerMinute: 50,
+    twoshotRatePerMinute: 200,
   },
   {
     id: "live-2",
@@ -244,11 +434,11 @@ const demoLiveStreams: LiveStreamPageProps[] = [
     displayName: "ゆあ🖤",
     viewerCount: 1890,
     likeCount: 15200,
-    giftCount: 2800,
     isLive: true,
     category: "下着",
-    isActive: false,
     thumbnailUrl: img2,
+    partyRatePerMinute: 40,
+    twoshotRatePerMinute: 150,
   },
   {
     id: "live-3",
@@ -257,11 +447,11 @@ const demoLiveStreams: LiveStreamPageProps[] = [
     displayName: "みお🐰",
     viewerCount: 1250,
     likeCount: 9800,
-    giftCount: 1500,
     isLive: true,
     category: "コスプレ",
-    isActive: false,
     thumbnailUrl: img3,
+    partyRatePerMinute: 30,
+    twoshotRatePerMinute: 120,
   },
   {
     id: "live-4",
@@ -270,11 +460,11 @@ const demoLiveStreams: LiveStreamPageProps[] = [
     displayName: "ひな💦",
     viewerCount: 3200,
     likeCount: 24500,
-    giftCount: 4100,
     isLive: true,
     category: "入浴",
-    isActive: false,
     thumbnailUrl: img4,
+    partyRatePerMinute: 60,
+    twoshotRatePerMinute: 250,
   },
   {
     id: "live-5",
@@ -283,17 +473,19 @@ const demoLiveStreams: LiveStreamPageProps[] = [
     displayName: "さき🎀",
     viewerCount: 1680,
     likeCount: 12300,
-    giftCount: 2100,
     isLive: true,
     category: "メイド",
-    isActive: false,
     thumbnailUrl: img5,
+    partyRatePerMinute: 35,
+    twoshotRatePerMinute: 140,
   },
 ];
 
 export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
+  const [userPoints, setUserPoints] = useState(5000);
+  const [roomModes, setRoomModes] = useState<Record<string, RoomMode>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: liveStreams } = useQuery<LiveStream[]>({
@@ -302,7 +494,7 @@ export default function Live() {
 
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
-  const displayStreams: LiveStreamPageProps[] = feedType === "following"
+  const baseStreams = feedType === "following"
     ? followingStreams
     : liveStreams && liveStreams.length > 0
       ? liveStreams.map((s, idx) => ({
@@ -310,14 +502,19 @@ export default function Live() {
           title: s.title,
           thumbnailUrl: s.thumbnailUrl || demoLiveStreams[idx % demoLiveStreams.length]?.thumbnailUrl,
           creatorName: "Creator",
+          displayName: undefined as string | undefined,
           viewerCount: s.viewerCount || 0,
           likeCount: 0,
-          giftCount: 0,
           isLive: s.status === "live",
-          category: undefined,
-          isActive: false,
+          category: undefined as string | undefined,
+          partyRatePerMinute: 50,
+          twoshotRatePerMinute: 200,
         }))
       : demoLiveStreams;
+
+  const handleModeChange = (streamId: string, mode: RoomMode) => {
+    setRoomModes(prev => ({ ...prev, [streamId]: mode }));
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -327,14 +524,14 @@ export default function Live() {
       const scrollTop = container.scrollTop;
       const itemHeight = container.clientHeight;
       const newIndex = Math.round(scrollTop / itemHeight);
-      if (newIndex !== activeIndex && newIndex >= 0 && newIndex < displayStreams.length) {
+      if (newIndex !== activeIndex && newIndex >= 0 && newIndex < baseStreams.length) {
         setActiveIndex(newIndex);
       }
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [activeIndex, displayStreams.length]);
+  }, [activeIndex, baseStreams.length]);
 
   const handleFeedTypeChange = (type: "recommend" | "following") => {
     setFeedType(type);
@@ -354,11 +551,24 @@ export default function Live() {
         className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
         data-testid="live-feed-container"
       >
-        {displayStreams.map((stream, index) => (
+        {baseStreams.map((stream, index) => (
           <LiveStreamPage
             key={stream.id}
-            {...stream}
+            id={stream.id}
+            title={stream.title}
+            thumbnailUrl={stream.thumbnailUrl}
+            creatorName={stream.creatorName}
+            displayName={stream.displayName}
+            viewerCount={stream.viewerCount}
+            likeCount={stream.likeCount}
+            isLive={stream.isLive}
+            category={stream.category}
             isActive={index === activeIndex}
+            partyRatePerMinute={stream.partyRatePerMinute}
+            twoshotRatePerMinute={stream.twoshotRatePerMinute}
+            userPoints={userPoints}
+            currentMode={roomModes[stream.id] || "waiting"}
+            onModeChange={(mode) => handleModeChange(stream.id, mode)}
           />
         ))}
       </div>
