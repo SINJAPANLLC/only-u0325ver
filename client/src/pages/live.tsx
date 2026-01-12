@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, MessageCircle, Share2, Gift, Plus, Volume2 } from "lucide-react";
+import { Radio, Users, Heart, MessageCircle, Share2, Plus, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -165,16 +165,6 @@ function LiveStreamPage({
             <MessageCircle className="h-4 w-4 text-white" />
           </div>
           <span className="text-[10px] text-white font-semibold">コメント</span>
-        </button>
-
-        <button
-          className="flex flex-col items-center gap-1"
-          data-testid={`button-gift-${id}`}
-        >
-          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-pink-500 flex items-center justify-center">
-            <Gift className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-[10px] text-white font-semibold">{formatCount(giftCount)}</span>
         </button>
 
         <button
