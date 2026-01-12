@@ -5,10 +5,25 @@ import { db } from "./db";
 import { 
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions,
-  insertVideoSchema, insertProductSchema, insertLiveStreamSchema
+  userProfiles, creatorApplications,
+  insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
+  insertUserProfileSchema, insertCreatorApplicationSchema
 } from "@shared/schema";
 import { eq, desc, and, or, sql } from "drizzle-orm";
 import { generateImage } from "./modelslab";
+
+// Admin check middleware
+function isAdmin(req: any, res: any, next: any) {
+  const userId = req.user?.claims?.sub;
+  // For demo, check if user email contains "admin" or has specific role
+  // In production, this should check a database role
+  const email = req.user?.claims?.email || "";
+  if (email.includes("admin") || req.user?.claims?.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Admin access required" });
+  }
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -384,6 +399,190 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
       res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
+  // User Profile endpoints
+  app.get("/api/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+      
+      if (!profile) {
+        return res.json(null);
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.put("/api/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validation = insertUserProfileSchema.safeParse({ ...req.body, userId });
+      
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid profile data", errors: validation.error.flatten() });
+      }
+
+      // Check if profile exists
+      const [existing] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      if (existing) {
+        // Update existing profile
+        const [profile] = await db
+          .update(userProfiles)
+          .set({ ...validation.data, updatedAt: new Date() })
+          .where(eq(userProfiles.userId, userId))
+          .returning();
+        res.json(profile);
+      } else {
+        // Create new profile
+        const [profile] = await db
+          .insert(userProfiles)
+          .values(validation.data)
+          .returning();
+        res.json(profile);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Creator Application endpoints
+  app.get("/api/creator-applications/me", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [application] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.userId, userId))
+        .orderBy(desc(creatorApplications.submittedAt))
+        .limit(1);
+      
+      res.json(application || null);
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      res.status(500).json({ message: "Failed to fetch application" });
+    }
+  });
+
+  app.post("/api/creator-applications", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Check if there's already a pending application
+      const [existingPending] = await db
+        .select()
+        .from(creatorApplications)
+        .where(and(
+          eq(creatorApplications.userId, userId),
+          eq(creatorApplications.status, "pending")
+        ));
+
+      if (existingPending) {
+        return res.status(400).json({ message: "You already have a pending application" });
+      }
+
+      const validation = insertCreatorApplicationSchema.safeParse({ ...req.body, userId });
+      
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid application data", errors: validation.error.flatten() });
+      }
+
+      const [application] = await db
+        .insert(creatorApplications)
+        .values(validation.data)
+        .returning();
+      
+      res.status(201).json(application);
+    } catch (error) {
+      console.error("Error creating application:", error);
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+
+  // Admin: List all creator applications
+  app.get("/api/admin/creator-applications", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { status } = req.query;
+      let applications;
+      
+      if (status && ["pending", "approved", "rejected"].includes(status)) {
+        applications = await db
+          .select()
+          .from(creatorApplications)
+          .where(eq(creatorApplications.status, status))
+          .orderBy(desc(creatorApplications.submittedAt));
+      } else {
+        applications = await db
+          .select()
+          .from(creatorApplications)
+          .orderBy(desc(creatorApplications.submittedAt));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  // Admin: Approve/Reject application
+  app.patch("/api/admin/creator-applications/:id/decision", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { decision, notes } = req.body;
+      const reviewerId = req.user.claims.sub;
+
+      if (!decision || !["approved", "rejected"].includes(decision)) {
+        return res.status(400).json({ message: "Invalid decision. Must be 'approved' or 'rejected'" });
+      }
+
+      const [application] = await db
+        .update(creatorApplications)
+        .set({
+          status: decision,
+          notes: notes || null,
+          reviewedAt: new Date(),
+          reviewerId,
+        })
+        .where(eq(creatorApplications.id, id))
+        .returning();
+
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      // If approved, create creator profile
+      if (decision === "approved") {
+        const [existingCreator] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.userId, application.userId));
+
+        if (!existingCreator) {
+          await db.insert(creatorProfiles).values({
+            userId: application.userId,
+            displayName: "New Creator",
+            isVerified: false,
+          });
+        }
+      }
+
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating application:", error);
+      res.status(500).json({ message: "Failed to update application" });
     }
   });
 
