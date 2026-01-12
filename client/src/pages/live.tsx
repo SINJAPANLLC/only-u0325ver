@@ -162,26 +162,26 @@ function LiveStreamPage({
 
       <div className="absolute top-24 left-4 right-4 z-20">
         <div className="flex items-center justify-between gap-1.5">
-          <Badge className="bg-pink-500 border-0 text-white gap-1 font-bold px-2.5 py-1 text-[10px]" data-testid={`badge-live-${id}`}>
-            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+          <div className="flex items-center gap-1 text-white text-[10px] font-bold">
+            <span className="h-1.5 w-1.5 rounded-full bg-pink-500 animate-pulse" />
             LIVE
-          </Badge>
-          <Badge className="bg-white/90 border-0 text-black gap-1 font-medium px-2.5 py-1 text-[10px]">
+          </div>
+          <div className="flex items-center gap-1 text-white text-[10px] font-medium">
             <Users className="h-3 w-3" />
             {formatCount(viewerCount)}
-          </Badge>
+          </div>
           {currentMode !== "waiting" && (
-            <Badge className="bg-white/90 border-0 text-black gap-1 font-medium px-2.5 py-1 text-[10px]">
+            <div className="flex items-center gap-1 text-white text-[10px] font-medium">
               <Clock className="h-3 w-3" />
               {formatTime(sessionTime)}
-            </Badge>
+            </div>
           )}
           <button
             onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-            className={`h-6 px-2.5 text-[10px] font-medium rounded-full flex items-center gap-1 ${
+            className={`flex items-center gap-1 text-[10px] font-medium ${
               currentMode === "party" 
-                ? "bg-pink-500 text-white" 
-                : "bg-white/90 text-black"
+                ? "text-pink-400" 
+                : "text-white"
             }`}
             data-testid="button-party-mode"
           >
@@ -190,24 +190,24 @@ function LiveStreamPage({
           </button>
           <button
             onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-            className={`h-6 px-2.5 text-[10px] font-medium rounded-full flex items-center gap-1 ${
+            className={`flex items-center gap-1 text-[10px] font-medium ${
               currentMode === "twoshot" 
-                ? "bg-purple-500 text-white" 
-                : "bg-white/90 text-black"
+                ? "text-purple-400" 
+                : "text-white"
             }`}
             data-testid="button-twoshot-mode"
           >
             <UserRound className="h-3 w-3" />
             2ショット
           </button>
-          <Badge className="bg-amber-500 border-0 text-white gap-1 font-bold px-2.5 py-1 text-[10px]" data-testid="badge-points">
+          <div className="flex items-center gap-1 text-amber-400 text-[10px] font-bold" data-testid="badge-points">
             <Coins className="h-3 w-3" />
             {userPoints.toLocaleString()}pt
-          </Badge>
+          </div>
         </div>
         {currentMode !== "waiting" && (
           <div className="flex justify-end mt-1">
-            <span className="text-[9px] text-white/80 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full">
+            <span className="text-[9px] text-white/80">
               {currentRate}pt/分
             </span>
           </div>
