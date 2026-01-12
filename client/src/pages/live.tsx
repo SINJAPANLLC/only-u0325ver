@@ -102,7 +102,7 @@ function LiveStreamPage({
 
       <div className="absolute top-24 left-4 flex items-center gap-2 z-20">
         {isLive && (
-          <Badge className="bg-red-500 border-0 text-white gap-1.5 font-bold shadow-lg px-3 py-1" data-testid={`badge-live-${id}`}>
+          <Badge className="bg-pink-500 border-0 text-white gap-1.5 font-bold shadow-lg px-3 py-1" data-testid={`badge-live-${id}`}>
             <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
             LIVE
           </Badge>
@@ -120,15 +120,15 @@ function LiveStreamPage({
 
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         <div className="relative mb-1">
-          <Avatar className="h-11 w-11 ring-2 ring-red-500 shadow-lg">
+          <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
-            <AvatarFallback className="bg-gradient-to-br from-red-400 to-pink-500 text-white font-bold">
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <Button
             size="icon"
-            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-red-500 hover:bg-red-600 border-0 shadow-lg"
+            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
             data-testid={`button-follow-${id}`}
           >
             <Plus className="h-3 w-3 text-white" />
@@ -143,12 +143,12 @@ function LiveStreamPage({
           <motion.div
             whileTap={{ scale: 1.3 }}
             className={`h-9 w-9 rounded-full flex items-center justify-center ${
-              isLiked ? "bg-red-500/20" : "bg-white/10"
+              isLiked ? "bg-pink-500/20" : "bg-white/10"
             } backdrop-blur-sm transition-colors`}
           >
             <Heart
               className={`h-4 w-4 transition-colors ${
-                isLiked ? "text-red-500 fill-red-500" : "text-white"
+                isLiked ? "text-pink-500 fill-pink-500" : "text-white"
               }`}
             />
           </motion.div>
@@ -212,7 +212,7 @@ function LiveStreamPage({
         </p>
 
         <div className="flex items-center gap-2 text-white/80 text-xs">
-          <Radio className="h-3 w-3 text-red-500" />
+          <Radio className="h-3 w-3 text-pink-500" />
           <span>{formatCount(viewerCount)}人が視聴中</span>
         </div>
       </div>
@@ -222,7 +222,7 @@ function LiveStreamPage({
           className="absolute bottom-24 left-0 right-0 h-0.5 bg-white/20"
         >
           <motion.div
-            className="h-full bg-red-500"
+            className="h-full bg-pink-500"
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: 60, ease: "linear", repeat: Infinity }}
