@@ -2,15 +2,28 @@ import { motion } from "framer-motion";
 import { 
   User, Settings, CreditCard, ShoppingBag, Heart, Bell, 
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
-  Radio, Package, BarChart3, Wallet, Star, Globe
+  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import type { UserProfile, CreatorApplication } from "@shared/schema";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 
@@ -56,7 +69,59 @@ function MenuItem({ icon: Icon, label, description, badge, onClick, href }: Menu
 
 export default function Account() {
   const { user, isLoading, logout } = useAuth();
-  const [isCreator, setIsCreator] = useState(false);
+  const { toast } = useToast();
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
+  
+  const [profileForm, setProfileForm] = useState({
+    displayName: "",
+    bio: "",
+    location: "",
+  });
+
+  const [applicationForm, setApplicationForm] = useState({
+    portfolioUrl: "",
+    experience: "",
+    reason: "",
+  });
+
+  const { data: profile } = useQuery<UserProfile | null>({
+    queryKey: ["/api/profile"],
+  });
+
+  const { data: creatorApplication } = useQuery<CreatorApplication | null>({
+    queryKey: ["/api/creator-applications/me"],
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: typeof profileForm) => {
+      const response = await apiRequest("PUT", "/api/profile", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      setIsProfileDialogOpen(false);
+      toast({ title: "プロフィールを更新しました" });
+    },
+    onError: () => {
+      toast({ title: "更新に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const submitApplicationMutation = useMutation({
+    mutationFn: async (data: typeof applicationForm) => {
+      const response = await apiRequest("POST", "/api/creator-applications", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/creator-applications/me"] });
+      setIsApplicationDialogOpen(false);
+      toast({ title: "申請を送信しました" });
+    },
+    onError: () => {
+      toast({ title: "申請に失敗しました", variant: "destructive" });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -65,6 +130,10 @@ export default function Account() {
       </div>
     );
   }
+
+  const isApprovedCreator = creatorApplication?.status === "approved";
+  const isPendingApplication = creatorApplication?.status === "pending";
+  const isRejectedApplication = creatorApplication?.status === "rejected";
 
   const userMenuItems: MenuItemProps[] = [
     { icon: Heart, label: "フォロー中", description: "12人のクリエイター" },
@@ -94,6 +163,8 @@ export default function Account() {
     { icon: HelpCircle, label: "ヘルプ・お問い合わせ" },
   ];
 
+  const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
+
   return (
     <div className="pb-20 overflow-y-auto">
       <div className="h-16" />
@@ -105,51 +176,182 @@ export default function Account() {
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2 ring-offset-background">
-              <AvatarImage src={user?.profileImageUrl || demoAvatar} />
+              <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || demoAvatar} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                {user?.firstName?.charAt(0) || user?.email?.charAt(0) || "U"}
+                {displayName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold truncate">
-                {user?.firstName && user?.lastName 
-                  ? `${user.firstName} ${user.lastName}`
-                  : user?.email || "ゲスト"
-                }
-              </h2>
+              <h2 className="text-xl font-bold truncate">{displayName}</h2>
               <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+              {profile?.bio && (
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{profile.bio}</p>
+              )}
             </div>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="rounded-full"
-              data-testid="button-edit-profile"
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
+            <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full"
+                  data-testid="button-edit-profile"
+                  onClick={() => {
+                    setProfileForm({
+                      displayName: profile?.displayName || "",
+                      bio: profile?.bio || "",
+                      location: profile?.location || "",
+                    });
+                  }}
+                >
+                  <Edit className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>プロフィール編集</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">表示名</Label>
+                    <Input
+                      id="displayName"
+                      value={profileForm.displayName}
+                      onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })}
+                      placeholder="表示名を入力"
+                      data-testid="input-display-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">自己紹介</Label>
+                    <Textarea
+                      id="bio"
+                      value={profileForm.bio}
+                      onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                      placeholder="自己紹介を入力"
+                      rows={3}
+                      data-testid="input-bio"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">場所</Label>
+                    <Input
+                      id="location"
+                      value={profileForm.location}
+                      onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                      placeholder="例: 東京"
+                      data-testid="input-location"
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => updateProfileMutation.mutate(profileForm)}
+                    disabled={updateProfileMutation.isPending}
+                    data-testid="button-save-profile"
+                  >
+                    {updateProfileMutation.isPending ? "保存中..." : "保存"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <Separator className="my-4 bg-border/50" />
 
-          <div className="flex items-center justify-between">
+          <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Radio className="h-5 w-5 text-primary" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium">クリエイターモード</p>
-                <p className="text-xs text-muted-foreground">
-                  {isCreator ? "配信・販売が可能です" : "クリエイター機能をオン"}
-                </p>
+                {isApprovedCreator ? (
+                  <div className="flex items-center gap-1 text-xs text-green-600">
+                    <CheckCircle className="h-3 w-3" />
+                    承認済み - 配信・販売が可能です
+                  </div>
+                ) : isPendingApplication ? (
+                  <div className="flex items-center gap-1 text-xs text-amber-600">
+                    <Clock className="h-3 w-3" />
+                    審査中 - 承認をお待ちください
+                  </div>
+                ) : isRejectedApplication ? (
+                  <div className="flex items-center gap-1 text-xs text-red-600">
+                    <XCircle className="h-3 w-3" />
+                    申請が却下されました
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    クリエイターとして活動するには申請が必要です
+                  </p>
+                )}
               </div>
             </div>
-            <Switch 
-              checked={isCreator} 
-              onCheckedChange={setIsCreator}
-              data-testid="switch-creator-mode"
-            />
+
+            {!isApprovedCreator && !isPendingApplication && (
+              <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
+                    data-testid="button-apply-creator"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    クリエイター申請する
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[400px]">
+                  <DialogHeader>
+                    <DialogTitle>クリエイター申請</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      申請内容を審査後、承認されるとクリエイター機能が使えるようになります。
+                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="portfolioUrl">ポートフォリオURL（任意）</Label>
+                      <Input
+                        id="portfolioUrl"
+                        value={applicationForm.portfolioUrl}
+                        onChange={(e) => setApplicationForm({ ...applicationForm, portfolioUrl: e.target.value })}
+                        placeholder="https://..."
+                        data-testid="input-portfolio-url"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">活動経験</Label>
+                      <Textarea
+                        id="experience"
+                        value={applicationForm.experience}
+                        onChange={(e) => setApplicationForm({ ...applicationForm, experience: e.target.value })}
+                        placeholder="これまでの配信・クリエイター活動について"
+                        rows={3}
+                        data-testid="input-experience"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reason">申請理由</Label>
+                      <Textarea
+                        id="reason"
+                        value={applicationForm.reason}
+                        onChange={(e) => setApplicationForm({ ...applicationForm, reason: e.target.value })}
+                        placeholder="Only-Uでどのような活動をしたいですか？"
+                        rows={3}
+                        data-testid="input-reason"
+                      />
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => submitApplicationMutation.mutate(applicationForm)}
+                      disabled={submitApplicationMutation.isPending}
+                      data-testid="button-submit-application"
+                    >
+                      {submitApplicationMutation.isPending ? "送信中..." : "申請を送信"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </motion.div>
 
-        {isCreator && (
+        {isApprovedCreator && (
           <motion.section
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
