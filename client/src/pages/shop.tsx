@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Tag, Download, Package, Crown, Lock, Heart, Star, Clock } from "lucide-react";
+import { ShoppingBag, Tag, Download, Package, Lock, Heart, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -355,23 +355,6 @@ export default function Shop() {
 
   return (
     <div className="pb-24 min-h-screen overflow-y-auto bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
-      {/* Featured banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 p-4 text-white shadow-lg shadow-pink-500/20"
-      >
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <Crown className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="font-bold text-sm">限定アイテム販売中</p>
-            <p className="text-xs text-white/80">ここでしか手に入らない特別なコンテンツ</p>
-          </div>
-        </div>
-      </motion.div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-14 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-4">
