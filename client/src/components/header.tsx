@@ -98,9 +98,9 @@ export function Header({ onSearchClick }: HeaderProps) {
             className="rounded-full h-14 w-14 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             data-testid="button-notifications"
           >
-            <PiBellSimpleRingingDuotone className="h-14 w-14 text-white drop-shadow-sm" />
+            <PiBellSimpleRingingDuotone className="h-16 w-16 text-white drop-shadow-sm" />
             {notificationCount > 0 && (
-              <span className="absolute top-0 right-0 h-5 w-5 flex items-center justify-center rounded-full bg-pink-500 text-white text-[10px] font-bold shadow-lg">
+              <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg">
                 {notificationCount}
               </span>
             )}
