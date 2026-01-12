@@ -124,7 +124,7 @@ export function Header({ onSearchClick }: HeaderProps) {
               onClick={handleInstallClick}
               data-testid="button-install"
             >
-              <PiDownloadSimpleDuotone className="h-14 w-14 text-white drop-shadow-sm" />
+              <PiDownloadSimpleDuotone className="h-16 w-16 text-white drop-shadow-sm" />
             </Button>
           )}
 
