@@ -127,48 +127,7 @@ function LiveStreamPage({
         )}
       </div>
 
-      <div className="absolute bottom-52 left-4 right-4 z-10">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => setChatType("peek")}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-              chatType === "peek"
-                ? "bg-pink-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90"
-            }`}
-            data-testid="button-chat-peek"
-          >
-            <Eye className="h-3 w-3" />
-            のぞき {pricePerMinute.peek}pt/分
-          </button>
-          <button
-            onClick={() => setChatType("party")}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-              chatType === "party"
-                ? "bg-pink-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90"
-            }`}
-            data-testid="button-chat-party"
-          >
-            <Users className="h-3 w-3" />
-            パーティ {pricePerMinute.party}pt/分
-          </button>
-          <button
-            onClick={() => setChatType("twoshot")}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all ${
-              chatType === "twoshot"
-                ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90"
-            }`}
-            data-testid="button-chat-twoshot"
-          >
-            <Lock className="h-3 w-3" />
-            2ショット {pricePerMinute.twoshot}pt/分
-          </button>
-        </div>
-      </div>
-
-      <div className="absolute right-3 bottom-56 z-10 flex flex-col items-center gap-3">
+      <div className="absolute right-3 top-32 z-10 flex flex-col items-center gap-3">
         <div className="relative mb-1">
           <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
@@ -227,23 +186,59 @@ function LiveStreamPage({
         </button>
       </div>
 
-      <div className="absolute left-4 right-16 bottom-[13.5rem] z-10 space-y-1.5">
+      <div className="absolute left-4 right-16 bottom-44 z-10 space-y-1">
         <div className="flex flex-col">
-          <span className="text-white font-bold text-sm" data-testid={`text-creator-${id}`}>
+          <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
           </span>
-          <span className="text-white/70 text-xs">
+          <span className="text-white/70 text-sm">
             @{creatorName}
           </span>
         </div>
 
-        <p className="text-white text-xs leading-relaxed line-clamp-2" data-testid={`text-live-title-${id}`}>
+        <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-live-title-${id}`}>
           {title}
         </p>
+      </div>
 
-        <div className="flex items-center gap-1.5 text-white/80 text-[10px]">
-          <Radio className="h-2.5 w-2.5 text-pink-500" />
-          <span>{formatCount(viewerCount)}人が視聴中</span>
+      <div className="absolute bottom-32 left-4 right-4 z-10">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setChatType("peek")}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
+              chatType === "peek"
+                ? "bg-pink-500 text-white"
+                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
+            }`}
+            data-testid="button-chat-peek"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            のぞき {pricePerMinute.peek}pt
+          </button>
+          <button
+            onClick={() => setChatType("party")}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
+              chatType === "party"
+                ? "bg-pink-500 text-white"
+                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
+            }`}
+            data-testid="button-chat-party"
+          >
+            <Users className="h-3.5 w-3.5" />
+            パーティ {pricePerMinute.party}pt
+          </button>
+          <button
+            onClick={() => setChatType("twoshot")}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
+              chatType === "twoshot"
+                ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
+            }`}
+            data-testid="button-chat-twoshot"
+          >
+            <Lock className="h-3.5 w-3.5" />
+            2ショット {pricePerMinute.twoshot}pt
+          </button>
         </div>
       </div>
 
@@ -254,28 +249,17 @@ function LiveStreamPage({
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="コメントを入力..."
-              className="bg-black/50 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 pr-10 h-9 rounded-full text-sm"
+              className="bg-black/50 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 pr-10 h-10 rounded-full text-sm"
               data-testid="input-comment"
             />
             <Button
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-pink-500 hover:bg-pink-600"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-pink-500 hover:bg-pink-600"
               data-testid="button-send-comment"
             >
-              <Send className="h-3.5 w-3.5 text-white" />
+              <Send className="h-4 w-4 text-white" />
             </Button>
           </div>
-
-          {chatType !== "twoshot" && (
-            <Button
-              onClick={() => setChatType("twoshot")}
-              className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold px-3 h-9 rounded-full gap-1 whitespace-nowrap text-xs"
-              data-testid="button-request-twoshot"
-            >
-              <Lock className="h-3.5 w-3.5" />
-              2ショット
-            </Button>
-          )}
         </div>
       </div>
 
