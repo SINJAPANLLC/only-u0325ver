@@ -197,10 +197,11 @@ export default function Account() {
                   data-testid="button-edit-profile"
                   onClick={() => {
                     setProfileForm({
-                      displayName: profile?.displayName || "",
+                      displayName: profile?.displayName || user?.firstName || "",
                       bio: profile?.bio || "",
                       location: profile?.location || "",
                     });
+                    setIsProfileDialogOpen(true);
                   }}
                 >
                   <Edit className="h-5 w-5" />
