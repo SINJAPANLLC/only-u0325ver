@@ -61,7 +61,7 @@ function LiveStreamPage({
 
   return (
     <div 
-      className="h-[calc(100svh-7.5rem)] w-full relative snap-start snap-always flex-shrink-0"
+      className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black"
       data-testid={`live-stream-${id}`}
     >
       {thumbnailUrl ? (
@@ -317,7 +317,7 @@ export default function Live() {
   return (
     <div 
       ref={containerRef}
-      className="h-[calc(100svh-7.5rem)] overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+      className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
       data-testid="live-feed-container"
     >
       {displayStreams.map((stream, index) => (
