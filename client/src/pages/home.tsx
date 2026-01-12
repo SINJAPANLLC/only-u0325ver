@@ -234,19 +234,6 @@ function VideoPage({
           {title}
         </p>
 
-        {/* Music info */}
-        <div className="flex items-center gap-2">
-          <Music2 className="h-4 w-4 text-white" />
-          <div className="overflow-hidden">
-            <motion.p
-              animate={{ x: isActive ? [0, -100, 0] : 0 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="text-white/80 text-sm whitespace-nowrap"
-            >
-              {musicName}
-            </motion.p>
-          </div>
-        </div>
       </div>
 
       {/* Progress bar */}
