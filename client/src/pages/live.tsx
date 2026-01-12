@@ -328,7 +328,7 @@ function LiveStreamPage({
         </button>
       </div>
 
-      <div className="absolute left-4 right-20 bottom-36 z-10 space-y-3">
+      <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
         <div className="flex flex-col">
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
@@ -345,7 +345,7 @@ function LiveStreamPage({
       </div>
 
       {currentMode !== "waiting" && (
-        <div className="absolute left-4 right-4 bottom-28 z-20">
+        <div className="absolute left-4 right-4 bottom-20 z-20">
           <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
             <Input
               value={comment}
