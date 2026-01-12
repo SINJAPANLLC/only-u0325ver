@@ -122,9 +122,9 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-28 z-10 flex flex-col items-center gap-4">
+      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         {/* Creator avatar */}
-        <div className="relative mb-2">
+        <div className="relative mb-1">
           <Avatar className="h-11 w-11 ring-2 ring-white shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
@@ -133,7 +133,7 @@ function VideoPage({
           </Avatar>
           <Button
             size="icon"
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-2 border-black shadow-lg"
+            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
             data-testid={`button-follow-${id}`}
           >
             <Plus className="h-3 w-3 text-white" />
