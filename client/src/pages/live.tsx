@@ -181,32 +181,30 @@ function LiveStreamPage({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button
-            size="sm"
+          <button
             onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-            className={`h-6 px-2 text-[10px] font-medium ${
+            className={`h-5 px-1.5 text-[8px] font-medium rounded flex items-center gap-0.5 ${
               currentMode === "party" 
-                ? "bg-pink-500 hover:bg-pink-600 text-white" 
-                : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+                ? "bg-pink-500 text-white" 
+                : "bg-black/50 text-white backdrop-blur-sm"
             }`}
             data-testid="button-party-mode"
           >
-            <UsersRound className="h-2.5 w-2.5 mr-0.5" />
+            <UsersRound className="h-2 w-2" />
             パーティー
-          </Button>
-          <Button
-            size="sm"
+          </button>
+          <button
             onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-            className={`h-6 px-2 text-[10px] font-medium ${
+            className={`h-5 px-1.5 text-[8px] font-medium rounded flex items-center gap-0.5 ${
               currentMode === "twoshot" 
-                ? "bg-purple-500 hover:bg-purple-600 text-white" 
-                : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
+                ? "bg-purple-500 text-white" 
+                : "bg-black/50 text-white backdrop-blur-sm"
             }`}
             data-testid="button-twoshot-mode"
           >
-            <UserRound className="h-2.5 w-2.5 mr-0.5" />
+            <UserRound className="h-2 w-2" />
             2ショット
-          </Button>
+          </button>
           <Badge className="bg-amber-500/90 border-0 text-white gap-1 font-bold px-2 py-0.5 text-[10px]" data-testid="badge-points">
             <Coins className="h-2.5 w-2.5" />
             {userPoints.toLocaleString()}pt
