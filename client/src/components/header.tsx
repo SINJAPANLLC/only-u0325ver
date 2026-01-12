@@ -1,4 +1,4 @@
-import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiSparkleDuotone } from "react-icons/pi";
+import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiDownloadSimpleDuotone } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { motion } from "framer-motion";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 interface HeaderProps {
   onSearchClick?: () => void;
@@ -26,6 +27,7 @@ const languages = [
 export function Header({ onSearchClick }: HeaderProps) {
   const [currentLang, setCurrentLang] = useState("ja");
   const notificationCount = 3;
+  const { isInstallable, install } = usePwaInstall();
 
   return (
     <motion.header 
@@ -95,6 +97,18 @@ export function Header({ onSearchClick }: HeaderProps) {
           >
             <PiMagnifyingGlassDuotone className="h-14 w-14 text-white drop-shadow-sm" />
           </Button>
+
+          {isInstallable && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full h-14 w-14 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+              onClick={install}
+              data-testid="button-install"
+            >
+              <PiDownloadSimpleDuotone className="h-14 w-14 text-white drop-shadow-sm" />
+            </Button>
+          )}
 
           <ThemeToggle />
         </div>
