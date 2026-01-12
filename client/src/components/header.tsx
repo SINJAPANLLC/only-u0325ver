@@ -75,7 +75,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 relative bg-gradient-to-br from-pink-400/30 via-rose-300/20 to-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:ring-white/40 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-10 w-10 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             data-testid="button-notifications"
           >
             <PiBellSimpleRingingDuotone className="h-5 w-5 text-white drop-shadow-sm" />
@@ -91,7 +91,7 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 bg-gradient-to-br from-pink-400/30 via-rose-300/20 to-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:ring-white/40 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-10 w-10 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             onClick={onSearchClick}
             data-testid="button-search"
           >

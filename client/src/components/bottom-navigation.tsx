@@ -52,7 +52,7 @@ export function BottomNavigation() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-active-bg"
-                    className="absolute inset-1 bg-gradient-to-br from-pink-500/40 via-rose-400/30 to-white/20 backdrop-blur-md rounded-xl ring-1 ring-white/30 shadow-lg shadow-pink-500/20"
+                    className="absolute inset-1 bg-white/15 backdrop-blur-sm rounded-xl"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -61,9 +61,7 @@ export function BottomNavigation() {
                   <Icon 
                     className={cn(
                       "h-7 w-7 transition-all duration-300",
-                      isActive 
-                        ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]" 
-                        : ""
+                      isActive && "scale-110"
                     )} 
                   />
                   
@@ -86,7 +84,7 @@ export function BottomNavigation() {
                 
                 <span className={cn(
                   "relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300",
-                  isActive && "font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-rose-200 to-white"
+                  isActive && "font-bold"
                 )}>
                   {item.label}
                 </span>
