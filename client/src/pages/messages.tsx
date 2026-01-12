@@ -44,12 +44,9 @@ function ConversationPreview({
           </AvatarFallback>
         </Avatar>
         {unreadCount > 0 && (
-          <Badge 
-            variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs"
-          >
+          <div className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center rounded-full bg-pink-500 text-white text-xs font-bold px-1">
             {unreadCount}
-          </Badge>
+          </div>
         )}
       </div>
 
