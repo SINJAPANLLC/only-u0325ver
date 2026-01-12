@@ -342,14 +342,6 @@ function LiveStreamPage({
           {title}
         </p>
 
-        <div className="flex items-center gap-2 text-white/80 text-xs">
-          <Radio className="h-3 w-3 text-pink-500" />
-          <span>{formatCount(viewerCount)}人が視聴中</span>
-          <span className="text-white/60">•</span>
-          <span className={currentMode === "waiting" ? "text-white/60" : "text-pink-400"}>
-            {currentMode === "waiting" ? "待機中" : currentMode === "party" ? "パーティー中" : "2ショット中"}
-          </span>
-        </div>
       </div>
 
       {currentMode !== "waiting" && (
