@@ -354,7 +354,7 @@ export default function Shop() {
     : displayProducts.filter(p => p.productType === activeTab);
 
   return (
-    <div className="pb-24 min-h-screen overflow-y-auto bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
+    <div className="pb-24 pt-4 min-h-screen overflow-y-auto bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-14 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-4">
