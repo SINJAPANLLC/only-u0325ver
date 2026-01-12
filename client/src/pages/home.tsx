@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Lock, Volume2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -53,26 +53,13 @@ function VideoPage({
   
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0], [0.5, 1]);
-  const touchStartX = useRef(0);
   
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const diff = e.touches[0].clientX - touchStartX.current;
-    if (diff < 0) {
-      x.set(diff);
-    }
-  };
-  
-  const handleTouchEnd = () => {
-    const currentX = x.get();
-    if (currentX < -100) {
-      animate(x, -400, { duration: 0.3 });
+  const handleDragEnd = (_: any, info: { offset: { x: number }; velocity: { x: number } }) => {
+    if (info.offset.x < -100 || info.velocity.x < -500) {
+      animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
         setLocation(`/creator/${creatorName}`);
-      }, 200);
+      }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
     }
@@ -99,12 +86,13 @@ function VideoPage({
 
   return (
     <motion.div 
-      className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black"
+      className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black touch-pan-y"
       data-testid={`video-page-${id}`}
       style={{ x, opacity }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      drag="x"
+      dragConstraints={{ left: -200, right: 0 }}
+      dragElastic={{ left: 0.5, right: 0 }}
+      onDragEnd={handleDragEnd}
     >
       {/* Video background with image */}
       <div 
