@@ -23,6 +23,7 @@ interface VideoPageProps {
   id: string;
   title: string;
   creatorName: string;
+  displayName?: string;
   creatorAvatar?: string;
   viewCount: number;
   likeCount: number;
@@ -38,6 +39,7 @@ function VideoPage({
   id,
   title,
   creatorName,
+  displayName,
   creatorAvatar,
   likeCount,
   commentCount,
@@ -220,8 +222,11 @@ function VideoPage({
       {/* Bottom content info */}
       <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
         {/* Creator name */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col">
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
+            {displayName || creatorName}
+          </span>
+          <span className="text-white/70 text-sm">
             @{creatorName}
           </span>
         </div>
@@ -256,6 +261,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-1",
     title: "【過激注意】深夜のランジェリー配信💋 今夜はどこまで見せる？リクエストに応えちゃう #18禁 #下着",
     creatorName: "Risa",
+    displayName: "りさ💋",
     viewCount: 285000,
     likeCount: 24800,
     commentCount: 1890,
@@ -269,6 +275,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-2",
     title: "【VIP限定】ベッドルームからお届け🖤 シルクローブで誘惑...寝室の秘密 #寝室配信 #エロ",
     creatorName: "Yua",
+    displayName: "ゆあ🖤",
     viewCount: 456000,
     likeCount: 38200,
     commentCount: 2340,
@@ -282,6 +289,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-3",
     title: "お風呂配信🛁 泡で隠れてる？隠れてない？ギリギリを攻めます #入浴 #セクシー",
     creatorName: "Mio",
+    displayName: "みお🛁",
     viewCount: 189000,
     likeCount: 15600,
     commentCount: 890,
@@ -295,6 +303,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-4",
     title: "バニーガール登場🐰 今夜はご主人様のために...リクエスト受付中 #コスプレ #バニー",
     creatorName: "Reina",
+    displayName: "れいな🐰",
     viewCount: 523000,
     likeCount: 42000,
     commentCount: 3100,
@@ -308,6 +317,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-5",
     title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #過激 #グラビア",
     creatorName: "Hina",
+    displayName: "ひな📸",
     viewCount: 612000,
     likeCount: 51000,
     commentCount: 4200,
@@ -321,6 +331,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-6",
     title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
     creatorName: "Saki",
+    displayName: "さき💕",
     viewCount: 178000,
     likeCount: 13400,
     commentCount: 780,
@@ -334,6 +345,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-7",
     title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
     creatorName: "Aya",
+    displayName: "あや🔞",
     viewCount: 398000,
     likeCount: 32000,
     commentCount: 2800,
@@ -347,6 +359,7 @@ const demoVideos: VideoPageProps[] = [
     id: "demo-8",
     title: "メイドコス配信🎀 ご主人様のお帰りをお待ちしてます...何でもいたします #メイド #エロコス",
     creatorName: "Nana",
+    displayName: "なな🎀",
     viewCount: 445000,
     likeCount: 36500,
     commentCount: 2650,
