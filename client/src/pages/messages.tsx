@@ -7,6 +7,11 @@ import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 
+import avatar1 from "@assets/generated_images/nude_bedroom_1.jpg";
+import avatar2 from "@assets/generated_images/nude_bath_2.jpg";
+import avatar3 from "@assets/generated_images/lingerie_bed_3.jpg";
+import avatar4 from "@assets/generated_images/bunny_girl_5.jpg";
+
 interface ConversationPreviewProps {
   id: string;
   participantName: string;
@@ -77,6 +82,7 @@ const mockConversations: ConversationPreviewProps[] = [
   {
     id: "1",
     participantName: "Sakura",
+    participantAvatar: avatar1,
     lastMessage: "ありがとうございます！新しい動画も楽しみにしてね",
     lastMessageAt: new Date(Date.now() - 1000 * 60 * 5),
     unreadCount: 2,
@@ -85,6 +91,7 @@ const mockConversations: ConversationPreviewProps[] = [
   {
     id: "2",
     participantName: "Rina",
+    participantAvatar: avatar2,
     lastMessage: "今日の配信見てくれた？",
     lastMessageAt: new Date(Date.now() - 1000 * 60 * 30),
     unreadCount: 0,
@@ -93,6 +100,7 @@ const mockConversations: ConversationPreviewProps[] = [
   {
     id: "3",
     participantName: "Yuki",
+    participantAvatar: avatar3,
     lastMessage: "商品の発送完了しました！",
     lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
     unreadCount: 1,
@@ -101,6 +109,7 @@ const mockConversations: ConversationPreviewProps[] = [
   {
     id: "4",
     participantName: "Miki",
+    participantAvatar: avatar4,
     lastMessage: "コメントありがとう〜",
     lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
     unreadCount: 0,

@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 
+import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
+
 interface MenuItemProps {
   icon: React.ElementType;
   label: string;
@@ -103,7 +105,7 @@ export default function Account() {
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2 ring-offset-background">
-              <AvatarImage src={user?.profileImageUrl || undefined} />
+              <AvatarImage src={user?.profileImageUrl || demoAvatar} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                 {user?.firstName?.charAt(0) || user?.email?.charAt(0) || "U"}
               </AvatarFallback>
