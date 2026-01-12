@@ -37,25 +37,31 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/shop">
-          <Header />
-          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
-            <Shop />
-          </main>
-          <BottomNavigation />
+          <div className="h-[100svh] flex flex-col">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <Shop />
+            </main>
+            <BottomNavigation />
+          </div>
         </Route>
         <Route path="/messages">
-          <Header />
-          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
-            <Messages />
-          </main>
-          <BottomNavigation />
+          <div className="h-[100svh] flex flex-col">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <Messages />
+            </main>
+            <BottomNavigation />
+          </div>
         </Route>
         <Route path="/account">
-          <Header />
-          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
-            <Account />
-          </main>
-          <BottomNavigation />
+          <div className="h-[100svh] flex flex-col">
+            <Header />
+            <main className="flex-1 overflow-y-auto">
+              <Account />
+            </main>
+            <BottomNavigation />
+          </div>
         </Route>
         <Route path="/creator/:username">
           <div className="relative h-[100svh] overflow-hidden">
