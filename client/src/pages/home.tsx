@@ -224,9 +224,6 @@ function VideoPage({
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             @{creatorName}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-pink-500/30 text-pink-300 text-xs font-medium">
-            認証済み
-          </span>
         </div>
 
         {/* Title/description */}
