@@ -31,13 +31,13 @@ function AuthenticatedApp() {
             <BottomNavigation />
           </div>
         </Route>
-        {/* Other pages use standard layout */}
+        {/* Live uses full-screen TikTok-style layout like Home */}
         <Route path="/live">
-          <Header />
-          <main className="min-h-[calc(100vh-3.5rem-4rem)] pb-24">
+          <div className="relative h-[100svh] overflow-hidden">
+            <Header />
             <Live />
-          </main>
-          <BottomNavigation />
+            <BottomNavigation />
+          </div>
         </Route>
         <Route path="/shop">
           <Header />
