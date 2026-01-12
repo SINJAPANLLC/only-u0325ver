@@ -94,7 +94,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 -mt-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
