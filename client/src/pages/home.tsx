@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Lock } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Lock, Volume2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -169,12 +169,12 @@ function VideoPage({
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className={`h-12 w-12 rounded-full flex items-center justify-center ${
+            className={`h-10 w-10 rounded-full flex items-center justify-center ${
               isLiked ? "bg-pink-500/20" : "bg-white/10"
             } backdrop-blur-sm transition-colors`}
           >
             <Heart
-              className={`h-7 w-7 transition-colors ${
+              className={`h-5 w-5 transition-colors ${
                 isLiked ? "text-pink-500 fill-pink-500" : "text-white"
               }`}
             />
@@ -189,8 +189,8 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-comment-${id}`}
         >
-          <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="h-7 w-7 text-white" />
+          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <span className="text-xs text-white font-semibold">{formatCount(commentCount)}</span>
         </button>
@@ -200,20 +200,21 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="h-6 w-6 text-white" />
+          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="h-5 w-5 text-white" />
           </div>
           <span className="text-xs text-white font-semibold">シェア</span>
         </button>
 
-        {/* Music disc animation */}
-        <motion.div
-          animate={{ rotate: isActive && !isPaused ? 360 : 0 }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-gray-700 flex items-center justify-center shadow-lg"
+        {/* Volume */}
+        <button
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-volume-${id}`}
         >
-          <div className="h-4 w-4 rounded-full bg-gray-600" />
-        </motion.div>
+          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Volume2 className="h-5 w-5 text-white" />
+          </div>
+        </button>
       </div>
 
       {/* Bottom content info */}
