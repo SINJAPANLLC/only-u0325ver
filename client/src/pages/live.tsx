@@ -185,43 +185,43 @@ function LiveStreamPage({
           )}
         </div>
 
-        <div className="flex flex-col items-end gap-2">
-          <Badge className="bg-amber-500/90 border-0 text-white gap-1.5 font-bold px-3 py-1.5" data-testid="badge-points">
-            <Coins className="h-3.5 w-3.5" />
+        <div className="flex flex-col items-end gap-1">
+          <Badge className="bg-amber-500/90 border-0 text-white gap-1 font-bold px-2 py-0.5 text-[10px]" data-testid="badge-points">
+            <Coins className="h-2.5 w-2.5" />
             {userPoints.toLocaleString()}pt
           </Badge>
           
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             <Button
               size="sm"
               onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-              className={`h-8 px-3 text-xs font-bold ${
+              className={`h-6 px-2 text-[10px] font-medium ${
                 currentMode === "party" 
                   ? "bg-pink-500 hover:bg-pink-600 text-white" 
                   : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
               }`}
               data-testid="button-party-mode"
             >
-              <UsersRound className="h-3.5 w-3.5 mr-1" />
+              <UsersRound className="h-2.5 w-2.5 mr-0.5" />
               パーティー
             </Button>
             <Button
               size="sm"
               onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-              className={`h-8 px-3 text-xs font-bold ${
+              className={`h-6 px-2 text-[10px] font-medium ${
                 currentMode === "twoshot" 
                   ? "bg-purple-500 hover:bg-purple-600 text-white" 
                   : "bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm"
               }`}
               data-testid="button-twoshot-mode"
             >
-              <UserRound className="h-3.5 w-3.5 mr-1" />
+              <UserRound className="h-2.5 w-2.5 mr-0.5" />
               2ショット
             </Button>
           </div>
 
           {currentMode !== "waiting" && (
-            <div className="text-[10px] text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
+            <div className="text-[8px] text-white/80 bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded">
               {currentRate}pt/分
             </div>
           )}
