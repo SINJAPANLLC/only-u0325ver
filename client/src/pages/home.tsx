@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Play, Heart, MessageCircle, Share2, Plus, Music2, Crown, Lock, Volume2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Video as VideoType } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { useLocation } from "wouter";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -48,6 +49,34 @@ function VideoPage({
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [likes, setLikes] = useState(likeCount);
+  const [, setLocation] = useLocation();
+  
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-200, 0], [0.5, 1]);
+  const touchStartX = useRef(0);
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const diff = e.touches[0].clientX - touchStartX.current;
+    if (diff < 0) {
+      x.set(diff);
+    }
+  };
+  
+  const handleTouchEnd = () => {
+    const currentX = x.get();
+    if (currentX < -100) {
+      animate(x, -400, { duration: 0.3 });
+      setTimeout(() => {
+        setLocation(`/creator/${creatorName}`);
+      }, 200);
+    } else {
+      animate(x, 0, { duration: 0.2 });
+    }
+  };
 
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -69,9 +98,13 @@ function VideoPage({
   };
 
   return (
-    <div 
+    <motion.div 
       className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black"
       data-testid={`video-page-${id}`}
+      style={{ x, opacity }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Video background with image */}
       <div 
@@ -228,7 +261,7 @@ function VideoPage({
           />
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

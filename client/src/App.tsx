@@ -17,6 +17,7 @@ import Live from "@/pages/live";
 import Shop from "@/pages/shop";
 import Messages from "@/pages/messages";
 import Account from "@/pages/account";
+import CreatorProfile from "@/pages/creator-profile";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -57,6 +58,11 @@ function AuthenticatedApp() {
             <Account />
           </main>
           <BottomNavigation />
+        </Route>
+        <Route path="/creator/:username">
+          <div className="relative h-[100svh] overflow-hidden">
+            <CreatorProfile />
+          </div>
         </Route>
         <Route component={NotFound} />
       </Switch>
