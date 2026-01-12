@@ -18,6 +18,7 @@ import img5 from "@assets/generated_images/bunny_girl_5.jpg";
 import img6 from "@assets/generated_images/micro_bikini_6.jpg";
 import img7 from "@assets/generated_images/sexy_maid_7.jpg";
 import img8 from "@assets/generated_images/topless_morning_8.jpg";
+import imgHorizontal from "@assets/generated_images/horizontal_glamour_sofa_scene.png";
 
 interface VideoPageProps {
   id: string;
@@ -33,6 +34,7 @@ interface VideoPageProps {
   isActive: boolean;
   musicName?: string;
   thumbnailUrl?: string;
+  isHorizontal?: boolean;
 }
 
 function VideoPage({
@@ -47,6 +49,7 @@ function VideoPage({
   isActive,
   musicName = "オリジナル音源",
   thumbnailUrl,
+  isHorizontal = false,
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -106,7 +109,7 @@ function VideoPage({
           <img 
             src={thumbnailUrl} 
             alt="" 
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
           />
         )}
         
@@ -368,6 +371,21 @@ const demoVideos: VideoPageProps[] = [
     isActive: false,
     musicName: "Kawaii Pop Mix",
     thumbnailUrl: img8,
+  },
+  {
+    id: "demo-9",
+    title: "【横型】ソファでくつろぎ配信💫 リラックスした姿をお届け...今夜は特別 #横型 #グラビア",
+    creatorName: "Mei",
+    displayName: "めい💫",
+    viewCount: 234000,
+    likeCount: 19800,
+    commentCount: 1520,
+    duration: 55,
+    isPremium: false,
+    isActive: false,
+    musicName: "Chill Lounge Mix",
+    thumbnailUrl: imgHorizontal,
+    isHorizontal: true,
   },
 ];
 
