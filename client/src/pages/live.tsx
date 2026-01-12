@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, Share2, Plus, Volume2, Lock, Send, Eye } from "lucide-react";
+import { Radio, Users, Heart, MessageCircle, Share2, Plus, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
@@ -17,8 +16,6 @@ import img3 from "@assets/generated_images/bunny_girl_5.jpg";
 import img4 from "@assets/generated_images/nude_shower_4.jpg";
 import img5 from "@assets/generated_images/sexy_maid_7.jpg";
 
-type ChatType = "peek" | "party" | "twoshot";
-
 interface LiveStreamPageProps {
   id: string;
   title: string;
@@ -28,14 +25,10 @@ interface LiveStreamPageProps {
   creatorAvatar?: string;
   viewerCount: number;
   likeCount: number;
+  giftCount: number;
   isLive: boolean;
   category?: string;
   isActive: boolean;
-  pricePerMinute: {
-    peek: number;
-    party: number;
-    twoshot: number;
-  };
 }
 
 function LiveStreamPage({
@@ -47,15 +40,13 @@ function LiveStreamPage({
   creatorAvatar,
   viewerCount,
   likeCount,
+  giftCount,
   isLive,
   category,
   isActive,
-  pricePerMinute,
 }: LiveStreamPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(likeCount);
-  const [chatType, setChatType] = useState<ChatType>("peek");
-  const [comment, setComment] = useState("");
   const [, setLocation] = useLocation();
 
   const x = useMotionValue(0);
@@ -104,30 +95,30 @@ function LiveStreamPage({
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-600 via-pink-600 to-rose-700" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-pink-600 to-rose-700" />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
-      <div className="absolute top-24 left-4 flex flex-wrap items-center gap-2 z-20">
+      <div className="absolute top-24 left-4 flex items-center gap-2 z-20">
         {isLive && (
-          <Badge className="bg-pink-500 border-0 text-white gap-1.5 font-bold shadow-lg px-2 py-0.5 text-xs" data-testid={`badge-live-${id}`}>
-            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+          <Badge className="bg-pink-500 border-0 text-white gap-1.5 font-bold shadow-lg px-3 py-1" data-testid={`badge-live-${id}`}>
+            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
             LIVE
           </Badge>
         )}
-        <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white gap-1 font-medium px-2 py-0.5 text-xs">
-          <Users className="h-3 w-3" />
+        <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white gap-1.5 font-medium px-3 py-1">
+          <Users className="h-3.5 w-3.5" />
           {formatCount(viewerCount)}
         </Badge>
         {category && (
-          <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white font-medium px-2 py-0.5 text-xs">
+          <Badge className="bg-black/50 backdrop-blur-sm border-0 text-white font-medium px-3 py-1">
             {category}
           </Badge>
         )}
       </div>
 
-      <div className="absolute right-3 top-32 z-10 flex flex-col items-center gap-3">
+      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         <div className="relative mb-1">
           <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
@@ -146,7 +137,7 @@ function LiveStreamPage({
 
         <button
           onClick={handleLike}
-          className="flex flex-col items-center gap-0.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-like-${id}`}
         >
           <motion.div
@@ -167,7 +158,17 @@ function LiveStreamPage({
         </button>
 
         <button
-          className="flex flex-col items-center gap-0.5"
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-comment-${id}`}
+        >
+          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-[10px] text-white font-semibold">コメント</span>
+        </button>
+
+        <button
+          className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
           <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
@@ -177,7 +178,7 @@ function LiveStreamPage({
         </button>
 
         <button
-          className="flex flex-col items-center gap-0.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
           <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
@@ -186,7 +187,7 @@ function LiveStreamPage({
         </button>
       </div>
 
-      <div className="absolute left-4 right-16 bottom-44 z-10 space-y-1">
+      <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
         <div className="flex flex-col">
           <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
@@ -199,73 +200,16 @@ function LiveStreamPage({
         <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-live-title-${id}`}>
           {title}
         </p>
-      </div>
 
-      <div className="absolute bottom-32 left-4 right-4 z-10">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setChatType("peek")}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
-              chatType === "peek"
-                ? "bg-pink-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
-            }`}
-            data-testid="button-chat-peek"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            のぞき {pricePerMinute.peek}pt
-          </button>
-          <button
-            onClick={() => setChatType("party")}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
-              chatType === "party"
-                ? "bg-pink-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
-            }`}
-            data-testid="button-chat-party"
-          >
-            <Users className="h-3.5 w-3.5" />
-            パーティ {pricePerMinute.party}pt
-          </button>
-          <button
-            onClick={() => setChatType("twoshot")}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full text-xs font-medium transition-all ${
-              chatType === "twoshot"
-                ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white"
-                : "bg-black/50 backdrop-blur-sm text-white/90 border border-white/20"
-            }`}
-            data-testid="button-chat-twoshot"
-          >
-            <Lock className="h-3.5 w-3.5" />
-            2ショット {pricePerMinute.twoshot}pt
-          </button>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[4.5rem] left-4 right-4 z-20">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 relative">
-            <Input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="コメントを入力..."
-              className="bg-black/50 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 pr-10 h-10 rounded-full text-sm"
-              data-testid="input-comment"
-            />
-            <Button
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-pink-500 hover:bg-pink-600"
-              data-testid="button-send-comment"
-            >
-              <Send className="h-4 w-4 text-white" />
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 text-white/80 text-xs">
+          <Radio className="h-3 w-3 text-pink-500" />
+          <span>{formatCount(viewerCount)}人が視聴中</span>
         </div>
       </div>
 
       {isActive && (
         <motion.div
-          className="absolute bottom-[4.5rem] left-0 right-0 h-0.5 bg-white/20"
+          className="absolute bottom-24 left-0 right-0 h-0.5 bg-white/20"
         >
           <motion.div
             className="h-full bg-pink-500"
@@ -282,68 +226,68 @@ function LiveStreamPage({
 const demoLiveStreams: LiveStreamPageProps[] = [
   {
     id: "live-1",
-    title: "夜の癒し配信 今夜もゆっくりお話ししましょ",
+    title: "【18禁】脱衣リクエスト配信💋 投げ銭でどんどん脱ぐよ",
     creatorName: "Reina",
-    displayName: "れいな",
+    displayName: "れいな💋",
     viewerCount: 2450,
     likeCount: 18500,
+    giftCount: 3200,
     isLive: true,
-    category: "トーク",
+    category: "脱衣",
     isActive: false,
     thumbnailUrl: img1,
-    pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
   },
   {
     id: "live-2",
-    title: "コスプレ配信 リクエスト受付中",
+    title: "透けブラ＆Tバック試着会🖤 全部見せちゃう",
     creatorName: "Yua",
-    displayName: "ゆあ",
+    displayName: "ゆあ🖤",
     viewerCount: 1890,
     likeCount: 15200,
+    giftCount: 2800,
     isLive: true,
-    category: "コスプレ",
+    category: "下着",
     isActive: false,
     thumbnailUrl: img2,
-    pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
   },
   {
     id: "live-3",
-    title: "お悩み相談配信 何でも聞くよ",
+    title: "バニーガール配信🐰 今夜はご主人様のために何でもします",
     creatorName: "Mio",
-    displayName: "みお",
+    displayName: "みお🐰",
     viewerCount: 1250,
     likeCount: 9800,
+    giftCount: 1500,
     isLive: true,
-    category: "相談",
+    category: "コスプレ",
     isActive: false,
     thumbnailUrl: img3,
-    pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
   },
   {
     id: "live-4",
-    title: "深夜のまったり配信",
+    title: "シャワー配信💦 全身見せちゃうかも...？",
     creatorName: "Hina",
-    displayName: "ひな",
+    displayName: "ひな💦",
     viewerCount: 3200,
     likeCount: 24500,
+    giftCount: 4100,
     isLive: true,
-    category: "雑談",
+    category: "入浴",
     isActive: false,
     thumbnailUrl: img4,
-    pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
   },
   {
     id: "live-5",
-    title: "ASMR配信 囁きで癒します",
+    title: "メイドコス配信🎀 ご主人様のリクエストに全部応えます",
     creatorName: "Saki",
-    displayName: "さき",
+    displayName: "さき🎀",
     viewerCount: 1680,
     likeCount: 12300,
+    giftCount: 2100,
     isLive: true,
-    category: "ASMR",
+    category: "メイド",
     isActive: false,
     thumbnailUrl: img5,
-    pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
   },
 ];
 
@@ -368,10 +312,10 @@ export default function Live() {
           creatorName: "Creator",
           viewerCount: s.viewerCount || 0,
           likeCount: 0,
+          giftCount: 0,
           isLive: s.status === "live",
           category: undefined,
           isActive: false,
-          pricePerMinute: { peek: 100, party: 100, twoshot: 250 },
         }))
       : demoLiveStreams;
 

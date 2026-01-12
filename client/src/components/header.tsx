@@ -1,4 +1,4 @@
-import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiDownloadSimpleDuotone, PiCoinsDuotone } from "react-icons/pi";
+import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiDownloadSimpleDuotone } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -96,15 +96,6 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
         </div>
 
         <div className="flex items-center gap-1 -mt-2">
-          <Button 
-            variant="ghost" 
-            className="rounded-full h-8 px-3 hover:bg-white/20 transition-all duration-300 text-white gap-1.5"
-            data-testid="button-points"
-          >
-            <PiCoinsDuotone className="h-5 w-5 text-amber-400" />
-            <span className="text-sm font-bold text-amber-400">5,000</span>
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
