@@ -8,6 +8,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
@@ -26,8 +32,20 @@ const languages = [
 
 export function Header({ onSearchClick }: HeaderProps) {
   const [currentLang, setCurrentLang] = useState("ja");
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
   const notificationCount = 3;
-  const { isInstallable, install } = usePwaInstall();
+  const { isInstallable, isInstalled, install } = usePwaInstall();
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+
+  const handleInstallClick = async () => {
+    if (isInstallable) {
+      await install();
+    } else {
+      setShowInstallDialog(true);
+    }
+  };
 
   return (
     <motion.header 
@@ -98,12 +116,12 @@ export function Header({ onSearchClick }: HeaderProps) {
             <PiMagnifyingGlassDuotone className="h-14 w-14 text-white drop-shadow-sm" />
           </Button>
 
-          {isInstallable && (
+          {!isInstalled && (
             <Button 
               variant="ghost" 
               size="icon" 
               className="rounded-full h-14 w-14 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
-              onClick={install}
+              onClick={handleInstallClick}
               data-testid="button-install"
             >
               <PiDownloadSimpleDuotone className="h-14 w-14 text-white drop-shadow-sm" />
@@ -113,6 +131,51 @@ export function Header({ onSearchClick }: HeaderProps) {
           <ThemeToggle />
         </div>
       </div>
+
+      <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
+        <DialogContent className="max-w-sm rounded-2xl bg-black/90 backdrop-blur-xl border-white/20 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center">
+              ホーム画面に追加
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {isIOS ? (
+              <div className="space-y-3">
+                <p className="text-sm text-white/80 text-center">iPhoneでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                  <li>画面下の<span className="font-bold">共有ボタン</span>をタップ</li>
+                  <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
+                  <li>右上の「<span className="font-bold">追加</span>」をタップ</li>
+                </ol>
+              </div>
+            ) : isAndroid ? (
+              <div className="space-y-3">
+                <p className="text-sm text-white/80 text-center">Androidでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                  <li>ブラウザの<span className="font-bold">メニュー（︙）</span>をタップ</li>
+                  <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
+                  <li>「<span className="font-bold">追加</span>」をタップ</li>
+                </ol>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-white/80 text-center">アプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                  <li>ブラウザのメニューを開く</li>
+                  <li>「ホーム画面に追加」または「アプリをインストール」を選択</li>
+                </ol>
+              </div>
+            )}
+            <Button 
+              onClick={() => setShowInstallDialog(false)}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.header>
   );
 }
