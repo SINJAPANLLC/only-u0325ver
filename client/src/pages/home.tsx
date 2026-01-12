@@ -122,21 +122,21 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-5">
+      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         {/* Creator avatar */}
-        <div className="relative">
-          <Avatar className="h-12 w-12 ring-2 ring-white shadow-lg">
-            <AvatarImage src={creatorAvatar} />
+        <div className="relative mb-1">
+          <Avatar className="h-11 w-11 ring-2 ring-white shadow-lg">
+            <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <Button
             size="icon"
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
+            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
             data-testid={`button-follow-${id}`}
           >
-            <Plus className="h-3.5 w-3.5 text-white" />
+            <Plus className="h-3 w-3 text-white" />
           </Button>
         </div>
 
@@ -148,17 +148,17 @@ function VideoPage({
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className={`h-10 w-10 rounded-full flex items-center justify-center ${
+            className={`h-9 w-9 rounded-full flex items-center justify-center ${
               isLiked ? "bg-pink-500/20" : "bg-white/10"
             } backdrop-blur-sm transition-colors`}
           >
             <Heart
-              className={`h-5 w-5 transition-colors ${
+              className={`h-4 w-4 transition-colors ${
                 isLiked ? "text-pink-500 fill-pink-500" : "text-white"
               }`}
             />
           </motion.div>
-          <span className="text-xs text-white font-semibold" data-testid={`text-likes-${id}`}>
+          <span className="text-[10px] text-white font-semibold" data-testid={`text-likes-${id}`}>
             {formatCount(likes)}
           </span>
         </button>
@@ -168,10 +168,10 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-comment-${id}`}
         >
-          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="h-5 w-5 text-white" />
+          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <MessageCircle className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xs text-white font-semibold">{formatCount(commentCount)}</span>
+          <span className="text-[10px] text-white font-semibold">{formatCount(commentCount)}</span>
         </button>
 
         {/* Share */}
@@ -179,10 +179,10 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="h-5 w-5 text-white" />
+          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xs text-white font-semibold">シェア</span>
+          <span className="text-[10px] text-white font-semibold">シェア</span>
         </button>
 
         {/* Volume */}
@@ -190,8 +190,8 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Volume2 className="h-5 w-5 text-white" />
+          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Volume2 className="h-4 w-4 text-white" />
           </div>
         </button>
       </div>
