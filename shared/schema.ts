@@ -7,11 +7,39 @@ import { z } from "zod";
 export * from "./models/auth";
 
 // Enums
-export const userRoleEnum = pgEnum("user_role", ["user", "creator"]);
+export const userRoleEnum = pgEnum("user_role", ["user", "creator", "admin"]);
 export const contentTypeEnum = pgEnum("content_type", ["free", "premium"]);
 export const liveStatusEnum = pgEnum("live_status", ["live", "ended", "scheduled"]);
 export const productTypeEnum = pgEnum("product_type", ["digital", "physical"]);
 export const messageStatusEnum = pgEnum("message_status", ["sent", "delivered", "read"]);
+export const applicationStatusEnum = pgEnum("application_status", ["pending", "approved", "rejected"]);
+
+// User profiles (editable by users)
+export const userProfiles = pgTable("user_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  displayName: varchar("display_name"),
+  avatarUrl: varchar("avatar_url"),
+  bio: text("bio"),
+  location: varchar("location"),
+  birthdate: timestamp("birthdate"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Creator applications (for users wanting to become creators)
+export const creatorApplications = pgTable("creator_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  status: applicationStatusEnum("status").default("pending"),
+  portfolioUrl: varchar("portfolio_url"),
+  experience: text("experience"),
+  reason: text("reason"),
+  notes: text("notes"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewerId: varchar("reviewer_id"),
+});
 
 // Creator profiles
 export const creatorProfiles = pgTable("creator_profiles", {
@@ -123,6 +151,8 @@ export const subscriptions = pgTable("subscriptions", {
 });
 
 // Insert schemas
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCreatorApplicationSchema = createInsertSchema(creatorApplications).omit({ id: true, submittedAt: true, reviewedAt: true, reviewerId: true, status: true });
 export const insertCreatorProfileSchema = createInsertSchema(creatorProfiles).omit({ id: true, createdAt: true });
 export const insertVideoSchema = createInsertSchema(videos).omit({ id: true, createdAt: true });
 export const insertLiveStreamSchema = createInsertSchema(liveStreams).omit({ id: true, createdAt: true });
@@ -131,6 +161,10 @@ export const insertMessageSchema = createInsertSchema(messages).omit({ id: true,
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 
 // Types
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type CreatorApplication = typeof creatorApplications.$inferSelect;
+export type InsertCreatorApplication = z.infer<typeof insertCreatorApplicationSchema>;
 export type CreatorProfile = typeof creatorProfiles.$inferSelect;
 export type InsertCreatorProfile = z.infer<typeof insertCreatorProfileSchema>;
 export type Video = typeof videos.$inferSelect;
