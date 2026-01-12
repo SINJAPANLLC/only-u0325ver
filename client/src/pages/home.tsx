@@ -121,29 +121,6 @@ function VideoPage({
         )}
       </div>
 
-      {/* Premium badge */}
-      {isPremium && (
-        <div className="absolute top-20 left-4 z-10">
-          <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 px-3 py-1.5 text-xs font-bold text-amber-900 shadow-lg">
-            <Crown className="h-3.5 w-3.5" />
-            Premium
-          </div>
-        </div>
-      )}
-
-      {/* Lock overlay for premium content preview */}
-      {isPremium && (
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3">
-          <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20">
-            <Lock className="h-8 w-8 text-white" />
-          </div>
-          <p className="text-white/90 text-sm font-medium">サブスク限定コンテンツ</p>
-          <Button size="sm" className="rounded-full bg-gradient-to-r from-pink-500 to-rose-500 border-0 text-white font-semibold">
-            今すぐ登録
-          </Button>
-        </div>
-      )}
-
       {/* Right side actions */}
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-5">
         {/* Creator avatar */}
