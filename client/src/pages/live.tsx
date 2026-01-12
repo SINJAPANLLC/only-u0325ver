@@ -9,12 +9,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 
-// AI-generated images for adult content
-import img1 from "@assets/generated_images/glamour_lingerie_1.jpg";
-import img2 from "@assets/generated_images/bedroom_scene_2.jpg";
-import img3 from "@assets/generated_images/bunny_cosplay_4.jpg";
-import img4 from "@assets/generated_images/asmr_scene_6.jpg";
-import img5 from "@assets/generated_images/maid_cosplay_8.jpg";
+// AI-generated explicit images for 18+ adult content
+import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
+import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
+import img3 from "@assets/generated_images/bunny_girl_5.jpg";
+import img4 from "@assets/generated_images/nude_shower_4.jpg";
+import img5 from "@assets/generated_images/sexy_maid_7.jpg";
 
 interface LiveStreamCardProps {
   id: string;
