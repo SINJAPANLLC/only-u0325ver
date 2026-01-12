@@ -346,20 +346,20 @@ function LiveStreamPage({
 
       {currentMode !== "waiting" && (
         <div className="absolute left-4 right-4 bottom-24 z-20">
-          <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2">
+          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
             <Input
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="コメントを入力..."
-              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-sm h-8 focus-visible:ring-0"
+              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
               data-testid="input-comment"
             />
             <Button
               size="icon"
-              className="h-8 w-8 rounded-full bg-pink-500 hover:bg-pink-600"
+              className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
               data-testid="button-send-comment"
             >
-              <Send className="h-4 w-4 text-white" />
+              <Send className="h-3 w-3 text-white" />
             </Button>
           </div>
         </div>
