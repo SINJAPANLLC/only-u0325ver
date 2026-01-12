@@ -1,4 +1,4 @@
-import { Bell, Search, Globe } from "lucide-react";
+import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiSparkleDuotone } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -52,18 +52,18 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-10 w-10 hover:bg-white/20 transition-colors text-white"
+                className="rounded-full h-10 w-10 bg-gradient-to-br from-pink-400/30 via-rose-300/20 to-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:ring-white/40 hover:scale-105 transition-all duration-300 text-white"
                 data-testid="button-language"
               >
-                <Globe className="h-5 w-5 stroke-[1.5] text-white" />
+                <PiGlobeHemisphereEastDuotone className="h-5 w-5 text-white drop-shadow-sm" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
+            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20">
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setCurrentLang(lang.code)}
-                  className={`rounded-lg ${currentLang === lang.code ? "bg-pink-100 dark:bg-pink-900/30" : ""}`}
+                  className={`rounded-lg text-white hover:bg-white/20 ${currentLang === lang.code ? "bg-gradient-to-r from-pink-500/30 to-rose-500/30" : ""}`}
                   data-testid={`menu-item-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -75,13 +75,13 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 relative hover:bg-white/20 transition-colors text-white"
+            className="rounded-full h-10 w-10 relative bg-gradient-to-br from-pink-400/30 via-rose-300/20 to-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:ring-white/40 hover:scale-105 transition-all duration-300 text-white"
             data-testid="button-notifications"
           >
-            <Bell className="h-5 w-5 stroke-[1.5] text-white" />
+            <PiBellSimpleRingingDuotone className="h-5 w-5 text-white drop-shadow-sm" />
             {notificationCount > 0 && (
               <Badge 
-                className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 animate-pulse"
+                className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg shadow-pink-500/50 animate-pulse"
               >
                 {notificationCount}
               </Badge>
@@ -91,11 +91,11 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 hover:bg-white/20 transition-colors text-white"
+            className="rounded-full h-10 w-10 bg-gradient-to-br from-pink-400/30 via-rose-300/20 to-white/10 backdrop-blur-sm ring-1 ring-white/20 hover:ring-white/40 hover:scale-105 transition-all duration-300 text-white"
             onClick={onSearchClick}
             data-testid="button-search"
           >
-            <Search className="h-5 w-5 stroke-[1.5] text-white" />
+            <PiMagnifyingGlassDuotone className="h-5 w-5 text-white drop-shadow-sm" />
           </Button>
 
           <ThemeToggle />

@@ -1,15 +1,24 @@
-import { Home, Radio, ShoppingBag, MessageCircle, User } from "lucide-react";
+import { PiHouseDuotone, PiBroadcastDuotone, PiShoppingBagDuotone, PiChatCircleDotsDuotone, PiUserCircleDuotone } from "react-icons/pi";
 import { useLocation, Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import type { IconType } from "react-icons";
 
-const navItems = [
-  { path: "/", icon: Home, label: "ホーム" },
-  { path: "/live", icon: Radio, label: "LIVE", hasLiveIndicator: true },
-  { path: "/shop", icon: ShoppingBag, label: "ショップ" },
-  { path: "/messages", icon: MessageCircle, label: "DM", badgeCount: 5 },
-  { path: "/account", icon: User, label: "マイページ" },
+interface NavItem {
+  path: string;
+  icon: IconType;
+  label: string;
+  hasLiveIndicator?: boolean;
+  badgeCount?: number;
+}
+
+const navItems: NavItem[] = [
+  { path: "/", icon: PiHouseDuotone, label: "ホーム" },
+  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", hasLiveIndicator: true },
+  { path: "/shop", icon: PiShoppingBagDuotone, label: "ショップ" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, label: "DM", badgeCount: 5 },
+  { path: "/account", icon: PiUserCircleDuotone, label: "マイページ" },
 ];
 
 export function BottomNavigation() {
@@ -20,7 +29,7 @@ export function BottomNavigation() {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-black/60 via-black/30 to-transparent pb-safe pointer-events-none"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-safe pointer-events-none"
     >
       <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto px-2 pointer-events-auto">
         {navItems.map((item) => {
@@ -31,19 +40,19 @@ export function BottomNavigation() {
             <Link key={item.path} href={item.path}>
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1.5 w-16 h-full rounded-2xl transition-all duration-200",
+                  "relative flex flex-col items-center justify-center gap-1 w-16 h-full rounded-2xl transition-all duration-300",
                   isActive 
                     ? "text-white" 
-                    : "text-white/70 hover:text-white"
+                    : "text-white/60 hover:text-white/90"
                 )}
                 data-testid={`nav-${item.path === "/" ? "home" : item.path.slice(1)}`}
               >
-                {/* Active background indicator */}
                 {isActive && (
                   <motion.div
                     layoutId="nav-active-bg"
-                    className="absolute inset-1 bg-white/20 backdrop-blur-sm rounded-xl"
+                    className="absolute inset-1 bg-gradient-to-br from-pink-500/40 via-rose-400/30 to-white/20 backdrop-blur-md rounded-xl ring-1 ring-white/30 shadow-lg shadow-pink-500/20"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -51,22 +60,24 @@ export function BottomNavigation() {
                 <div className="relative z-10">
                   <Icon 
                     className={cn(
-                      "h-6 w-6 transition-all duration-200",
-                      isActive ? "scale-110 drop-shadow-sm" : "stroke-[1.5]"
+                      "h-7 w-7 transition-all duration-300",
+                      isActive 
+                        ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.6)]" 
+                        : ""
                     )} 
-                    fill={isActive ? "currentColor" : "none"}
-                    strokeWidth={isActive ? 1.5 : 1.5}
                   />
                   
-                  {/* Live pulse indicator */}
                   {item.hasLiveIndicator && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 animate-live-pulse shadow-lg shadow-red-500/50" />
+                    <motion.span 
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-lg shadow-red-500/60 ring-2 ring-black/30" 
+                    />
                   )}
                   
-                  {/* Badge for messages */}
                   {item.badgeCount && item.badgeCount > 0 && (
                     <Badge 
-                      className="absolute -top-2 -right-3 h-5 min-w-5 flex items-center justify-center p-0 text-[10px] font-bold bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg"
+                      className="absolute -top-2 -right-3 h-5 min-w-5 flex items-center justify-center p-0 text-[10px] font-bold bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg shadow-pink-500/50 ring-1 ring-white/30"
                     >
                       {item.badgeCount > 99 ? "99+" : item.badgeCount}
                     </Badge>
@@ -74,8 +85,8 @@ export function BottomNavigation() {
                 </div>
                 
                 <span className={cn(
-                  "relative z-10 text-[10px] font-medium tracking-wide",
-                  isActive && "font-bold"
+                  "relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300",
+                  isActive && "font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-rose-200 to-white"
                 )}>
                   {item.label}
                 </span>
