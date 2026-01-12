@@ -52,10 +52,10 @@ export function Header({ onSearchClick }: HeaderProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+                className="rounded-full h-14 w-14 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
                 data-testid="button-language"
               >
-                <PiGlobeHemisphereEastDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+                <PiGlobeHemisphereEastDuotone className="h-12 w-12 text-white drop-shadow-sm" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20">
@@ -75,27 +75,25 @@ export function Header({ onSearchClick }: HeaderProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-12 w-12 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-14 w-14 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             data-testid="button-notifications"
           >
-            <PiBellSimpleRingingDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+            <PiBellSimpleRingingDuotone className="h-12 w-12 text-white drop-shadow-sm" />
             {notificationCount > 0 && (
-              <Badge 
-                className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-lg shadow-pink-500/50 animate-pulse"
-              >
+              <span className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-pink-500 text-white text-xs font-bold shadow-lg">
                 {notificationCount}
-              </Badge>
+              </span>
             )}
           </Button>
 
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            className="rounded-full h-14 w-14 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
             onClick={onSearchClick}
             data-testid="button-search"
           >
-            <PiMagnifyingGlassDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+            <PiMagnifyingGlassDuotone className="h-12 w-12 text-white drop-shadow-sm" />
           </Button>
 
           <ThemeToggle />
