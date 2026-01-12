@@ -55,8 +55,8 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
       animate={{ y: 0, opacity: 1 }}
       className="fixed top-0 left-0 right-0 z-40 w-full bg-gradient-to-b from-black/40 to-transparent pointer-events-none"
     >
-      <div className="flex h-16 items-center justify-between px-4 gap-2 pointer-events-auto pt-2">
-        <div className="flex items-center gap-4">
+      <div className="flex h-20 items-center justify-between px-4 gap-2 pointer-events-auto pt-2">
+        <div className="flex flex-col items-start">
           <motion.div 
             className="flex items-center"
             whileHover={{ scale: 1.02 }}
@@ -64,11 +64,11 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
             <img 
               src={logoImage} 
               alt="Only-U" 
-              className="h-20 object-contain brightness-0 invert"
+              className="h-16 object-contain brightness-0 invert"
               data-testid="img-logo"
             />
           </motion.div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 ml-1 -mt-1">
             <button
               onClick={() => onFeedTypeChange?.("recommend")}
               className={`text-sm font-medium whitespace-nowrap transition-all ${
