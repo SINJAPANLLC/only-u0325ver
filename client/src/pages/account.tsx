@@ -363,10 +363,6 @@ export default function Account() {
           ログアウト
         </Button>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Only-U v1.0.0<br />
-          運営: 合同会社SIN JAPAN KANAGAWA
-        </p>
       </div>
     </div>
   );
