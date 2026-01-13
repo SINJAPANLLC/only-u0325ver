@@ -121,8 +121,11 @@ function AppContent() {
   }, [setLocation]);
 
   const handleRegisterClick = useCallback(() => {
-    // Always show age verification when clicking register button
     setShowAgeVerification(true);
+  }, []);
+
+  const handleAgeCancel = useCallback(() => {
+    setShowAgeVerification(false);
   }, []);
 
   if (showLoading || isLoading) {
@@ -130,7 +133,7 @@ function AppContent() {
   }
 
   if (showAgeVerification) {
-    return <AgeVerification onVerified={handleAgeVerified} />;
+    return <AgeVerification onVerified={handleAgeVerified} onCancel={handleAgeCancel} />;
   }
 
   if (!user) {

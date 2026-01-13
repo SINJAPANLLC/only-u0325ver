@@ -4,9 +4,10 @@ import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 interface AgeVerificationProps {
   onVerified: () => void;
+  onCancel?: () => void;
 }
 
-export function AgeVerification({ onVerified }: AgeVerificationProps) {
+export function AgeVerification({ onVerified, onCancel }: AgeVerificationProps) {
   const handleYes = () => {
     try {
       localStorage.setItem("only-u-age-verified", "true");
@@ -18,7 +19,7 @@ export function AgeVerification({ onVerified }: AgeVerificationProps) {
   };
 
   const handleCancel = () => {
-    window.location.href = "https://www.google.com";
+    onCancel?.();
   };
 
   return (
