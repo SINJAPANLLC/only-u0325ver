@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 const section1Image = "/lp-1.png";
@@ -13,7 +14,29 @@ interface LandingProps {
 
 export default function Landing({ onRegisterClick }: LandingProps) {
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden bg-white">
+    <div className="h-full overflow-y-auto overflow-x-hidden bg-white relative">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-end gap-2 p-3 max-w-[430px] mx-auto">
+        <Button 
+          onClick={onRegisterClick}
+          size="sm"
+          className="rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white px-4"
+          data-testid="button-header-register"
+        >
+          新規登録
+        </Button>
+        <Link href="/auth">
+          <Button 
+            variant="outline"
+            size="sm"
+            className="rounded-full text-xs font-bold border-pink-500 text-pink-500 hover:bg-pink-50 px-4"
+            data-testid="button-header-login"
+          >
+            ログイン
+          </Button>
+        </Link>
+      </div>
+
       {/* Section 1 - Hero with legs */}
       <section className="relative w-full">
         <img 
