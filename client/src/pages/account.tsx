@@ -4,7 +4,7 @@ import {
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
   Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye, Phone, Mail
 } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,7 @@ function MenuItem({ icon: Icon, label, description, badge, onClick, href }: Menu
   );
 
   if (href) {
-    return <a href={href}>{content}</a>;
+    return <Link href={href}>{content}</Link>;
   }
 
   return content;
