@@ -38,11 +38,11 @@ export default function Landing() {
           className="w-full h-auto"
           data-testid="img-section3"
         />
-        {/* Registration Button - positioned over image */}
-        <div className="absolute bottom-8 left-0 right-0 px-8">
+        {/* Registration Button - overlaid on image's existing button position */}
+        <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 w-[45%]">
           <Link href="/auth">
             <Button 
-              className="w-full h-12 rounded-full text-base font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+              className="w-full h-10 rounded-md text-sm font-medium bg-transparent hover:bg-pink-500/20 text-transparent hover:text-white border-0"
               data-testid="button-register-section3"
             >
               無料登録
