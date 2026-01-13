@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -101,6 +101,7 @@ function getAgeVerified(): boolean {
 
 function AppContent() {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => getAgeVerified());
   const [showLoading, setShowLoading] = useState(true);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
@@ -116,8 +117,8 @@ function AppContent() {
   const handleAgeVerified = useCallback(() => {
     setIsAgeVerified(true);
     setShowAgeVerification(false);
-    window.location.href = "/auth";
-  }, []);
+    setLocation("/auth");
+  }, [setLocation]);
 
   const handleRegisterClick = useCallback(() => {
     // Always show age verification when clicking register button
