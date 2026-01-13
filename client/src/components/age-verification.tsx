@@ -40,7 +40,7 @@ export function AgeVerification({ onVerified }: AgeVerificationProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-20 object-contain"
+            className="h-32 object-contain"
             data-testid="img-logo-age-verification"
           />
 
@@ -60,11 +60,11 @@ export function AgeVerification({ onVerified }: AgeVerificationProps) {
           </p>
 
           {/* Buttons */}
-          <div className="w-full space-y-4">
+          <div className="w-full max-w-xs mx-auto space-y-3">
             <Button
               onClick={handleYes}
               data-testid="button-verify-age-yes"
-              className="w-full h-12 rounded-full text-base font-bold bg-pink-500 hover:bg-pink-600 text-white"
+              className="w-full h-10 rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white"
             >
               はい
             </Button>
