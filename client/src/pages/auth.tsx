@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,10 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { AgeVerification } from "@/components/age-verification";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
 
 function getAgeVerified(): boolean {
   try {
@@ -76,6 +79,9 @@ export default function Auth() {
     password: "",
   });
 
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -106,6 +112,7 @@ export default function Auth() {
           password: registerForm.password,
           confirmPassword: registerForm.password,
           name: registerForm.name,
+          turnstileToken,
         }),
       });
 
@@ -130,6 +137,8 @@ export default function Auth() {
       });
     } finally {
       setIsLoading(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
     }
   };
 
@@ -144,6 +153,7 @@ export default function Auth() {
         body: JSON.stringify({
           email: loginForm.email,
           password: loginForm.password,
+          turnstileToken,
         }),
       });
 
@@ -167,6 +177,8 @@ export default function Auth() {
       });
     } finally {
       setIsLoading(false);
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
     }
   };
 
@@ -250,10 +262,24 @@ export default function Auth() {
                 18歳以上であることにも同意したものとみなされます
               </p>
 
+              <div className="flex justify-center pt-2">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setTurnstileToken(token)}
+                  onError={() => setTurnstileToken("")}
+                  onExpire={() => setTurnstileToken("")}
+                  options={{
+                    theme: "light",
+                    size: "normal",
+                  }}
+                />
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full mt-4"
-                disabled={isLoading}
+                disabled={isLoading || !turnstileToken}
                 data-testid="button-submit-register"
               >
                 {isLoading ? "登録中..." : "新規登録"}
@@ -282,10 +308,24 @@ export default function Auth() {
                 data-testid="input-login-password"
               />
 
+              <div className="flex justify-center pt-2">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setTurnstileToken(token)}
+                  onError={() => setTurnstileToken("")}
+                  onExpire={() => setTurnstileToken("")}
+                  options={{
+                    theme: "light",
+                    size: "normal",
+                  }}
+                />
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full mt-2"
-                disabled={isLoading}
+                disabled={isLoading || !turnstileToken}
                 data-testid="button-submit-login"
               >
                 {isLoading ? "ログイン中..." : "ログイン"}
