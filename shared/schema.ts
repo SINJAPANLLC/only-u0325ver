@@ -20,6 +20,7 @@ export const userProfiles = pgTable("user_profiles", {
   userId: varchar("user_id").notNull().unique(),
   displayName: varchar("display_name"),
   avatarUrl: varchar("avatar_url"),
+  coverImageUrl: varchar("cover_image_url"),
   bio: text("bio"),
   location: varchar("location"),
   birthdate: timestamp("birthdate"),
