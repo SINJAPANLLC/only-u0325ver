@@ -19,18 +19,12 @@ export function LoadingScreen() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="relative"
         >
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-20 object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150"
+            className="h-44 object-contain"
             data-testid="img-logo-loading"
-          />
-          <motion.div
-            className="absolute inset-0 rounded-xl bg-primary/20 blur-xl"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           />
         </motion.div>
         <motion.div
