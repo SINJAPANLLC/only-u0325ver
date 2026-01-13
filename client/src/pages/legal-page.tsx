@@ -401,9 +401,24 @@ function PlaceholderContent() {
 }
 
 export default function LegalPage({ title, type }: LegalPageProps) {
+  const renderContent = () => {
+    switch (type) {
+      case "terms":
+        return <TermsContent />;
+      case "privacy":
+        return <PrivacyContent />;
+      case "legal":
+        return <LegalNoticeContent />;
+      case "guidelines":
+        return <GuidelinesContent />;
+      default:
+        return <PlaceholderContent />;
+    }
+  };
+
   return (
-    <div className="min-h-full bg-white flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
         <Link href="/account">
           <button className="text-gray-600 hover:text-gray-800" data-testid={`button-close-${type}`}>
             <X className="h-6 w-6" />
@@ -413,25 +428,9 @@ export default function LegalPage({ title, type }: LegalPageProps) {
         <div className="w-6" />
       </div>
 
-      {type === "terms" ? (
-        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
-          <TermsContent />
-        </div>
-      ) : type === "privacy" ? (
-        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
-          <PrivacyContent />
-        </div>
-      ) : type === "legal" ? (
-        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
-          <LegalNoticeContent />
-        </div>
-      ) : type === "guidelines" ? (
-        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
-          <GuidelinesContent />
-        </div>
-      ) : (
-        <PlaceholderContent />
-      )}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
+        {renderContent()}
+      </div>
     </div>
   );
 }
