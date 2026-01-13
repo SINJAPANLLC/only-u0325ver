@@ -239,6 +239,83 @@ function PrivacyContent() {
   );
 }
 
+function LegalNoticeContent() {
+  return (
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-6">特定商取引法に基づく表記</h2>
+
+      <table className="w-full border-collapse">
+        <tbody>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900 w-1/3">販売業者</td>
+            <td className="py-3">合同会社SIN JAPAN KANAGAWA</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">運営統括責任者名</td>
+            <td className="py-3">榎本翔太</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">所在地</td>
+            <td className="py-3">神奈川県愛甲郡愛川町中津7287</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">電話番号</td>
+            <td className="py-3">
+              050-5526-9906<br />
+              <span className="text-sm text-gray-500">※ お電話での対応は行っておりません。<br />お急ぎの際は問い合わせフォームからお願いいたします。</span>
+            </td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">連絡先メールアドレス</td>
+            <td className="py-3">kanagawa@sinjapan.jp</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">ホームページ</td>
+            <td className="py-3">
+              <a href="https://only-u.fun" className="text-blue-600 hover:underline">https://only-u.fun</a>
+            </td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">販売価格</td>
+            <td className="py-3">各商品ページの価格に準じます。</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">お支払い方法</td>
+            <td className="py-3">クレジットカード</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">お支払期限</td>
+            <td className="py-3">ご注文時にお支払い確定</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">商品の引き渡し時期</td>
+            <td className="py-3">お支払い完了後、サービスの提供を行います。</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">返品・キャンセル</td>
+            <td className="py-3">サービスの性質上、契約締結後のキャンセル、クーリングオフは一切認められず、お支払い頂いた料金については理由を問わず返還いたしません。</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">サービスの解約条件</td>
+            <td className="py-3">解約される場合は、当社サイト上の記載に従って解約手続を行う必要があります。</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">その他費用</td>
+            <td className="py-3">
+              当社が代理受領した料金を「主催者」が指定する振込先口座に振り込む際、振込手数料として３３０円（税込）を当社にお支払いいただきます。<br /><br />
+              なお、ご指定いただいた振込先口座情報の不備・誤記によって誤った振込先への振込がなされてしまった場合に、当社が任意で行う組戻し手続に際し、組戻し手数料として８８０円（税込）を当社にお支払いいただきます。
+            </td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">映像送信型性風俗特殊営業届出</td>
+            <td className="py-3">神奈川県公安委員会第　号</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function PlaceholderContent() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
@@ -274,6 +351,10 @@ export default function LegalPage({ title, type }: LegalPageProps) {
       ) : type === "privacy" ? (
         <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
           <PrivacyContent />
+        </div>
+      ) : type === "legal" ? (
+        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
+          <LegalNoticeContent />
         </div>
       ) : (
         <PlaceholderContent />
