@@ -148,7 +148,8 @@ export default function Account() {
   const creatorMenuItems: MenuItemProps[] = [
     { icon: Radio, label: "ライブ配信", description: "配信を開始する" },
     { icon: Package, label: "コンテンツ管理", description: "動画・商品を管理" },
-    { icon: BarChart3, label: "売り上げ管理", description: "収益を確認" },
+    { icon: ShoppingBag, label: "ショップ管理", description: "商品を管理" },
+    { icon: BarChart3, label: "売上管理", description: "収益を確認" },
     { icon: Wallet, label: "振込申請", description: "口座登録・出金" },
   ];
 
