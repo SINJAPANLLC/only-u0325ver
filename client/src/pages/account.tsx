@@ -166,6 +166,7 @@ export default function Account() {
     { icon: FileText, label: "利用規約", href: "/terms" },
     { icon: Shield, label: "プライバシーポリシー", href: "/privacy" },
     { icon: FileText, label: "特定商取引法に基づく表記", href: "/legal" },
+    { icon: FileText, label: "掲載ガイドライン", href: "/guidelines" },
     { icon: HelpCircle, label: "ヘルプ・お問い合わせ" },
   ];
 
