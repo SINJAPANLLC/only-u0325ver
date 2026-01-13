@@ -9,7 +9,7 @@ const recruitImage = "/lp-recruit.png";
 
 export default function Landing() {
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden bg-white pb-20">
+    <div className="h-full overflow-y-auto overflow-x-hidden bg-white">
       {/* Section 1 - Hero with legs */}
       <section className="relative w-full">
         <img 
@@ -38,6 +38,17 @@ export default function Landing() {
           className="w-full h-auto"
           data-testid="img-section3"
         />
+        {/* Registration Button - positioned over image */}
+        <div className="absolute bottom-8 left-0 right-0 px-8">
+          <Link href="/auth">
+            <Button 
+              className="w-full h-12 rounded-full text-base font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+              data-testid="button-register-section3"
+            >
+              無料登録
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Section 4 - Detail Banner */}
@@ -60,17 +71,6 @@ export default function Landing() {
         />
       </section>
 
-      {/* Fixed Register Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 z-50">
-        <Link href="/auth">
-          <Button 
-            className="w-full h-14 rounded-full text-lg font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
-            data-testid="button-register-fixed"
-          >
-            無料登録
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }
