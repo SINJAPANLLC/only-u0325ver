@@ -341,15 +341,18 @@ export default function Auth() {
           <Button 
             variant="outline" 
             className="w-full h-12 rounded-full border-gray-300"
-            onClick={() => window.location.href = "/api/login"}
-            data-testid="button-replit-login"
+            onClick={() => {
+              toast({
+                title: "準備中",
+                description: "Xログインは近日公開予定です",
+              });
+            }}
+            data-testid="button-x-login"
           >
-            <img 
-              src="https://replit.com/public/images/sm/cyan_glyph.svg" 
-              alt="Replit" 
-              className="h-5 w-5 mr-2"
-            />
-            Replitでログイン
+            <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Xでログイン
           </Button>
         </motion.div>
       </div>
