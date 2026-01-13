@@ -79,7 +79,7 @@ export default function Auth() {
         description: "アカウントが作成されました",
       });
       
-      setLocation("/home");
+      setLocation("/");
     } catch (error: any) {
       toast({
         title: "エラー",
@@ -115,7 +115,7 @@ export default function Auth() {
         title: "ログイン成功",
       });
       
-      setLocation("/home");
+      setLocation("/");
     } catch (error: any) {
       toast({
         title: "エラー",
