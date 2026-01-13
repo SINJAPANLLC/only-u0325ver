@@ -138,11 +138,11 @@ export default function Account() {
   const isRejectedApplication = creatorApplication?.status === "rejected";
 
   const userMenuItems: MenuItemProps[] = [
-    { icon: Eye, label: "プロフィールを確認", description: "自分のプロフィールを見る", onClick: () => setLocation("/my-profile") },
-    { icon: Heart, label: "フォロー中", description: "12人のクリエイター" },
-    { icon: Star, label: "加入中プラン", description: "3つのサブスクリプション" },
+    { icon: User, label: "プロフィール", description: "自分のプロフィールを見る", onClick: () => setLocation("/my-profile") },
+    { icon: Eye, label: "高画質プラン", description: "高画質で視聴" },
+    { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理" },
+    { icon: CreditCard, label: "お支払い方法", description: "カードを管理" },
     { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認" },
-    { icon: CreditCard, label: "支払い方法", description: "カードを管理" },
   ];
 
   const creatorMenuItems: MenuItemProps[] = [
