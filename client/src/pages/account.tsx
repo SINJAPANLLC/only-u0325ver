@@ -186,9 +186,8 @@ export default function Account() {
             </Avatar>
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-bold truncate">{displayName}</h2>
-              <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
               {profile?.bio && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{profile.bio}</p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{profile.bio}</p>
               )}
             </div>
             <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
