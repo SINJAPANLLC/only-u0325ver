@@ -15,11 +15,10 @@ import { generateImage } from "./modelslab";
 
 // Admin check middleware
 function isAdmin(req: any, res: any, next: any) {
-  const userId = req.user?.claims?.sub;
-  // For demo, check if user email contains "admin" or has specific role
-  // In production, this should check a database role
-  const email = req.user?.claims?.email || "";
-  if (email.includes("admin") || req.user?.claims?.role === "admin") {
+  // Check for admin email or role
+  const email = req.user?.claims?.email || req.user?.email || "";
+  const adminEmails = ["info@sinjapan.jp"];
+  if (adminEmails.includes(email) || email.includes("admin") || req.user?.claims?.role === "admin") {
     next();
   } else {
     res.status(403).json({ message: "Admin access required" });
