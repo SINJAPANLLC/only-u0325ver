@@ -19,6 +19,7 @@ import Messages from "@/pages/messages";
 import Account from "@/pages/account";
 import Admin from "@/pages/admin";
 import CreatorProfile from "@/pages/creator-profile";
+import MyProfile from "@/pages/my-profile";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -76,6 +77,11 @@ function AuthenticatedApp() {
         <Route path="/creator/:username">
           <div className="relative h-[100svh] overflow-hidden">
             <CreatorProfile />
+          </div>
+        </Route>
+        <Route path="/my-profile">
+          <div className="relative h-[100svh] overflow-hidden">
+            <MyProfile />
           </div>
         </Route>
         <Route component={NotFound} />

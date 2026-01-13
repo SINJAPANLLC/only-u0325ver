@@ -2,8 +2,9 @@ import { motion } from "framer-motion";
 import { 
   User, Settings, CreditCard, ShoppingBag, Heart, Bell, 
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
-  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit
+  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye
 } from "lucide-react";
+import { useLocation } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ function MenuItem({ icon: Icon, label, description, badge, onClick, href }: Menu
 export default function Account() {
   const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
   
@@ -136,6 +138,7 @@ export default function Account() {
   const isRejectedApplication = creatorApplication?.status === "rejected";
 
   const userMenuItems: MenuItemProps[] = [
+    { icon: Eye, label: "プロフィールを確認", description: "自分のプロフィールを見る", onClick: () => setLocation("/my-profile") },
     { icon: Heart, label: "フォロー中", description: "12人のクリエイター" },
     { icon: Star, label: "加入中プラン", description: "3つのサブスクリプション" },
     { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認" },
