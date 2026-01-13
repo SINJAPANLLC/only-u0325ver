@@ -39,10 +39,10 @@ export default function Landing() {
           data-testid="img-section3"
         />
         {/* Registration Button */}
-        <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 w-[55%]">
+        <div className="absolute bottom-[32%] left-1/2 -translate-x-1/2 w-[45%]">
           <Link href="/auth">
             <Button 
-              className="w-full h-10 rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+              className="w-full h-9 rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
               data-testid="button-register-section3"
             >
               無料登録
