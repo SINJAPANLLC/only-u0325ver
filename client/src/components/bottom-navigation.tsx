@@ -16,7 +16,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: "/", icon: PiHouseDuotone, label: "ホーム", iconSize: "h-7 w-7" },
-  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", hasLiveIndicator: true, iconSize: "h-7 w-7" },
+  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", iconSize: "h-7 w-7" },
   { path: "/shop", icon: PiShoppingBagDuotone, label: "ショップ", iconSize: "h-8 w-8" },
   { path: "/messages", icon: PiChatCircleDotsDuotone, label: "DM", badgeCount: 5, iconSize: "h-8 w-8" },
   { path: "/account", icon: PiUserCircleDuotone, label: "マイページ", iconSize: "h-8 w-8" },
