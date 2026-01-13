@@ -175,7 +175,7 @@ export default function Account() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-gradient-to-br from-primary/10 to-pink-400/10 p-6"
+          className="rounded-2xl bg-white p-6"
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2 ring-offset-background">
