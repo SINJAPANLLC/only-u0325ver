@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { 
   User, Settings, CreditCard, ShoppingBag, Heart, Bell, 
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
-  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye
+  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye, Phone, Mail
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -154,10 +154,12 @@ export default function Account() {
   ];
 
   const settingsMenuItems: MenuItemProps[] = [
-    { icon: User, label: "個人情報", description: "プロフィールを編集" },
-    { icon: Bell, label: "通知設定", description: "通知をカスタマイズ" },
+    { icon: User, label: "本人情報", description: "本人確認情報を編集" },
+    { icon: Phone, label: "電話番号認証", description: "電話番号を登録" },
+    { icon: Mail, label: "メールアドレス認証", description: "メールアドレスを確認" },
     { icon: Globe, label: "言語設定", description: "日本語", badge: "JA" },
-    { icon: Shield, label: "プライバシー", description: "ブロックユーザーなど" },
+    { icon: Bell, label: "通知設定", description: "通知をカスタマイズ" },
+    { icon: Shield, label: "プライバシー設定", description: "ブロックユーザーなど" },
   ];
 
   const legalMenuItems: MenuItemProps[] = [
