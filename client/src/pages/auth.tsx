@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 export default function Auth() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<"register" | "login">("register");
+  
+  const getInitialMode = (): "register" | "login" => {
+    const params = new URLSearchParams(searchString);
+    return params.get("mode") === "login" ? "login" : "register";
+  };
+  
+  const [mode, setMode] = useState<"register" | "login">(getInitialMode);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const urlMode = params.get("mode");
+    if (urlMode === "login") {
+      setMode("login");
+    } else if (urlMode === "register") {
+      setMode("register");
+    }
+  }, [searchString]);
 
   const [registerForm, setRegisterForm] = useState({
     email: "",

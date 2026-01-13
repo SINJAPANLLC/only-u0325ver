@@ -25,7 +25,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         >
           新規登録
         </Button>
-        <Link href="/auth">
+        <Link href="/auth?mode=login">
           <Button 
             variant="outline"
             size="sm"
