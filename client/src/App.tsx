@@ -20,6 +20,7 @@ import Account from "@/pages/account";
 import Admin from "@/pages/admin";
 import CreatorProfile from "@/pages/creator-profile";
 import MyProfile from "@/pages/my-profile";
+import Auth from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -124,7 +125,16 @@ function AppContent() {
   }
 
   if (!user) {
-    return <Landing />;
+    return (
+      <Switch>
+        <Route path="/auth">
+          <Auth />
+        </Route>
+        <Route>
+          <Landing />
+        </Route>
+      </Switch>
+    );
   }
 
   return <AuthenticatedApp />;

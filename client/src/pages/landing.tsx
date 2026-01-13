@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
+import { Link } from "wouter";
 
 const section1Image = "/lp-1.png";
 const section2Image = "/lp-2.png";
@@ -11,7 +11,7 @@ const recruitImage = "/lp-recruit.png";
 
 export default function Landing() {
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden bg-white">
+    <div className="h-full overflow-y-auto overflow-x-hidden bg-white pb-20">
       {/* Section 1 - Hero with legs */}
       <section className="relative w-full">
         <img 
@@ -40,18 +40,6 @@ export default function Landing() {
           className="w-full h-auto"
           data-testid="img-section3"
         />
-        {/* Overlay for registration button */}
-        <div className="absolute bottom-[30%] left-0 right-0 flex justify-center">
-          <a href="/api/login">
-            <Button 
-              size="lg"
-              className="h-12 px-10 rounded-full text-base font-bold border-2 border-pink-500 bg-transparent text-pink-500 hover:bg-pink-500 hover:text-white transition-all duration-300"
-              data-testid="button-register"
-            >
-              無料登録
-            </Button>
-          </a>
-        </div>
       </section>
 
       {/* Section 4 - Detail Banner */}
@@ -128,6 +116,18 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Fixed Register Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 z-50">
+        <Link href="/auth">
+          <Button 
+            className="w-full h-14 rounded-full text-lg font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+            data-testid="button-register-fixed"
+          >
+            無料登録
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

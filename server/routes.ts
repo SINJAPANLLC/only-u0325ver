@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
+import { registerEmailAuthRoutes } from "./emailAuth";
 import { db } from "./db";
 import { 
   videos, liveStreams, products, conversations, messages, 
@@ -31,6 +32,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
+  registerEmailAuthRoutes(app);
 
   app.get("/api/videos", async (req, res) => {
     try {
