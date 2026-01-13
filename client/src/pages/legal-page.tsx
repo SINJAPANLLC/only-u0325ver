@@ -119,6 +119,126 @@ function TermsContent() {
   );
 }
 
+function PrivacyContent() {
+  return (
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">プライバシーポリシー</h2>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第1条（総則）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">ウェブサービスである「Only-U」（以下「本サービス」といいます。）を運営する合同会社SIN JAPAN KANAGAWA（以下「当社」といいます。）は、本サービスのユーザー（以下「ユーザー」という）のプライバシーを尊重し、ユーザーの個人情報およびその他のユーザーのプライバシーに係る情報（以下「プライバシー情報」といいます。）の管理に細心の注意を払います。</li>
+        <li className="mb-2">当社は、個人情報保護法をはじめとする各法令およびその他の規範を遵守してユーザーから収集した個人情報を適切に取り扱います。また、当社は、個人情報を取り扱う体制の強化、SSL技術の導入等、ユーザーの個人情報の取り扱いについて、継続的な改善を図っています。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第2条（本ポリシーへの同意、同意の撤回）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">ユーザーは、問い合わせ又は会員登録を通じて当社に自身のプライバシー情報を提供する場合、本ポリシーを熟読し、その内容に同意するものとします。</li>
+        <li className="mb-2">ユーザーは、当社によるプライバシー情報の使用等について同意を撤回することができます。この場合、本サービスを継続利用することはできません。</li>
+        <li className="mb-2">本条の本ポリシーへの同意および同意の撤回は、それぞれ当社が定める手段にてなされるものとします。</li>
+        <li className="mb-2">当社は、クッキー、IPアドレス、アクセスログ等のWEBトラッキング技術を活用してユーザーの行動や嗜好に関する情報を収集します。当社は、ユーザーが本サービスを利用した場合、当該ユーザーが当社によるこれらの技術を利用したプライバシー情報の収集について同意したものとみなします。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第3条（収集するプライバシー情報）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">当社は、本サービスの提供に際して、ユーザーから以下の情報を収集または取得します。
+          <ul className="list-disc ml-6 mt-2">
+            <li>(1)ユーザーがフォーム等に入力することにより提供する情報：これには氏名、問い合わせ等に関する情報、メールアドレス、年齢または生年月日等が含まれます。</li>
+            <li>(2)クッキー、IPアドレス、アクセスログ等のWEBトラッキング技術、アクセス解析ツール等を介して当社がユーザーから収集する情報：これには利用端末やOS、ブラウザ等の接続環境に関する情報、ユーザーの行動履歴や閲覧履歴等に関する情報、購入した商品や閲覧した商品等のユーザーの嗜好に関する情報およびクッキー情報が含まれます。</li>
+          </ul>
+        </li>
+        <li className="mb-2">当社は、適法かつ公正な手段によってプライバシー情報を入手し、ユーザーの意思に反する不正な入手をしません。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第4条（プライバシー情報の利用目的）</h4>
+      <p className="mb-2">当社は、ユーザーから収集したプライバシー情報を本サービスの運営の目的のために使用します。主な利用目的は、以下のとおりです。</p>
+      <ul className="list-disc ml-6 mb-4">
+        <li>(1)料金請求、本人確認、認証のため</li>
+        <li>(2)本人確認のため</li>
+        <li>(3)ユーザー投稿コンテンツの決済のため</li>
+        <li>(4)売上金の振込のため</li>
+        <li>(5)利用規約やポリシーの変更等の重要な通知を送信するため</li>
+        <li>(6)本サービスのコンテンツやサービスの内容や品質の向上に役立てるため</li>
+        <li>(7)アンケート、懸賞、キャンペーン等の実施のため</li>
+        <li>(8)マーケティング調査、統計、分析のため</li>
+        <li>(9)システムメンテナンス、不具合対応のため</li>
+        <li>(10)広告の配信およびその成果確認のため</li>
+        <li>(11)技術サポートの提供、お客様からの問い合わせ対応のため</li>
+        <li>(12)ターゲットを絞った当社または第三者の商品またはサービスの広告の開発、提供のため</li>
+        <li>(13)不正行為または違法となる可能性のある行為を防止するため</li>
+        <li>(14)クレーム、紛争・訴訟等の対応のため</li>
+      </ul>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第5条（プライバシー情報の第三者提供）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">当社は、ユーザーの個人情報を第三者に開示または提供する場合、その提供先・提供情報内容を開示し、ユーザー本人の同意を得るものとします。なお、当社は、以下の場合を除き、ユーザー本人の事前の同意を得ることなく、個人情報を第三者に開示または提供することはありません。
+          <ul className="list-disc ml-6 mt-2">
+            <li>(1)法令等の定めに基づいて開示等を請求された場合</li>
+            <li>(2)弁護士、検察、警察等から捜査に必要な範囲で開示等を請求された場合</li>
+            <li>(3)当社の関連会社間で情報を共有する場合</li>
+            <li>(4)本サービスの提供に必要な範囲で第三者に業務の一部を委託する場合</li>
+            <li>(5)本サービスの提供に必要な範囲内で決済代行会社に情報を提供する必要がある場合</li>
+          </ul>
+        </li>
+        <li className="mb-2">当社は、個人情報の取り扱いを第三者に委託する場合、個人情報保護法に従って、委託先に対する必要かつ適切な監督を行います。</li>
+        <li className="mb-2">当社は、合併や分割等で当社の事業を第三者に譲渡する場合または本サービスの一部または全部を第三者に譲渡する場合、本サービスに係るユーザーの個人情報等を当該第三者に提供します。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第6条（プライバシー情報の管理、保管期間）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">当社は、ユーザーが本サービスを利用している期間中、当該ユーザーから開示または提供されたプライバシー情報の漏洩、改ざん等を防止するため、現時点での技術水準に合わせた必要かつ適切な安全管理措置を講じます。</li>
+        <li className="mb-2">当社は、当社が保管するプライバシー情報を利用する必要がなくなった場合、当該プライバシー情報を遅滞なく消去するよう努めるものとします。また、ユーザーよりプライバシー情報の削除を要求された場合も、同様とします。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第7条（ユーザーによる照会等への対応）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">ユーザーは、当社に対して、当社が保有する自身のプライバシー情報の開示、訂正、追加または削除、および利用停止を請求することができます。</li>
+        <li className="mb-2">ユーザーは、当社が定める手段によって前項の開示等の請求をするものとします。なお、同請求は、ユーザー本人、法定代理人（ユーザーが未成年者または成年被後見人である場合）または当該請求につきユーザー本人より委任された代理人のみすることができます。</li>
+        <li className="mb-2">当社は、開示等の請求を受けた場合、当社が定める手段によって本人確認したうえで、相当な期間内にこれに対応します。なお、当社は、法令に基づき開示等をしない決定をした場合、その旨をユーザーに通知するものとします。</li>
+        <li className="mb-2">ユーザーは、プライバシー情報の開示等に際して、以下に定める手数料を支払わなければなりません。<br />
+          開示、照会、追加、訂正および削除請求にかかる手数料額：５００円＋送料<br />
+          ※原則的に簡易書留（送料３９２円）にて発送します。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第8条（解析ツール等の使用）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">当社は、アクセス解析ツールを使用してユーザーの行動履歴等に関する情報を収集します。また、本サービスの提供に係るウェブサイト上に掲載される広告等の一部は、クッキーを利用した第三者の運営するサービスを利用して表示されます。なお、Googleが提供するサービスについては、Googleのプライバシーポリシーが適用されます。<br />
+          <a href="https://policies.google.com/privacy?hl=ja" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy?hl=ja</a></li>
+        <li className="mb-2">ユーザーは、1)自身のブラウザ設定等からクッキーを無効にする、2)それぞれの解析ツール、行動ターゲティング広告システムに係るWEBページからオプトアウトする、等の手段により当社によるプライバシー情報の収集を拒否するまたは行動ターゲティング広告を非表示にすることができます。</li>
+        <li className="mb-2">前項の設定の変更等は、ユーザー自身の自己責任にてなされるものとし、当社は、設定を変更したこと等により一部の情報が閲覧できない等、ユーザーに損害が生じた場合でも、一切責任を負わないものとします。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第9条（本ポリシーの変更）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">当社は、自身の判断にて、本ポリシーを改定することができます。当社は、本ポリシーを改定する場合、緊急性がある場合を除き、事前に当社が適当であると判断する手段にてユーザーにその旨を通知するものとします。</li>
+        <li className="mb-2">本ポリシーの改定は、改定後のプライバシーポリシーを本サービスにかかるWEBサイト上に掲載した時点で効力を生じるものとします。</li>
+        <li className="mb-2">ユーザーは、本ポリシーの改定に同意することができない場合、当社に対して、第７条に定める手段にて自身のプライバシー情報の削除を要求することができます。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第10条（合意管轄、準拠法）</h4>
+      <ol className="list-decimal ml-6 mb-4">
+        <li className="mb-2">本ポリシーは、日本国法に準拠して解釈されるものとします。</li>
+        <li className="mb-2">ユーザーは、本ポリシーに関連して紛争等が発生した場合、東京地方裁判所において第一審の裁判を行うことにあらかじめ同意するものとします。</li>
+      </ol>
+
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第11条（管理責任者）</h4>
+      <p className="mb-4">
+        当社では、個人情報の管理責任者を以下の者として、個人情報の適正な管理および個人情報保護に関する施策の継続的な改善を実施しています。なお、個人情報に関するお問い合わせ、ご相談、第７条の開示等の請求の窓口もこちらをご利用ください。
+      </p>
+      <div className="ml-4 mb-4">
+        <p>運営者: 合同会社SIN JAPAN KANAGAWA</p>
+        <p>窓口となる部署: 個人情報担当窓口</p>
+        <p>メールアドレス: kanagawa@sinjapan.jp</p>
+        <p>開示等の請求の方法: メール、郵送</p>
+      </div>
+
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-500">最終更新日: 2025年10月10日</p>
+        <p className="text-sm text-gray-500">本ポリシーに関するご質問は、kanagawa@sinjapan.jp までご連絡ください。</p>
+      </div>
+    </div>
+  );
+}
+
 function PlaceholderContent() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
@@ -150,6 +270,10 @@ export default function LegalPage({ title, type }: LegalPageProps) {
       {type === "terms" ? (
         <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
           <TermsContent />
+        </div>
+      ) : type === "privacy" ? (
+        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
+          <PrivacyContent />
         </div>
       ) : (
         <PlaceholderContent />
