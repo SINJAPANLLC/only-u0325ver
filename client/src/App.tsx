@@ -120,12 +120,9 @@ function AppContent() {
   }, []);
 
   const handleRegisterClick = useCallback(() => {
-    if (!isAgeVerified) {
-      setShowAgeVerification(true);
-    } else {
-      window.location.href = "/auth";
-    }
-  }, [isAgeVerified]);
+    // Always show age verification when clicking register button
+    setShowAgeVerification(true);
+  }, []);
 
   if (showLoading || isLoading) {
     return <LoadingScreen />;
