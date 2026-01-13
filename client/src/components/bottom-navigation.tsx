@@ -11,14 +11,15 @@ interface NavItem {
   label: string;
   hasLiveIndicator?: boolean;
   badgeCount?: number;
+  iconSize?: string;
 }
 
 const navItems: NavItem[] = [
-  { path: "/", icon: PiHouseDuotone, label: "ホーム" },
-  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", hasLiveIndicator: true },
-  { path: "/shop", icon: PiShoppingBagDuotone, label: "ショップ" },
-  { path: "/messages", icon: PiChatCircleDotsDuotone, label: "DM", badgeCount: 5 },
-  { path: "/account", icon: PiUserCircleDuotone, label: "マイページ" },
+  { path: "/", icon: PiHouseDuotone, label: "ホーム", iconSize: "h-7 w-7" },
+  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", hasLiveIndicator: true, iconSize: "h-7 w-7" },
+  { path: "/shop", icon: PiShoppingBagDuotone, label: "ショップ", iconSize: "h-8 w-8" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, label: "DM", badgeCount: 5, iconSize: "h-8 w-8" },
+  { path: "/account", icon: PiUserCircleDuotone, label: "マイページ", iconSize: "h-8 w-8" },
 ];
 
 export function BottomNavigation() {
@@ -57,7 +58,8 @@ export function BottomNavigation() {
                 <div className="relative z-10">
                   <Icon 
                     className={cn(
-                      "h-7 w-7 transition-all duration-300",
+                      item.iconSize || "h-7 w-7",
+                      "transition-all duration-300",
                       isActive && "scale-110"
                     )} 
                   />
