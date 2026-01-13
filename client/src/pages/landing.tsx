@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 const section1Image = "/lp-1.png";
 const section2Image = "/lp-2.png";
@@ -72,6 +73,53 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           data-testid="img-section5"
         />
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 py-10 px-6">
+        <div className="flex flex-col items-center space-y-6">
+          <img 
+            src={logoImage} 
+            alt="Only-U" 
+            className="h-16 object-contain"
+            data-testid="img-footer-logo"
+          />
+          
+          <p className="text-gray-600 text-sm" data-testid="text-copyright">
+            &copy; 2025 Only-U. All rights reserved.
+          </p>
+
+          <nav className="flex flex-col items-center space-y-4">
+            <a 
+              href="/terms" 
+              className="text-gray-700 text-sm hover:text-pink-500"
+              data-testid="link-terms"
+            >
+              利用規約
+            </a>
+            <a 
+              href="/privacy" 
+              className="text-gray-700 text-sm hover:text-pink-500"
+              data-testid="link-privacy"
+            >
+              プライバシーポリシー
+            </a>
+            <a 
+              href="/legal" 
+              className="text-gray-700 text-sm hover:text-pink-500"
+              data-testid="link-legal"
+            >
+              特定商取引法に基づく表記
+            </a>
+            <a 
+              href="/guidelines" 
+              className="text-gray-700 text-sm hover:text-pink-500"
+              data-testid="link-guidelines"
+            >
+              コンテンツガイドライン
+            </a>
+          </nav>
+        </div>
+      </footer>
 
     </div>
   );
