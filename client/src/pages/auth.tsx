@@ -133,7 +133,7 @@ export default function Auth() {
   return (
     <div className="min-h-full bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center p-4 border-b border-gray-100">
+      <div className="flex items-center p-4">
         <Link href="/">
           <Button 
             variant="ghost" 

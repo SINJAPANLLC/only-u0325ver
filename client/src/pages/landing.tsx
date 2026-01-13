@@ -45,7 +45,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         <div className="absolute bottom-[32%] left-1/2 -translate-x-1/2 w-[45%]">
           <Button 
             onClick={onRegisterClick}
-            className="w-full h-9 rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+            className="w-full h-9 rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white"
             data-testid="button-register-section3"
           >
             無料登録
