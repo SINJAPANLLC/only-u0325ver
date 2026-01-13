@@ -21,6 +21,7 @@ import Admin from "@/pages/admin";
 import CreatorProfile from "@/pages/creator-profile";
 import MyProfile from "@/pages/my-profile";
 import Auth from "@/pages/auth";
+import LegalPage from "@/pages/legal-page";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -85,6 +86,18 @@ function AuthenticatedApp() {
             <MyProfile />
           </div>
         </Route>
+        <Route path="/terms">
+          <LegalPage title="利用規約" type="terms" />
+        </Route>
+        <Route path="/privacy">
+          <LegalPage title="プライバシーポリシー" type="privacy" />
+        </Route>
+        <Route path="/legal">
+          <LegalPage title="特定商取引法に基づく表記" type="legal" />
+        </Route>
+        <Route path="/guidelines">
+          <LegalPage title="コンテンツガイドライン" type="guidelines" />
+        </Route>
         <Route component={NotFound} />
       </Switch>
     </div>
@@ -141,6 +154,18 @@ function AppContent() {
       <Switch>
         <Route path="/auth">
           <Auth />
+        </Route>
+        <Route path="/terms">
+          <LegalPage title="利用規約" type="terms" />
+        </Route>
+        <Route path="/privacy">
+          <LegalPage title="プライバシーポリシー" type="privacy" />
+        </Route>
+        <Route path="/legal">
+          <LegalPage title="特定商取引法に基づく表記" type="legal" />
+        </Route>
+        <Route path="/guidelines">
+          <LegalPage title="コンテンツガイドライン" type="guidelines" />
         </Route>
         <Route>
           <Landing onRegisterClick={handleRegisterClick} />

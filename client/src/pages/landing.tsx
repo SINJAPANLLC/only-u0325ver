@@ -80,7 +80,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-16 object-contain"
+            className="h-24 object-contain"
             data-testid="img-footer-logo"
           />
           
