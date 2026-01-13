@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 export default function Auth() {
@@ -79,6 +80,7 @@ export default function Auth() {
         description: "アカウントが作成されました",
       });
       
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
       toast({
@@ -115,6 +117,7 @@ export default function Auth() {
         title: "ログイン成功",
       });
       
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
       toast({
