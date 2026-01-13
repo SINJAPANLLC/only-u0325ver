@@ -23,7 +23,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative">
+    <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative scrollbar-hide">
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-end gap-2 p-3 max-w-[430px] mx-auto">
         <Button 

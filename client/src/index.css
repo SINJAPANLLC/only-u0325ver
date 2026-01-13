@@ -417,3 +417,13 @@
 ::selection {
   @apply bg-pink-200 dark:bg-pink-900/50;
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
