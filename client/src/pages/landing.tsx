@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 
 const section1Image = "/lp-1.png";
 const section2Image = "/lp-2.png";
@@ -7,7 +6,11 @@ const section3Image = "/lp-3.png";
 const detailImage = "/lp-detail.png";
 const recruitImage = "/lp-recruit.png";
 
-export default function Landing() {
+interface LandingProps {
+  onRegisterClick?: () => void;
+}
+
+export default function Landing({ onRegisterClick }: LandingProps) {
   return (
     <div className="h-full overflow-y-auto overflow-x-hidden bg-white">
       {/* Section 1 - Hero with legs */}
@@ -40,14 +43,13 @@ export default function Landing() {
         />
         {/* Registration Button */}
         <div className="absolute bottom-[32%] left-1/2 -translate-x-1/2 w-[45%]">
-          <Link href="/auth">
-            <Button 
-              className="w-full h-9 rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
-              data-testid="button-register-section3"
-            >
-              無料登録
-            </Button>
-          </Link>
+          <Button 
+            onClick={onRegisterClick}
+            className="w-full h-9 rounded-full text-xs font-bold bg-pink-500 hover:bg-pink-600 text-white shadow-lg"
+            data-testid="button-register-section3"
+          >
+            無料登録
+          </Button>
         </div>
       </section>
 

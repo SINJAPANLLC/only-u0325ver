@@ -103,6 +103,7 @@ function AppContent() {
   const { user, isLoading } = useAuth();
   const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => getAgeVerified());
   const [showLoading, setShowLoading] = useState(true);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -114,26 +115,37 @@ function AppContent() {
 
   const handleAgeVerified = useCallback(() => {
     setIsAgeVerified(true);
+    setShowAgeVerification(false);
+    window.location.href = "/auth";
   }, []);
+
+  const handleRegisterClick = useCallback(() => {
+    if (!isAgeVerified) {
+      setShowAgeVerification(true);
+    } else {
+      window.location.href = "/auth";
+    }
+  }, [isAgeVerified]);
 
   if (showLoading || isLoading) {
     return <LoadingScreen />;
   }
 
-  if (!isAgeVerified) {
-    return <AgeVerification onVerified={handleAgeVerified} />;
-  }
-
   if (!user) {
     return (
-      <Switch>
-        <Route path="/auth">
-          <Auth />
-        </Route>
-        <Route>
-          <Landing />
-        </Route>
-      </Switch>
+      <>
+        {showAgeVerification && (
+          <AgeVerification onVerified={handleAgeVerified} />
+        )}
+        <Switch>
+          <Route path="/auth">
+            <Auth />
+          </Route>
+          <Route>
+            <Landing onRegisterClick={handleRegisterClick} />
+          </Route>
+        </Switch>
+      </>
     );
   }
 
