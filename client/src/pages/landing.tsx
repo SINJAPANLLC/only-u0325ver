@@ -38,17 +38,13 @@ export default function Landing() {
           className="w-full h-auto"
           data-testid="img-section3"
         />
-        {/* Registration Button - overlaid on image's existing button position */}
-        <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 w-[45%]">
-          <Link href="/auth">
-            <Button 
-              className="w-full h-10 rounded-md text-sm font-medium bg-transparent hover:bg-pink-500/20 text-transparent hover:text-white border-0"
-              data-testid="button-register-section3"
-            >
-              無料登録
-            </Button>
-          </Link>
-        </div>
+        {/* Registration Button - clickable overlay on existing button in image */}
+        <Link href="/auth" className="absolute bottom-[18%] left-1/2 -translate-x-1/2 w-[55%] h-[8%]">
+          <div 
+            className="w-full h-full cursor-pointer"
+            data-testid="button-register-section3"
+          />
+        </Link>
       </section>
 
       {/* Section 4 - Detail Banner */}
