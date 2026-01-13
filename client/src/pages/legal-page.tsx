@@ -316,6 +316,75 @@ function LegalNoticeContent() {
   );
 }
 
+function GuidelinesContent() {
+  return (
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-6">掲載ガイドライン</h2>
+
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">1. 禁止コンテンツ</h4>
+      <p className="mb-2">以下のコンテンツは掲載を禁止します：</p>
+      <ul className="list-disc ml-6 mb-4">
+        <li>18歳未満の人物が関与するコンテンツ</li>
+        <li>強制・脅迫・暴力を伴うコンテンツ</li>
+        <li>動物との性的行為を描写するコンテンツ</li>
+        <li>排泄物や血液を過度に描写するコンテンツ</li>
+        <li>違法薬物の使用を推奨するコンテンツ</li>
+        <li>自殺や自傷行為を助長するコンテンツ</li>
+        <li>第三者の著作権を侵害するコンテンツ</li>
+        <li>虚偽の情報や詐欺的なコンテンツ</li>
+        <li>生成AIにより作成されたコンテンツ</li>
+        <li>その他、弊社が不適切と判断したコンテンツ</li>
+      </ul>
+
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">2. 掲載要件</h4>
+      <p className="mb-2">コンテンツを掲載する際は以下を遵守してください：</p>
+      <ul className="list-disc ml-6 mb-4">
+        <li>出演者の年齢確認書類の提出</li>
+        <li>出演同意書の取得</li>
+        <li>映像送信型性風俗特殊営業の届出</li>
+        <li>適切なモザイク処理の実施</li>
+        <li>正確な情報の提供</li>
+        <li>プライバシーの保護</li>
+      </ul>
+
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">3. コンテンツの品質基準</h4>
+      <ul className="list-disc ml-6 mb-4">
+        <li>映像・音声の品質が良好であること</li>
+        <li>適切な照明と撮影環境であること</li>
+        <li>明確で理解しやすいタイトルと説明文</li>
+        <li>適切なカテゴリ分類</li>
+        <li>正確なタグ付け</li>
+      </ul>
+
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">4. コミュニケーションガイドライン</h4>
+      <ul className="list-disc ml-6 mb-4">
+        <li>相手を尊重した丁寧なコミュニケーション</li>
+        <li>ハラスメント行為の禁止</li>
+        <li>個人情報の適切な取り扱い</li>
+        <li>スパム行為の禁止</li>
+        <li>適切な言語の使用</li>
+      </ul>
+
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">5. 違反時の措置</h4>
+      <p className="mb-2">ガイドライン違反が発覚した場合、以下の措置を講じます：</p>
+      <ul className="list-disc ml-6 mb-4">
+        <li>コンテンツの削除</li>
+        <li>アカウントの一時停止</li>
+        <li>アカウントの永久停止</li>
+        <li>法的措置の検討</li>
+      </ul>
+
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-500">
+          注意：本ガイドラインは、安全で適切なサービス提供のために定められています。
+          全てのユーザーは本ガイドラインを遵守し、責任ある利用をお願いします。
+          疑問点がございましたら、サポートまでお問い合わせください。
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function PlaceholderContent() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
@@ -355,6 +424,10 @@ export default function LegalPage({ title, type }: LegalPageProps) {
       ) : type === "legal" ? (
         <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
           <LegalNoticeContent />
+        </div>
+      ) : type === "guidelines" ? (
+        <div className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide">
+          <GuidelinesContent />
         </div>
       ) : (
         <PlaceholderContent />
