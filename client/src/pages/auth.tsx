@@ -6,13 +6,24 @@ import { X } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { AgeVerification } from "@/components/age-verification";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
+
+function getAgeVerified(): boolean {
+  try {
+    return localStorage.getItem("only-u-age-verified") === "true";
+  } catch {
+    return false;
+  }
+}
 
 export default function Auth() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(false);
+  const [isAgeVerified, setIsAgeVerified] = useState(() => getAgeVerified());
   
   const getInitialMode = (): "register" | "login" => {
     const params = new URLSearchParams(searchString);
@@ -27,9 +38,32 @@ export default function Auth() {
     if (urlMode === "login") {
       setMode("login");
     } else if (urlMode === "register") {
+      if (!isAgeVerified) {
+        setShowAgeVerification(true);
+      } else {
+        setMode("register");
+      }
+    }
+  }, [searchString, isAgeVerified]);
+
+  const handleSwitchToRegister = () => {
+    if (!isAgeVerified) {
+      setShowAgeVerification(true);
+    } else {
       setMode("register");
     }
-  }, [searchString]);
+  };
+
+  const handleAgeVerified = () => {
+    setIsAgeVerified(true);
+    setShowAgeVerification(false);
+    setMode("register");
+  };
+
+  const handleAgeCancel = () => {
+    setShowAgeVerification(false);
+    setMode("login");
+  };
 
   const [registerForm, setRegisterForm] = useState({
     email: "",
@@ -135,6 +169,10 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  if (showAgeVerification) {
+    return <AgeVerification onVerified={handleAgeVerified} onCancel={handleAgeCancel} />;
+  }
 
   return (
     <div className="min-h-full bg-white flex flex-col">
@@ -273,7 +311,7 @@ export default function Auth() {
             <Button 
               variant="outline"
               className="w-full h-12 rounded-full border-pink-500 text-pink-500 hover:bg-pink-50 font-bold"
-              onClick={() => setMode(mode === "register" ? "login" : "register")}
+              onClick={() => mode === "register" ? setMode("login") : handleSwitchToRegister()}
               data-testid="button-switch-mode"
             >
               {mode === "register" ? "ログイン" : "新規登録"}
