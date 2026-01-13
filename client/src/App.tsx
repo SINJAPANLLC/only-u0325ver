@@ -43,7 +43,7 @@ function AuthenticatedApp() {
         <Route path="/shop">
           <div className="h-[100svh] flex flex-col">
             <Header />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Shop />
             </main>
             <BottomNavigation />
@@ -52,7 +52,7 @@ function AuthenticatedApp() {
         <Route path="/messages">
           <div className="h-[100svh] flex flex-col">
             <Header />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Messages />
             </main>
             <BottomNavigation />
@@ -61,7 +61,7 @@ function AuthenticatedApp() {
         <Route path="/account">
           <div className="h-[100svh] flex flex-col">
             <Header />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Account />
             </main>
             <BottomNavigation />
@@ -70,7 +70,7 @@ function AuthenticatedApp() {
         <Route path="/admin">
           <div className="h-[100svh] flex flex-col">
             <Header />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Admin />
             </main>
             <BottomNavigation />
