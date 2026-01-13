@@ -108,7 +108,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="pb-20 overflow-y-auto">
+    <div className="pb-20 overflow-y-auto scrollbar-hide">
       <div className="h-16" />
       <div className="p-4 space-y-6">
         <motion.div

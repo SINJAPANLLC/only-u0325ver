@@ -122,7 +122,7 @@ export default function Messages() {
   );
 
   return (
-    <div className="pb-20 overflow-y-auto">
+    <div className="pb-20 overflow-y-auto scrollbar-hide">
       <div className="h-16" />
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border/50 p-4">
         <div className="relative">

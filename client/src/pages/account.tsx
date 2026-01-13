@@ -169,7 +169,7 @@ export default function Account() {
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
 
   return (
-    <div className="pb-20 overflow-y-auto">
+    <div className="pb-20 overflow-y-auto scrollbar-hide">
       <div className="h-16" />
       <div className="p-4 space-y-6">
         <motion.div

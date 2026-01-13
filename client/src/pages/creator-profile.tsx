@@ -112,7 +112,7 @@ export default function CreatorProfile() {
   
   return (
     <motion.div 
-      className="h-full bg-background overflow-y-auto"
+      className="h-full bg-background overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
