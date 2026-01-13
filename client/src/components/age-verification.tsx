@@ -40,7 +40,7 @@ export function AgeVerification({ onVerified }: AgeVerificationProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-32 object-contain"
+            className="h-44 object-contain"
             data-testid="img-logo-age-verification"
           />
 
