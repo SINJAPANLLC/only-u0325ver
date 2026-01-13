@@ -131,21 +131,20 @@ function AppContent() {
     return <LoadingScreen />;
   }
 
+  if (showAgeVerification) {
+    return <AgeVerification onVerified={handleAgeVerified} />;
+  }
+
   if (!user) {
     return (
-      <>
-        {showAgeVerification && (
-          <AgeVerification onVerified={handleAgeVerified} />
-        )}
-        <Switch>
-          <Route path="/auth">
-            <Auth />
-          </Route>
-          <Route>
-            <Landing onRegisterClick={handleRegisterClick} />
-          </Route>
-        </Switch>
-      </>
+      <Switch>
+        <Route path="/auth">
+          <Auth />
+        </Route>
+        <Route>
+          <Landing onRegisterClick={handleRegisterClick} />
+        </Route>
+      </Switch>
     );
   }
 
@@ -159,7 +158,7 @@ function App() {
         <TooltipProvider>
           {/* Mobile-only container - fixed to smartphone dimensions */}
           <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-            <div className="w-full max-w-[430px] h-screen max-h-[932px] relative overflow-hidden bg-background shadow-2xl md:rounded-[2.5rem] md:border md:border-gray-800">
+            <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background shadow-2xl md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
               <AppContent />
             </div>
           </div>
