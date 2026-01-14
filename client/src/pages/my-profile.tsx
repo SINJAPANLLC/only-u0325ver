@@ -1,12 +1,11 @@
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { 
-  Share2, 
+  ChevronLeft,
   Grid3X3, 
   PlaySquare, 
   Bookmark, 
   Heart, 
-  Menu,
   Plus,
   Phone,
   MapPin,
@@ -83,37 +82,16 @@ export default function MyProfile() {
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <Button 
-            size="icon" 
-            variant="ghost"
-            className="h-9 w-9"
-            data-testid="button-add-friend"
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <Button 
-            size="icon" 
-            variant="ghost"
-            className="h-9 w-9"
-            data-testid="button-share"
-          >
-            <Share2 className="h-5 w-5" />
-          </Button>
-          <Button 
-            size="icon" 
-            variant="ghost"
-            className="h-9 w-9"
-            onClick={() => setLocation("/account")}
-            data-testid="button-menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
+      <div className="flex items-center px-2 py-3 border-b border-border/50">
+        <Button 
+          size="icon" 
+          variant="ghost"
+          className="h-9 w-9"
+          onClick={() => setLocation("/account")}
+          data-testid="button-back"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
       </div>
 
       {/* Profile Section */}
