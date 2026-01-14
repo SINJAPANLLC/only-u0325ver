@@ -1,5 +1,4 @@
 import { X } from "lucide-react";
-import { Link } from "wouter";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 interface LegalPageProps {
@@ -423,14 +422,20 @@ export default function LegalPage({ title, type }: LegalPageProps) {
     }
   };
 
+  const handleBack = () => {
+    window.history.back();
+  };
+
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
       <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
-        <Link href="/account">
-          <button className="text-gray-600 hover:text-gray-800" data-testid={`button-close-${type}`}>
-            <X className="h-6 w-6" />
-          </button>
-        </Link>
+        <button 
+          onClick={handleBack}
+          className="text-gray-600 hover:text-gray-800" 
+          data-testid={`button-close-${type}`}
+        >
+          <X className="h-6 w-6" />
+        </button>
         <h1 className="text-lg font-bold text-gray-900">{title}</h1>
         <div className="w-6" />
       </div>
