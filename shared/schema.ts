@@ -187,6 +187,70 @@ export const subscriptions = pgTable("subscriptions", {
   expiresAt: timestamp("expires_at"),
 });
 
+// Point transaction types
+export const pointTransactionTypeEnum = pgEnum("point_transaction_type", [
+  "purchase_card",    // カード決済で購入
+  "purchase_bank",    // 銀行振込で購入
+  "spend",            // ポイント消費
+  "refund",           // 返金
+  "bonus",            // ボーナス付与
+  "admin_adjust",     // 管理者調整
+]);
+
+// Bank transfer status
+export const bankTransferStatusEnum = pgEnum("bank_transfer_status", [
+  "pending",          // 入金待ち
+  "confirmed",        // 入金確認済み
+  "cancelled",        // キャンセル
+  "expired",          // 期限切れ
+]);
+
+// Point transactions (履歴)
+export const pointTransactions = pgTable("point_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  type: pointTransactionTypeEnum("type").notNull(),
+  amount: integer("amount").notNull(),  // 正=増加, 負=減少
+  balance: integer("balance").notNull(), // 取引後の残高
+  description: text("description"),
+  referenceId: varchar("reference_id"), // 関連する注文/決済ID
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Bank transfer requests (銀行振込申請)
+export const bankTransferRequests = pgTable("bank_transfer_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  points: integer("points").notNull(),        // 購入ポイント数
+  amount: integer("amount").notNull(),        // 振込金額（税込）
+  amountExcludingTax: integer("amount_excluding_tax").notNull(), // 税抜金額
+  taxAmount: integer("tax_amount").notNull(), // 消費税額
+  status: bankTransferStatusEnum("status").default("pending"),
+  bankName: varchar("bank_name"),             // 振込先銀行名
+  branchName: varchar("branch_name"),         // 支店名
+  accountType: varchar("account_type"),       // 口座種別
+  accountNumber: varchar("account_number"),   // 口座番号
+  accountName: varchar("account_name"),       // 口座名義
+  transferDeadline: timestamp("transfer_deadline"), // 振込期限
+  confirmedAt: timestamp("confirmed_at"),
+  confirmedBy: varchar("confirmed_by"),       // 確認した管理者
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Point packages (購入パッケージ)
+export const pointPackages = pgTable("point_packages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  points: integer("points").notNull(),        // ポイント数
+  priceExcludingTax: integer("price_excluding_tax").notNull(), // 税抜価格
+  taxAmount: integer("tax_amount").notNull(), // 消費税額
+  priceIncludingTax: integer("price_including_tax").notNull(), // 税込価格
+  bonusPoints: integer("bonus_points").default(0), // ボーナスポイント
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCreatorApplicationSchema = createInsertSchema(creatorApplications).omit({ id: true, submittedAt: true, reviewedAt: true, reviewerId: true, status: true });
@@ -217,3 +281,6 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Follow = typeof follows.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
+export type PointTransaction = typeof pointTransactions.$inferSelect;
+export type BankTransferRequest = typeof bankTransferRequests.$inferSelect;
+export type PointPackage = typeof pointPackages.$inferSelect;
