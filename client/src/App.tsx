@@ -40,6 +40,9 @@ import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 import CreatorApplication from "@/pages/creator-application";
 import PointsPurchase from "@/pages/points-purchase";
+import CreatorContent from "@/pages/creator-content";
+import CreatorLive from "@/pages/creator-live";
+import CreatorShop from "@/pages/creator-shop";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -113,6 +116,21 @@ function AuthenticatedApp() {
         <Route path="/points-purchase">
           <div className="h-[100svh] flex flex-col overflow-hidden">
             <PointsPurchase />
+          </div>
+        </Route>
+        <Route path="/creator-content">
+          <div className="relative h-[100svh] overflow-hidden">
+            <CreatorContent />
+          </div>
+        </Route>
+        <Route path="/creator-live">
+          <div className="relative h-[100svh] overflow-hidden">
+            <CreatorLive />
+          </div>
+        </Route>
+        <Route path="/creator-shop">
+          <div className="relative h-[100svh] overflow-hidden">
+            <CreatorShop />
           </div>
         </Route>
         <Route path="/terms">

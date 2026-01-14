@@ -228,6 +228,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/my-products", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const myProducts = await db
+        .select()
+        .from(products)
+        .where(eq(products.creatorId, userId))
+        .orderBy(desc(products.createdAt));
+      res.json(myProducts);
+    } catch (error) {
+      console.error("Error fetching user products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
   app.post("/api/products", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -242,6 +257,108 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error creating product:", error);
       res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.delete("/api/products/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const [product] = await db
+        .select()
+        .from(products)
+        .where(and(eq(products.id, id), eq(products.creatorId, userId)));
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      await db.delete(products).where(eq(products.id, id));
+      res.json({ message: "Product deleted" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  app.delete("/api/videos/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.creatorId, userId)));
+      
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+
+      await db.delete(videos).where(eq(videos.id, id));
+      res.json({ message: "Video deleted" });
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      res.status(500).json({ message: "Failed to delete video" });
+    }
+  });
+
+  app.patch("/api/live/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(and(eq(liveStreams.id, id), eq(liveStreams.creatorId, userId)));
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      const updateData: any = {};
+      if (status) {
+        updateData.status = status;
+        if (status === "ended") {
+          updateData.endedAt = new Date();
+        }
+      }
+
+      const [updated] = await db
+        .update(liveStreams)
+        .set(updateData)
+        .where(eq(liveStreams.id, id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating live stream:", error);
+      res.status(500).json({ message: "Failed to update stream" });
+    }
+  });
+
+  app.delete("/api/live/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(and(eq(liveStreams.id, id), eq(liveStreams.creatorId, userId)));
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      await db.delete(liveStreams).where(eq(liveStreams.id, id));
+      res.json({ message: "Stream deleted" });
+    } catch (error) {
+      console.error("Error deleting live stream:", error);
+      res.status(500).json({ message: "Failed to delete stream" });
     }
   });
 
