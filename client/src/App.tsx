@@ -39,6 +39,7 @@ import LegalPage from "@/pages/legal-page";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 import CreatorApplication from "@/pages/creator-application";
+import PointsPurchase from "@/pages/points-purchase";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -107,6 +108,11 @@ function AuthenticatedApp() {
         <Route path="/creator-application">
           <div className="h-[100svh] flex flex-col overflow-hidden">
             <CreatorApplication />
+          </div>
+        </Route>
+        <Route path="/points-purchase">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <PointsPurchase />
           </div>
         </Route>
         <Route path="/terms">

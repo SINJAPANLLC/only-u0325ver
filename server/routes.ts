@@ -7,6 +7,7 @@ import {
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions,
   userProfiles, creatorApplications, phoneVerificationCodes,
+  bankTransferRequests, pointPackages, pointTransactions,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema
 } from "@shared/schema";
@@ -789,6 +790,146 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error submitting documents:", error);
       res.status(500).json({ message: "書類の提出に失敗しました" });
+    }
+  });
+
+  // Point packages endpoint
+  app.get("/api/point-packages", async (req, res) => {
+    try {
+      const packages = await db
+        .select()
+        .from(pointPackages)
+        .where(eq(pointPackages.isActive, true))
+        .orderBy(pointPackages.displayOrder);
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching point packages:", error);
+      res.status(500).json({ message: "Failed to fetch point packages" });
+    }
+  });
+
+  // Bank transfer request endpoints
+  app.post("/api/bank-transfer-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { points, amount, amountExcludingTax, taxAmount } = req.body;
+
+      if (!points || !amount || points < 100) {
+        return res.status(400).json({ message: "最低100ポイントから購入できます" });
+      }
+
+      // Set transfer deadline (7 days from now)
+      const transferDeadline = new Date();
+      transferDeadline.setDate(transferDeadline.getDate() + 7);
+
+      const [request] = await db
+        .insert(bankTransferRequests)
+        .values({
+          userId,
+          points,
+          amount,
+          amountExcludingTax,
+          taxAmount,
+          transferDeadline,
+        })
+        .returning();
+
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating bank transfer request:", error);
+      res.status(500).json({ message: "振込申請の作成に失敗しました" });
+    }
+  });
+
+  app.get("/api/bank-transfer-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const requests = await db
+        .select()
+        .from(bankTransferRequests)
+        .where(eq(bankTransferRequests.userId, userId))
+        .orderBy(desc(bankTransferRequests.createdAt));
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching bank transfer requests:", error);
+      res.status(500).json({ message: "振込申請の取得に失敗しました" });
+    }
+  });
+
+  // Admin: Get all pending bank transfer requests
+  app.get("/api/admin/bank-transfer-requests", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const requests = await db
+        .select()
+        .from(bankTransferRequests)
+        .orderBy(desc(bankTransferRequests.createdAt));
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching bank transfer requests:", error);
+      res.status(500).json({ message: "振込申請の取得に失敗しました" });
+    }
+  });
+
+  // Admin: Confirm bank transfer and grant points
+  app.post("/api/admin/bank-transfer-requests/:id/confirm", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const adminId = req.user.claims.sub;
+
+      // Get the transfer request
+      const [request] = await db
+        .select()
+        .from(bankTransferRequests)
+        .where(eq(bankTransferRequests.id, id));
+
+      if (!request) {
+        return res.status(404).json({ message: "振込申請が見つかりません" });
+      }
+
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "この申請は既に処理されています" });
+      }
+
+      // Get user's current points
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, request.userId));
+
+      const currentPoints = profile?.points ?? 0;
+      const newBalance = currentPoints + request.points;
+
+      // Update bank transfer request status
+      const [updatedRequest] = await db
+        .update(bankTransferRequests)
+        .set({
+          status: "confirmed",
+          confirmedAt: new Date(),
+          confirmedBy: adminId,
+        })
+        .where(eq(bankTransferRequests.id, id))
+        .returning();
+
+      // Update user's points
+      await db
+        .update(userProfiles)
+        .set({ points: newBalance })
+        .where(eq(userProfiles.userId, request.userId));
+
+      // Create point transaction record
+      await db.insert(pointTransactions).values({
+        userId: request.userId,
+        type: "purchase_bank",
+        amount: request.points,
+        balance: newBalance,
+        description: `銀行振込によるポイント購入`,
+        referenceId: id,
+      });
+
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Error confirming bank transfer:", error);
+      res.status(500).json({ message: "振込確認に失敗しました" });
     }
   });
 
