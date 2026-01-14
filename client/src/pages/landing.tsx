@@ -47,7 +47,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </div>
 
       {/* Section 1 - Hero with legs */}
-      <section className="relative w-full">
+      <section className="relative w-full min-h-[100vh]">
         <img 
           src={section1Image}
           alt="Only-U Hero"

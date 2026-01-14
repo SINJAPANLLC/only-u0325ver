@@ -129,12 +129,10 @@ function getAgeVerified(): boolean {
 
 function AppContent() {
   const { user, isLoading } = useAuth();
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => getAgeVerified());
   const [showLoading, setShowLoading] = useState(true);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const prevLocation = useRef(location);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -143,17 +141,6 @@ function AppContent() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (prevLocation.current !== location) {
-      setIsNavigating(true);
-      prevLocation.current = location;
-      const timer = setTimeout(() => {
-        setIsNavigating(false);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
 
   const handleAgeVerified = useCallback(() => {
     setIsAgeVerified(true);
@@ -169,7 +156,7 @@ function AppContent() {
     setShowAgeVerification(false);
   }, []);
 
-  if (showLoading || isLoading || isNavigating) {
+  if (showLoading || isLoading) {
     return <LoadingScreen />;
   }
 
