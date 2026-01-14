@@ -189,7 +189,15 @@ export default function Account() {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold truncate">{displayName}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold truncate">{displayName}</h2>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  <span className="text-sm font-semibold text-amber-700 dark:text-amber-400" data-testid="text-user-points">
+                    {(profile?.points ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
               {profile?.bio && (
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{profile.bio}</p>
               )}
