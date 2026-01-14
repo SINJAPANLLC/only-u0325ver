@@ -40,3 +40,16 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 });
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+// Phone verification codes table
+export const phoneVerificationCodes = pgTable("phone_verification_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  phoneNumber: varchar("phone_number").notNull(),
+  code: varchar("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type PhoneVerificationCode = typeof phoneVerificationCodes.$inferSelect;

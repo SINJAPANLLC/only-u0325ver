@@ -6,11 +6,11 @@ import { db } from "./db";
 import { 
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions,
-  userProfiles, creatorApplications,
+  userProfiles, creatorApplications, phoneVerificationCodes,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema
 } from "@shared/schema";
-import { eq, desc, and, or, sql } from "drizzle-orm";
+import { eq, desc, and, or, sql, gt, isNull } from "drizzle-orm";
 import { generateImage } from "./modelslab";
 
 // Admin check middleware
@@ -680,20 +680,33 @@ export async function registerRoutes(
         return res.status(400).json({ message: "電話番号を入力してください" });
       }
 
+      // Validate phone number format (Japanese format)
+      const cleanPhone = phoneNumber.replace(/[-\s]/g, "");
+      if (!/^0[0-9]{9,10}$/.test(cleanPhone)) {
+        return res.status(400).json({ message: "有効な電話番号を入力してください" });
+      }
+
       // Update phone number in application
       await db
         .update(creatorApplications)
-        .set({ phoneNumber })
+        .set({ phoneNumber: cleanPhone })
         .where(eq(creatorApplications.userId, userId));
+
+      // Generate verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Store code in database
+      await db.insert(phoneVerificationCodes).values({
+        userId,
+        phoneNumber: cleanPhone,
+        code: verificationCode,
+        expiresAt,
+      });
 
       // TODO: Integrate with Twilio to send actual SMS
       // For now, just log the verification code
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log(`Verification code for ${phoneNumber}: ${verificationCode}`);
-
-      // Store code in session or cache (simplified for demo)
-      (req.session as any).phoneVerificationCode = verificationCode;
-      (req.session as any).phoneVerificationNumber = phoneNumber;
+      console.log(`Verification code for ${cleanPhone}: ${verificationCode}`);
 
       res.json({ message: "認証コードを送信しました" });
     } catch (error) {
@@ -707,16 +720,34 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const { phoneNumber, code } = req.body;
 
-      // Get stored verification code
-      const storedCode = (req.session as any).phoneVerificationCode;
-      const storedNumber = (req.session as any).phoneVerificationNumber;
-
-      // For demo purposes, accept any 6-digit code or the stored code
-      const isValidCode = code === storedCode || (code.length === 6 && /^\d+$/.test(code));
-
-      if (!isValidCode) {
-        return res.status(400).json({ message: "認証コードが正しくありません" });
+      if (!code || code.length !== 6) {
+        return res.status(400).json({ message: "6桁の認証コードを入力してください" });
       }
+
+      // Get stored verification code from database
+      const [storedVerification] = await db
+        .select()
+        .from(phoneVerificationCodes)
+        .where(
+          and(
+            eq(phoneVerificationCodes.userId, userId),
+            eq(phoneVerificationCodes.code, code),
+            gt(phoneVerificationCodes.expiresAt, new Date()),
+            isNull(phoneVerificationCodes.usedAt)
+          )
+        )
+        .orderBy(desc(phoneVerificationCodes.createdAt))
+        .limit(1);
+
+      if (!storedVerification) {
+        return res.status(400).json({ message: "認証コードが正しくないか、有効期限が切れています" });
+      }
+
+      // Mark code as used
+      await db
+        .update(phoneVerificationCodes)
+        .set({ usedAt: new Date() })
+        .where(eq(phoneVerificationCodes.id, storedVerification.id));
 
       // Update application
       const [updated] = await db
@@ -728,10 +759,6 @@ export async function registerRoutes(
         })
         .where(eq(creatorApplications.userId, userId))
         .returning();
-
-      // Clear session data
-      delete (req.session as any).phoneVerificationCode;
-      delete (req.session as any).phoneVerificationNumber;
 
       res.json(updated);
     } catch (error) {
