@@ -112,44 +112,44 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-24 object-contain"
+            className="h-32 object-contain"
             data-testid="img-footer-logo"
           />
-          
-          <p className="text-gray-600 text-sm" data-testid="text-copyright">
-            &copy; 2025 Only-U. All rights reserved.
-          </p>
 
           <nav className="flex flex-col items-center space-y-4">
-            <a 
+            <Link 
               href="/terms" 
               className="text-gray-700 text-sm hover:text-pink-500"
               data-testid="link-terms"
             >
               利用規約
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/privacy" 
               className="text-gray-700 text-sm hover:text-pink-500"
               data-testid="link-privacy"
             >
               プライバシーポリシー
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/legal" 
               className="text-gray-700 text-sm hover:text-pink-500"
               data-testid="link-legal"
             >
               特定商取引法に基づく表記
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/guidelines" 
               className="text-gray-700 text-sm hover:text-pink-500"
               data-testid="link-guidelines"
             >
               コンテンツガイドライン
-            </a>
+            </Link>
           </nav>
+          
+          <p className="text-gray-600 text-sm" data-testid="text-copyright">
+            &copy; 2025 Only-U. All rights reserved.
+          </p>
         </div>
       </footer>
 
