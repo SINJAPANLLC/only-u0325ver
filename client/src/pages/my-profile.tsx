@@ -4,12 +4,10 @@ import {
   ChevronLeft,
   Grid3X3, 
   PlaySquare, 
-  Bookmark, 
   Heart, 
   Plus,
   Link as LinkIcon,
   ShoppingBag,
-  Repeat2,
   ChevronDown,
   BadgeCheck,
   Video
@@ -180,20 +178,6 @@ export default function MyProfile() {
             <ShoppingBag className="h-5 w-5" />
           </TabsTrigger>
           <TabsTrigger 
-            value="reposts" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
-            data-testid="tab-reposts"
-          >
-            <Repeat2 className="h-5 w-5" />
-          </TabsTrigger>
-          <TabsTrigger 
-            value="saved" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
-            data-testid="tab-saved"
-          >
-            <Bookmark className="h-5 w-5" />
-          </TabsTrigger>
-          <TabsTrigger 
             value="liked" 
             className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
             data-testid="tab-liked"
@@ -245,19 +229,6 @@ export default function MyProfile() {
           </div>
         </TabsContent>
 
-        <TabsContent value="reposts" className="mt-0">
-          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-            <Repeat2 className="h-10 w-10 mb-2 opacity-50" />
-            <p>リポストした動画はここに表示されます</p>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="saved" className="mt-0">
-          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-            <Bookmark className="h-10 w-10 mb-2 opacity-50" />
-            <p>保存した動画はここに表示されます</p>
-          </div>
-        </TabsContent>
 
         <TabsContent value="liked" className="mt-0">
           <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
