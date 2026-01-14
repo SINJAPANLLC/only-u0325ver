@@ -154,6 +154,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/my-live", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const myStreams = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.creatorId, userId))
+        .orderBy(desc(liveStreams.createdAt));
+      res.json(myStreams);
+    } catch (error) {
+      console.error("Error fetching user live streams:", error);
+      res.status(500).json({ message: "Failed to fetch live streams" });
+    }
+  });
+
   app.post("/api/live", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

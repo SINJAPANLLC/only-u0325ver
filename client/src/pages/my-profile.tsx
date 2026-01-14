@@ -5,7 +5,6 @@ import {
   Grid3X3, 
   PlaySquare, 
   Heart, 
-  Plus,
   Link as LinkIcon,
   ShoppingBag,
   ChevronDown,
@@ -17,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import type { UserProfile, Video as VideoType } from "@shared/schema";
+import type { UserProfile, Video as VideoType, LiveStream } from "@shared/schema";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -45,6 +44,12 @@ export default function MyProfile() {
   const { data: myVideos } = useQuery<VideoType[]>({
     queryKey: ["/api/my-videos"],
   });
+
+  const { data: myLiveStreams } = useQuery<LiveStream[]>({
+    queryKey: ["/api/my-live"],
+  });
+
+  const isLive = myLiveStreams?.some(stream => stream.status === "live") || false;
 
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -92,20 +97,19 @@ export default function MyProfile() {
 
       {/* Profile Section */}
       <div className="flex flex-col items-center px-4 pt-6">
-        {/* Avatar with Add button */}
+        {/* Avatar */}
         <div className="relative">
-          <Avatar className="h-24 w-24 ring-2 ring-border">
+          <Avatar className={`h-24 w-24 ring-2 ${isLive ? "ring-pink-500 ring-[3px]" : "ring-border"}`}>
             <AvatarImage src={avatarUrl} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
               {displayName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <button 
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-[#25F4EE] flex items-center justify-center shadow-md"
-            data-testid="button-add-content"
-          >
-            <Plus className="h-4 w-4 text-black" />
-          </button>
+          {isLive && (
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-sm bg-pink-500 text-white text-[10px] font-bold">
+              LIVE
+            </div>
+          )}
         </div>
 
         {/* Username and Edit Button */}
