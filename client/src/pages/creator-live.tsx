@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronLeft, 
+  X, 
   Radio, 
-  Play, 
-  Square, 
   Users,
   Clock,
   Trash2,
@@ -14,16 +12,22 @@ import {
   Mic,
   MicOff,
   RotateCcw,
-  X,
-  MessageCircle,
+  Sparkles,
+  Settings,
+  Share2,
   Gift,
-  Heart
+  Heart,
+  MessageCircle,
+  Zap,
+  Target,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -33,28 +37,31 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { LiveStream } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
+import type { LiveStream, UserProfile } from "@shared/schema";
+
+type ViewMode = "list" | "preview" | "streaming";
 
 export default function CreatorLive() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [viewerCount, setViewerCount] = useState(0);
   const [streamDuration, setStreamDuration] = useState(0);
   const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
+  const [streamTitle, setStreamTitle] = useState("");
+  const [isTitleDialogOpen, setIsTitleDialogOpen] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    thumbnailUrl: "",
+
+  const { data: profile } = useQuery<UserProfile | null>({
+    queryKey: ["/api/profile"],
   });
 
   const { data: myLiveStreams, isLoading } = useQuery<LiveStream[]>({
@@ -70,8 +77,8 @@ export default function CreatorLive() {
       const constraints: MediaStreamConstraints = {
         video: { 
           facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 1080 },
+          height: { ideal: 1920 }
         },
         audio: true
       };
@@ -97,6 +104,7 @@ export default function CreatorLive() {
         description: "カメラの使用を許可してください",
         variant: "destructive" 
       });
+      setViewMode("list");
     }
   }, [facingMode, isCameraOn, isMicOn, toast]);
 
@@ -133,13 +141,26 @@ export default function CreatorLive() {
   }, []);
 
   useEffect(() => {
-    if (facingMode && isStreaming) {
+    if (viewMode === "preview" || viewMode === "streaming") {
       startCamera();
+    } else {
+      stopCamera();
     }
-  }, [facingMode, isStreaming, startCamera]);
+    return () => {
+      if (viewMode === "list") {
+        stopCamera();
+      }
+    };
+  }, [viewMode, startCamera, stopCamera]);
 
   useEffect(() => {
-    if (isStreaming) {
+    if (facingMode && (viewMode === "preview" || viewMode === "streaming")) {
+      startCamera();
+    }
+  }, [facingMode]);
+
+  useEffect(() => {
+    if (viewMode === "streaming") {
       timerRef.current = setInterval(() => {
         setStreamDuration(prev => prev + 1);
         setViewerCount(prev => Math.max(0, prev + Math.floor(Math.random() * 3) - 1));
@@ -156,7 +177,7 @@ export default function CreatorLive() {
         clearInterval(timerRef.current);
       }
     };
-  }, [isStreaming]);
+  }, [viewMode]);
 
   useEffect(() => {
     return () => {
@@ -165,9 +186,10 @@ export default function CreatorLive() {
   }, [stopCamera]);
 
   const startLiveMutation = useMutation({
-    mutationFn: async (data: typeof form) => {
+    mutationFn: async (title: string) => {
       const response = await apiRequest("POST", "/api/live", {
-        ...data,
+        title,
+        description: "",
         status: "live",
       });
       return response.json();
@@ -175,11 +197,9 @@ export default function CreatorLive() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
-      setIsDialogOpen(false);
       setCurrentStreamId(data.id);
-      setIsStreaming(true);
+      setViewMode("streaming");
       setViewerCount(Math.floor(Math.random() * 10) + 1);
-      await startCamera();
       toast({ title: "ライブ配信を開始しました" });
     },
     onError: (error: any) => {
@@ -198,7 +218,7 @@ export default function CreatorLive() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
-      setIsStreaming(false);
+      setViewMode("list");
       setCurrentStreamId(null);
       stopCamera();
       toast({ title: "配信を終了しました" });
@@ -223,19 +243,24 @@ export default function CreatorLive() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title) {
+  const handleStartLive = () => {
+    if (!streamTitle.trim()) {
       toast({ title: "タイトルを入力してください", variant: "destructive" });
       return;
     }
-    startLiveMutation.mutate(form);
+    setIsTitleDialogOpen(false);
+    startLiveMutation.mutate(streamTitle);
   };
 
   const handleEndStream = () => {
     if (currentStreamId) {
       endLiveMutation.mutate(currentStreamId);
     }
+  };
+
+  const handleClosePreview = () => {
+    stopCamera();
+    setViewMode("list");
   };
 
   const formatDuration = (seconds: number) => {
@@ -248,9 +273,10 @@ export default function CreatorLive() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const displayName = profile?.displayName || user?.firstName || "クリエイター";
   const pastStreams = myLiveStreams?.filter(s => s.status !== "live") || [];
 
-  if (isStreaming) {
+  if (viewMode === "preview") {
     return (
       <div className="fixed inset-0 bg-black z-50">
         <video 
@@ -267,108 +293,334 @@ export default function CreatorLive() {
           </div>
         )}
 
-        <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent">
+        <div className="absolute top-0 left-0 right-0 p-4 pt-12">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500 rounded-full">
-                <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
-                <span className="text-white text-sm font-bold">LIVE</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/50 rounded-full">
-                <Users className="h-4 w-4 text-white" />
-                <span className="text-white text-sm">{viewerCount}</span>
-              </div>
-              <div className="px-3 py-1.5 bg-black/50 rounded-full">
-                <span className="text-white text-sm">{formatDuration(streamDuration)}</span>
-              </div>
-            </div>
             <Button
               size="icon"
               variant="ghost"
               className="text-white hover:bg-white/20"
-              onClick={handleEndStream}
-              data-testid="button-close-stream"
+              onClick={handleClosePreview}
+              data-testid="button-close"
             >
               <X className="h-6 w-6" />
             </Button>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-amber-500/90 text-white border-0">
+                <Zap className="h-3 w-3 mr-1" />
+                段階的LIVE報酬
+              </Badge>
+              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20">
+                <Gift className="h-5 w-5" />
+              </Button>
+              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
-          <h2 className="text-white font-bold mt-2 text-lg">{form.title}</h2>
         </div>
 
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-12 w-12 rounded-full bg-black/50 text-white hover:bg-black/70"
-            onClick={toggleCamera}
-            data-testid="button-toggle-camera"
-          >
-            {isCameraOn ? <Camera className="h-6 w-6" /> : <CameraOff className="h-6 w-6" />}
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-12 w-12 rounded-full bg-black/50 text-white hover:bg-black/70"
-            onClick={toggleMic}
-            data-testid="button-toggle-mic"
-          >
-            {isMicOn ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-12 w-12 rounded-full bg-black/50 text-white hover:bg-black/70"
-            onClick={switchCamera}
-            data-testid="button-switch-camera"
-          >
-            <RotateCcw className="h-6 w-6" />
-          </Button>
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+          <div className="px-4 pt-8 pb-4">
+            <div className="grid grid-cols-5 gap-4 mb-4">
+              <button 
+                onClick={switchCamera}
+                className="flex flex-col items-center gap-1 text-white"
+                data-testid="button-switch-camera"
+              >
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                  <RotateCcw className="h-5 w-5" />
+                </div>
+                <span className="text-xs">切り替え</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white">
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <span className="text-xs">美肌</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white">
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center relative">
+                  <Sparkles className="h-5 w-5" />
+                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full" />
+                </div>
+                <span className="text-xs">エフェクト</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white">
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                  <Settings className="h-5 w-5" />
+                </div>
+                <span className="text-xs">設定</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white">
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                  <Crown className="h-5 w-5" />
+                </div>
+                <span className="text-xs">ビジネス</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-5 gap-4 mb-6">
+              <button className="flex flex-col items-center gap-1 text-white/80">
+                <Heart className="h-5 w-5" />
+                <span className="text-xs">ファンクラブ</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white/80">
+                <Zap className="h-5 w-5" />
+                <span className="text-xs">サービス+</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white/80">
+                <MessageCircle className="h-5 w-5" />
+                <span className="text-xs">交流</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white/80">
+                <Share2 className="h-5 w-5" />
+                <span className="text-xs">シェア</span>
+              </button>
+              <button className="flex flex-col items-center gap-1 text-white/80">
+                <Radio className="h-5 w-5" />
+                <span className="text-xs">プロモート</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile?.avatarUrl || ""} />
+                  <AvatarFallback className="bg-pink-500 text-white text-xs">
+                    {displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-white text-sm">Please like and share!</span>
+              </div>
+              <Badge variant="outline" className="text-white border-white/30">
+                <Target className="h-3 w-3 mr-1" />
+                LIVEゴール
+              </Badge>
+            </div>
+
+            <Button
+              className="w-full h-14 bg-pink-500 hover:bg-pink-600 text-lg font-bold rounded-full"
+              onClick={() => setIsTitleDialogOpen(true)}
+              data-testid="button-start-live"
+            >
+              LIVEを開始
+            </Button>
+
+            <div className="flex justify-around mt-4 pt-4 border-t border-white/10">
+              <button 
+                onClick={toggleMic}
+                className="flex items-center gap-2 text-white/80"
+                data-testid="button-toggle-mic"
+              >
+                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5 text-red-400" />}
+                <span className="text-sm">音声チャット</span>
+              </button>
+              <button 
+                onClick={toggleCamera}
+                className="flex items-center gap-2 text-white/80"
+                data-testid="button-toggle-camera"
+              >
+                {isCameraOn ? <Camera className="h-5 w-5" /> : <CameraOff className="h-5 w-5 text-red-400" />}
+                <span className="text-sm">デバイスカメラ</span>
+              </button>
+              <button className="flex items-center gap-2 text-white/80">
+                <Settings className="h-5 w-5" />
+                <span className="text-sm">LIVE Manager</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 relative">
+        <Dialog open={isTitleDialogOpen} onOpenChange={setIsTitleDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>配信タイトル</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
               <Input
-                placeholder="コメントを送信..."
-                className="bg-black/50 border-white/30 text-white placeholder:text-white/50 pr-24"
-                data-testid="input-comment"
+                value={streamTitle}
+                onChange={(e) => setStreamTitle(e.target.value)}
+                placeholder="配信のタイトルを入力"
+                data-testid="input-title"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/70">
-                  <Gift className="h-4 w-4" />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setIsTitleDialogOpen(false)}
+                >
+                  キャンセル
                 </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-white/70">
-                  <Heart className="h-4 w-4" />
+                <Button
+                  className="flex-1 bg-pink-500 hover:bg-pink-600"
+                  onClick={handleStartLive}
+                  disabled={startLiveMutation.isPending}
+                  data-testid="button-confirm-start"
+                >
+                  {startLiveMutation.isPending ? "開始中..." : "開始"}
                 </Button>
               </div>
             </div>
-          </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
+  if (viewMode === "streaming") {
+    return (
+      <div className="fixed inset-0 bg-black z-50">
+        <video 
+          ref={videoRef}
+          autoPlay 
+          playsInline 
+          muted
+          className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+        />
+        
+        {!isCameraOn && (
+          <div className="absolute inset-0 bg-gradient-to-b from-rose-900 to-rose-950 flex items-center justify-center">
+            <CameraOff className="h-16 w-16 text-white/50" />
+          </div>
+        )}
+
+        <div className="absolute top-0 left-0 right-0 p-4 pt-12">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-10 w-10 ring-2 ring-pink-500">
+                <AvatarImage src={profile?.avatarUrl || ""} />
+                <AvatarFallback className="bg-pink-500 text-white">
+                  {displayName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <Badge className="bg-amber-400 text-black border-0 font-medium">
+                あなたのファンクラブ
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-full">
+                <Users className="h-4 w-4 text-white" />
+                <span className="text-white text-sm font-medium">{viewerCount}</span>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-white hover:bg-white/20"
+                onClick={handleEndStream}
+                data-testid="button-close-stream"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mt-2">
+            <Badge variant="outline" className="text-amber-400 border-amber-400/50">
+              <Zap className="h-3 w-3 mr-1" />
+              日間ランキング
+            </Badge>
+            <Badge variant="outline" className="text-white border-white/30">
+              今すぐ追加
+            </Badge>
+          </div>
+        </div>
+
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
           <Button
-            className="w-full bg-pink-500 hover:bg-pink-600"
-            onClick={handleEndStream}
-            disabled={endLiveMutation.isPending}
-            data-testid="button-end-live"
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 rounded-full bg-black/40 text-white hover:bg-black/60"
+            onClick={toggleCamera}
+            data-testid="button-toggle-camera-stream"
           >
-            <Square className="h-4 w-4 mr-2" />
-            {endLiveMutation.isPending ? "終了中..." : "配信を終了"}
+            {isCameraOn ? <Camera className="h-5 w-5" /> : <CameraOff className="h-5 w-5" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 rounded-full bg-black/40 text-white hover:bg-black/60"
+            onClick={toggleMic}
+            data-testid="button-toggle-mic-stream"
+          >
+            {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 rounded-full bg-black/40 text-white hover:bg-black/60"
+            onClick={switchCamera}
+            data-testid="button-switch-camera-stream"
+          >
+            <RotateCcw className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="absolute left-4 bottom-32 max-h-40 overflow-y-auto space-y-2">
-          <div className="flex items-start gap-2 bg-black/40 rounded-lg px-3 py-2 max-w-[250px]">
-            <div className="h-6 w-6 rounded-full bg-pink-500 flex-shrink-0" />
-            <div>
-              <span className="text-white/80 text-xs">ユーザー1</span>
-              <p className="text-white text-sm">配信ありがとう！</p>
+        <div className="absolute left-4 bottom-36 max-h-60 overflow-y-auto space-y-2 w-64">
+          <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
+            <p className="text-pink-400 font-medium mb-1">Only-U LIVEへようこそ！</p>
+            <p className="text-white/80 text-xs leading-relaxed">
+              リアルタイムで視聴者と楽しく交流しましょう。クリエイターは18歳以上でなければLIVEを配信することはできません。
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-black/40 rounded-lg px-3 py-2">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="bg-pink-500 text-white text-xs">
+                {displayName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="flex items-center gap-1">
+                <span className="text-white text-sm font-medium">{displayName}</span>
+                <Badge className="bg-pink-500/80 text-white text-[10px] px-1">配信者</Badge>
+              </div>
+              <p className="text-white/60 text-xs">{streamTitle}</p>
             </div>
           </div>
-          <div className="flex items-start gap-2 bg-black/40 rounded-lg px-3 py-2 max-w-[250px]">
-            <div className="h-6 w-6 rounded-full bg-blue-500 flex-shrink-0" />
-            <div>
-              <span className="text-white/80 text-xs">ユーザー2</span>
-              <p className="text-white text-sm">こんにちは！</p>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex-1 relative">
+              <Input
+                placeholder="コメントを入力..."
+                className="bg-black/50 border-white/20 text-white placeholder:text-white/40 rounded-full"
+                data-testid="input-comment"
+              />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button className="text-white/80">
+                <Heart className="h-6 w-6" />
+              </button>
+              <button className="text-white/80">
+                <Users className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="text-white/80">
+                <Gift className="h-6 w-6" />
+              </button>
+              <button className="text-white/80">
+                <Share2 className="h-6 w-6" />
+              </button>
+              <button className="text-white/80">
+                <Sparkles className="h-6 w-6" />
+              </button>
+              <button className="text-white/80">
+                <Settings className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute top-1/2 left-4 -translate-y-1/2">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500 rounded-full">
+            <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
+            <span className="text-white text-sm font-bold">LIVE</span>
+            <span className="text-white/80 text-sm">{formatDuration(streamDuration)}</span>
           </div>
         </div>
       </div>
@@ -391,7 +643,7 @@ export default function CreatorLive() {
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <X className="h-6 w-6" />
           </Button>
           <h1 className="text-lg font-bold">ライブ配信</h1>
         </div>
@@ -408,12 +660,12 @@ export default function CreatorLive() {
           </p>
           <Button
             size="lg"
-            onClick={() => setIsDialogOpen(true)}
+            onClick={() => setViewMode("preview")}
             className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600"
-            data-testid="button-start-live"
+            data-testid="button-open-preview"
           >
             <Camera className="h-5 w-5 mr-2" />
-            配信を開始
+            配信準備
           </Button>
         </div>
 
@@ -474,56 +726,6 @@ export default function CreatorLive() {
           )}
         </div>
       </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>ライブ配信を開始</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="title">タイトル *</Label>
-              <Input
-                id="title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="配信のタイトル"
-                data-testid="input-title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">説明</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="配信の説明"
-                rows={3}
-                data-testid="input-description"
-              />
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                キャンセル
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-pink-500 hover:bg-pink-600"
-                disabled={startLiveMutation.isPending}
-                data-testid="button-submit"
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                {startLiveMutation.isPending ? "開始中..." : "配信開始"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       <div className="h-24" />
     </motion.div>
