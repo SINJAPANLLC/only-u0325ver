@@ -591,6 +591,180 @@ export async function registerRoutes(
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // Creator Application Multi-Step Process
+  app.get("/api/creator-application", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [application] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.userId, userId))
+        .orderBy(desc(creatorApplications.submittedAt))
+        .limit(1);
+      
+      if (!application) {
+        return res.json(null);
+      }
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching creator application:", error);
+      res.status(500).json({ message: "Failed to fetch application" });
+    }
+  });
+
+  app.post("/api/creator-application/personal-info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { fullName, birthDate, gender, postalCode, prefecture, city, address, building } = req.body;
+
+      if (!fullName || !birthDate || !gender || !postalCode || !prefecture || !city || !address) {
+        return res.status(400).json({ message: "必須項目を入力してください" });
+      }
+
+      // Check if application exists
+      const [existingApp] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.userId, userId));
+
+      if (existingApp) {
+        // Update existing application
+        const [updated] = await db
+          .update(creatorApplications)
+          .set({
+            fullName,
+            birthDate,
+            gender,
+            postalCode,
+            prefecture,
+            city,
+            address,
+            building: building || null,
+            currentStep: "phone_verification",
+          })
+          .where(eq(creatorApplications.id, existingApp.id))
+          .returning();
+        res.json(updated);
+      } else {
+        // Create new application
+        const [newApp] = await db
+          .insert(creatorApplications)
+          .values({
+            userId,
+            fullName,
+            birthDate,
+            gender,
+            postalCode,
+            prefecture,
+            city,
+            address,
+            building: building || null,
+            currentStep: "phone_verification",
+            status: "pending",
+          })
+          .returning();
+        res.status(201).json(newApp);
+      }
+    } catch (error) {
+      console.error("Error saving personal info:", error);
+      res.status(500).json({ message: "保存に失敗しました" });
+    }
+  });
+
+  app.post("/api/creator-application/send-verification", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber } = req.body;
+
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "電話番号を入力してください" });
+      }
+
+      // Update phone number in application
+      await db
+        .update(creatorApplications)
+        .set({ phoneNumber })
+        .where(eq(creatorApplications.userId, userId));
+
+      // TODO: Integrate with Twilio to send actual SMS
+      // For now, just log the verification code
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`Verification code for ${phoneNumber}: ${verificationCode}`);
+
+      // Store code in session or cache (simplified for demo)
+      (req.session as any).phoneVerificationCode = verificationCode;
+      (req.session as any).phoneVerificationNumber = phoneNumber;
+
+      res.json({ message: "認証コードを送信しました" });
+    } catch (error) {
+      console.error("Error sending verification:", error);
+      res.status(500).json({ message: "送信に失敗しました" });
+    }
+  });
+
+  app.post("/api/creator-application/verify-phone", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber, code } = req.body;
+
+      // Get stored verification code
+      const storedCode = (req.session as any).phoneVerificationCode;
+      const storedNumber = (req.session as any).phoneVerificationNumber;
+
+      // For demo purposes, accept any 6-digit code or the stored code
+      const isValidCode = code === storedCode || (code.length === 6 && /^\d+$/.test(code));
+
+      if (!isValidCode) {
+        return res.status(400).json({ message: "認証コードが正しくありません" });
+      }
+
+      // Update application
+      const [updated] = await db
+        .update(creatorApplications)
+        .set({
+          phoneVerified: true,
+          phoneVerifiedAt: new Date(),
+          currentStep: "document_submission",
+        })
+        .where(eq(creatorApplications.userId, userId))
+        .returning();
+
+      // Clear session data
+      delete (req.session as any).phoneVerificationCode;
+      delete (req.session as any).phoneVerificationNumber;
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error verifying phone:", error);
+      res.status(500).json({ message: "認証に失敗しました" });
+    }
+  });
+
+  // For document uploads, we'll use a simple approach for now
+  // In production, you'd want to use proper file storage like S3
+  app.post("/api/creator-application/documents", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // For now, just update the step to under_review
+      // In production, you'd handle actual file uploads here
+      const [updated] = await db
+        .update(creatorApplications)
+        .set({
+          currentStep: "under_review",
+          documentsSubmittedAt: new Date(),
+          // idDocumentType, idDocumentFrontUrl, etc. would be set here
+        })
+        .where(eq(creatorApplications.userId, userId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error submitting documents:", error);
+      res.status(500).json({ message: "書類の提出に失敗しました" });
+    }
+  });
+
   // ModelsLab image generation endpoint
   app.post("/api/generate-image", isAuthenticated, async (req: any, res) => {
     try {

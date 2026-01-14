@@ -226,68 +226,16 @@ export default function Account() {
               </div>
             </div>
 
-            {!isApprovedCreator && !isPendingApplication && (
-              <Dialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
-                    data-testid="button-apply-creator"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    クリエイター申請する
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-[400px]">
-                  <DialogHeader>
-                    <DialogTitle>クリエイター申請</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">
-                      申請内容を審査後、承認されるとクリエイター機能が使えるようになります。
-                    </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="portfolioUrl">ポートフォリオURL（任意）</Label>
-                      <Input
-                        id="portfolioUrl"
-                        value={applicationForm.portfolioUrl}
-                        onChange={(e) => setApplicationForm({ ...applicationForm, portfolioUrl: e.target.value })}
-                        placeholder="https://..."
-                        data-testid="input-portfolio-url"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="experience">活動経験</Label>
-                      <Textarea
-                        id="experience"
-                        value={applicationForm.experience}
-                        onChange={(e) => setApplicationForm({ ...applicationForm, experience: e.target.value })}
-                        placeholder="これまでの配信・クリエイター活動について"
-                        rows={3}
-                        data-testid="input-experience"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reason">申請理由</Label>
-                      <Textarea
-                        id="reason"
-                        value={applicationForm.reason}
-                        onChange={(e) => setApplicationForm({ ...applicationForm, reason: e.target.value })}
-                        placeholder="Only-Uでどのような活動をしたいですか？"
-                        rows={3}
-                        data-testid="input-reason"
-                      />
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={() => submitApplicationMutation.mutate(applicationForm)}
-                      disabled={submitApplicationMutation.isPending}
-                      data-testid="button-submit-application"
-                    >
-                      {submitApplicationMutation.isPending ? "送信中..." : "申請を送信"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+            {!isApprovedCreator && (
+              <Link href="/creator-application">
+                <Button 
+                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
+                  data-testid="button-apply-creator"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {isPendingApplication ? "申請状況を確認" : "クリエイター申請する"}
+                </Button>
+              </Link>
             )}
           </div>
         </motion.div>

@@ -38,6 +38,7 @@ import Auth from "@/pages/auth";
 import LegalPage from "@/pages/legal-page";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import CreatorApplication from "@/pages/creator-application";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -101,6 +102,11 @@ function AuthenticatedApp() {
         <Route path="/my-profile">
           <div className="relative h-[100svh] overflow-hidden">
             <MyProfile />
+          </div>
+        </Route>
+        <Route path="/creator-application">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <CreatorApplication />
           </div>
         </Route>
         <Route path="/terms">

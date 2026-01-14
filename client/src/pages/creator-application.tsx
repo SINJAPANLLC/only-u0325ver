@@ -121,10 +121,7 @@ export default function CreatorApplication() {
   // Mutations
   const savePersonalInfoMutation = useMutation({
     mutationFn: async (data: typeof personalInfo) => {
-      return apiRequest("/api/creator-application/personal-info", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/creator-application/personal-info", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/creator-application"] });
@@ -137,10 +134,7 @@ export default function CreatorApplication() {
 
   const sendVerificationCodeMutation = useMutation({
     mutationFn: async (phoneNumber: string) => {
-      return apiRequest("/api/creator-application/send-verification", {
-        method: "POST",
-        body: JSON.stringify({ phoneNumber }),
-      });
+      return apiRequest("POST", "/api/creator-application/send-verification", { phoneNumber });
     },
     onSuccess: () => {
       setCodeSent(true);
@@ -153,10 +147,7 @@ export default function CreatorApplication() {
 
   const verifyPhoneMutation = useMutation({
     mutationFn: async (data: { phoneNumber: string; code: string }) => {
-      return apiRequest("/api/creator-application/verify-phone", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", "/api/creator-application/verify-phone", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/creator-application"] });
