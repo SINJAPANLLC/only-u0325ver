@@ -310,6 +310,14 @@ function LegalNoticeContent() {
             <td className="py-3 pr-4 font-medium text-gray-900">映像送信型性風俗特殊営業届出</td>
             <td className="py-3">神奈川県公安委員会第　号</td>
           </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">無店舗型性風俗特殊営業届出</td>
+            <td className="py-3">神奈川県公安委員会第　号</td>
+          </tr>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">古物商許可</td>
+            <td className="py-3">神奈川県公安委員会第　号</td>
+          </tr>
         </tbody>
       </table>
     </div>
