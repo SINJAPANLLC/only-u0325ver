@@ -27,15 +27,51 @@ export const userProfiles = pgTable("user_profiles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Application step enum
+export const applicationStepEnum = pgEnum("application_step", [
+  "personal_info",
+  "phone_verification", 
+  "document_submission",
+  "under_review",
+  "completed"
+]);
+
 // Creator applications (for users wanting to become creators)
 export const creatorApplications = pgTable("creator_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   status: applicationStatusEnum("status").default("pending"),
+  currentStep: applicationStepEnum("current_step").default("personal_info"),
+  
+  // Personal info (Step 1)
+  fullName: varchar("full_name"),
+  birthDate: varchar("birth_date"),
+  gender: varchar("gender"),
+  postalCode: varchar("postal_code"),
+  prefecture: varchar("prefecture"),
+  city: varchar("city"),
+  address: varchar("address"),
+  building: varchar("building"),
+  
+  // Phone verification (Step 2)
+  phoneNumber: varchar("phone_number"),
+  phoneVerified: boolean("phone_verified").default(false),
+  phoneVerifiedAt: timestamp("phone_verified_at"),
+  
+  // Document submission (Step 3) - eKYC
+  idDocumentType: varchar("id_document_type"),
+  idDocumentFrontUrl: varchar("id_document_front_url"),
+  idDocumentBackUrl: varchar("id_document_back_url"),
+  selfieUrl: varchar("selfie_url"),
+  documentsSubmittedAt: timestamp("documents_submitted_at"),
+  
+  // Legacy fields (kept for compatibility)
   portfolioUrl: varchar("portfolio_url"),
   experience: text("experience"),
   reason: text("reason"),
   notes: text("notes"),
+  adminNotes: text("admin_notes"),
+  
   submittedAt: timestamp("submitted_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
   reviewerId: varchar("reviewer_id"),
