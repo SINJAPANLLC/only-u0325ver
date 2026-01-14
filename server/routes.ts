@@ -127,11 +127,20 @@ export async function registerRoutes(
 
   app.get("/api/live", async (req, res) => {
     try {
-      const streams = await db
+      const { status } = req.query;
+      let query = db
         .select()
         .from(liveStreams)
         .orderBy(desc(liveStreams.createdAt))
         .limit(20);
+      
+      const streams = await query;
+      
+      if (status === "live") {
+        const liveOnly = streams.filter(s => s.status === "live");
+        return res.json(liveOnly);
+      }
+      
       res.json(streams);
     } catch (error) {
       console.error("Error fetching live streams:", error);
