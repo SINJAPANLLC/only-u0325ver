@@ -1,17 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { CreatorProfile as CreatorProfileType, Video, Subscription } from "@shared/schema";
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
 import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
 
-const creatorData: Record<string, {
+const demoCreatorData: Record<string, {
   name: string;
   displayName: string;
   avatar: string;
@@ -76,7 +89,7 @@ const creatorData: Record<string, {
   }
 };
 
-const defaultCreator = {
+const defaultDemoCreator = {
   name: "Creator",
   displayName: "クリエイター",
   avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
@@ -92,13 +105,120 @@ const defaultCreator = {
   ]
 };
 
+const SUBSCRIPTION_PRICE = 500;
+
 export default function CreatorProfile() {
   const [, params] = useRoute("/creator/:username");
   const [, setLocation] = useLocation();
-  const [isFollowing, setIsFollowing] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
   
-  const username = params?.username || "Risa";
-  const creator = creatorData[username] || defaultCreator;
+  const creatorId = params?.username || "";
+  const isRealCreator = creatorId && !demoCreatorData[creatorId];
+  
+  const { data: creatorProfile } = useQuery<CreatorProfileType>({
+    queryKey: ["/api/creators", creatorId],
+    enabled: Boolean(isRealCreator),
+  });
+
+  const { data: creatorVideos } = useQuery<Video[]>({
+    queryKey: ["/api/creators", creatorId, "videos"],
+    enabled: Boolean(isRealCreator),
+  });
+
+  const { data: followStatus } = useQuery<{ isFollowing: boolean }>({
+    queryKey: ["/api/follow", creatorId],
+    enabled: Boolean(user && isRealCreator),
+  });
+
+  const { data: subscriptionStatus } = useQuery<{ isSubscribed: boolean; subscription?: Subscription }>({
+    queryKey: ["/api/subscription", creatorId],
+    enabled: Boolean(user && creatorId),
+  });
+
+  const followMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/follow/${creatorId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/follow", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/creators", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/following"] });
+    },
+  });
+
+  const unfollowMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/follow/${creatorId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/follow", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/creators", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/following"] });
+    },
+  });
+
+  const subscribeMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/subscription/${creatorId}`, {
+        planType: "monthly",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      setShowSubscribeDialog(false);
+      toast({
+        title: "登録完了",
+        description: "プレミアムコンテンツにアクセスできるようになりました",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "エラー",
+        description: error.message || "登録に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const [localIsFollowing, setLocalIsFollowing] = useState(false);
+  const [localIsSubscribed, setLocalIsSubscribed] = useState(false);
+
+  useEffect(() => {
+    if (followStatus) {
+      setLocalIsFollowing(followStatus.isFollowing);
+    }
+  }, [followStatus]);
+
+  useEffect(() => {
+    if (subscriptionStatus) {
+      setLocalIsSubscribed(subscriptionStatus.isSubscribed);
+    }
+  }, [subscriptionStatus]);
+  
+  const demoCreator = demoCreatorData[creatorId] || defaultDemoCreator;
+  
+  const creator = isRealCreator && creatorProfile ? {
+    name: creatorProfile.userId,
+    displayName: creatorProfile.displayName,
+    avatar: demoCreator.avatar,
+    cover: creatorProfile.coverImageUrl || demoCreator.cover,
+    bio: creatorProfile.bio || "",
+    followers: creatorProfile.followerCount || 0,
+    following: creatorProfile.followingCount || 0,
+    likes: 0,
+    posts: creatorProfile.postCount || 0,
+    isVerified: creatorProfile.isVerified || false,
+    videos: (creatorVideos || []).map((v, i) => ({
+      id: v.id,
+      thumbnail: v.thumbnailUrl || demoCreator.videos[i % demoCreator.videos.length]?.thumbnail || img1,
+      views: v.viewCount || 0,
+      likes: v.likeCount || 0,
+    }))
+  } : demoCreator;
   
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -108,6 +228,50 @@ export default function CreatorProfile() {
   
   const handleBack = () => {
     setLocation("/");
+  };
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      setLocation("/auth");
+      return;
+    }
+
+    if (isRealCreator) {
+      if (localIsFollowing) {
+        setLocalIsFollowing(false);
+        unfollowMutation.mutate();
+      } else {
+        setLocalIsFollowing(true);
+        followMutation.mutate();
+      }
+    } else {
+      setLocalIsFollowing(!localIsFollowing);
+    }
+  };
+
+  const isFollowing = isRealCreator ? localIsFollowing : localIsFollowing;
+  const isSubscribed = localIsSubscribed;
+  const isLoading = followMutation.isPending || unfollowMutation.isPending;
+  const isSubscribeLoading = subscribeMutation.isPending;
+
+  const handleMessage = () => {
+    if (!user) {
+      setLocation("/auth");
+      return;
+    }
+    setLocation("/messages");
+  };
+
+  const handleSubscribe = () => {
+    if (!user) {
+      setLocation("/auth");
+      return;
+    }
+    setShowSubscribeDialog(true);
+  };
+
+  const confirmSubscribe = () => {
+    subscribeMutation.mutate();
   };
   
   return (
@@ -200,10 +364,13 @@ export default function CreatorProfile() {
           <div className="flex gap-2 mt-4">
             <Button 
               className={`flex-1 ${isFollowing ? "bg-secondary text-foreground" : "bg-pink-500 hover:bg-pink-600 text-white"}`}
-              onClick={() => setIsFollowing(!isFollowing)}
+              onClick={handleFollowToggle}
+              disabled={isLoading}
               data-testid="button-follow-toggle"
             >
-              {isFollowing ? (
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isFollowing ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
                   フォロー中
@@ -215,12 +382,77 @@ export default function CreatorProfile() {
                 </>
               )}
             </Button>
-            <Button variant="outline" className="flex-1" data-testid="button-message">
+            <Button variant="outline" className="flex-1" onClick={handleMessage} data-testid="button-message">
               <MessageCircle className="h-4 w-4 mr-2" />
               メッセージ
             </Button>
           </div>
+          
+          <Button 
+            className={`w-full mt-3 ${isSubscribed ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"}`}
+            onClick={handleSubscribe}
+            disabled={isSubscribed || isSubscribeLoading}
+            data-testid="button-subscribe"
+          >
+            {isSubscribeLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isSubscribed ? (
+              <>
+                <Crown className="h-4 w-4 mr-2" />
+                プレミアム会員
+              </>
+            ) : (
+              <>
+                <Crown className="h-4 w-4 mr-2" />
+                登録する（{SUBSCRIPTION_PRICE}pt/月）
+              </>
+            )}
+          </Button>
         </div>
+
+        <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>プレミアム登録</DialogTitle>
+              <DialogDescription>
+                {creator.displayName}のプレミアムコンテンツにアクセスできるようになります
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div>
+                  <p className="font-medium">月額プラン</p>
+                  <p className="text-sm text-muted-foreground">30日間のアクセス</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-pink-500">{SUBSCRIPTION_PRICE}</p>
+                  <p className="text-xs text-muted-foreground">ポイント/月</p>
+                </div>
+              </div>
+              <div className="mt-4 text-sm text-muted-foreground">
+                <p className="flex items-center gap-2">
+                  <Coins className="h-4 w-4" />
+                  ポイントが即座に消費されます
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSubscribeDialog(false)}>
+                キャンセル
+              </Button>
+              <Button 
+                onClick={confirmSubscribe}
+                disabled={isSubscribeLoading}
+                className="bg-pink-500 hover:bg-pink-600"
+              >
+                {isSubscribeLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                登録する
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         <Tabs defaultValue="videos" className="mt-6">
           <TabsList className="w-full bg-transparent border-b rounded-none">

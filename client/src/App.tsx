@@ -43,6 +43,7 @@ import PointsPurchase from "@/pages/points-purchase";
 import CreatorContent from "@/pages/creator-content";
 import CreatorLive from "@/pages/creator-live";
 import CreatorShop from "@/pages/creator-shop";
+import Following from "@/pages/following";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -131,6 +132,11 @@ function AuthenticatedApp() {
         <Route path="/creator-shop">
           <div className="relative h-[100svh] overflow-hidden">
             <CreatorShop />
+          </div>
+        </Route>
+        <Route path="/following">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <Following />
           </div>
         </Route>
         <Route path="/terms">

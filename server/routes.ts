@@ -509,10 +509,36 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/follow/:creatorId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { creatorId } = req.params;
+
+      const [existingFollow] = await db
+        .select()
+        .from(follows)
+        .where(and(eq(follows.followerId, userId), eq(follows.followingId, creatorId)));
+
+      res.json({ isFollowing: !!existingFollow });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "Failed to check follow status" });
+    }
+  });
+
   app.post("/api/follow/:creatorId", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { creatorId } = req.params;
+
+      const [creator] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, creatorId));
+
+      if (!creator) {
+        return res.status(404).json({ message: "Creator not found" });
+      }
 
       const [existingFollow] = await db
         .select()
@@ -528,6 +554,11 @@ export async function registerRoutes(
         followingId: creatorId,
       }).returning();
 
+      await db
+        .update(creatorProfiles)
+        .set({ followerCount: sql`${creatorProfiles.followerCount} + 1` })
+        .where(eq(creatorProfiles.userId, creatorId));
+
       res.status(201).json(follow);
     } catch (error) {
       console.error("Error following creator:", error);
@@ -540,6 +571,15 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const { creatorId } = req.params;
 
+      const [creator] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, creatorId));
+
+      if (!creator) {
+        return res.status(404).json({ message: "Creator not found" });
+      }
+
       const [deletedFollow] = await db
         .delete(follows)
         .where(and(eq(follows.followerId, userId), eq(follows.followingId, creatorId)))
@@ -548,6 +588,11 @@ export async function registerRoutes(
       if (!deletedFollow) {
         return res.status(404).json({ message: "Follow not found" });
       }
+
+      await db
+        .update(creatorProfiles)
+        .set({ followerCount: sql`GREATEST(${creatorProfiles.followerCount} - 1, 0)` })
+        .where(eq(creatorProfiles.userId, creatorId));
 
       res.json({ message: "Unfollowed successfully" });
     } catch (error) {
@@ -583,6 +628,120 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
       res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.get("/api/subscription/:creatorId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { creatorId } = req.params;
+      
+      const [subscription] = await db
+        .select()
+        .from(subscriptions)
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, creatorId),
+          eq(subscriptions.status, "active")
+        ));
+      
+      res.json({ isSubscribed: !!subscription, subscription });
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      res.status(500).json({ message: "Failed to check subscription" });
+    }
+  });
+
+  app.post("/api/subscription/:creatorId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { creatorId } = req.params;
+      const { planType } = req.body;
+
+      const SUBSCRIPTION_PRICES: Record<string, number> = {
+        monthly: 500,
+        yearly: 5000,
+      };
+      const selectedPlan = planType === "yearly" ? "yearly" : "monthly";
+      const price = SUBSCRIPTION_PRICES[selectedPlan];
+
+      const [creator] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, creatorId));
+
+      if (!creator) {
+        return res.status(404).json({ message: "Creator not found" });
+      }
+
+      const [existingSub] = await db
+        .select()
+        .from(subscriptions)
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, creatorId),
+          eq(subscriptions.status, "active")
+        ));
+
+      if (existingSub) {
+        return res.status(400).json({ message: "Already subscribed" });
+      }
+
+      const [userProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      if (!userProfile || (userProfile.points || 0) < price) {
+        return res.status(400).json({ message: "Insufficient points" });
+      }
+
+      await db
+        .update(userProfiles)
+        .set({ points: (userProfile.points || 0) - price })
+        .where(eq(userProfiles.userId, userId));
+
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + (selectedPlan === "yearly" ? 12 : 1));
+
+      const [subscription] = await db.insert(subscriptions).values({
+        userId,
+        creatorId,
+        planType: selectedPlan,
+        status: "active",
+        expiresAt,
+      }).returning();
+
+      res.status(201).json(subscription);
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Failed to create subscription" });
+    }
+  });
+
+  app.delete("/api/subscription/:creatorId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { creatorId } = req.params;
+
+      const [updatedSub] = await db
+        .update(subscriptions)
+        .set({ status: "cancelled" })
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, creatorId),
+          eq(subscriptions.status, "active")
+        ))
+        .returning();
+
+      if (!updatedSub) {
+        return res.status(404).json({ message: "Subscription not found" });
+      }
+
+      res.json({ message: "Subscription cancelled" });
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ message: "Failed to cancel subscription" });
     }
   });
 
