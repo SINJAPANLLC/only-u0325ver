@@ -35,6 +35,8 @@ interface VideoPageProps {
   musicName?: string;
   thumbnailUrl?: string;
   isHorizontal?: boolean;
+  isSubscribed?: boolean;
+  isSample?: boolean;
 }
 
 function VideoPage({
@@ -50,11 +52,15 @@ function VideoPage({
   musicName = "オリジナル音源",
   thumbnailUrl,
   isHorizontal = false,
+  isSubscribed = false,
+  isSample = false,
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [, setLocation] = useLocation();
+  
+  const isLocked = isPremium && !isSubscribed && !isSample;
   
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0], [0.5, 1]);
@@ -131,7 +137,7 @@ function VideoPage({
         </div>
         
         {/* Animated shimmer effect */}
-        {isActive && !isPaused && (
+        {isActive && !isPaused && !isLocked && (
           <motion.div
             className="absolute inset-0 opacity-20"
             animate={{
@@ -145,7 +151,52 @@ function VideoPage({
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
           />
         )}
+        
+        {/* Lock overlay for premium content */}
+        {isLocked && (
+          <div className="absolute inset-0 backdrop-blur-xl bg-black/60 flex flex-col items-center justify-center z-20">
+            <div className="text-center space-y-4 px-8">
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mx-auto shadow-lg shadow-pink-500/30">
+                <Lock className="h-10 w-10 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-white text-xl font-bold">プレミアムコンテンツ</h3>
+                <p className="text-white/70 text-sm">
+                  このコンテンツはサブスク会員限定です
+                </p>
+              </div>
+              <Button
+                className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-pink-500/30"
+                onClick={() => setLocation(`/creator/${creatorName}`)}
+                data-testid={`button-subscribe-${id}`}
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                サブスクに加入する
+              </Button>
+              <p className="text-white/50 text-xs">
+                月額プランで全ての動画が見放題
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Content type badge */}
+      {isSample && (
+        <div className="absolute top-20 left-4 z-10">
+          <span className="px-3 py-1 rounded-full bg-green-500/90 text-white text-xs font-bold backdrop-blur-sm shadow-lg">
+            無料サンプル
+          </span>
+        </div>
+      )}
+      {isPremium && !isLocked && (
+        <div className="absolute top-20 left-4 z-10">
+          <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold backdrop-blur-sm shadow-lg flex items-center gap-1">
+            <Crown className="h-3 w-3" />
+            VIP限定
+          </span>
+        </div>
+      )}
 
       {/* Right side actions */}
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
@@ -259,24 +310,27 @@ function VideoPage({
 }
 
 // Adult content mock data for 18+ platform with AI-generated images
+// isSample: true = free sample/preview content visible to everyone
+// isPremium: true + isSample: false = locked premium content (requires subscription)
 const demoVideos: VideoPageProps[] = [
   {
     id: "demo-1",
-    title: "【過激注意】深夜のランジェリー配信💋 今夜はどこまで見せる？リクエストに応えちゃう #18禁 #下着",
+    title: "【サンプル】深夜のランジェリー配信💋 もっと見たい方はサブスクへ #18禁 #下着",
     creatorName: "Risa",
     displayName: "りさ💋",
     viewCount: 285000,
     likeCount: 24800,
     commentCount: 1890,
     duration: 45,
-    isPremium: true,
+    isPremium: false,
+    isSample: true,
     isActive: false,
     musicName: "Midnight Jazz - Lounge Mix",
     thumbnailUrl: img1,
   },
   {
     id: "demo-2",
-    title: "【VIP限定】ベッドルームからお届け🖤 シルクローブで誘惑...寝室の秘密 #寝室配信 #エロ",
+    title: "【VIP限定】ベッドルームからお届け🖤 シルクローブで誘惑...寝室の秘密 #寝室配信",
     creatorName: "Yua",
     displayName: "ゆあ🖤",
     viewCount: 456000,
@@ -284,13 +338,14 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 2340,
     duration: 60,
     isPremium: true,
+    isSample: false,
     isActive: false,
     musicName: "Sensual R&B Mix",
     thumbnailUrl: img2,
   },
   {
     id: "demo-3",
-    title: "お風呂配信🛁 泡で隠れてる？隠れてない？ギリギリを攻めます #入浴 #セクシー",
+    title: "【無料】お風呂配信🛁 泡で隠れてる？ギリギリを攻めます #入浴 #セクシー",
     creatorName: "Mio",
     displayName: "みお🛁",
     viewCount: 189000,
@@ -298,13 +353,14 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 890,
     duration: 35,
     isPremium: false,
+    isSample: true,
     isActive: false,
     musicName: "Ambient Relaxation",
     thumbnailUrl: img3,
   },
   {
     id: "demo-4",
-    title: "バニーガール登場🐰 今夜はご主人様のために...リクエスト受付中 #コスプレ #バニー",
+    title: "【本編】バニーガール登場🐰 ご主人様のために...本編はサブスク限定 #コスプレ",
     creatorName: "Reina",
     displayName: "れいな🐰",
     viewCount: 523000,
@@ -312,41 +368,44 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 3100,
     duration: 55,
     isPremium: true,
+    isSample: false,
     isActive: false,
     musicName: "Tokyo Night Vibes",
     thumbnailUrl: img4,
   },
   {
     id: "demo-5",
-    title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #過激 #グラビア",
+    title: "【サンプル】マイクロビキニ撮影会📸 続きはサブスクで！ #水着 #グラビア",
     creatorName: "Hina",
     displayName: "ひな📸",
     viewCount: 612000,
     likeCount: 51000,
     commentCount: 4200,
     duration: 50,
-    isPremium: true,
+    isPremium: false,
+    isSample: true,
     isActive: false,
     musicName: "Summer Beach House",
     thumbnailUrl: img5,
   },
   {
     id: "demo-6",
-    title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
+    title: "【VIP限定】添い寝ASMR💕 耳舐め＆吐息責め...本編60分 #ASMR #耳舐め",
     creatorName: "Saki",
     displayName: "さき💕",
     viewCount: 178000,
     likeCount: 13400,
     commentCount: 780,
     duration: 40,
-    isPremium: false,
+    isPremium: true,
+    isSample: false,
     isActive: false,
     musicName: "Lo-fi Chill Beats",
     thumbnailUrl: img6,
   },
   {
     id: "demo-7",
-    title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
+    title: "【無料公開】ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ",
     creatorName: "Aya",
     displayName: "あや🔞",
     viewCount: 398000,
@@ -354,13 +413,14 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 2800,
     duration: 45,
     isPremium: false,
+    isSample: true,
     isActive: false,
     musicName: "Kawaii EDM Mix",
     thumbnailUrl: img7,
   },
   {
     id: "demo-8",
-    title: "メイドコス配信🎀 ご主人様のお帰りをお待ちしてます...何でもいたします #メイド #エロコス",
+    title: "【本編】メイドコス配信🎀 ご主人様のお帰りをお待ちしてます #メイド #限定",
     creatorName: "Nana",
     displayName: "なな🎀",
     viewCount: 445000,
@@ -368,13 +428,14 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 2650,
     duration: 50,
     isPremium: true,
+    isSample: false,
     isActive: false,
     musicName: "Kawaii Pop Mix",
     thumbnailUrl: img8,
   },
   {
     id: "demo-9",
-    title: "【横型】ソファでくつろぎ配信💫 リラックスした姿をお届け...今夜は特別 #横型 #グラビア",
+    title: "【サンプル】ソファでくつろぎ配信💫 フルバージョンはサブスクで #横型 #グラビア",
     creatorName: "Mei",
     displayName: "めい💫",
     viewCount: 234000,
@@ -382,6 +443,7 @@ const demoVideos: VideoPageProps[] = [
     commentCount: 1520,
     duration: 55,
     isPremium: false,
+    isSample: true,
     isActive: false,
     musicName: "Chill Lounge Mix",
     thumbnailUrl: imgHorizontal,
