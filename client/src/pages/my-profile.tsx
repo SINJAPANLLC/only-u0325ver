@@ -13,16 +13,16 @@ import {
   Link as LinkIcon,
   ShoppingBag,
   Repeat2,
-  Lock,
   ChevronDown,
-  BadgeCheck
+  BadgeCheck,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import type { UserProfile } from "@shared/schema";
+import type { UserProfile, Video as VideoType } from "@shared/schema";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -47,6 +47,10 @@ export default function MyProfile() {
     queryKey: ["/api/profile"],
   });
 
+  const { data: myVideos } = useQuery<VideoType[]>({
+    queryKey: ["/api/my-videos"],
+  });
+
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -60,12 +64,15 @@ export default function MyProfile() {
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = user?.email?.split("@")[0] || "user";
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
-  const bio = profile?.bio || "Only-Uクリエイター";
+  const bio = profile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = "https://only-u.fun";
 
-  const followers = 3293;
-  const following = 882;
-  const likes = 47;
+  const followers = 0;
+  const following = 0;
+  const likes = 0;
+
+  const hasVideos = myVideos && myVideos.length > 0;
+  const displayVideos = hasVideos ? myVideos : demoVideos;
   
   return (
     <motion.div 
@@ -86,15 +93,9 @@ export default function MyProfile() {
           >
             <Plus className="h-5 w-5" />
           </Button>
-          <div className="h-6 w-6 rounded-full bg-amber-400 flex items-center justify-center">
-            <span className="text-xs">P</span>
-          </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>2</span>
-          </div>
           <Button 
             size="icon" 
             variant="ghost"
@@ -153,9 +154,6 @@ export default function MyProfile() {
         {/* Handle */}
         <p className="text-muted-foreground text-sm mt-1">@{username}</p>
 
-        {/* Bio subtitle */}
-        <p className="text-muted-foreground text-sm mt-1">LIVEエージェンシー</p>
-
         {/* Stats Row */}
         <div className="flex items-center justify-center gap-8 mt-5">
           <div className="text-center">
@@ -207,7 +205,7 @@ export default function MyProfile() {
             className="flex items-center gap-1.5 text-sm"
             data-testid="button-studio"
           >
-            <span className="text-[#FE2C55]">✂</span>
+            <Video className="h-4 w-4 text-[#FE2C55]" />
             <span>Only-U Studio</span>
           </button>
           <button 
@@ -271,30 +269,39 @@ export default function MyProfile() {
         </TabsList>
         
         <TabsContent value="videos" className="mt-0">
-          <div className="grid grid-cols-3 gap-0.5">
-            {demoVideos.map((video) => (
-              <div 
-                key={video.id} 
-                className="aspect-[9/16] relative bg-muted"
-                data-testid={`video-thumbnail-${video.id}`}
-              >
-                <img 
-                  src={video.thumbnail} 
-                  alt="" 
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs drop-shadow-md">
-                  <PlaySquare className="h-3 w-3" />
-                  <span>{formatCount(video.views)}</span>
-                </div>
-                {video.id === "v1" && (
-                  <div className="absolute top-1 right-1">
-                    <Lock className="h-3 w-3 text-white drop-shadow-md" />
+          {hasVideos ? (
+            <div className="grid grid-cols-3 gap-0.5">
+              {myVideos.map((video) => (
+                <div 
+                  key={video.id} 
+                  className="aspect-[9/16] relative bg-muted"
+                  data-testid={`video-thumbnail-${video.id}`}
+                >
+                  {video.thumbnailUrl ? (
+                    <img 
+                      src={video.thumbnailUrl} 
+                      alt={video.title} 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <Video className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs drop-shadow-md">
+                    <PlaySquare className="h-3 w-3" />
+                    <span>{formatCount(video.viewCount || 0)}</span>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+              <Video className="h-10 w-10 mb-2 opacity-50" />
+              <p>まだ投稿がありません</p>
+              <p className="text-xs mt-1">クリエイター登録して動画を投稿しよう</p>
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="shop" className="mt-0">

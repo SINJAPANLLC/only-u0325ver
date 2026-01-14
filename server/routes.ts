@@ -26,6 +26,31 @@ function isAdmin(req: any, res: any, next: any) {
   }
 }
 
+// Creator check middleware - only approved creators can use creator features
+async function isCreator(req: any, res: any, next: any) {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "認証が必要です" });
+    }
+
+    const [creatorProfile] = await db
+      .select()
+      .from(creatorProfiles)
+      .where(eq(creatorProfiles.userId, userId));
+
+    if (!creatorProfile) {
+      return res.status(403).json({ message: "クリエイター登録が必要です。アカウントページからクリエイター申請を行ってください。" });
+    }
+
+    req.creatorProfile = creatorProfile;
+    next();
+  } catch (error) {
+    console.error("Error checking creator status:", error);
+    res.status(500).json({ message: "認証エラーが発生しました" });
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -67,7 +92,23 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/videos", isAuthenticated, async (req: any, res) => {
+  // Get current user's own videos
+  app.get("/api/my-videos", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const myVideos = await db
+        .select()
+        .from(videos)
+        .where(eq(videos.creatorId, userId))
+        .orderBy(desc(videos.createdAt));
+      res.json(myVideos);
+    } catch (error) {
+      console.error("Error fetching user videos:", error);
+      res.status(500).json({ message: "Failed to fetch videos" });
+    }
+  });
+
+  app.post("/api/videos", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const validation = insertVideoSchema.safeParse({ ...req.body, creatorId: userId });
@@ -113,7 +154,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/live", isAuthenticated, async (req: any, res) => {
+  app.post("/api/live", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const validation = insertLiveStreamSchema.safeParse({ ...req.body, creatorId: userId });
@@ -172,7 +213,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products", isAuthenticated, async (req: any, res) => {
+  app.post("/api/products", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const validation = insertProductSchema.safeParse({ ...req.body, creatorId: userId });
