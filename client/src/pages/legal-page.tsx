@@ -113,7 +113,7 @@ function TermsContent() {
 
       <div className="mt-8 pt-4 border-t border-gray-200">
         <p className="text-sm text-gray-500">最終更新日: 2025年10月10日</p>
-        <p className="text-sm text-gray-500">本規約に関するご質問は、kanagawa@sinjapan.jp までご連絡ください。</p>
+        <p className="text-sm text-gray-500">本規約に関するご質問は、info@only-u.fun までご連絡ください。</p>
       </div>
     </div>
   );
@@ -227,13 +227,13 @@ function PrivacyContent() {
       <div className="ml-4 mb-4">
         <p>運営者: 合同会社SIN JAPAN KANAGAWA</p>
         <p>窓口となる部署: 個人情報担当窓口</p>
-        <p>メールアドレス: kanagawa@sinjapan.jp</p>
+        <p>メールアドレス: info@only-u.fun</p>
         <p>開示等の請求の方法: メール、郵送</p>
       </div>
 
       <div className="mt-8 pt-4 border-t border-gray-200">
         <p className="text-sm text-gray-500">最終更新日: 2025年10月10日</p>
-        <p className="text-sm text-gray-500">本ポリシーに関するご質問は、kanagawa@sinjapan.jp までご連絡ください。</p>
+        <p className="text-sm text-gray-500">本ポリシーに関するご質問は、info@only-u.fun までご連絡ください。</p>
       </div>
     </div>
   );
@@ -267,7 +267,7 @@ function LegalNoticeContent() {
           </tr>
           <tr className="border-b border-gray-200">
             <td className="py-3 pr-4 font-medium text-gray-900">連絡先メールアドレス</td>
-            <td className="py-3">kanagawa@sinjapan.jp</td>
+            <td className="py-3">info@only-u.fun</td>
           </tr>
           <tr className="border-b border-gray-200">
             <td className="py-3 pr-4 font-medium text-gray-900">ホームページ</td>

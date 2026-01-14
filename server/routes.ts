@@ -17,7 +17,7 @@ import { generateImage } from "./modelslab";
 function isAdmin(req: any, res: any, next: any) {
   // Check for admin email or role
   const email = req.user?.claims?.email || req.user?.email || "";
-  const adminEmails = ["info@sinjapan.jp"];
+  const adminEmails = ["info@only-u.fun"];
   if (adminEmails.includes(email) || email.includes("admin") || req.user?.claims?.role === "admin") {
     next();
   } else {

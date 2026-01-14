@@ -58,7 +58,7 @@ export default function Admin() {
   });
 
   const email = user?.email || "";
-  const adminEmails = ["info@sinjapan.jp"];
+  const adminEmails = ["info@only-u.fun"];
   const isAdmin = adminEmails.includes(email) || email.includes("admin");
 
   if (isLoading) {
