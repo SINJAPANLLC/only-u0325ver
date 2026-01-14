@@ -4,26 +4,28 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import type { IconType } from "react-icons";
+import { useI18n } from "@/lib/i18n";
 
 interface NavItem {
   path: string;
   icon: IconType;
-  label: string;
+  labelKey: string;
   hasLiveIndicator?: boolean;
   badgeCount?: number;
   iconSize?: string;
 }
 
 const navItems: NavItem[] = [
-  { path: "/", icon: PiHouseDuotone, label: "ホーム", iconSize: "h-7 w-7" },
-  { path: "/live", icon: PiBroadcastDuotone, label: "LIVE", iconSize: "h-7 w-7" },
-  { path: "/shop", icon: PiShoppingBagDuotone, label: "ショップ", iconSize: "h-8 w-8" },
-  { path: "/messages", icon: PiChatCircleDotsDuotone, label: "DM", badgeCount: 5, iconSize: "h-8 w-8" },
-  { path: "/account", icon: PiUserCircleDuotone, label: "マイページ", iconSize: "h-8 w-8" },
+  { path: "/", icon: PiHouseDuotone, labelKey: "nav.home", iconSize: "h-7 w-7" },
+  { path: "/live", icon: PiBroadcastDuotone, labelKey: "nav.live", iconSize: "h-7 w-7" },
+  { path: "/shop", icon: PiShoppingBagDuotone, labelKey: "nav.shop", iconSize: "h-8 w-8" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", badgeCount: 0, iconSize: "h-8 w-8" },
+  { path: "/account", icon: PiUserCircleDuotone, labelKey: "nav.account", iconSize: "h-8 w-8" },
 ];
 
 export function BottomNavigation() {
   const [location] = useLocation();
+  const { t } = useI18n();
 
   return (
     <nav 
@@ -83,7 +85,7 @@ export function BottomNavigation() {
                   "relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300",
                   isActive && "font-bold"
                 )}>
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </motion.button>
             </Link>

@@ -90,7 +90,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
                 }`}
                 data-testid="button-feed-recommend"
               >
-                おすすめ
+                {t("feed.recommend")}
               </button>
               <button
                 onClick={() => onFeedTypeChange?.("following")}
@@ -101,7 +101,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
                 }`}
                 data-testid="button-feed-following"
               >
-                フォロー中
+                {t("feed.following")}
               </button>
             </div>
           )}

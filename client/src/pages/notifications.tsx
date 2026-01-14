@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import type { Notification } from "@shared/schema";
@@ -19,6 +20,7 @@ const notificationIcons: Record<string, typeof Bell> = {
 export default function Notifications() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const { data: notifications, isLoading } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
@@ -60,7 +62,7 @@ export default function Notifications() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">通知</h1>
+            <h1 className="text-lg font-semibold">{t("notification.title")}</h1>
           </div>
           {unreadCount > 0 && (
             <Button
@@ -71,7 +73,7 @@ export default function Notifications() {
               data-testid="button-mark-all-read"
             >
               <Check className="h-4 w-4 mr-1" />
-              すべて既読
+              {t("notification.markAllRead")}
             </Button>
           )}
         </div>
@@ -87,7 +89,7 @@ export default function Notifications() {
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
               <Bell className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground" data-testid="text-no-notifications">通知はありません</p>
+            <p className="text-muted-foreground" data-testid="text-no-notifications">{t("notification.empty")}</p>
           </div>
         ) : (
           <div className="space-y-2">
