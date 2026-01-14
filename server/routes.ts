@@ -7,9 +7,9 @@ import {
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions,
   userProfiles, creatorApplications, phoneVerificationCodes,
-  bankTransferRequests, pointPackages, pointTransactions,
+  bankTransferRequests, pointPackages, pointTransactions, purchases,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
-  insertUserProfileSchema, insertCreatorApplicationSchema
+  insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema
 } from "@shared/schema";
 import { eq, desc, and, or, sql, gt, isNull } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -445,6 +445,227 @@ export async function registerRoutes(
     }
   });
 
+  // Get unread notification count
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(notifications)
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+      res.json({ count: Number(result[0]?.count || 0) });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch count" });
+    }
+  });
+
+  // Mark all notifications as read
+  app.patch("/api/notifications/read-all", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.userId, userId));
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all read:", error);
+      res.status(500).json({ message: "Failed to update" });
+    }
+  });
+
+  // Create or get conversation with a user
+  app.post("/api/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { participantId } = req.body;
+
+      if (!participantId || participantId === userId) {
+        return res.status(400).json({ message: "Invalid participant" });
+      }
+
+      // Check if conversation exists
+      const [existing] = await db
+        .select()
+        .from(conversations)
+        .where(
+          or(
+            and(eq(conversations.participant1Id, userId), eq(conversations.participant2Id, participantId)),
+            and(eq(conversations.participant1Id, participantId), eq(conversations.participant2Id, userId))
+          )
+        );
+
+      if (existing) {
+        return res.json(existing);
+      }
+
+      // Create new conversation
+      const [conversation] = await db.insert(conversations).values({
+        participant1Id: userId,
+        participant2Id: participantId,
+      }).returning();
+
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+
+  // Send message
+  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { content } = req.body;
+
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "Message content required" });
+      }
+
+      // Verify user is part of conversation
+      const [conversation] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, id));
+
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+        return res.status(403).json({ message: "Not part of this conversation" });
+      }
+
+      // Create message
+      const [message] = await db.insert(messages).values({
+        conversationId: id,
+        senderId: userId,
+        content: content.trim(),
+        status: "sent",
+      }).returning();
+
+      // Update conversation lastMessageAt
+      await db
+        .update(conversations)
+        .set({ lastMessageAt: new Date() })
+        .where(eq(conversations.id, id));
+
+      // Create notification for recipient
+      const recipientId = conversation.participant1Id === userId 
+        ? conversation.participant2Id 
+        : conversation.participant1Id;
+
+      await db.insert(notifications).values({
+        userId: recipientId,
+        title: "新しいメッセージ",
+        body: content.trim().substring(0, 50),
+        type: "message",
+      });
+
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Get user's purchases
+  app.get("/api/purchases", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userPurchases = await db
+        .select()
+        .from(purchases)
+        .where(eq(purchases.userId, userId))
+        .orderBy(desc(purchases.createdAt));
+      res.json(userPurchases);
+    } catch (error) {
+      console.error("Error fetching purchases:", error);
+      res.status(500).json({ message: "Failed to fetch purchases" });
+    }
+  });
+
+  // Purchase a product
+  app.post("/api/products/:id/purchase", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+
+      // Get product
+      const [product] = await db
+        .select()
+        .from(products)
+        .where(eq(products.id, id));
+
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      if (!product.isAvailable) {
+        return res.status(400).json({ message: "Product not available" });
+      }
+
+      // Check if already purchased (for digital products)
+      if (product.productType === "digital") {
+        const [existingPurchase] = await db
+          .select()
+          .from(purchases)
+          .where(and(eq(purchases.userId, userId), eq(purchases.productId, id)));
+
+        if (existingPurchase) {
+          return res.status(400).json({ message: "Already purchased" });
+        }
+      }
+
+      // Check user points
+      const [userProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      if (!userProfile || (userProfile.points || 0) < product.price) {
+        return res.status(400).json({ message: "Insufficient points" });
+      }
+
+      // Deduct points
+      await db
+        .update(userProfiles)
+        .set({ points: (userProfile.points || 0) - product.price })
+        .where(eq(userProfiles.userId, userId));
+
+      // Update stock for physical products
+      if (product.productType === "physical" && product.stock !== null && product.stock > 0) {
+        await db
+          .update(products)
+          .set({ stock: product.stock - 1 })
+          .where(eq(products.id, id));
+      }
+
+      // Create purchase record
+      const [purchase] = await db.insert(purchases).values({
+        userId,
+        productId: id,
+        price: product.price,
+        status: "completed",
+      }).returning();
+
+      // Create notification
+      await db.insert(notifications).values({
+        userId,
+        title: "購入完了",
+        body: `${product.name}を購入しました`,
+        type: "purchase",
+      });
+
+      res.status(201).json(purchase);
+    } catch (error) {
+      console.error("Error purchasing product:", error);
+      res.status(500).json({ message: "Failed to purchase product" });
+    }
+  });
+
   app.get("/api/creators", async (req, res) => {
     try {
       const creators = await db
@@ -619,10 +840,15 @@ export async function registerRoutes(
   app.get("/api/subscriptions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const now = new Date();
       const userSubscriptions = await db
         .select()
         .from(subscriptions)
-        .where(eq(subscriptions.userId, userId))
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.status, "active"),
+          gt(subscriptions.expiresAt, now)
+        ))
         .limit(50);
       res.json(userSubscriptions);
     } catch (error) {
@@ -635,6 +861,7 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const { creatorId } = req.params;
+      const now = new Date();
       
       const [subscription] = await db
         .select()
@@ -642,7 +869,8 @@ export async function registerRoutes(
         .where(and(
           eq(subscriptions.userId, userId),
           eq(subscriptions.creatorId, creatorId),
-          eq(subscriptions.status, "active")
+          eq(subscriptions.status, "active"),
+          gt(subscriptions.expiresAt, now)
         ));
       
       res.json({ isSubscribed: !!subscription, subscription });

@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { I18nProvider } from "@/lib/i18n";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { LoadingScreen } from "@/components/loading-screen";
@@ -44,6 +45,8 @@ import CreatorContent from "@/pages/creator-content";
 import CreatorLive from "@/pages/creator-live";
 import CreatorShop from "@/pages/creator-shop";
 import Following from "@/pages/following";
+import Conversation from "@/pages/conversation";
+import Notifications from "@/pages/notifications";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -137,6 +140,16 @@ function AuthenticatedApp() {
         <Route path="/following">
           <div className="h-[100svh] flex flex-col overflow-hidden">
             <Following />
+          </div>
+        </Route>
+        <Route path="/conversation/:id">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <Conversation />
+          </div>
+        </Route>
+        <Route path="/notifications">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <Notifications />
           </div>
         </Route>
         <Route path="/terms">
@@ -243,15 +256,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
-        <TooltipProvider>
-          {/* Mobile-only container - fixed to smartphone dimensions */}
-          <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-            <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
-              <AppContent />
+        <I18nProvider>
+          <TooltipProvider>
+            {/* Mobile-only container - fixed to smartphone dimensions */}
+            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+              <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
+                <AppContent />
+              </div>
             </div>
-          </div>
-          <Toaster />
-        </TooltipProvider>
+            <Toaster />
+          </TooltipProvider>
+        </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

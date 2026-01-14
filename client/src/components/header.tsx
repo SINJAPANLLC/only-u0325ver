@@ -16,6 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 
@@ -34,10 +38,18 @@ const languages = [
 ];
 
 export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange, showFeedTabs = false }: HeaderProps) {
-  const [currentLang, setCurrentLang] = useState("ja");
   const [showInstallDialog, setShowInstallDialog] = useState(false);
-  const notificationCount = 3;
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { language, setLanguage, t } = useI18n();
   const { isInstallable, isInstalled, install } = usePwaInstall();
+
+  const { data: unreadData } = useQuery<{ count: number }>({
+    queryKey: ["/api/notifications/unread-count"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+  const notificationCount = unreadData?.count || 0;
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
@@ -111,8 +123,8 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
-                  onClick={() => setCurrentLang(lang.code)}
-                  className={`rounded-lg text-white hover:bg-white/20 ${currentLang === lang.code ? "bg-gradient-to-r from-pink-500/30 to-rose-500/30" : ""}`}
+                  onClick={() => setLanguage(lang.code as any)}
+                  className={`rounded-lg text-white hover:bg-white/20 ${language === lang.code ? "bg-gradient-to-r from-pink-500/30 to-rose-500/30" : ""}`}
                   data-testid={`menu-item-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -125,12 +137,13 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
             variant="ghost" 
             size="icon" 
             className="rounded-full h-12 w-12 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            onClick={() => setLocation("/notifications")}
             data-testid="button-notifications"
           >
             <PiBellSimpleRingingDuotone className="h-10 w-10 text-white drop-shadow-sm" />
             {notificationCount > 0 && (
               <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg">
-                {notificationCount}
+                {notificationCount > 9 ? "9+" : notificationCount}
               </span>
             )}
           </Button>

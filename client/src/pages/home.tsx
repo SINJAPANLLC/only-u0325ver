@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Plus, Crown, Volume2 } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Plus, Crown, Volume2, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import type { Video as VideoType } from "@shared/schema";
+import type { Video as VideoType, Subscription } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -34,6 +35,8 @@ interface VideoPageProps {
   musicName?: string;
   thumbnailUrl?: string;
   isHorizontal?: boolean;
+  isPremium?: boolean;
+  hasAccess?: boolean;
 }
 
 function VideoPage({
@@ -47,6 +50,8 @@ function VideoPage({
   isActive,
   thumbnailUrl,
   isHorizontal = false,
+  isPremium = false,
+  hasAccess = true,
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -115,7 +120,28 @@ function VideoPage({
         
         {/* Play/Pause indicator */}
         <div className="absolute inset-0 flex items-center justify-center">
-          {isPaused && (
+          {isPremium && !hasAccess ? (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="h-24 w-24 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center">
+                <Lock className="h-12 w-12 text-white" />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-bold text-lg">プレミアムコンテンツ</p>
+                <p className="text-white/80 text-sm">クリエイターを購読して視聴</p>
+              </div>
+              <Button
+                onClick={() => setLocation(`/creator/${creatorName}`)}
+                className="bg-pink-500 hover:bg-pink-600 text-white rounded-full px-6"
+                data-testid="button-subscribe-premium"
+              >
+                本編はこちら
+              </Button>
+            </motion.div>
+          ) : isPaused ? (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -124,8 +150,13 @@ function VideoPage({
             >
               <Play className="h-10 w-10 text-white ml-1" fill="white" />
             </motion.div>
-          )}
+          ) : null}
         </div>
+        
+        {/* Premium blur overlay */}
+        {isPremium && !hasAccess && (
+          <div className="absolute inset-0 backdrop-blur-lg" />
+        )}
         
         {/* Animated shimmer effect */}
         {isActive && !isPaused && (
@@ -391,13 +422,26 @@ export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const containerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   const { data: videos } = useQuery<VideoType[]>({
     queryKey: ["/api/videos"],
   });
 
+  const { data: subscriptions } = useQuery<Subscription[]>({
+    queryKey: ["/api/subscriptions"],
+    enabled: !!user,
+  });
+
+  const subscribedCreatorIds = subscriptions?.map(s => s.creatorId) || [];
+
   // Following videos (fewer, simulating followed creators)
   const followingVideos = demoVideos.filter((_, i) => i % 2 === 0);
+
+  // Check if user has access to a creator's premium content
+  const hasAccessToCreator = (creatorId: string) => {
+    return subscribedCreatorIds.includes(creatorId);
+  };
 
   // Use API data when available, fallback to demo data for showcase
   const displayVideos: VideoPageProps[] = feedType === "following" 
@@ -412,6 +456,7 @@ export default function Home() {
           commentCount: 0,
           duration: v.duration || 0,
           isPremium: v.contentType === "premium",
+          hasAccess: v.contentType !== "premium" || hasAccessToCreator(v.creatorId),
           isActive: false,
           musicName: "オリジナル音源",
           thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,

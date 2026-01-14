@@ -251,6 +251,16 @@ export const pointPackages = pgTable("point_packages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Product purchases
+export const purchases = pgTable("purchases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  productId: varchar("product_id").notNull(),
+  price: integer("price").notNull(),
+  status: varchar("status").default("completed"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCreatorApplicationSchema = createInsertSchema(creatorApplications).omit({ id: true, submittedAt: true, reviewedAt: true, reviewerId: true, status: true });
@@ -284,3 +294,4 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type PointTransaction = typeof pointTransactions.$inferSelect;
 export type BankTransferRequest = typeof bankTransferRequests.$inferSelect;
 export type PointPackage = typeof pointPackages.$inferSelect;
+export type Purchase = typeof purchases.$inferSelect;
