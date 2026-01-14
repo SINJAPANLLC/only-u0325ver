@@ -1,8 +1,9 @@
 import { Express, RequestHandler } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { db } from "./db";
-import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { users, passwordResetTokens } from "@shared/schema";
+import { eq, and, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -224,5 +225,152 @@ export function registerEmailAuthRoutes(app: Express): void {
         res.json({ message: "ログアウトしました" });
       });
     });
+  });
+
+  // Forgot password endpoint
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email, turnstileToken } = req.body;
+
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ message: "メールアドレスを入力してください" });
+      }
+
+      // Verify Turnstile token
+      const remoteIP = req.headers["cf-connecting-ip"] as string || 
+                       req.headers["x-forwarded-for"] as string || 
+                       req.socket.remoteAddress;
+      const isTurnstileValid = await verifyTurnstile(turnstileToken || "", remoteIP);
+      if (!isTurnstileValid && process.env.TURNSTILE_SECRET_KEY) {
+        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
+      }
+
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email.trim().toLowerCase()));
+
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.json({ message: "リセットリンクを送信しました" });
+      }
+
+      // Generate token
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Store token
+      await db.insert(passwordResetTokens).values({
+        userId: user.id,
+        token,
+        expiresAt,
+      });
+
+      // TODO: Send email with reset link
+      // For now, log the token (in production, this should be sent via email)
+      console.log(`Password reset token for ${email}: ${token}`);
+      console.log(`Reset link: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/reset-password?token=${token}`);
+
+      res.json({ message: "リセットリンクを送信しました" });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "エラーが発生しました" });
+    }
+  });
+
+  // Verify reset token endpoint
+  app.get("/api/auth/verify-reset-token", async (req, res) => {
+    try {
+      const { token } = req.query;
+
+      if (!token || typeof token !== "string") {
+        return res.json({ valid: false });
+      }
+
+      const [resetToken] = await db
+        .select()
+        .from(passwordResetTokens)
+        .where(
+          and(
+            eq(passwordResetTokens.token, token),
+            gt(passwordResetTokens.expiresAt, new Date()),
+            isNull(passwordResetTokens.usedAt)
+          )
+        );
+
+      res.json({ valid: !!resetToken });
+    } catch (error) {
+      console.error("Verify reset token error:", error);
+      res.json({ valid: false });
+    }
+  });
+
+  // Reset password endpoint
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password, turnstileToken } = req.body;
+
+      if (!token || typeof token !== "string") {
+        return res.status(400).json({ message: "無効なリンクです" });
+      }
+
+      if (!password || typeof password !== "string") {
+        return res.status(400).json({ message: "パスワードを入力してください" });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({ message: "パスワードは8文字以上で入力してください" });
+      }
+
+      if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+        return res.status(400).json({ message: "パスワードには英字と数字を含めてください" });
+      }
+
+      // Verify Turnstile token
+      const remoteIP = req.headers["cf-connecting-ip"] as string || 
+                       req.headers["x-forwarded-for"] as string || 
+                       req.socket.remoteAddress;
+      const isTurnstileValid = await verifyTurnstile(turnstileToken || "", remoteIP);
+      if (!isTurnstileValid && process.env.TURNSTILE_SECRET_KEY) {
+        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
+      }
+
+      // Find valid token
+      const [resetToken] = await db
+        .select()
+        .from(passwordResetTokens)
+        .where(
+          and(
+            eq(passwordResetTokens.token, token),
+            gt(passwordResetTokens.expiresAt, new Date()),
+            isNull(passwordResetTokens.usedAt)
+          )
+        );
+
+      if (!resetToken) {
+        return res.status(400).json({ message: "リンクが無効か有効期限が切れています" });
+      }
+
+      // Hash new password
+      const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+      // Update user password
+      await db
+        .update(users)
+        .set({ password: passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, resetToken.userId));
+
+      // Mark token as used
+      await db
+        .update(passwordResetTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(passwordResetTokens.id, resetToken.id));
+
+      res.json({ message: "パスワードを変更しました" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "エラーが発生しました" });
+    }
   });
 }

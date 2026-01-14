@@ -358,13 +358,14 @@ export default function Auth() {
               </Button>
 
               <div className="text-center pt-2">
-                <button 
-                  type="button"
-                  className="text-sm text-pink-500 hover:text-pink-600 underline"
-                  data-testid="link-forgot-password"
-                >
-                  パスワードをお忘れの方
-                </button>
+                <Link href="/forgot-password">
+                  <span
+                    className="text-sm text-pink-500 hover:text-pink-600 underline cursor-pointer"
+                    data-testid="link-forgot-password"
+                  >
+                    パスワードをお忘れの方
+                  </span>
+                </Link>
               </div>
 
               {/* Divider */}

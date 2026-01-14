@@ -36,6 +36,8 @@ import CreatorProfile from "@/pages/creator-profile";
 import MyProfile from "@/pages/my-profile";
 import Auth from "@/pages/auth";
 import LegalPage from "@/pages/legal-page";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -183,6 +185,12 @@ function AppContent() {
         </Route>
         <Route path="/guidelines">
           <LegalPage title="コンテンツガイドライン" type="guidelines" />
+        </Route>
+        <Route path="/forgot-password">
+          <ForgotPassword />
+        </Route>
+        <Route path="/reset-password">
+          <ResetPassword />
         </Route>
         <Route>
           <Landing onRegisterClick={handleRegisterClick} />
