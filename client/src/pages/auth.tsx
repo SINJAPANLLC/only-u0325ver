@@ -257,7 +257,8 @@ export default function Auth() {
               />
 
               <p className="text-xs text-center text-gray-500 leading-relaxed pt-2">
-                利用規約、プライバシーポリシー、特商法に同意の上ご登録ください<br />
+                利用規約、プライバシーポリシー<br />
+                特商法、掲載ガイドラインに同意の上ご登録ください<br />
                 新規登録を行うことでご自身が<br />
                 18歳以上であることにも同意したものとみなされます
               </p>
