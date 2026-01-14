@@ -1,6 +1,22 @@
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Share2, Grid3X3, PlaySquare, Bookmark, Heart, Settings } from "lucide-react";
+import { 
+  Share2, 
+  Grid3X3, 
+  PlaySquare, 
+  Bookmark, 
+  Heart, 
+  Menu,
+  Plus,
+  Phone,
+  MapPin,
+  Link as LinkIcon,
+  ShoppingBag,
+  Repeat2,
+  Lock,
+  ChevronDown,
+  BadgeCheck
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +35,8 @@ const demoVideos = [
   { id: "v2", thumbnail: img2, views: 15600 },
   { id: "v3", thumbnail: img3, views: 9800 },
   { id: "v4", thumbnail: img4, views: 5400 },
+  { id: "v5", thumbnail: img2, views: 3200 },
+  { id: "v6", thumbnail: img3, views: 2100 },
 ];
 
 export default function MyProfile() {
@@ -34,23 +52,20 @@ export default function MyProfile() {
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
     return count.toString();
   };
-  
-  const handleBack = () => {
-    setLocation("/account");
-  };
 
-  const handleSettings = () => {
+  const handleEditProfile = () => {
     setLocation("/account");
   };
 
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = user?.email?.split("@")[0] || "user";
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
-  const bio = profile?.bio || "Only-Uでプロフィールを編集してください✨";
+  const bio = profile?.bio || "Only-Uクリエイター";
+  const websiteUrl = "https://only-u.fun";
 
-  const followers = 125000;
-  const following = 48;
-  const likes = 2850000;
+  const followers = 3293;
+  const following = 882;
+  const likes = 47;
   
   return (
     <motion.div 
@@ -60,156 +75,256 @@ export default function MyProfile() {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className="relative">
-        <div className="h-44 relative">
-          <img 
-            src={img1} 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-          
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 z-10">
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-              onClick={handleBack}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-                data-testid="button-share"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-                onClick={handleSettings}
-                data-testid="button-settings"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            data-testid="button-add-friend"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <div className="h-6 w-6 rounded-full bg-amber-400 flex items-center justify-center">
+            <span className="text-xs">P</span>
           </div>
         </div>
         
-        <div className="relative px-4 -mt-12">
-          <div className="flex items-end gap-4">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
-              <AvatarImage src={avatarUrl} />
-              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
-                {displayName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 pb-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold">{displayName}</h1>
-                <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-500 text-xs font-medium">
-                  認証済み
-                </span>
-              </div>
-              <p className="text-muted-foreground text-sm">@{username}</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <span>2</span>
           </div>
-          
-          <p className="mt-4 text-sm whitespace-pre-line">{bio}</p>
-          
-          <div className="flex items-center gap-6 mt-4">
-            <div className="text-center">
-              <p className="font-bold">{formatCount(followers)}</p>
-              <p className="text-xs text-muted-foreground">フォロワー</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold">{following}</p>
-              <p className="text-xs text-muted-foreground">フォロー中</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold">{formatCount(likes)}</p>
-              <p className="text-xs text-muted-foreground">いいね</p>
-            </div>
-          </div>
-          
-          <div className="flex gap-2 mt-4">
-            <Button 
-              className="flex-1 bg-pink-500 hover:bg-pink-600 text-white"
-              onClick={handleSettings}
-              data-testid="button-edit-profile"
-            >
-              プロフィール編集
-            </Button>
-            <Button variant="outline" className="flex-1" data-testid="button-share-profile">
-              <Share2 className="h-4 w-4 mr-2" />
-              シェア
-            </Button>
-          </div>
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            data-testid="button-share"
+          >
+            <Share2 className="h-5 w-5" />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            onClick={() => setLocation("/account")}
+            data-testid="button-menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
-        
-        <Tabs defaultValue="videos" className="mt-6">
-          <TabsList className="w-full bg-transparent border-b rounded-none">
-            <TabsTrigger 
-              value="videos" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
-              <Grid3X3 className="h-5 w-5" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="liked" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
-              <Heart className="h-5 w-5" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="saved" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
-              <Bookmark className="h-5 w-5" />
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="videos" className="mt-0">
-            <div className="grid grid-cols-3 gap-0.5">
-              {demoVideos.map((video) => (
-                <div 
-                  key={video.id} 
-                  className="aspect-[9/16] relative bg-muted"
-                  data-testid={`video-thumbnail-${video.id}`}
-                >
-                  <img 
-                    src={video.thumbnail} 
-                    alt="" 
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs">
-                    <PlaySquare className="h-3 w-3" />
-                    <span>{formatCount(video.views)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="liked" className="mt-0">
-            <div className="flex items-center justify-center h-40 text-muted-foreground">
-              いいねした動画はここに表示されます
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="saved" className="mt-0">
-            <div className="flex items-center justify-center h-40 text-muted-foreground">
-              保存した動画はここに表示されます
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
+
+      {/* Profile Section */}
+      <div className="flex flex-col items-center px-4 pt-6">
+        {/* Avatar with Add button */}
+        <div className="relative">
+          <Avatar className="h-24 w-24 ring-2 ring-border">
+            <AvatarImage src={avatarUrl} />
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
+              {displayName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <button 
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-6 w-6 rounded-full bg-[#25F4EE] flex items-center justify-center shadow-md"
+            data-testid="button-add-content"
+          >
+            <Plus className="h-4 w-4 text-black" />
+          </button>
+        </div>
+
+        {/* Username and Edit Button */}
+        <div className="flex items-center gap-2 mt-4">
+          <h1 className="text-lg font-bold flex items-center gap-1">
+            {displayName}
+            <BadgeCheck className="h-4 w-4 text-[#20D5EC] fill-[#20D5EC]" />
+          </h1>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-3 text-xs rounded-md"
+            onClick={handleEditProfile}
+            data-testid="button-edit-profile"
+          >
+            編集
+          </Button>
+        </div>
+
+        {/* Handle */}
+        <p className="text-muted-foreground text-sm mt-1">@{username}</p>
+
+        {/* Bio subtitle */}
+        <p className="text-muted-foreground text-sm mt-1">LIVEエージェンシー</p>
+
+        {/* Stats Row */}
+        <div className="flex items-center justify-center gap-8 mt-5">
+          <div className="text-center">
+            <p className="text-lg font-bold">{formatCount(following)}</p>
+            <p className="text-xs text-muted-foreground">フォロー中</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold">{formatCount(followers)}</p>
+            <p className="text-xs text-muted-foreground">フォロワー</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold">{formatCount(likes)}</p>
+            <p className="text-xs text-muted-foreground">いいね</p>
+          </div>
+        </div>
+
+        {/* Bio Section */}
+        <div className="w-full mt-4 text-center">
+          <p className="text-sm font-medium">{bio}</p>
+          <div className="flex items-center justify-center gap-1 mt-1 text-sm">
+            <LinkIcon className="h-3 w-3" />
+            <a href={websiteUrl} className="text-muted-foreground hover:underline">
+              {websiteUrl.replace("https://", "")}
+            </a>
+          </div>
+        </div>
+
+        {/* Contact Buttons */}
+        <div className="flex items-center justify-center gap-6 mt-4">
+          <button 
+            className="flex items-center gap-1 text-sm text-[#FE2C55]"
+            data-testid="button-phone"
+          >
+            <Phone className="h-4 w-4" />
+            <span>電話番号</span>
+          </button>
+          <button 
+            className="flex items-center gap-1 text-sm text-[#FE2C55]"
+            data-testid="button-address"
+          >
+            <MapPin className="h-4 w-4" />
+            <span>住所</span>
+          </button>
+        </div>
+
+        {/* Feature Buttons */}
+        <div className="flex items-center justify-center gap-4 mt-4 pb-4 border-b border-border/50 w-full">
+          <button 
+            className="flex items-center gap-1.5 text-sm"
+            data-testid="button-studio"
+          >
+            <span className="text-[#FE2C55]">✂</span>
+            <span>Only-U Studio</span>
+          </button>
+          <button 
+            className="flex items-center gap-1.5 text-sm"
+            data-testid="button-orders"
+          >
+            <ShoppingBag className="h-4 w-4 text-[#25F4EE]" />
+            <span>自分の注文</span>
+          </button>
+          <button 
+            className="flex items-center gap-1.5 text-sm"
+            data-testid="button-subscription"
+          >
+            <Heart className="h-4 w-4 text-[#FE2C55]" />
+            <span>サブスク</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Content Tabs */}
+      <Tabs defaultValue="videos" className="mt-2">
+        <TabsList className="w-full bg-transparent border-b border-border/50 rounded-none h-12 justify-start px-2">
+          <TabsTrigger 
+            value="videos" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-videos"
+          >
+            <div className="flex items-center gap-1">
+              <Grid3X3 className="h-5 w-5" />
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="shop" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-shop"
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </TabsTrigger>
+          <TabsTrigger 
+            value="reposts" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-reposts"
+          >
+            <Repeat2 className="h-5 w-5" />
+          </TabsTrigger>
+          <TabsTrigger 
+            value="saved" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-saved"
+          >
+            <Bookmark className="h-5 w-5" />
+          </TabsTrigger>
+          <TabsTrigger 
+            value="liked" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-liked"
+          >
+            <Heart className="h-5 w-5" />
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="videos" className="mt-0">
+          <div className="grid grid-cols-3 gap-0.5">
+            {demoVideos.map((video) => (
+              <div 
+                key={video.id} 
+                className="aspect-[9/16] relative bg-muted"
+                data-testid={`video-thumbnail-${video.id}`}
+              >
+                <img 
+                  src={video.thumbnail} 
+                  alt="" 
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs drop-shadow-md">
+                  <PlaySquare className="h-3 w-3" />
+                  <span>{formatCount(video.views)}</span>
+                </div>
+                {video.id === "v1" && (
+                  <div className="absolute top-1 right-1">
+                    <Lock className="h-3 w-3 text-white drop-shadow-md" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="shop" className="mt-0">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+            <ShoppingBag className="h-10 w-10 mb-2 opacity-50" />
+            <p>商品はまだありません</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reposts" className="mt-0">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+            <Repeat2 className="h-10 w-10 mb-2 opacity-50" />
+            <p>リポストした動画はここに表示されます</p>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="saved" className="mt-0">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+            <Bookmark className="h-10 w-10 mb-2 opacity-50" />
+            <p>保存した動画はここに表示されます</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="liked" className="mt-0">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+            <Heart className="h-10 w-10 mb-2 opacity-50" />
+            <p>いいねした動画はここに表示されます</p>
+          </div>
+        </TabsContent>
+      </Tabs>
       
       <div className="h-24" />
     </motion.div>
