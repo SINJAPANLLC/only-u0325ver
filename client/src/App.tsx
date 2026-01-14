@@ -9,7 +9,21 @@ import { BottomNavigation } from "@/components/bottom-navigation";
 import { LoadingScreen } from "@/components/loading-screen";
 import { AgeVerification } from "@/components/age-verification";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  const prevLocation = useRef(location);
+
+  useEffect(() => {
+    if (prevLocation.current !== location) {
+      window.scrollTo(0, 0);
+      prevLocation.current = location;
+    }
+  }, [location]);
+
+  return null;
+}
 
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -27,6 +41,7 @@ import NotFound from "@/pages/not-found";
 function AuthenticatedApp() {
   return (
     <div className="min-h-screen bg-background">
+      <ScrollToTop />
       <Switch>
         {/* Home uses full-screen TikTok-style layout with overlay nav - Header/Nav included in component */}
         <Route path="/">
@@ -151,8 +166,10 @@ function AppContent() {
 
   if (!user) {
     return (
-      <Switch>
-        <Route path="/auth">
+      <>
+        <ScrollToTop />
+        <Switch>
+          <Route path="/auth">
           <Auth />
         </Route>
         <Route path="/terms">
@@ -170,7 +187,8 @@ function AppContent() {
         <Route>
           <Landing onRegisterClick={handleRegisterClick} />
         </Route>
-      </Switch>
+        </Switch>
+      </>
     );
   }
 
