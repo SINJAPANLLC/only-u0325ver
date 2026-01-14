@@ -107,47 +107,50 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-100 py-10 px-6">
-        <div className="flex flex-col items-center space-y-6">
+      <footer className="bg-gray-100 py-8 px-4">
+        <div className="flex flex-col items-center space-y-4">
           <img 
             src={logoImage} 
             alt="Only-U" 
-            className="h-32 object-contain"
+            className="h-20 object-contain"
             data-testid="img-footer-logo"
           />
 
-          <nav className="flex flex-col items-center space-y-4">
+          <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2">
             <Link 
               href="/terms" 
-              className="text-gray-700 text-sm hover:text-pink-500"
+              className="text-gray-600 text-xs hover:text-pink-500"
               data-testid="link-terms"
             >
               利用規約
             </Link>
+            <span className="text-gray-300">|</span>
             <Link 
               href="/privacy" 
-              className="text-gray-700 text-sm hover:text-pink-500"
+              className="text-gray-600 text-xs hover:text-pink-500"
               data-testid="link-privacy"
             >
               プライバシーポリシー
             </Link>
+            <span className="text-gray-300">|</span>
             <Link 
               href="/legal" 
-              className="text-gray-700 text-sm hover:text-pink-500"
+              className="text-gray-600 text-xs hover:text-pink-500"
               data-testid="link-legal"
             >
-              特定商取引法に基づく表記
+              特商法
             </Link>
+            <span className="text-gray-300">|</span>
             <Link 
               href="/guidelines" 
-              className="text-gray-700 text-sm hover:text-pink-500"
+              className="text-gray-600 text-xs hover:text-pink-500"
               data-testid="link-guidelines"
             >
-              コンテンツガイドライン
+              ガイドライン
             </Link>
           </nav>
           
-          <p className="text-gray-600 text-sm" data-testid="text-copyright">
+          <p className="text-gray-500 text-xs" data-testid="text-copyright">
             &copy; 2025 Only-U. All rights reserved.
           </p>
         </div>
