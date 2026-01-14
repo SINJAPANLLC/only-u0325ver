@@ -47,31 +47,34 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </div>
 
       {/* Section 1 - Hero with legs */}
-      <section className="relative w-full min-h-[100vh]">
+      <section className="relative w-full bg-[#f5f5f5]">
         <img 
           src={section1Image}
           alt="Only-U Hero"
           className="w-full h-auto"
+          style={{ aspectRatio: '430/765' }}
           data-testid="img-section1"
         />
       </section>
 
       {/* Section 2 - Phone mockup */}
-      <section className="relative w-full">
+      <section className="relative w-full bg-white">
         <img 
           src={section2Image}
           alt="Only-U App"
           className="w-full h-auto"
+          style={{ aspectRatio: '430/932' }}
           data-testid="img-section2"
         />
       </section>
 
       {/* Section 3 - Door and CTA */}
-      <section className="relative w-full">
+      <section className="relative w-full bg-[#f8e8ec]">
         <img 
           src={section3Image}
           alt="Only-U Door"
           className="w-full h-auto"
+          style={{ aspectRatio: '430/765' }}
           data-testid="img-section3"
         />
         {/* Registration Button */}
@@ -87,21 +90,23 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* Section 4 - Detail Banner */}
-      <section className="relative w-full">
+      <section className="relative w-full bg-white">
         <img 
           src={detailImage}
           alt="稼げるファンクラブで、物語に彩りを"
           className="w-full h-auto"
+          style={{ aspectRatio: '430/322' }}
           data-testid="img-section4"
         />
       </section>
 
       {/* Section 5 - Recruit Banner */}
-      <section className="relative w-full">
+      <section className="relative w-full bg-[#1a1a1a]">
         <img 
           src={recruitImage}
           alt="RECRUIT 運営・開発メンバー募集"
           className="w-full h-auto"
+          style={{ aspectRatio: '430/215' }}
           data-testid="img-section5"
         />
       </section>
