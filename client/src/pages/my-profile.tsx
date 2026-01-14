@@ -7,8 +7,6 @@ import {
   Bookmark, 
   Heart, 
   Plus,
-  Phone,
-  MapPin,
   Link as LinkIcon,
   ShoppingBag,
   Repeat2,
@@ -159,48 +157,6 @@ export default function MyProfile() {
           </div>
         </div>
 
-        {/* Contact Buttons */}
-        <div className="flex items-center justify-center gap-6 mt-4">
-          <button 
-            className="flex items-center gap-1 text-sm text-[#FE2C55]"
-            data-testid="button-phone"
-          >
-            <Phone className="h-4 w-4" />
-            <span>電話番号</span>
-          </button>
-          <button 
-            className="flex items-center gap-1 text-sm text-[#FE2C55]"
-            data-testid="button-address"
-          >
-            <MapPin className="h-4 w-4" />
-            <span>住所</span>
-          </button>
-        </div>
-
-        {/* Feature Buttons */}
-        <div className="flex items-center justify-center gap-4 mt-4 pb-4 border-b border-border/50 w-full">
-          <button 
-            className="flex items-center gap-1.5 text-sm"
-            data-testid="button-studio"
-          >
-            <Video className="h-4 w-4 text-[#FE2C55]" />
-            <span>Only-U Studio</span>
-          </button>
-          <button 
-            className="flex items-center gap-1.5 text-sm"
-            data-testid="button-orders"
-          >
-            <ShoppingBag className="h-4 w-4 text-[#25F4EE]" />
-            <span>自分の注文</span>
-          </button>
-          <button 
-            className="flex items-center gap-1.5 text-sm"
-            data-testid="button-subscription"
-          >
-            <Heart className="h-4 w-4 text-[#FE2C55]" />
-            <span>サブスク</span>
-          </button>
-        </div>
       </div>
 
       {/* Content Tabs */}
