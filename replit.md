@@ -79,3 +79,20 @@ Uses Replit's OpenID Connect authentication. Sessions are stored in PostgreSQL w
 - `SESSION_SECRET`: Secret for session encryption
 - `ISSUER_URL`: OpenID Connect issuer (defaults to Replit)
 - `REPL_ID`: Replit environment identifier
+
+## Points System
+
+The platform uses a points-based payment system:
+- 1 point = 1 yen (tax excluded)
+- Points can be purchased via bank transfer (card payment pending Stripe setup)
+- Points are used for all platform services (subscriptions, purchases, tips)
+
+### Point Purchase Flow
+1. User selects point package from `/points-purchase` page
+2. For bank transfer: System creates a pending transfer request with 7-day deadline
+3. Admin confirms transfer at `/admin` → points are credited to user
+4. For card payment: Requires Stripe integration (not yet configured)
+
+### Pending Integrations
+- **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
+- **Twilio**: SMS verification for creator applications (currently accepts demo codes)
