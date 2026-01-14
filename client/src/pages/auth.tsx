@@ -108,10 +108,10 @@ export default function Auth() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: registerForm.email,
+          email: registerForm.email.trim(),
           password: registerForm.password,
           confirmPassword: registerForm.password,
-          name: registerForm.name,
+          name: registerForm.name.trim(),
           turnstileToken,
         }),
       });
@@ -151,7 +151,7 @@ export default function Auth() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: loginForm.email,
+          email: loginForm.email.trim(),
           password: loginForm.password,
           turnstileToken,
         }),
