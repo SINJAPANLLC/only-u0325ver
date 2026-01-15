@@ -92,14 +92,15 @@ export default function MyProfile() {
   const username = user?.email?.split("@")[0] || "user";
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = creatorProfile?.bio || profile?.bio || "Only-Uでプロフィールを編集してください";
-  const websiteUrl = "https://only-u.fun";
+  const websiteUrl = profile?.location || "https://only-u.fun";
 
   const [editName, setEditName] = useState(displayName);
   const [editBio, setEditBio] = useState(bio);
+  const [editUrl, setEditUrl] = useState(websiteUrl);
   const [editOpen, setEditOpen] = useState(false);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName: string; bio: string }) => {
+    mutationFn: async (data: { displayName: string; bio: string; location?: string }) => {
       // Update both if applicable
       const res = await apiRequest("PATCH", "/api/profile", data);
       return res.json();
@@ -201,10 +202,20 @@ export default function MyProfile() {
                     className="bg-black/5 border-black/10 focus:border-pink-500 text-black min-h-[100px]"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="text-black/70">ウェブサイトURL</Label>
+                  <Input 
+                    id="url" 
+                    value={editUrl} 
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black"
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
               <DialogFooter>
                 <Button 
-                  onClick={() => updateProfileMutation.mutate({ displayName: editName, bio: editBio })}
+                  onClick={() => updateProfileMutation.mutate({ displayName: editName, bio: editBio, location: editUrl })}
                   className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
                   disabled={updateProfileMutation.isPending}
                 >
@@ -237,11 +248,44 @@ export default function MyProfile() {
         {/* Bio Section */}
         <div className="w-full mt-4 text-center">
           <p className="text-sm font-medium">{bio}</p>
-          <div className="flex items-center justify-center gap-1 mt-1 text-sm">
-            <LinkIcon className="h-3 w-3" />
-            <a href={websiteUrl} className="text-muted-foreground hover:underline">
-              {websiteUrl.replace("https://", "")}
-            </a>
+          {websiteUrl && (
+            <div className="flex items-center justify-center gap-1 mt-1 text-sm">
+              <LinkIcon className="h-3 w-3" />
+              <a href={websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:underline">
+                {websiteUrl.replace("https://", "").replace("http://", "")}
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Subscription Plans */}
+        <div className="w-full mt-6 px-4">
+          <h2 className="text-sm font-bold text-left mb-3">サブスクリプションプラン</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold">スタンダードプラン</span>
+                <span className="text-[10px] text-muted-foreground">すべての動画が見放題</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-pink-500 font-bold text-sm">500pt / 月</span>
+                <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
+                  編集
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm opacity-60">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold">プレミアムプラン</span>
+                <span className="text-[10px] text-muted-foreground">限定ライブ配信 & チャット優先返信</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-pink-500 font-bold text-sm">1500pt / 月</span>
+                <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
+                  追加
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
