@@ -332,7 +332,6 @@ function VideoPage({
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold shadow-lg shadow-pink-500/30 w-fit"
           data-testid={`button-full-content-${id}`}
         >
-          <Crown className="h-4 w-4" />
           本編はこちら
         </button>
       </div>
