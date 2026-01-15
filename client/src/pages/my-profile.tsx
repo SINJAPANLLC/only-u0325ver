@@ -164,7 +164,6 @@ export default function MyProfile() {
         <div className="flex items-center gap-2 mt-4">
           <h1 className="text-lg font-bold flex items-center gap-1">
             {displayName}
-            <BadgeCheck className="h-4 w-4 text-[#20D5EC] fill-[#20D5EC]" />
           </h1>
           
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
