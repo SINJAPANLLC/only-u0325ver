@@ -5,6 +5,7 @@ import { db } from "./db";
 import { users, passwordResetTokens } from "@shared/schema";
 import { eq, and, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
+import { sendPasswordResetEmail } from "./email";
 
 const registerSchema = z.object({
   email: z.string().email("有効なメールアドレスを入力してください"),
@@ -267,10 +268,17 @@ export function registerEmailAuthRoutes(app: Express): void {
         expiresAt,
       });
 
-      // TODO: Send email with reset link
-      // For now, log the token (in production, this should be sent via email)
-      console.log(`Password reset token for ${email}: ${token}`);
-      console.log(`Reset link: ${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/reset-password?token=${token}`);
+      // Build reset link
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+        : 'http://localhost:5000';
+      const resetLink = `${baseUrl}/reset-password?token=${token}`;
+
+      // Send email
+      const emailSent = await sendPasswordResetEmail(email, resetLink);
+      if (!emailSent) {
+        console.error("Failed to send password reset email");
+      }
 
       res.json({ message: "リセットリンクを送信しました" });
     } catch (error) {
