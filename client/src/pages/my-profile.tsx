@@ -39,6 +39,13 @@ import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
 import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
 
+const demoProducts = [
+  { id: "p1", name: "限定デジタル写真集 Vol.1", price: 3000, imageUrl: img1, productType: "digital" },
+  { id: "p2", name: "サイン入りチェキ", price: 5000, imageUrl: img2, productType: "physical" },
+  { id: "p3", name: "おやすみボイスメッセージ", price: 2000, imageUrl: img3, productType: "digital" },
+  { id: "p4", name: "オリジナルTシャツ", price: 4500, imageUrl: img4, productType: "physical" },
+];
+
 const demoVideos = [
   { id: "v1", thumbnailUrl: img1, viewCount: 28500, title: "深夜の密会" },
   { id: "v2", thumbnailUrl: img2, viewCount: 15600, title: "バスタイム" },
@@ -300,9 +307,31 @@ export default function MyProfile() {
         </TabsContent>
         
         <TabsContent value="shop" className="mt-0">
-          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-            <ShoppingBag className="h-10 w-10 mb-2 opacity-50" />
-            <p>商品はまだありません</p>
+          <div className="grid grid-cols-2 gap-4 p-4">
+            {demoProducts.map((product) => (
+              <div 
+                key={product.id} 
+                className="bg-card rounded-xl overflow-hidden border border-border/50 shadow-sm group cursor-pointer"
+                onClick={() => setLocation("/shop")}
+              >
+                <div className="aspect-square relative">
+                  <img 
+                    src={product.imageUrl} 
+                    alt={product.name} 
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
+                      {product.productType === "digital" ? "デジタル" : "物販"}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <h3 className="text-sm font-bold truncate">{product.name}</h3>
+                  <p className="text-pink-500 font-bold mt-1">{product.price.toLocaleString()}pt</p>
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
 
