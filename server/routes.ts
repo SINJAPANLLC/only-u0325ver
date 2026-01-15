@@ -1149,37 +1149,52 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const { displayName, bio, avatarUrl, location, username } = req.body;
 
-      // Update userProfile
-      const [updatedProfile] = await db
-        .update(userProfiles)
-        .set({
-          displayName: displayName || undefined,
-          bio: bio || undefined,
-          avatarUrl: avatarUrl || undefined,
-          location: location || undefined,
-          updatedAt: new Date(),
-        })
-        .where(eq(userProfiles.userId, userId))
-        .returning();
-
-      // If user is a creator, update creatorProfile as well
-      await db
-        .update(creatorProfiles)
-        .set({
-          displayName: displayName || undefined,
-          bio: bio || undefined,
-          avatarUrl: avatarUrl || undefined,
-          updatedAt: new Date(),
-        })
-        .where(eq(creatorProfiles.userId, userId));
-
-      // Fetch the most up-to-date profile to return
-      const [finalProfile] = await db
+      // Check if profile exists
+      const [existingProfile] = await db
         .select()
         .from(userProfiles)
         .where(eq(userProfiles.userId, userId));
 
-      res.json(finalProfile || updatedProfile);
+      let updatedProfile;
+      if (existingProfile) {
+        // Update existing profile - preserve existing values if new ones not provided
+        [updatedProfile] = await db
+          .update(userProfiles)
+          .set({
+            displayName: displayName || existingProfile.displayName,
+            bio: bio !== undefined ? bio : existingProfile.bio,
+            avatarUrl: avatarUrl || existingProfile.avatarUrl,
+            location: location !== undefined ? location : existingProfile.location,
+            updatedAt: new Date(),
+          })
+          .where(eq(userProfiles.userId, userId))
+          .returning();
+      } else {
+        // Create new profile
+        [updatedProfile] = await db
+          .insert(userProfiles)
+          .values({
+            userId,
+            displayName: displayName || "ユーザー",
+            bio: bio || null,
+            avatarUrl: avatarUrl || null,
+            location: location || null,
+          })
+          .returning();
+      }
+
+      // If user is a creator, update creatorProfile displayName and bio only
+      if (displayName || bio !== undefined) {
+        await db
+          .update(creatorProfiles)
+          .set({
+            displayName: displayName || undefined,
+            bio: bio || undefined,
+          })
+          .where(eq(creatorProfiles.userId, userId));
+      }
+
+      res.json(updatedProfile);
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "プロフィール更新に失敗しました" });
