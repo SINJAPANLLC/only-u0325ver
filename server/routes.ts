@@ -1153,10 +1153,10 @@ export async function registerRoutes(
       const [updatedProfile] = await db
         .update(userProfiles)
         .set({
-          displayName,
-          bio,
-          avatarUrl,
-          location,
+          displayName: displayName || undefined,
+          bio: bio || undefined,
+          avatarUrl: avatarUrl || undefined,
+          location: location || undefined,
           updatedAt: new Date(),
         })
         .where(eq(userProfiles.userId, userId))
@@ -1166,14 +1166,20 @@ export async function registerRoutes(
       await db
         .update(creatorProfiles)
         .set({
-          displayName,
-          bio,
-          avatarUrl, // Added synchronization for avatarUrl
+          displayName: displayName || undefined,
+          bio: bio || undefined,
+          avatarUrl: avatarUrl || undefined,
           updatedAt: new Date(),
         })
         .where(eq(creatorProfiles.userId, userId));
 
-      res.json(updatedProfile);
+      // Fetch the most up-to-date profile to return
+      const [finalProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      res.json(finalProfile || updatedProfile);
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "プロフィール更新に失敗しました" });

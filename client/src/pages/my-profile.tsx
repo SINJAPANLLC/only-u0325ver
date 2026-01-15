@@ -65,8 +65,8 @@ export default function MyProfile() {
   });
 
   const { data: creatorProfile, refetch: refetchCreator } = useQuery<CreatorProfile | null>({
-    queryKey: ["/api/creator-profiles", user?.id],
-    enabled: !!user,
+    queryKey: ["/api/creator-profiles", user?.claims?.sub],
+    enabled: !!user?.claims?.sub,
   });
 
   const { data: myVideos } = useQuery<VideoType[]>({
@@ -89,10 +89,10 @@ export default function MyProfile() {
     setLocation("/account");
   };
 
-  const displayName = creatorProfile?.displayName || profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
+  const displayName = profile?.displayName || creatorProfile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = user?.email?.split("@")[0] || "user";
-  const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
-  const bio = creatorProfile?.bio || profile?.bio || "Only-Uでプロフィールを編集してください";
+  const avatarUrl = profile?.avatarUrl || creatorProfile?.avatarUrl || user?.profileImageUrl || demoAvatar;
+  const bio = profile?.bio || creatorProfile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = profile?.location || "";
 
   const [editName, setEditName] = useState(displayName);
@@ -102,15 +102,15 @@ export default function MyProfile() {
   const [editAvatar, setEditAvatar] = useState(avatarUrl);
   const [editOpen, setEditOpen] = useState(false);
 
-  // Sync state when profile data loads
+  // Sync state when profile data loads OR editOpen changes
   useEffect(() => {
-    if (profile) {
+    if (editOpen && profile) {
       setEditName(profile.displayName || "");
       setEditBio(profile.bio || "");
       setEditUrl(profile.location || "");
       setEditAvatar(profile.avatarUrl || avatarUrl);
     }
-  }, [profile, avatarUrl]);
+  }, [editOpen, profile, avatarUrl]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -121,7 +121,7 @@ export default function MyProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.claims?.sub] });
       refetchProfile();
       refetchCreator();
       setEditOpen(false);
