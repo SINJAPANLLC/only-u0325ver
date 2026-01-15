@@ -172,27 +172,27 @@ export default function MyProfile() {
                 編集
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[380px] rounded-2xl bg-zinc-900 border-white/10 text-white">
+            <DialogContent className="max-w-[380px] rounded-2xl bg-white border-white/20 text-black">
               <DialogHeader>
-                <DialogTitle>プロフィールを編集</DialogTitle>
+                <DialogTitle className="text-black">プロフィールを編集</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">名前</Label>
+                  <Label htmlFor="name" className="text-black/70">名前</Label>
                   <Input 
                     id="name" 
                     value={editName} 
                     onChange={(e) => setEditName(e.target.value)}
-                    className="bg-white/5 border-white/10 focus:border-pink-500"
+                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bio">自己紹介</Label>
+                  <Label htmlFor="bio" className="text-black/70">自己紹介</Label>
                   <Textarea 
                     id="bio" 
                     value={editBio} 
                     onChange={(e) => setEditBio(e.target.value)}
-                    className="bg-white/5 border-white/10 focus:border-pink-500 min-h-[100px]"
+                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black min-h-[100px]"
                   />
                 </div>
               </div>
