@@ -3,7 +3,7 @@ import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 export function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0a0a]">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
