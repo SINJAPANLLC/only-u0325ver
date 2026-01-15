@@ -5,11 +5,12 @@ import { registerEmailAuthRoutes } from "./emailAuth";
 import { db } from "./db";
 import { 
   videos, liveStreams, products, conversations, messages, 
-  notifications, creatorProfiles, follows, subscriptions,
+  notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
   userProfiles, creatorApplications, phoneVerificationCodes,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
-  insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema
+  insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
+  insertSubscriptionPlanSchema
 } from "@shared/schema";
 import { eq, desc, and, or, sql, gt, isNull } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -989,6 +990,129 @@ export async function registerRoutes(
     }
   });
 
+  // ===== Subscription Plans API =====
+  
+  // Get all plans for a creator (public)
+  app.get("/api/subscription-plans/:creatorId", async (req: any, res) => {
+    try {
+      const { creatorId } = req.params;
+      const plans = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(and(
+          eq(subscriptionPlans.creatorId, creatorId),
+          eq(subscriptionPlans.isActive, true)
+        ))
+        .orderBy(subscriptionPlans.tier);
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
+    }
+  });
+
+  // Get my plans (for creators)
+  app.get("/api/my-subscription-plans", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const plans = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.creatorId, userId))
+        .orderBy(subscriptionPlans.tier);
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching my subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
+    }
+  });
+
+  // Create a new plan (for creators)
+  app.post("/api/subscription-plans", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { name, description, price, tier } = req.body;
+      
+      const [plan] = await db.insert(subscriptionPlans).values({
+        creatorId: userId,
+        name,
+        description,
+        price: parseInt(price),
+        tier: parseInt(tier) || 1,
+        isActive: true,
+      }).returning();
+      
+      res.status(201).json(plan);
+    } catch (error) {
+      console.error("Error creating subscription plan:", error);
+      res.status(500).json({ message: "Failed to create subscription plan" });
+    }
+  });
+
+  // Update a plan (for creators)
+  app.patch("/api/subscription-plans/:planId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { planId } = req.params;
+      const { name, description, price, tier, isActive } = req.body;
+      
+      const [existingPlan] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId));
+      
+      if (!existingPlan || existingPlan.creatorId !== userId) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      
+      const [updated] = await db
+        .update(subscriptionPlans)
+        .set({
+          name: name ?? existingPlan.name,
+          description: description ?? existingPlan.description,
+          price: price !== undefined ? parseInt(price) : existingPlan.price,
+          tier: tier !== undefined ? parseInt(tier) : existingPlan.tier,
+          isActive: isActive !== undefined ? isActive : existingPlan.isActive,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptionPlans.id, planId))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating subscription plan:", error);
+      res.status(500).json({ message: "Failed to update subscription plan" });
+    }
+  });
+
+  // Delete a plan (for creators)
+  app.delete("/api/subscription-plans/:planId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { planId } = req.params;
+      
+      const [existingPlan] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId));
+      
+      if (!existingPlan || existingPlan.creatorId !== userId) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      
+      // Soft delete - just mark as inactive
+      await db
+        .update(subscriptionPlans)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(subscriptionPlans.id, planId));
+      
+      res.json({ message: "Plan deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting subscription plan:", error);
+      res.status(500).json({ message: "Failed to delete subscription plan" });
+    }
+  });
+
   app.get("/api/subscriptions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -1036,14 +1160,35 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const { creatorId } = req.params;
-      const { planType } = req.body;
+      const { planId, planType } = req.body;
 
-      const SUBSCRIPTION_PRICES: Record<string, number> = {
-        monthly: 500,
-        yearly: 5000,
-      };
-      const selectedPlan = planType === "yearly" ? "yearly" : "monthly";
-      const price = SUBSCRIPTION_PRICES[selectedPlan];
+      // Get plan details if planId is provided
+      let price = 500; // default
+      let tier = 1;
+      let planName = "monthly";
+      
+      if (planId) {
+        const [plan] = await db
+          .select()
+          .from(subscriptionPlans)
+          .where(eq(subscriptionPlans.id, planId));
+        
+        if (!plan || plan.creatorId !== creatorId) {
+          return res.status(404).json({ message: "Plan not found" });
+        }
+        
+        price = plan.price;
+        tier = plan.tier;
+        planName = plan.name;
+      } else {
+        // Legacy support: use planType
+        const SUBSCRIPTION_PRICES: Record<string, number> = {
+          monthly: 500,
+          yearly: 5000,
+        };
+        planName = planType === "yearly" ? "yearly" : "monthly";
+        price = SUBSCRIPTION_PRICES[planName];
+      }
 
       const [creator] = await db
         .select()
@@ -1082,12 +1227,14 @@ export async function registerRoutes(
         .where(eq(userProfiles.userId, userId));
 
       const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + (selectedPlan === "yearly" ? 12 : 1));
+      expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month subscription
 
       const [subscription] = await db.insert(subscriptions).values({
         userId,
         creatorId,
-        planType: selectedPlan,
+        planId: planId || null,
+        planType: planName,
+        tier,
         status: "active",
         expiresAt,
       }).returning();
