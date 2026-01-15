@@ -10,7 +10,8 @@ import {
   ChevronDown,
   BadgeCheck,
   Video,
-  Edit2
+  Edit2,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -95,14 +96,16 @@ export default function MyProfile() {
   const websiteUrl = profile?.location || "https://only-u.fun";
 
   const [editName, setEditName] = useState(displayName);
+  const [editUsername, setEditUsername] = useState(username);
   const [editBio, setEditBio] = useState(bio);
   const [editUrl, setEditUrl] = useState(websiteUrl);
   const [editAvatar, setEditAvatar] = useState(avatarUrl);
   const [editOpen, setEditOpen] = useState(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName: string; bio: string; location?: string; avatarUrl?: string }) => {
-      // Update both if applicable
+    mutationFn: async (data: { displayName: string; username?: string; bio: string; location?: string; avatarUrl?: string }) => {
       const res = await apiRequest("PATCH", "/api/profile", data);
       return res.json();
     },
@@ -113,6 +116,23 @@ export default function MyProfile() {
       toast({ title: "プロフィールを更新しました" });
     },
   });
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In a real app, you'd upload this to a server/S3
+      // For now, we'll use a local object URL to simulate immediate feedback
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const followers = creatorProfile?.followerCount || 0;
   const following = creatorProfile?.followingCount || 0;
@@ -186,29 +206,44 @@ export default function MyProfile() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="flex flex-col items-center gap-2 mb-4">
-                  <Avatar className="h-20 w-20 ring-2 ring-pink-500 overflow-hidden">
-                    <AvatarImage src={editAvatar} className="object-cover" />
-                    <AvatarFallback>{editName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1 w-full">
-                    <Label htmlFor="avatar" className="text-black/70 text-xs text-center block">プロフィール画像URL</Label>
-                    <Input 
-                      id="avatar" 
-                      value={editAvatar} 
-                      onChange={(e) => setEditAvatar(e.target.value)}
-                      className="bg-black/5 border-black/10 focus:border-pink-500 text-black h-8 text-xs"
-                      placeholder="画像のURLを入力..."
+                  <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                    <Avatar className="h-24 w-24 ring-2 ring-pink-500 overflow-hidden">
+                      <AvatarImage src={editAvatar} className="object-cover" />
+                      <AvatarFallback>{editName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="text-white h-6 w-6" />
+                    </div>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleFileChange}
                     />
                   </div>
+                  <p className="text-[10px] text-muted-foreground">タップして画像を変更</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-black/70">名前</Label>
+                  <Label htmlFor="name" className="text-black/70 text-xs">名前</Label>
                   <Input 
                     id="name" 
                     value={editName} 
                     onChange={(e) => setEditName(e.target.value)}
-                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black"
+                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black h-9 text-sm"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-black/70 text-xs">ユーザーネーム</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                    <Input 
+                      id="username" 
+                      value={editUsername} 
+                      onChange={(e) => setEditUsername(e.target.value)}
+                      className="bg-black/5 border-black/10 focus:border-pink-500 text-black h-9 text-sm pl-7"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio" className="text-black/70">自己紹介</Label>
@@ -234,6 +269,7 @@ export default function MyProfile() {
                 <Button 
                   onClick={() => updateProfileMutation.mutate({ 
                     displayName: editName, 
+                    username: editUsername,
                     bio: editBio, 
                     location: editUrl,
                     avatarUrl: editAvatar 
