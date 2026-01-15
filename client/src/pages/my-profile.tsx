@@ -91,7 +91,7 @@ export default function MyProfile() {
   };
 
   const displayName = profile?.displayName || creatorProfile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
-  const username = user?.email?.split("@")[0] || "user";
+  const username = profile?.username || user?.email?.split("@")[0] || "user";
   const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = profile?.bio || creatorProfile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = profile?.location || "";
@@ -114,13 +114,14 @@ export default function MyProfile() {
 
   // Sync state when profile data loads OR editOpen changes
   useEffect(() => {
-    if (editOpen && profile) {
-      setEditName(profile.displayName || "");
-      setEditBio(profile.bio || "");
-      setEditUrl(profile.location || "");
-      setEditAvatar(profile.avatarUrl || currentAvatar);
+    if (editOpen) {
+      setEditName(profile?.displayName || displayName);
+      setEditUsername(profile?.username || username);
+      setEditBio(profile?.bio || "");
+      setEditUrl(profile?.location || "");
+      setEditAvatar(profile?.avatarUrl || currentAvatar);
     }
-  }, [editOpen, profile, currentAvatar]);
+  }, [editOpen, profile, currentAvatar, displayName, username]);
   
   // Update currentAvatar when profile data loads
   useEffect(() => {

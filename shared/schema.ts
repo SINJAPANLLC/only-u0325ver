@@ -18,6 +18,7 @@ export const applicationStatusEnum = pgEnum("application_status", ["pending", "a
 export const userProfiles = pgTable("user_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().unique(),
+  username: varchar("username"),
   displayName: varchar("display_name"),
   avatarUrl: varchar("avatar_url"),
   bio: text("bio"),

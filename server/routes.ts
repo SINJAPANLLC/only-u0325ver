@@ -1161,6 +1161,7 @@ export async function registerRoutes(
         [updatedProfile] = await db
           .update(userProfiles)
           .set({
+            username: username || existingProfile.username,
             displayName: displayName || existingProfile.displayName,
             bio: bio !== undefined ? bio : existingProfile.bio,
             avatarUrl: avatarUrl || existingProfile.avatarUrl,
@@ -1175,6 +1176,7 @@ export async function registerRoutes(
           .insert(userProfiles)
           .values({
             userId,
+            username: username || null,
             displayName: displayName || "ユーザー",
             bio: bio || null,
             avatarUrl: avatarUrl || null,
