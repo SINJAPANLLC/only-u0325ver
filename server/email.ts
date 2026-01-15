@@ -20,8 +20,9 @@ export async function sendPasswordResetEmail(
   to: string,
   resetLink: string
 ): Promise<boolean> {
+  console.log(`Attempting to send password reset email to: ${to}`);
   try {
-    await transporter.sendMail({
+    const result = await transporter.sendMail({
       from: `"Only-U" <${process.env.SMTP_USER}>`,
       to,
       subject: "【Only-U】パスワードリセット",
@@ -46,7 +47,7 @@ export async function sendPasswordResetEmail(
         </div>
       `,
     });
-    console.log(`Password reset email sent to ${to}`);
+    console.log(`Password reset email sent to ${to}`, result);
     return true;
   } catch (error) {
     console.error("Failed to send email:", error);
