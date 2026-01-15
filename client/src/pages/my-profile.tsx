@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
-import type { UserProfile, Video as VideoType, LiveStream } from "@shared/schema";
+import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile } from "@shared/schema";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -66,15 +66,15 @@ export default function MyProfile() {
     setLocation("/account");
   };
 
-  const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
+  const displayName = creatorProfile?.displayName || profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = user?.email?.split("@")[0] || "user";
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
-  const bio = profile?.bio || "Only-Uでプロフィールを編集してください";
+  const bio = creatorProfile?.bio || profile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = "https://only-u.fun";
 
-  const followers = 0;
-  const following = 0;
-  const likes = 0;
+  const followers = creatorProfile?.followerCount || 0;
+  const following = creatorProfile?.followingCount || 0;
+  const likes = 0; // Like count for creator is usually sum of all video likes
 
   const hasVideos = (myVideos && myVideos.length > 0) || (demoVideos && demoVideos.length > 0);
   const displayVideos = myVideos && myVideos.length > 0 ? myVideos : demoVideos;
@@ -200,7 +200,7 @@ export default function MyProfile() {
         
         <TabsContent value="videos" className="mt-0">
           <div className="grid grid-cols-3 gap-0.5">
-            {displayVideos.map((video) => (
+            {displayVideos?.map((video) => (
               <div 
                 key={video.id} 
                 className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
