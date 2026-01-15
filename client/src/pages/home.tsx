@@ -186,13 +186,6 @@ function VideoPage({
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <Button
-            size="icon"
-            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
-            data-testid={`button-follow-${id}`}
-          >
-            <Plus className="h-3 w-3 text-white" />
-          </Button>
         </div>
 
         {/* Like */}
