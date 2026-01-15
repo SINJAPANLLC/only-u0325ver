@@ -9,14 +9,29 @@ import {
   ShoppingBag,
   ChevronDown,
   BadgeCheck,
-  Video
+  Video,
+  Edit2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -25,12 +40,12 @@ import img3 from "@assets/generated_images/nude_shower_4.jpg";
 import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
 
 const demoVideos = [
-  { id: "v1", thumbnail: img1, views: 28500 },
-  { id: "v2", thumbnail: img2, views: 15600 },
-  { id: "v3", thumbnail: img3, views: 9800 },
-  { id: "v4", thumbnail: img4, views: 5400 },
-  { id: "v5", thumbnail: img2, views: 3200 },
-  { id: "v6", thumbnail: img3, views: 2100 },
+  { id: "v1", thumbnailUrl: img1, viewCount: 28500, title: "深夜の密会" },
+  { id: "v2", thumbnailUrl: img2, viewCount: 15600, title: "バスタイム" },
+  { id: "v3", thumbnailUrl: img3, viewCount: 9800, title: "シャワーの誘惑" },
+  { id: "v4", thumbnailUrl: img4, viewCount: 5400, title: "ベッドルーム" },
+  { id: "v5", thumbnailUrl: img2, viewCount: 3200, title: "秘密の時間" },
+  { id: "v6", thumbnailUrl: img3, viewCount: 2100, title: "プライベート" },
 ];
 
 export default function MyProfile() {
@@ -71,6 +86,24 @@ export default function MyProfile() {
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = creatorProfile?.bio || profile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = "https://only-u.fun";
+
+  const [editName, setEditName] = useState(displayName);
+  const [editBio, setEditBio] = useState(bio);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { displayName: string; bio: string }) => {
+      // Update both if applicable
+      const res = await apiRequest("PATCH", "/api/profile", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.id] });
+      setEditOpen(false);
+      toast({ title: "プロフィールを更新しました" });
+    },
+  });
 
   const followers = creatorProfile?.followerCount || 0;
   const following = creatorProfile?.followingCount || 0;
@@ -126,15 +159,54 @@ export default function MyProfile() {
             {displayName}
             <BadgeCheck className="h-4 w-4 text-[#20D5EC] fill-[#20D5EC]" />
           </h1>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 px-3 text-xs rounded-md"
-            onClick={handleEditProfile}
-            data-testid="button-edit-profile"
-          >
-            編集
-          </Button>
+          
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-xs rounded-full flex items-center gap-1 bg-white/5 border-white/10 hover:bg-white/10"
+                data-testid="button-edit-profile"
+              >
+                <Edit2 className="h-3 w-3" />
+                編集
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[380px] rounded-2xl bg-zinc-900 border-white/10 text-white">
+              <DialogHeader>
+                <DialogTitle>プロフィールを編集</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">名前</Label>
+                  <Input 
+                    id="name" 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="bg-white/5 border-white/10 focus:border-pink-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">自己紹介</Label>
+                  <Textarea 
+                    id="bio" 
+                    value={editBio} 
+                    onChange={(e) => setEditBio(e.target.value)}
+                    className="bg-white/5 border-white/10 focus:border-pink-500 min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  onClick={() => updateProfileMutation.mutate({ displayName: editName, bio: editBio })}
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? "保存中..." : "保存する"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Handle */}
