@@ -97,10 +97,11 @@ export default function MyProfile() {
   const [editName, setEditName] = useState(displayName);
   const [editBio, setEditBio] = useState(bio);
   const [editUrl, setEditUrl] = useState(websiteUrl);
+  const [editAvatar, setEditAvatar] = useState(avatarUrl);
   const [editOpen, setEditOpen] = useState(false);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName: string; bio: string; location?: string }) => {
+    mutationFn: async (data: { displayName: string; bio: string; location?: string; avatarUrl?: string }) => {
       // Update both if applicable
       const res = await apiRequest("PATCH", "/api/profile", data);
       return res.json();
@@ -181,9 +182,25 @@ export default function MyProfile() {
             </DialogTrigger>
             <DialogContent className="max-w-[380px] rounded-2xl bg-white border-white/20 text-black">
               <DialogHeader>
-                <DialogTitle className="text-black">プロフィールを編集</DialogTitle>
+                <DialogTitle>プロフィールを編集</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <div className="flex flex-col items-center gap-2 mb-4">
+                  <Avatar className="h-20 w-20 ring-2 ring-pink-500 overflow-hidden">
+                    <AvatarImage src={editAvatar} className="object-cover" />
+                    <AvatarFallback>{editName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1 w-full">
+                    <Label htmlFor="avatar" className="text-black/70 text-xs text-center block">プロフィール画像URL</Label>
+                    <Input 
+                      id="avatar" 
+                      value={editAvatar} 
+                      onChange={(e) => setEditAvatar(e.target.value)}
+                      className="bg-black/5 border-black/10 focus:border-pink-500 text-black h-8 text-xs"
+                      placeholder="画像のURLを入力..."
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-black/70">名前</Label>
                   <Input 
@@ -215,7 +232,12 @@ export default function MyProfile() {
               </div>
               <DialogFooter>
                 <Button 
-                  onClick={() => updateProfileMutation.mutate({ displayName: editName, bio: editBio, location: editUrl })}
+                  onClick={() => updateProfileMutation.mutate({ 
+                    displayName: editName, 
+                    bio: editBio, 
+                    location: editUrl,
+                    avatarUrl: editAvatar 
+                  })}
                   className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
                   disabled={updateProfileMutation.isPending}
                 >
