@@ -65,18 +65,27 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b">
-          <div className="relative">
-            <PiMagnifyingGlassDuotone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <DialogContent className="max-w-md p-0 gap-0 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden [&>button]:hidden">
+        <div className="p-4">
+          <div className="relative flex items-center">
+            <PiMagnifyingGlassDuotone className="absolute left-4 h-5 w-5 text-gray-400 pointer-events-none" />
             <Input
               placeholder="クリエイターや動画を検索..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 h-12 rounded-full border-gray-200 dark:border-gray-700"
+              className="pl-12 pr-10 h-12 rounded-full border-gray-200 dark:border-gray-700 focus-visible:ring-pink-500"
               autoFocus
               data-testid="input-search"
             />
+            <button 
+              onClick={() => onOpenChange(false)}
+              className="absolute right-3 p-1 text-gray-400 hover:text-gray-600"
+              data-testid="button-close-search"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
