@@ -50,6 +50,7 @@ function VideoPage({
   creatorAvatar,
   likeCount,
   commentCount,
+  duration,
   isActive,
   thumbnailUrl,
   isHorizontal = false,
@@ -60,8 +61,13 @@ function VideoPage({
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [likes, setLikes] = useState(likeCount);
+  const [progress, setProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  const videoDuration = duration || 30;
   
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0], [0.5, 1]);
@@ -98,6 +104,55 @@ function VideoPage({
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+  };
+
+  // Progress bar auto-advance
+  useEffect(() => {
+    if (!isActive || isPaused || isDragging) return;
+    
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) return 0;
+        return prev + (100 / videoDuration / 10);
+      });
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [isActive, isPaused, isDragging, videoDuration]);
+
+  // Reset progress when video changes
+  useEffect(() => {
+    if (isActive) {
+      setProgress(0);
+    }
+  }, [isActive]);
+
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!progressRef.current) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clickPosition = (clientX - rect.left) / rect.width;
+    const newProgress = Math.max(0, Math.min(100, clickPosition * 100));
+    setProgress(newProgress);
+  };
+
+  const handleProgressDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleProgressDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleProgressDrag = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || !progressRef.current) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const dragPosition = (clientX - rect.left) / rect.width;
+    const newProgress = Math.max(0, Math.min(100, dragPosition * 100));
+    setProgress(newProgress);
   };
 
   const handleAvatarClick = (e: React.MouseEvent) => {
@@ -337,18 +392,29 @@ function VideoPage({
       </div>
 
       {/* Progress bar */}
-      {isActive && (
-        <motion.div
-          className="absolute bottom-24 left-0 right-0 h-0.5 bg-white/20"
-        >
-          <motion.div
-            className="h-full bg-white"
-            initial={{ width: "0%" }}
-            animate={isPaused ? {} : { width: "100%" }}
-            transition={{ duration: duration || 30, ease: "linear", repeat: Infinity }}
-          />
-        </motion.div>
-      )}
+      <div
+        ref={progressRef}
+        className="absolute bottom-24 left-0 right-0 h-2 bg-white/20 cursor-pointer touch-none"
+        onClick={handleProgressBarClick}
+        onMouseDown={handleProgressDragStart}
+        onMouseUp={handleProgressDragEnd}
+        onMouseLeave={handleProgressDragEnd}
+        onMouseMove={handleProgressDrag}
+        onTouchStart={(e) => { handleProgressDragStart(); handleProgressBarClick(e); }}
+        onTouchEnd={handleProgressDragEnd}
+        onTouchMove={handleProgressDrag}
+        data-testid={`progress-bar-${id}`}
+      >
+        <div
+          className="h-full bg-white transition-none"
+          style={{ width: `${progress}%` }}
+        />
+        {/* Drag handle */}
+        <div 
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"
+          style={{ left: `calc(${progress}% - 6px)` }}
+        />
+      </div>
     </motion.div>
   );
 }
