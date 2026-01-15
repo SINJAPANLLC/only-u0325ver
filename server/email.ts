@@ -2,12 +2,18 @@ import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.hostinger.com",
-  port: parseInt(process.env.SMTP_PORT || "465"),
-  secure: true,
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+});
+
+console.log("SMTP configured with:", {
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
+  port: process.env.SMTP_PORT || "587",
+  user: process.env.SMTP_USER,
 });
 
 export async function sendPasswordResetEmail(
