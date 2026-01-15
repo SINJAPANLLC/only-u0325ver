@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useLocation } from "wouter";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 interface LegalPageProps {
@@ -407,6 +408,8 @@ function PlaceholderContent() {
 }
 
 export default function LegalPage({ title, type }: LegalPageProps) {
+  const [, setLocation] = useLocation();
+  
   const renderContent = () => {
     switch (type) {
       case "terms":
@@ -423,7 +426,7 @@ export default function LegalPage({ title, type }: LegalPageProps) {
   };
 
   const handleBack = () => {
-    window.history.back();
+    setLocation("/");
   };
 
   return (
