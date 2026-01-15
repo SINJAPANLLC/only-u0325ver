@@ -344,8 +344,8 @@ function VideoPage({
           <motion.div
             className="h-full bg-white"
             initial={{ width: "0%" }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 15, ease: "linear", repeat: Infinity }}
+            animate={isPaused ? {} : { width: "100%" }}
+            transition={{ duration: duration || 30, ease: "linear", repeat: Infinity }}
           />
         </motion.div>
       )}
