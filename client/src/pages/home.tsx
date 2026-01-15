@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { CommentsModal } from "@/components/comments-modal";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -63,6 +64,7 @@ function VideoPage({
   const [likes, setLikes] = useState(likeCount);
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -162,10 +164,7 @@ function VideoPage({
 
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast({
-      title: "コメント機能",
-      description: "コメント機能は準備中です",
-    });
+    setShowComments(true);
   };
 
   const handleShare = async (e: React.MouseEvent) => {
@@ -415,6 +414,14 @@ function VideoPage({
           style={{ left: `calc(${progress}% - 6px)` }}
         />
       </div>
+
+      {/* Comments Modal */}
+      <CommentsModal
+        open={showComments}
+        onOpenChange={setShowComments}
+        videoId={id}
+        commentCount={commentCount}
+      />
     </motion.div>
   );
 }

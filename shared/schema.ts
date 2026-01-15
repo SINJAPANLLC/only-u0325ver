@@ -108,6 +108,25 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Comments
+export const comments = pgTable("comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  videoId: varchar("video_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  content: text("content").notNull(),
+  likeCount: integer("like_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommentSchema = createInsertSchema(comments).omit({
+  id: true,
+  likeCount: true,
+  createdAt: true,
+});
+
+export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type Comment = typeof comments.$inferSelect;
+
 // Live streams
 export const liveStreams = pgTable("live_streams", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

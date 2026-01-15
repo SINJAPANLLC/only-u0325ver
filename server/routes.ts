@@ -7,9 +7,9 @@ import {
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions,
   userProfiles, creatorApplications, phoneVerificationCodes,
-  bankTransferRequests, pointPackages, pointTransactions, purchases,
+  bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
-  insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema
+  insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema
 } from "@shared/schema";
 import { eq, desc, and, or, sql, gt, isNull } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -172,6 +172,56 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error creating video:", error);
       res.status(500).json({ message: "Failed to create video" });
+    }
+  });
+
+  // Comments API
+  app.get("/api/videos/:videoId/comments", async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const videoComments = await db
+        .select({
+          id: comments.id,
+          videoId: comments.videoId,
+          userId: comments.userId,
+          content: comments.content,
+          likeCount: comments.likeCount,
+          createdAt: comments.createdAt,
+          userDisplayName: userProfiles.displayName,
+          userAvatarUrl: userProfiles.avatarUrl,
+        })
+        .from(comments)
+        .leftJoin(userProfiles, eq(comments.userId, userProfiles.userId))
+        .where(eq(comments.videoId, videoId))
+        .orderBy(desc(comments.createdAt))
+        .limit(50);
+      res.json(videoComments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  app.post("/api/videos/:videoId/comments", isAuthenticated, async (req: any, res) => {
+    try {
+      const { videoId } = req.params;
+      const userId = req.user.claims.sub;
+      const { content } = req.body;
+
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ message: "コメント内容が必要です" });
+      }
+
+      const [comment] = await db.insert(comments).values({
+        videoId,
+        userId,
+        content: content.trim(),
+      }).returning();
+
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Failed to create comment" });
     }
   });
 
