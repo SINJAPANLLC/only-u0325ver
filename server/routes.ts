@@ -95,8 +95,25 @@ export async function registerRoutes(
   app.get("/api/videos", async (req, res) => {
     try {
       const allVideos = await db
-        .select()
+        .select({
+          id: videos.id,
+          creatorId: videos.creatorId,
+          title: videos.title,
+          description: videos.description,
+          thumbnailUrl: videos.thumbnailUrl,
+          videoUrl: videos.videoUrl,
+          duration: videos.duration,
+          viewCount: videos.viewCount,
+          likeCount: videos.likeCount,
+          contentType: videos.contentType,
+          isPublished: videos.isPublished,
+          createdAt: videos.createdAt,
+          creatorDisplayName: creatorProfiles.displayName,
+          creatorAvatarUrl: userProfiles.avatarUrl,
+        })
         .from(videos)
+        .leftJoin(creatorProfiles, eq(videos.creatorId, creatorProfiles.userId))
+        .leftJoin(userProfiles, eq(videos.creatorId, userProfiles.userId))
         .where(eq(videos.isPublished, true))
         .orderBy(desc(videos.createdAt))
         .limit(20);

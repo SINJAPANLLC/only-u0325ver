@@ -505,10 +505,12 @@ export default function Home() {
   const displayVideos: VideoPageProps[] = feedType === "following" 
     ? followingVideos
     : videos && videos.length > 0
-      ? videos.map((v, idx) => ({
+      ? videos.map((v: any, idx) => ({
           id: v.id,
           title: v.title,
-          creatorName: v.creatorId?.slice(0, 8) || "Creator",
+          creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
+          displayName: v.creatorDisplayName,
+          creatorAvatar: v.creatorAvatarUrl,
           viewCount: v.viewCount || 0,
           likeCount: v.likeCount || 0,
           commentCount: 0,
