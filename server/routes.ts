@@ -175,6 +175,58 @@ export async function registerRoutes(
     }
   });
 
+  // Get videos from followed creators
+  app.get("/api/videos/following", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get list of followed creator IDs
+      const followedCreators = await db
+        .select({ followingId: follows.followingId })
+        .from(follows)
+        .where(eq(follows.followerId, userId));
+      
+      const followedIds = followedCreators.map(f => f.followingId);
+      
+      if (followedIds.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get videos from followed creators
+      const followingVideos = await db
+        .select({
+          id: videos.id,
+          creatorId: videos.creatorId,
+          title: videos.title,
+          description: videos.description,
+          thumbnailUrl: videos.thumbnailUrl,
+          videoUrl: videos.videoUrl,
+          duration: videos.duration,
+          viewCount: videos.viewCount,
+          likeCount: videos.likeCount,
+          contentType: videos.contentType,
+          isPublished: videos.isPublished,
+          createdAt: videos.createdAt,
+          creatorDisplayName: creatorProfiles.displayName,
+          creatorAvatarUrl: userProfiles.avatarUrl,
+        })
+        .from(videos)
+        .leftJoin(creatorProfiles, eq(videos.creatorId, creatorProfiles.userId))
+        .leftJoin(userProfiles, eq(videos.creatorId, userProfiles.userId))
+        .where(and(
+          eq(videos.isPublished, true),
+          sql`${videos.creatorId} IN (${sql.join(followedIds.map(id => sql`${id}`), sql`, `)})`
+        ))
+        .orderBy(desc(videos.createdAt))
+        .limit(20);
+      
+      res.json(followingVideos);
+    } catch (error) {
+      console.error("Error fetching following videos:", error);
+      res.status(500).json({ message: "Failed to fetch videos" });
+    }
+  });
+
   // Comments API
   app.get("/api/videos/:videoId/comments", async (req, res) => {
     try {

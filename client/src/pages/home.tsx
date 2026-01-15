@@ -554,8 +554,15 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  const { data: videos } = useQuery<VideoType[]>({
+  // Recommended videos (all new videos)
+  const { data: recommendedVideos } = useQuery<any[]>({
     queryKey: ["/api/videos"],
+  });
+
+  // Following videos (from followed creators)
+  const { data: followingVideosData } = useQuery<any[]>({
+    queryKey: ["/api/videos/following"],
+    enabled: !!user && feedType === "following",
   });
 
   const { data: subscriptions } = useQuery<Subscription[]>({
@@ -565,35 +572,37 @@ export default function Home() {
 
   const subscribedCreatorIds = subscriptions?.map(s => s.creatorId) || [];
 
-  // Following videos (fewer, simulating followed creators)
-  const followingVideos = demoVideos.filter((_, i) => i % 2 === 0);
-
   // Check if user has access to a creator's premium content
   const hasAccessToCreator = (creatorId: string) => {
     return subscribedCreatorIds.includes(creatorId);
   };
 
+  // Map API data to VideoPageProps
+  const mapVideoToProps = (v: any, idx: number): VideoPageProps => ({
+    id: v.id,
+    title: v.title,
+    creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
+    displayName: v.creatorDisplayName,
+    creatorAvatar: v.creatorAvatarUrl,
+    viewCount: v.viewCount || 0,
+    likeCount: v.likeCount || 0,
+    commentCount: 0,
+    duration: v.duration || 0,
+    isPremium: v.contentType === "premium",
+    hasAccess: v.contentType !== "premium" || hasAccessToCreator(v.creatorId),
+    isActive: false,
+    musicName: "オリジナル音源",
+    thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
+  });
+
   // Use API data when available, fallback to demo data for showcase
   const displayVideos: VideoPageProps[] = feedType === "following" 
-    ? followingVideos
-    : videos && videos.length > 0
-      ? videos.map((v: any, idx) => ({
-          id: v.id,
-          title: v.title,
-          creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
-          displayName: v.creatorDisplayName,
-          creatorAvatar: v.creatorAvatarUrl,
-          viewCount: v.viewCount || 0,
-          likeCount: v.likeCount || 0,
-          commentCount: 0,
-          duration: v.duration || 0,
-          isPremium: v.contentType === "premium",
-          hasAccess: v.contentType !== "premium" || hasAccessToCreator(v.creatorId),
-          isActive: false,
-          musicName: "オリジナル音源",
-          thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
-        }))
-      : demoVideos;
+    ? (followingVideosData && followingVideosData.length > 0
+        ? followingVideosData.map(mapVideoToProps)
+        : [])
+    : (recommendedVideos && recommendedVideos.length > 0
+        ? recommendedVideos.map(mapVideoToProps)
+        : demoVideos);
 
   // Track scroll position to determine active video
   useEffect(() => {
@@ -631,13 +640,23 @@ export default function Home() {
         className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
         data-testid="video-feed"
       >
-        {displayVideos.map((video, index) => (
-          <VideoPage
-            key={video.id}
-            {...video}
-            isActive={index === activeIndex}
-          />
-        ))}
+        {displayVideos.length === 0 && feedType === "following" ? (
+          <div className="h-[100svh] flex flex-col items-center justify-center text-white px-8">
+            <div className="text-6xl mb-4">👀</div>
+            <h2 className="text-xl font-bold mb-2">フォロー中の動画がありません</h2>
+            <p className="text-white/70 text-center">
+              クリエイターをフォローすると、ここに動画が表示されます
+            </p>
+          </div>
+        ) : (
+          displayVideos.map((video, index) => (
+            <VideoPage
+              key={video.id}
+              {...video}
+              isActive={index === activeIndex}
+            />
+          ))
+        )}
       </div>
       <BottomNavigation />
     </>
