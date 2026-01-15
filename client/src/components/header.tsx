@@ -179,17 +179,17 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
       </div>
 
       <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
-        <DialogContent className="max-w-sm rounded-2xl bg-black/90 backdrop-blur-xl border-white/20 text-white">
+        <DialogContent className="max-w-sm rounded-2xl bg-white border-white/20 text-black">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center">
+            <DialogTitle className="text-xl font-bold text-center text-black">
               ホーム画面に追加
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {isIOS ? (
               <div className="space-y-3">
-                <p className="text-sm text-white/80 text-center">iPhoneでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                <p className="text-sm text-black/80 text-center">iPhoneでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
                   <li>画面下の<span className="font-bold">共有ボタン</span>をタップ</li>
                   <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
                   <li>右上の「<span className="font-bold">追加</span>」をタップ</li>
@@ -197,8 +197,8 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               </div>
             ) : isAndroid ? (
               <div className="space-y-3">
-                <p className="text-sm text-white/80 text-center">Androidでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                <p className="text-sm text-black/80 text-center">Androidでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
                   <li>ブラウザの<span className="font-bold">メニュー（︙）</span>をタップ</li>
                   <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
                   <li>「<span className="font-bold">追加</span>」をタップ</li>
@@ -206,8 +206,8 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-white/80 text-center">アプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-white/90">
+                <p className="text-sm text-black/80 text-center">アプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
                   <li>ブラウザのメニューを開く</li>
                   <li>「ホーム画面に追加」または「アプリをインストール」を選択</li>
                 </ol>
