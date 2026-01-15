@@ -11,14 +11,18 @@ import {
   BadgeCheck,
   Video,
   Edit2,
-  Camera
+  Camera,
+  Crown,
+  Plus,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile } from "@shared/schema";
+import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile, SubscriptionPlan } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -78,6 +82,11 @@ export default function MyProfile() {
     queryKey: ["/api/my-live"],
   });
 
+  const { data: mySubscriptionPlans, refetch: refetchPlans } = useQuery<SubscriptionPlan[]>({
+    queryKey: ["/api/my-subscription-plans"],
+    enabled: !!creatorProfile,
+  });
+
   const isLive = myLiveStreams?.some(stream => stream.status === "live") || false;
 
   const formatCount = (count: number) => {
@@ -106,11 +115,86 @@ export default function MyProfile() {
   
   // Subscription plan editing
   const [planEditOpen, setPlanEditOpen] = useState(false);
-  const [standardPlanPrice, setStandardPlanPrice] = useState("500");
-  const [standardPlanDesc, setStandardPlanDesc] = useState("すべての動画が見放題");
-  const [premiumPlanPrice, setPremiumPlanPrice] = useState("1500");
-  const [premiumPlanDesc, setPremiumPlanDesc] = useState("限定ライブ配信 & チャット優先返信");
-  const [premiumPlanEnabled, setPremiumPlanEnabled] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [newPlanName, setNewPlanName] = useState("");
+  const [newPlanDescription, setNewPlanDescription] = useState("");
+  const [newPlanPrice, setNewPlanPrice] = useState("500");
+  const [newPlanTier, setNewPlanTier] = useState("1");
+  const [isNewPlan, setIsNewPlan] = useState(true);
+  
+  const createPlanMutation = useMutation({
+    mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
+      const res = await apiRequest("POST", "/api/subscription-plans", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-subscription-plans"] });
+      refetchPlans();
+      setPlanEditOpen(false);
+      toast({ title: "プランを作成しました" });
+    },
+    onError: (error: any) => {
+      toast({ title: "エラー", description: error.message || "プランの作成に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const updatePlanMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name: string; description: string; price: number; tier: number }) => {
+      const res = await apiRequest("PATCH", `/api/subscription-plans/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-subscription-plans"] });
+      refetchPlans();
+      setPlanEditOpen(false);
+      toast({ title: "プランを更新しました" });
+    },
+    onError: (error: any) => {
+      toast({ title: "エラー", description: error.message || "プランの更新に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const deletePlanMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      await apiRequest("DELETE", `/api/subscription-plans/${planId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-subscription-plans"] });
+      refetchPlans();
+      toast({ title: "プランを削除しました" });
+    },
+  });
+
+  const handleOpenNewPlan = () => {
+    setIsNewPlan(true);
+    setEditingPlan(null);
+    setNewPlanName("");
+    setNewPlanDescription("");
+    setNewPlanPrice("500");
+    setNewPlanTier("1");
+    setPlanEditOpen(true);
+  };
+
+  const handleEditPlan = (plan: SubscriptionPlan) => {
+    setIsNewPlan(false);
+    setEditingPlan(plan);
+    setNewPlanName(plan.name);
+    setNewPlanDescription(plan.description || "");
+    setNewPlanPrice(plan.price.toString());
+    setNewPlanTier(plan.tier.toString());
+    setPlanEditOpen(true);
+  };
+
+  const handleSavePlan = () => {
+    const price = parseInt(newPlanPrice) || 500;
+    const tier = parseInt(newPlanTier) || 1;
+    
+    if (isNewPlan) {
+      createPlanMutation.mutate({ name: newPlanName, description: newPlanDescription, price, tier });
+    } else if (editingPlan) {
+      updatePlanMutation.mutate({ id: editingPlan.id, name: newPlanName, description: newPlanDescription, price, tier });
+    }
+  };
 
   // Sync state when profile data loads OR editOpen changes
   useEffect(() => {
@@ -520,6 +604,15 @@ export default function MyProfile() {
           >
             <Heart className="h-5 w-5" />
           </TabsTrigger>
+          {creatorProfile && (
+            <TabsTrigger 
+              value="plans" 
+              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+              data-testid="tab-plans"
+            >
+              <Crown className="h-5 w-5" />
+            </TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="videos" className="mt-0">
@@ -587,6 +680,158 @@ export default function MyProfile() {
             <p>いいねした動画はここに表示されます</p>
           </div>
         </TabsContent>
+
+        {creatorProfile && (
+          <TabsContent value="plans" className="mt-0 p-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold">サブスクリプションプラン</h3>
+                <Button size="sm" onClick={handleOpenNewPlan} data-testid="button-add-plan">
+                  <Plus className="h-4 w-4 mr-1" />
+                  追加
+                </Button>
+              </div>
+              
+              {mySubscriptionPlans && mySubscriptionPlans.length > 0 ? (
+                <div className="space-y-3">
+                  {mySubscriptionPlans.map((plan) => (
+                    <div 
+                      key={plan.id} 
+                      className="bg-card border border-border rounded-lg p-4"
+                      data-testid={`plan-card-${plan.tier}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold">{plan.name}</h4>
+                            <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                              Tier {plan.tier}
+                            </span>
+                            {plan.tier === 3 && (
+                              <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                          <p className="text-pink-500 font-bold mt-2">{plan.price.toLocaleString()}pt/月</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            onClick={() => handleEditPlan(plan)}
+                            data-testid={`button-edit-plan-${plan.tier}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="text-red-500 hover:text-red-600"
+                            onClick={() => deletePlanMutation.mutate(plan.id)}
+                            disabled={deletePlanMutation.isPending}
+                            data-testid={`button-delete-plan-${plan.tier}`}
+                          >
+                            {deletePlanMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground bg-muted/50 rounded-lg">
+                  <Crown className="h-8 w-8 mb-2 opacity-50" />
+                  <p className="text-sm">プランを作成してファンからの収益を得ましょう</p>
+                </div>
+              )}
+              
+              <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/30 rounded-lg">
+                <p className="font-medium mb-1">Tierについて</p>
+                <p>Tier 1: ベーシック - 基本的なコンテンツへのアクセス</p>
+                <p>Tier 2: スタンダード - より多くのコンテンツへのアクセス</p>
+                <p>Tier 3: VIP - すべてのコンテンツへのアクセス</p>
+              </div>
+            </div>
+
+            <Dialog open={planEditOpen} onOpenChange={setPlanEditOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{isNewPlan ? "新しいプランを作成" : "プランを編集"}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="plan-name">プラン名</Label>
+                    <Input
+                      id="plan-name"
+                      value={newPlanName}
+                      onChange={(e) => setNewPlanName(e.target.value)}
+                      placeholder="例: ベーシックプラン"
+                      data-testid="input-plan-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="plan-description">説明</Label>
+                    <Textarea
+                      id="plan-description"
+                      value={newPlanDescription}
+                      onChange={(e) => setNewPlanDescription(e.target.value)}
+                      placeholder="プランの特典を説明してください"
+                      data-testid="input-plan-description"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="plan-price">料金（ポイント/月）</Label>
+                      <Input
+                        id="plan-price"
+                        type="number"
+                        value={newPlanPrice}
+                        onChange={(e) => setNewPlanPrice(e.target.value)}
+                        min="100"
+                        step="100"
+                        data-testid="input-plan-price"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="plan-tier">Tier</Label>
+                      <select
+                        id="plan-tier"
+                        value={newPlanTier}
+                        onChange={(e) => setNewPlanTier(e.target.value)}
+                        className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        data-testid="select-plan-tier"
+                      >
+                        <option value="1">Tier 1 - ベーシック</option>
+                        <option value="2">Tier 2 - スタンダード</option>
+                        <option value="3">Tier 3 - VIP</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setPlanEditOpen(false)}>
+                    キャンセル
+                  </Button>
+                  <Button 
+                    onClick={handleSavePlan}
+                    disabled={!newPlanName || createPlanMutation.isPending || updatePlanMutation.isPending}
+                    className="bg-pink-500 hover:bg-pink-600"
+                    data-testid="button-save-plan"
+                  >
+                    {(createPlanMutation.isPending || updatePlanMutation.isPending) && (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    )}
+                    {isNewPlan ? "作成" : "保存"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TabsContent>
+        )}
       </Tabs>
       
       <div className="h-24" />

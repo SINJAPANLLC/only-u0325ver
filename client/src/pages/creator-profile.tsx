@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { CreatorProfile as CreatorProfileType, Video, Subscription } from "@shared/schema";
+import type { CreatorProfile as CreatorProfileType, Video, Subscription, SubscriptionPlan } from "@shared/schema";
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
@@ -105,7 +105,7 @@ const defaultDemoCreator = {
   ]
 };
 
-const SUBSCRIPTION_PRICE = 500;
+const DEFAULT_SUBSCRIPTION_PRICE = 500;
 
 export default function CreatorProfile() {
   const [, params] = useRoute("/creator/:username");
@@ -113,6 +113,7 @@ export default function CreatorProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   
   const creatorId = params?.username || "";
   const isRealCreator = creatorId && !demoCreatorData[creatorId];
@@ -135,6 +136,11 @@ export default function CreatorProfile() {
   const { data: subscriptionStatus } = useQuery<{ isSubscribed: boolean; subscription?: Subscription }>({
     queryKey: ["/api/subscription", creatorId],
     enabled: Boolean(user && creatorId),
+  });
+
+  const { data: subscriptionPlans } = useQuery<SubscriptionPlan[]>({
+    queryKey: ["/api/subscription-plans", creatorId],
+    enabled: Boolean(creatorId),
   });
 
   const followMutation = useMutation({
@@ -160,8 +166,9 @@ export default function CreatorProfile() {
   });
 
   const subscribeMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (planId?: string) => {
       await apiRequest("POST", `/api/subscription/${creatorId}`, {
+        planId,
         planType: "monthly",
       });
     },
@@ -271,7 +278,17 @@ export default function CreatorProfile() {
   };
 
   const confirmSubscribe = () => {
-    subscribeMutation.mutate();
+    subscribeMutation.mutate(selectedPlanId || undefined);
+  };
+
+  const getSelectedPlan = () => {
+    if (!selectedPlanId || !subscriptionPlans) return null;
+    return subscriptionPlans.find(p => p.id === selectedPlanId);
+  };
+
+  const getSubscriptionPrice = () => {
+    const plan = getSelectedPlan();
+    return plan?.price || DEFAULT_SUBSCRIPTION_PRICE;
   };
   
   return (
@@ -399,36 +416,71 @@ export default function CreatorProfile() {
             ) : isSubscribed ? (
               <>
                 <Crown className="h-4 w-4 mr-2" />
-                プレミアム会員
+                プレミアム会員（Tier {subscriptionStatus?.subscription?.tier || 1}）
               </>
             ) : (
               <>
                 <Crown className="h-4 w-4 mr-2" />
-                登録する（{SUBSCRIPTION_PRICE}pt/月）
+                {subscriptionPlans && subscriptionPlans.length > 0 
+                  ? `登録する（${subscriptionPlans[0].price.toLocaleString()}pt〜/月）`
+                  : `登録する（${DEFAULT_SUBSCRIPTION_PRICE}pt/月）`
+                }
               </>
             )}
           </Button>
         </div>
 
         <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>プレミアム登録</DialogTitle>
               <DialogDescription>
                 {creator.displayName}のプレミアムコンテンツにアクセスできるようになります
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <div>
-                  <p className="font-medium">月額プラン</p>
-                  <p className="text-sm text-muted-foreground">30日間のアクセス</p>
+            <div className="py-4 space-y-3">
+              {subscriptionPlans && subscriptionPlans.length > 0 ? (
+                subscriptionPlans.map((plan) => (
+                  <div
+                    key={plan.id}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all border-2 ${
+                      selectedPlanId === plan.id
+                        ? "border-pink-500 bg-pink-500/10"
+                        : "border-muted bg-muted hover:border-pink-300"
+                    }`}
+                    data-testid={`plan-option-${plan.tier}`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{plan.name}</p>
+                        {plan.tier === 3 && (
+                          <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
+                        )}
+                        {plan.tier === 2 && (
+                          <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded">人気</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-pink-500">{plan.price.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">pt/月</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div>
+                    <p className="font-medium">月額プラン</p>
+                    <p className="text-sm text-muted-foreground">30日間のアクセス</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-pink-500">{DEFAULT_SUBSCRIPTION_PRICE}</p>
+                    <p className="text-xs text-muted-foreground">ポイント/月</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-pink-500">{SUBSCRIPTION_PRICE}</p>
-                  <p className="text-xs text-muted-foreground">ポイント/月</p>
-                </div>
-              </div>
+              )}
               <div className="mt-4 text-sm text-muted-foreground">
                 <p className="flex items-center gap-2">
                   <Coins className="h-4 w-4" />
@@ -442,13 +494,13 @@ export default function CreatorProfile() {
               </Button>
               <Button 
                 onClick={confirmSubscribe}
-                disabled={isSubscribeLoading}
+                disabled={isSubscribeLoading || (subscriptionPlans && subscriptionPlans.length > 0 && !selectedPlanId)}
                 className="bg-pink-500 hover:bg-pink-600"
               >
                 {isSubscribeLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                登録する
+                登録する（{getSubscriptionPrice().toLocaleString()}pt）
               </Button>
             </DialogFooter>
           </DialogContent>

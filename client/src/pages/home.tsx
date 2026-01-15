@@ -41,6 +41,7 @@ interface VideoPageProps {
   isHorizontal?: boolean;
   isPremium?: boolean;
   hasAccess?: boolean;
+  requiredTier?: number;
 }
 
 function VideoPage({
@@ -570,30 +571,39 @@ export default function Home() {
     enabled: !!user,
   });
 
-  const subscribedCreatorIds = subscriptions?.map(s => s.creatorId) || [];
-
-  // Check if user has access to a creator's premium content
-  const hasAccessToCreator = (creatorId: string) => {
-    return subscribedCreatorIds.includes(creatorId);
+  // Check if user has access to a creator's premium content based on tier
+  const hasAccessToCreator = (creatorId: string, requiredTier: number = 1) => {
+    if (!subscriptions) return false;
+    const subscription = subscriptions.find(s => s.creatorId === creatorId);
+    if (!subscription) return false;
+    // Check if subscription tier meets the required tier
+    return (subscription.tier || 1) >= requiredTier;
   };
 
   // Map API data to VideoPageProps
-  const mapVideoToProps = (v: any, idx: number): VideoPageProps => ({
-    id: v.id,
-    title: v.title,
-    creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
-    displayName: v.creatorDisplayName,
-    creatorAvatar: v.creatorAvatarUrl,
-    viewCount: v.viewCount || 0,
-    likeCount: v.likeCount || 0,
-    commentCount: 0,
-    duration: v.duration || 0,
-    isPremium: v.contentType === "premium",
-    hasAccess: v.contentType !== "premium" || hasAccessToCreator(v.creatorId),
-    isActive: false,
-    musicName: "オリジナル音源",
-    thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
-  });
+  const mapVideoToProps = (v: any, idx: number): VideoPageProps => {
+    const requiredTier = v.requiredTier || 0;
+    const isPremium = requiredTier > 0 || v.contentType === "premium";
+    const hasAccess = requiredTier === 0 || hasAccessToCreator(v.creatorId, requiredTier);
+    
+    return {
+      id: v.id,
+      title: v.title,
+      creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
+      displayName: v.creatorDisplayName,
+      creatorAvatar: v.creatorAvatarUrl,
+      viewCount: v.viewCount || 0,
+      likeCount: v.likeCount || 0,
+      commentCount: 0,
+      duration: v.duration || 0,
+      isPremium,
+      hasAccess,
+      requiredTier,
+      isActive: false,
+      musicName: "オリジナル音源",
+      thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
+    };
+  };
 
   // Use API data when available, fallback to demo data for showcase
   const displayVideos: VideoPageProps[] = feedType === "following" 
