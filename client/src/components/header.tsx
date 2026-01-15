@@ -23,6 +23,7 @@ import { useI18n } from "@/lib/i18n";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { SearchModal } from "@/components/search-modal";
+import { NotificationsModal } from "@/components/notifications-modal";
 
 interface HeaderProps {
   onSearchClick?: () => void;
@@ -41,6 +42,7 @@ const languages = [
 export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange, showFeedTabs = false }: HeaderProps) {
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { language, setLanguage, t } = useI18n();
@@ -139,7 +141,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
             variant="ghost" 
             size="icon" 
             className="rounded-full h-12 w-12 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
-            onClick={() => setLocation("/notifications")}
+            onClick={() => setShowNotificationsModal(true)}
             data-testid="button-notifications"
           >
             <PiBellSimpleRingingDuotone className="h-10 w-10 text-white drop-shadow-sm" />
@@ -222,6 +224,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
       </Dialog>
 
       <SearchModal open={showSearchModal} onOpenChange={setShowSearchModal} />
+      <NotificationsModal open={showNotificationsModal} onOpenChange={setShowNotificationsModal} />
     </header>
   );
 }
