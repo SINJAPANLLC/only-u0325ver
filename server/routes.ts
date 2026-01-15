@@ -1168,6 +1168,7 @@ export async function registerRoutes(
         .set({
           displayName,
           bio,
+          avatarUrl, // Added synchronization for avatarUrl
           updatedAt: new Date(),
         })
         .where(eq(creatorProfiles.userId, userId));

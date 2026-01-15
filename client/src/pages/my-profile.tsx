@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -60,11 +60,11 @@ export default function MyProfile() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   
-  const { data: profile } = useQuery<UserProfile | null>({
+  const { data: profile, refetch: refetchProfile } = useQuery<UserProfile | null>({
     queryKey: ["/api/profile"],
   });
 
-  const { data: creatorProfile } = useQuery<CreatorProfile | null>({
+  const { data: creatorProfile, refetch: refetchCreator } = useQuery<CreatorProfile | null>({
     queryKey: ["/api/creator-profiles", user?.id],
     enabled: !!user,
   });
@@ -93,7 +93,7 @@ export default function MyProfile() {
   const username = user?.email?.split("@")[0] || "user";
   const avatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = creatorProfile?.bio || profile?.bio || "Only-Uでプロフィールを編集してください";
-  const websiteUrl = profile?.location || "https://only-u.fun";
+  const websiteUrl = profile?.location || "";
 
   const [editName, setEditName] = useState(displayName);
   const [editUsername, setEditUsername] = useState(username);
@@ -101,6 +101,16 @@ export default function MyProfile() {
   const [editUrl, setEditUrl] = useState(websiteUrl);
   const [editAvatar, setEditAvatar] = useState(avatarUrl);
   const [editOpen, setEditOpen] = useState(false);
+
+  // Sync state when profile data loads
+  useEffect(() => {
+    if (profile) {
+      setEditName(profile.displayName || "");
+      setEditBio(profile.bio || "");
+      setEditUrl(profile.location || "");
+      setEditAvatar(profile.avatarUrl || avatarUrl);
+    }
+  }, [profile, avatarUrl]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +122,8 @@ export default function MyProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.id] });
+      refetchProfile();
+      refetchCreator();
       setEditOpen(false);
       toast({ title: "プロフィールを更新しました" });
     },
