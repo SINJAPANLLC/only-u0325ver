@@ -105,6 +105,7 @@ export const videos = pgTable("videos", {
   viewCount: integer("view_count").default(0),
   likeCount: integer("like_count").default(0),
   contentType: contentTypeEnum("content_type").default("free"),
+  requiredTier: integer("required_tier").default(0), // 0=無料, 1以上=そのtier以上の購読が必要
   isPublished: boolean("is_published").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -196,12 +197,36 @@ export const follows = pgTable("follows", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Subscriptions
+// Subscription Plans (クリエイターが設定するプラン)
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  creatorId: varchar("creator_id").notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  price: integer("price").notNull(), // 月額ポイント
+  tier: integer("tier").notNull().default(1), // 1=Basic, 2=Standard, 3=Premium など
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+
+// Subscriptions (ユーザーの購読)
 export const subscriptions = pgTable("subscriptions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   creatorId: varchar("creator_id").notNull(),
+  planId: varchar("plan_id"), // subscription_plans.id への参照
   planType: varchar("plan_type").notNull(),
+  tier: integer("tier").default(1), // 購読しているプランのtier
   status: varchar("status").default("active"),
   startedAt: timestamp("started_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
