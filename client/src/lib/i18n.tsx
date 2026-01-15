@@ -15,7 +15,7 @@ const translations: Translations = {
   "nav.home": { ja: "ホーム", en: "Home", zh: "首页", ko: "홈" },
   "nav.live": { ja: "ライブ", en: "Live", zh: "直播", ko: "라이브" },
   "nav.shop": { ja: "ショップ", en: "Shop", zh: "商店", ko: "샵" },
-  "nav.messages": { ja: "DM", en: "DM", zh: "私信", ko: "DM" },
+  "nav.messages": { ja: "メッセージ", en: "Messages", zh: "消息", ko: "메시지" },
   "nav.account": { ja: "アカウント", en: "Account", zh: "账户", ko: "계정" },
   
   "common.follow": { ja: "フォロー", en: "Follow", zh: "关注", ko: "팔로우" },

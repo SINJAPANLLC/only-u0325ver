@@ -19,7 +19,7 @@ const navItems: NavItem[] = [
   { path: "/", icon: PiHouseDuotone, labelKey: "nav.home", iconSize: "h-7 w-7" },
   { path: "/live", icon: PiBroadcastDuotone, labelKey: "nav.live", iconSize: "h-7 w-7" },
   { path: "/shop", icon: PiShoppingBagDuotone, labelKey: "nav.shop", iconSize: "h-8 w-8" },
-  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", badgeCount: 0, iconSize: "h-8 w-8" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", badgeCount: 3, iconSize: "h-8 w-8" },
   { path: "/account", icon: PiUserCircleDuotone, labelKey: "nav.account", iconSize: "h-8 w-8" },
 ];
 
@@ -75,7 +75,7 @@ export function BottomNavigation() {
                   )}
                   
                   {item.badgeCount && item.badgeCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg">
+                    <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg ring-1 ring-black/20">
                       {item.badgeCount > 99 ? "99+" : item.badgeCount}
                     </span>
                   )}
