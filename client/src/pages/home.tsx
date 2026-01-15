@@ -383,7 +383,7 @@ function VideoPage({
         {/* Full content CTA */}
         <button
           onClick={() => setLocation(`/creator/${creatorName}`)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-sm font-bold shadow-lg shadow-pink-500/30 w-fit"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold shadow-lg shadow-pink-500/30 w-fit"
           data-testid={`button-full-content-${id}`}
         >
           本編はこちら
