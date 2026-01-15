@@ -41,6 +41,11 @@ export default function MyProfile() {
     queryKey: ["/api/profile"],
   });
 
+  const { data: creatorProfile } = useQuery<CreatorProfile | null>({
+    queryKey: ["/api/creator-profiles", user?.id],
+    enabled: !!user,
+  });
+
   const { data: myVideos } = useQuery<VideoType[]>({
     queryKey: ["/api/my-videos"],
   });
@@ -71,8 +76,8 @@ export default function MyProfile() {
   const following = 0;
   const likes = 0;
 
-  const hasVideos = myVideos && myVideos.length > 0;
-  const displayVideos = hasVideos ? myVideos : demoVideos;
+  const hasVideos = (myVideos && myVideos.length > 0) || (demoVideos && demoVideos.length > 0);
+  const displayVideos = myVideos && myVideos.length > 0 ? myVideos : demoVideos;
   
   return (
     <motion.div 
@@ -99,14 +104,17 @@ export default function MyProfile() {
       <div className="flex flex-col items-center px-4 pt-6">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className={`h-24 w-24 ring-2 ${isLive ? "ring-pink-500 ring-[3px]" : "ring-border"}`}>
-            <AvatarImage src={avatarUrl} />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
+          <Avatar className={`h-28 w-28 ring-4 ${isLive ? "ring-pink-500" : "ring-border/50"} shadow-xl overflow-hidden`}>
+            <AvatarImage 
+              src={avatarUrl} 
+              className="object-cover w-full h-full"
+            />
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-3xl font-bold">
               {displayName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           {isLive && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-sm bg-pink-500 text-white text-[10px] font-bold">
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-pink-500 text-white text-[10px] font-bold shadow-lg ring-2 ring-background">
               LIVE
             </div>
           )}
@@ -191,39 +199,32 @@ export default function MyProfile() {
         </TabsList>
         
         <TabsContent value="videos" className="mt-0">
-          {hasVideos ? (
-            <div className="grid grid-cols-3 gap-0.5">
-              {myVideos.map((video) => (
-                <div 
-                  key={video.id} 
-                  className="aspect-[9/16] relative bg-muted"
-                  data-testid={`video-thumbnail-${video.id}`}
-                >
-                  {video.thumbnailUrl ? (
-                    <img 
-                      src={video.thumbnailUrl} 
-                      alt={video.title} 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <Video className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs drop-shadow-md">
-                    <PlaySquare className="h-3 w-3" />
-                    <span>{formatCount(video.viewCount || 0)}</span>
+          <div className="grid grid-cols-3 gap-0.5">
+            {displayVideos.map((video) => (
+              <div 
+                key={video.id} 
+                className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
+                data-testid={`video-thumbnail-${video.id}`}
+              >
+                {video.thumbnailUrl ? (
+                  <img 
+                    src={video.thumbnailUrl} 
+                    alt={video.title} 
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                    <Video className="h-8 w-8 text-muted-foreground" />
                   </div>
+                )}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-[10px] font-bold drop-shadow-md">
+                  <PlaySquare className="h-3 w-3" />
+                  <span>{formatCount(video.viewCount || 0)}</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-              <Video className="h-10 w-10 mb-2 opacity-50" />
-              <p>まだ投稿がありません</p>
-              <p className="text-xs mt-1">クリエイター登録して動画を投稿しよう</p>
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </TabsContent>
         
         <TabsContent value="shop" className="mt-0">
