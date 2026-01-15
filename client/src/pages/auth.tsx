@@ -367,31 +367,6 @@ export default function Auth() {
                   </span>
                 </Link>
               </div>
-
-              {/* Divider */}
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">または</span>
-                </div>
-              </div>
-
-              {/* X Login */}
-              <a href="/api/login" className="block">
-                <Button 
-                  type="button"
-                  variant="outline"
-                  className="w-full h-12 rounded-full border-gray-300 font-bold"
-                  data-testid="button-x-login"
-                >
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                  Xでログイン
-                </Button>
-              </a>
             </form>
           )}
 
