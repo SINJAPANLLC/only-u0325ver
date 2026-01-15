@@ -59,14 +59,15 @@ const demoVideos = [
 export default function MyProfile() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const { data: profile, refetch: refetchProfile } = useQuery<UserProfile | null>({
     queryKey: ["/api/profile"],
   });
 
   const { data: creatorProfile, refetch: refetchCreator } = useQuery<CreatorProfile | null>({
-    queryKey: ["/api/creator-profiles", user?.claims?.sub],
-    enabled: !!user?.claims?.sub,
+    queryKey: ["/api/creator-profiles", user?.id],
+    enabled: !!user?.id,
   });
 
   const { data: myVideos } = useQuery<VideoType[]>({
@@ -91,7 +92,7 @@ export default function MyProfile() {
 
   const displayName = profile?.displayName || creatorProfile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = user?.email?.split("@")[0] || "user";
-  const avatarUrl = profile?.avatarUrl || creatorProfile?.avatarUrl || user?.profileImageUrl || demoAvatar;
+  const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = profile?.bio || creatorProfile?.bio || "Only-Uでプロフィールを編集してください";
   const websiteUrl = profile?.location || "";
 
@@ -99,8 +100,17 @@ export default function MyProfile() {
   const [editUsername, setEditUsername] = useState(username);
   const [editBio, setEditBio] = useState(bio);
   const [editUrl, setEditUrl] = useState(websiteUrl);
-  const [editAvatar, setEditAvatar] = useState(avatarUrl);
+  const [editAvatar, setEditAvatar] = useState(defaultAvatarUrl);
+  const [currentAvatar, setCurrentAvatar] = useState(defaultAvatarUrl);
   const [editOpen, setEditOpen] = useState(false);
+  
+  // Subscription plan editing
+  const [planEditOpen, setPlanEditOpen] = useState(false);
+  const [standardPlanPrice, setStandardPlanPrice] = useState("500");
+  const [standardPlanDesc, setStandardPlanDesc] = useState("すべての動画が見放題");
+  const [premiumPlanPrice, setPremiumPlanPrice] = useState("1500");
+  const [premiumPlanDesc, setPremiumPlanDesc] = useState("限定ライブ配信 & チャット優先返信");
+  const [premiumPlanEnabled, setPremiumPlanEnabled] = useState(false);
 
   // Sync state when profile data loads OR editOpen changes
   useEffect(() => {
@@ -108,9 +118,16 @@ export default function MyProfile() {
       setEditName(profile.displayName || "");
       setEditBio(profile.bio || "");
       setEditUrl(profile.location || "");
-      setEditAvatar(profile.avatarUrl || avatarUrl);
+      setEditAvatar(profile.avatarUrl || currentAvatar);
     }
-  }, [editOpen, profile, avatarUrl]);
+  }, [editOpen, profile, currentAvatar]);
+  
+  // Update currentAvatar when profile data loads
+  useEffect(() => {
+    if (profile?.avatarUrl) {
+      setCurrentAvatar(profile.avatarUrl);
+    }
+  }, [profile?.avatarUrl]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -120,8 +137,9 @@ export default function MyProfile() {
       return res.json();
     },
     onSuccess: () => {
+      setCurrentAvatar(editAvatar);
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.claims?.sub] });
+      queryClient.invalidateQueries({ queryKey: ["/api/creator-profiles", user?.id] });
       refetchProfile();
       refetchCreator();
       setEditOpen(false);
@@ -178,20 +196,15 @@ export default function MyProfile() {
       <div className="flex flex-col items-center px-4 pt-6">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className={`h-28 w-28 ring-4 ${isLive ? "ring-pink-500" : "ring-border/50"} shadow-xl overflow-hidden`}>
+          <Avatar className="h-28 w-28 ring-4 ring-pink-500 shadow-xl overflow-hidden">
             <AvatarImage 
-              src={avatarUrl} 
+              src={currentAvatar} 
               className="object-cover w-full h-full"
             />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-3xl font-bold">
               {displayName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          {isLive && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-pink-500 text-white text-[10px] font-bold shadow-lg ring-2 ring-background">
-              LIVE
-            </div>
-          )}
         </div>
 
         {/* Username and Edit Button */}
@@ -335,25 +348,100 @@ export default function MyProfile() {
             <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm">
               <div className="flex flex-col">
                 <span className="text-sm font-bold">スタンダードプラン</span>
-                <span className="text-[10px] text-muted-foreground">すべての動画が見放題</span>
+                <span className="text-[10px] text-muted-foreground">{standardPlanDesc}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-pink-500 font-bold text-sm">500pt / 月</span>
-                <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
-                  編集
-                </Button>
+                <span className="text-pink-500 font-bold text-sm">{standardPlanPrice}pt / 月</span>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
+                      編集
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[360px] rounded-2xl bg-white text-black">
+                    <DialogHeader>
+                      <DialogTitle>スタンダードプラン編集</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-black/70 text-xs">月額ポイント</Label>
+                        <Input 
+                          type="number"
+                          value={standardPlanPrice}
+                          onChange={(e) => setStandardPlanPrice(e.target.value)}
+                          className="bg-black/5 border-black/10 text-black"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-black/70 text-xs">プラン説明</Label>
+                        <Input 
+                          value={standardPlanDesc}
+                          onChange={(e) => setStandardPlanDesc(e.target.value)}
+                          className="bg-black/5 border-black/10 text-black"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+                        onClick={() => toast({ title: "プランを保存しました" })}
+                      >
+                        保存
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm opacity-60">
+            <div className={`flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm ${!premiumPlanEnabled ? 'opacity-60' : ''}`}>
               <div className="flex flex-col">
                 <span className="text-sm font-bold">プレミアムプラン</span>
-                <span className="text-[10px] text-muted-foreground">限定ライブ配信 & チャット優先返信</span>
+                <span className="text-[10px] text-muted-foreground">{premiumPlanDesc}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-pink-500 font-bold text-sm">1500pt / 月</span>
-                <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
-                  追加
-                </Button>
+                <span className="text-pink-500 font-bold text-sm">{premiumPlanPrice}pt / 月</span>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
+                      {premiumPlanEnabled ? "編集" : "追加"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[360px] rounded-2xl bg-white text-black">
+                    <DialogHeader>
+                      <DialogTitle>プレミアムプラン編集</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-black/70 text-xs">月額ポイント</Label>
+                        <Input 
+                          type="number"
+                          value={premiumPlanPrice}
+                          onChange={(e) => setPremiumPlanPrice(e.target.value)}
+                          className="bg-black/5 border-black/10 text-black"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-black/70 text-xs">プラン説明</Label>
+                        <Input 
+                          value={premiumPlanDesc}
+                          onChange={(e) => setPremiumPlanDesc(e.target.value)}
+                          className="bg-black/5 border-black/10 text-black"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+                        onClick={() => {
+                          setPremiumPlanEnabled(true);
+                          toast({ title: "プランを保存しました" });
+                        }}
+                      >
+                        {premiumPlanEnabled ? "保存" : "プランを有効化"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
