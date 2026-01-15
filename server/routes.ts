@@ -59,6 +59,39 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerEmailAuthRoutes(app);
 
+  // Search API - search creators and videos
+  app.get("/api/search", async (req, res) => {
+    try {
+      const query = (req.query.q as string || "").trim().toLowerCase();
+      if (!query) {
+        return res.json({ creators: [], videos: [] });
+      }
+
+      // Search creators by display name
+      const matchingCreators = await db
+        .select()
+        .from(creatorProfiles)
+        .where(sql`LOWER(${creatorProfiles.displayName}) LIKE ${'%' + query + '%'}`)
+        .limit(10);
+
+      // Search videos by title
+      const matchingVideos = await db
+        .select()
+        .from(videos)
+        .where(and(
+          eq(videos.isPublished, true),
+          sql`LOWER(${videos.title}) LIKE ${'%' + query + '%'}`
+        ))
+        .orderBy(desc(videos.createdAt))
+        .limit(10);
+
+      res.json({ creators: matchingCreators, videos: matchingVideos });
+    } catch (error) {
+      console.error("Error searching:", error);
+      res.status(500).json({ message: "検索に失敗しました" });
+    }
+  });
+
   app.get("/api/videos", async (req, res) => {
     try {
       const allVideos = await db
