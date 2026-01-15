@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Plus, Crown, Volume2, Lock } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Crown, Volume2, VolumeX, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +9,9 @@ import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -55,8 +58,10 @@ function VideoPage({
 }: VideoPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [likes, setLikes] = useState(likeCount);
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0], [0.5, 1]);
@@ -89,6 +94,53 @@ function VideoPage({
 
   const togglePause = () => {
     setIsPaused(!isPaused);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocation(`/creator/${creatorName}`);
+  };
+
+  const handleComment = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toast({
+      title: "コメント機能",
+      description: "コメント機能は準備中です",
+    });
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/creator/${creatorName}`;
+    const shareData = {
+      title: title,
+      text: `${displayName || creatorName}さんのコンテンツをチェック！`,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "リンクをコピーしました",
+          description: "クリップボードにコピーされました",
+        });
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "リンクをコピーしました",
+          description: "クリップボードにコピーされました",
+        });
+      }
+    }
   };
 
   return (
@@ -179,18 +231,22 @@ function VideoPage({
       {/* Right side actions */}
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
         {/* Creator avatar */}
-        <div className="relative mb-1">
+        <button
+          onClick={handleAvatarClick}
+          className="relative mb-1"
+          data-testid={`button-avatar-${id}`}
+        >
           <Avatar className="h-11 w-11 ring-2 ring-white shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-        </div>
+        </button>
 
         {/* Like */}
         <button
-          onClick={handleLike}
+          onClick={(e) => { e.stopPropagation(); handleLike(); }}
           className="flex flex-col items-center gap-1"
           data-testid={`button-like-${id}`}
         >
@@ -213,6 +269,7 @@ function VideoPage({
 
         {/* Comment */}
         <button
+          onClick={handleComment}
           className="flex flex-col items-center gap-1"
           data-testid={`button-comment-${id}`}
         >
@@ -224,6 +281,7 @@ function VideoPage({
 
         {/* Share */}
         <button
+          onClick={handleShare}
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
@@ -235,11 +293,18 @@ function VideoPage({
 
         {/* Volume */}
         <button
+          onClick={(e) => { e.stopPropagation(); toggleMute(); }}
           className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Volume2 className="h-4 w-4 text-white" />
+          <div className={`h-9 w-9 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
+            isMuted ? "bg-white/10" : "bg-white/20"
+          }`}>
+            {isMuted ? (
+              <VolumeX className="h-4 w-4 text-white" />
+            ) : (
+              <Volume2 className="h-4 w-4 text-white" />
+            )}
           </div>
         </button>
       </div>
