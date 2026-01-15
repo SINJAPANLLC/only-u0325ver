@@ -252,27 +252,19 @@ function AppContent() {
   return <AuthenticatedApp />;
 }
 
-function AppWrapper() {
-  return (
-    <>
-      {/* Mobile-only container - fixed to smartphone dimensions */}
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
-          <AppContent />
-        </div>
-      </div>
-      <Toaster />
-    </>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <I18nProvider>
           <TooltipProvider>
-            <AppWrapper />
+            {/* Mobile-only container - fixed to smartphone dimensions */}
+            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+              <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
+                <AppContent />
+              </div>
+            </div>
+            <Toaster />
           </TooltipProvider>
         </I18nProvider>
       </ThemeProvider>
