@@ -163,10 +163,6 @@ export default function Auth() {
         throw new Error(data.message || "ログインに失敗しました");
       }
 
-      toast({
-        title: "ログイン成功",
-      });
-      
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     } catch (error: any) {
