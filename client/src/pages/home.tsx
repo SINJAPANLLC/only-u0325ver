@@ -405,12 +405,12 @@ function VideoPage({
         data-testid={`progress-bar-${id}`}
       >
         <div
-          className="h-full bg-white transition-none"
+          className="h-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 transition-none"
           style={{ width: `${progress}%` }}
         />
         {/* Drag handle */}
         <div 
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-pink-500 rounded-full shadow-lg ring-2 ring-white"
           style={{ left: `calc(${progress}% - 6px)` }}
         />
       </div>
