@@ -1144,6 +1144,41 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { displayName, bio, avatarUrl, location, username } = req.body;
+
+      // Update userProfile
+      const [updatedProfile] = await db
+        .update(userProfiles)
+        .set({
+          displayName,
+          bio,
+          avatarUrl,
+          location,
+          updatedAt: new Date(),
+        })
+        .where(eq(userProfiles.userId, userId))
+        .returning();
+
+      // If user is a creator, update creatorProfile as well
+      await db
+        .update(creatorProfiles)
+        .set({
+          displayName,
+          bio,
+          updatedAt: new Date(),
+        })
+        .where(eq(creatorProfiles.userId, userId));
+
+      res.json(updatedProfile);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "プロフィール更新に失敗しました" });
+    }
+  });
+
   app.put("/api/profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
