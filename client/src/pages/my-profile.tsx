@@ -767,26 +767,61 @@ export default function MyProfile() {
       {/* Fullscreen content viewer */}
       {selectedContent && (
         <div 
-          className="fixed inset-0 z-[100] bg-black"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'black',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           onClick={() => setSelectedContent(null)}
         >
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 left-2 z-[110] h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
+          <button
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              zIndex: 10000,
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              color: 'white',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
             onClick={(e) => { e.stopPropagation(); setSelectedContent(null); }}
             data-testid="button-close-content"
           >
-            <X className="h-6 w-6" />
-          </Button>
+            <X style={{ width: '24px', height: '24px' }} />
+          </button>
           <div 
-            className="w-full h-full flex items-center justify-center"
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '60px 16px 16px 16px',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
-                className="w-full h-full object-contain"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
                 controls
                 autoPlay
                 playsInline
@@ -796,7 +831,11 @@ export default function MyProfile() {
               <img
                 src={selectedContent.thumbnailUrl}
                 alt=""
-                className="w-full h-full object-contain"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
                 data-testid="fullscreen-image"
               />
             )}
