@@ -1274,6 +1274,25 @@ export async function registerRoutes(
     }
   });
 
+  // Get user's point balance
+  app.get("/api/user/points", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [profile] = await db
+        .select({ points: userProfiles.points })
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+      
+      if (!profile) {
+        return res.json({ points: 0 });
+      }
+      res.json({ points: profile.points });
+    } catch (error) {
+      console.error("Error fetching user points:", error);
+      res.status(500).json({ message: "Failed to fetch points" });
+    }
+  });
+
   // User Profile endpoints
   app.get("/api/profile", isAuthenticated, async (req: any, res) => {
     try {

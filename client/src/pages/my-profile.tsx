@@ -137,6 +137,35 @@ export default function MyProfile() {
   const [newVideoTier, setNewVideoTier] = useState("0");
   const [newVideoIsVertical, setNewVideoIsVertical] = useState(true);
   
+  // Product purchase
+  const [selectedProduct, setSelectedProduct] = useState<typeof demoProducts[0] | null>(null);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
+  
+  // Get user's point balance
+  const { data: userData } = useQuery<{ points: number }>({
+    queryKey: ["/api/user/points"],
+    enabled: !!user,
+  });
+  
+  const userPoints = userData?.points ?? 0;
+  
+  const purchaseMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const res = await apiRequest("POST", `/api/products/${productId}/purchase`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/points"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+      setProductDetailOpen(false);
+      setSelectedProduct(null);
+      toast({ title: "購入完了", description: "商品を購入しました！" });
+    },
+    onError: (error: any) => {
+      toast({ title: "購入エラー", description: error.message || "購入に失敗しました", variant: "destructive" });
+    },
+  });
+  
   const createPlanMutation = useMutation({
     mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
       const res = await apiRequest("POST", "/api/subscription-plans", data);
@@ -665,7 +694,11 @@ export default function MyProfile() {
               <div 
                 key={product.id} 
                 className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
-                onClick={() => setLocation("/shop")}
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setProductDetailOpen(true);
+                }}
+                data-testid={`product-card-${product.id}`}
               >
                 <img 
                   src={product.imageUrl} 
@@ -986,6 +1019,74 @@ export default function MyProfile() {
       )}
       
       <div className="h-24" />
+      
+      {/* Product Detail Modal */}
+      <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
+        <DialogContent className="sm:max-w-md">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProduct.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="aspect-square relative rounded-lg overflow-hidden">
+                  <img 
+                    src={selectedProduct.imageUrl} 
+                    alt={selectedProduct.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs font-bold text-white">
+                      {selectedProduct.productType === "digital" ? "デジタル" : "物販"}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
+                    <p className="text-sm text-muted-foreground">所持ポイント: {userPoints.toLocaleString()}pt</p>
+                  </div>
+                  {userPoints < selectedProduct.price && (
+                    <p className="text-sm text-red-500">ポイントが不足しています</p>
+                  )}
+                </div>
+                
+                <DialogFooter className="flex-col gap-2 sm:flex-col">
+                  <Button
+                    className="w-full bg-pink-500 hover:bg-pink-600"
+                    disabled={userPoints < selectedProduct.price || purchaseMutation.isPending}
+                    onClick={() => purchaseMutation.mutate(selectedProduct.id)}
+                    data-testid="button-purchase"
+                  >
+                    {purchaseMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        購入中...
+                      </>
+                    ) : (
+                      `${selectedProduct.price.toLocaleString()}pt で購入`
+                    )}
+                  </Button>
+                  {userPoints < selectedProduct.price && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setProductDetailOpen(false);
+                        setLocation("/points-purchase");
+                      }}
+                      data-testid="button-buy-points"
+                    >
+                      ポイントを購入する
+                    </Button>
+                  )}
+                </DialogFooter>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
