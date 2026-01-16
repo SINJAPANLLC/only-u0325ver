@@ -203,7 +203,7 @@ function LiveStreamPage({
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
       <div className="absolute top-24 left-4 right-4 z-20">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-1">
           <div className={`flex items-center gap-1 text-[10px] font-bold ${
             currentMode === "party" ? "text-pink-400" : currentMode === "twoshot" ? "text-purple-400" : "text-white"
           }`}>
