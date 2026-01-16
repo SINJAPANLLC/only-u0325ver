@@ -660,11 +660,11 @@ export default function MyProfile() {
         </TabsContent>
         
         <TabsContent value="shop" className="mt-0">
-          <div className="grid grid-cols-3 gap-0.5">
+          <div className="grid grid-cols-2 gap-0.5">
             {demoProducts.map((product) => (
               <div 
                 key={product.id} 
-                className="aspect-square relative overflow-hidden group cursor-pointer"
+                className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
                 onClick={() => setLocation("/shop")}
               >
                 <img 
@@ -672,15 +672,15 @@ export default function MyProfile() {
                   alt={product.name} 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-1 right-1">
-                  <span className="px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[9px] font-bold text-white">
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-2 right-2">
+                  <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
                     {product.productType === "digital" ? "デジタル" : "物販"}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-white font-bold text-xs truncate">{product.name}</p>
-                  <p className="text-pink-400 font-bold text-[10px]">{product.price.toLocaleString()}pt</p>
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                  <p className="text-white font-bold text-sm truncate">{product.name}</p>
+                  <p className="text-pink-400 font-bold text-xs">{product.price.toLocaleString()}pt</p>
                 </div>
               </div>
             ))}
