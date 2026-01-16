@@ -758,20 +758,20 @@ export default function CreatorProfile() {
 
       {selectedVideo && (
         <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-          <DialogContent className="sm:max-w-[100vw] max-w-[100vw] h-[100vh] p-0 bg-black border-none rounded-none">
+          <DialogContent className="fixed inset-0 w-screen h-screen max-w-none p-0 bg-black border-none rounded-none m-0 translate-x-0 translate-y-0 top-0 left-0">
             <DialogHeader className="sr-only">
               <DialogTitle>Video Player</DialogTitle>
             </DialogHeader>
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
-                onClick={() => setSelectedVideo(null)}
-                data-testid="button-close-video"
-              >
-                <X className="h-6 w-6" />
-              </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white"
+              onClick={() => setSelectedVideo(null)}
+              data-testid="button-close-video"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <div className="w-full h-full flex items-center justify-center">
               {selectedVideo.videoUrl ? (
                 <video
                   src={selectedVideo.videoUrl}
