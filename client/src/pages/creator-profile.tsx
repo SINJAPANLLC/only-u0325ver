@@ -647,8 +647,38 @@ export default function CreatorProfile() {
           </TabsContent>
           
           <TabsContent value="liked" className="mt-0">
-            <div className="flex items-center justify-center h-40 text-muted-foreground">
-              いいねした動画はここに表示されます
+            <div className="grid grid-cols-2 gap-0.5">
+              {[
+                { id: "liked1", thumbnail: img2, views: 456000, likes: 38200, creatorName: "ゆあ" },
+                { id: "liked2", thumbnail: img3, views: 198000, likes: 16700, creatorName: "みお" },
+                { id: "liked3", thumbnail: img1, views: 285000, likes: 24800, creatorName: "りさ" },
+              ].map((video) => (
+                <div 
+                  key={video.id}
+                  className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                  data-testid={`liked-video-${video.id}`}
+                >
+                  <img 
+                    src={video.thumbnail} 
+                    alt="いいねした動画"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p className="text-white text-xs mb-1">{video.creatorName}</p>
+                    <div className="flex items-center gap-3 text-white/90 text-[10px]">
+                      <span className="flex items-center gap-1">
+                        <PlaySquare className="h-3 w-3" />
+                        {video.views >= 10000 ? `${(video.views / 10000).toFixed(1)}万` : video.views.toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3 fill-current text-pink-400" />
+                        {video.likes >= 10000 ? `${(video.likes / 10000).toFixed(1)}万` : video.likes.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
           
