@@ -39,52 +39,52 @@ const demoCreatorData: Record<string, {
 }> = {
   "Risa": {
     name: "Risa",
-    displayName: "りさ💋",
+    displayName: "りさ",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
     cover: img1,
-    bio: "大人の魅力をお届け💕\n毎晩22時から配信中🌙\nリクエストお待ちしてます✨",
+    bio: "大人の魅力をお届け\n毎晩22時から配信中\nリクエストお待ちしてます",
     followers: 125400,
     following: 48,
     likes: 2850000,
     posts: 342,
     isVerified: true,
     videos: [
-      { id: "v1", thumbnail: img1, views: 285000, likes: 24800 },
-      { id: "v2", thumbnail: img2, views: 156000, likes: 18200 },
-      { id: "v3", thumbnail: img3, views: 98000, likes: 12400 },
-      { id: "v4", thumbnail: img4, views: 76000, likes: 8900 },
+      { id: "v1", thumbnail: img1, views: 285000, likes: 24800, requiredTier: 0 },
+      { id: "v2", thumbnail: img2, views: 156000, likes: 18200, requiredTier: 1 },
+      { id: "v3", thumbnail: img3, views: 98000, likes: 12400, requiredTier: 2 },
+      { id: "v4", thumbnail: img4, views: 76000, likes: 8900, requiredTier: 3 },
     ]
   },
   "Yua": {
     name: "Yua",
-    displayName: "ゆあ🖤",
+    displayName: "ゆあ",
     avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=face",
     cover: img2,
-    bio: "VIP限定コンテンツ多数💎\nベッドルームからお届け🛏️\nDM返信率100%💌",
+    bio: "VIP限定コンテンツ多数\nベッドルームからお届け\nDM返信率100%",
     followers: 89200,
     following: 32,
     likes: 1920000,
     posts: 256,
     isVerified: true,
     videos: [
-      { id: "v1", thumbnail: img2, views: 456000, likes: 38200 },
-      { id: "v2", thumbnail: img1, views: 234000, likes: 21500 },
+      { id: "v1", thumbnail: img2, views: 456000, likes: 38200, requiredTier: 0 },
+      { id: "v2", thumbnail: img1, views: 234000, likes: 21500, requiredTier: 2 },
     ]
   },
   "Mio": {
     name: "Mio",
-    displayName: "みお🛁",
+    displayName: "みお",
     avatar: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=200&h=200&fit=crop&crop=face",
     cover: img3,
-    bio: "お風呂配信専門🧼\nギリギリを攻めます💦\n毎週金曜深夜スペシャル🔥",
+    bio: "お風呂配信専門\nギリギリを攻めます\n毎週金曜深夜スペシャル",
     followers: 67800,
     following: 21,
     likes: 1340000,
     posts: 189,
     isVerified: true,
     videos: [
-      { id: "v1", thumbnail: img3, views: 198000, likes: 16700 },
-      { id: "v2", thumbnail: img4, views: 145000, likes: 12100 },
+      { id: "v1", thumbnail: img3, views: 198000, likes: 16700, requiredTier: 0 },
+      { id: "v2", thumbnail: img4, views: 145000, likes: 12100, requiredTier: 1 },
     ]
   }
 };
@@ -94,14 +94,15 @@ const defaultDemoCreator = {
   displayName: "クリエイター",
   avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
   cover: img1,
-  bio: "Only-Uクリエイター💕",
+  bio: "Only-Uクリエイター",
   followers: 10000,
   following: 50,
   likes: 100000,
   posts: 50,
   isVerified: false,
   videos: [
-    { id: "v1", thumbnail: img1, views: 10000, likes: 1000 },
+    { id: "v1", thumbnail: img1, views: 10000, likes: 1000, requiredTier: 0 },
+    { id: "v2", thumbnail: img2, views: 8000, likes: 800, requiredTier: 1 },
   ]
 };
 
@@ -596,29 +597,35 @@ export default function CreatorProfile() {
 
       {selectedVideo && (
         <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-          <DialogContent className="max-w-full h-full p-0 bg-black border-none">
+          <DialogContent className="sm:max-w-[100vw] max-w-[100vw] h-[100vh] p-0 bg-black border-none rounded-none">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Video Player</DialogTitle>
+            </DialogHeader>
             <div className="relative w-full h-full flex items-center justify-center">
               <Button
                 size="icon"
                 variant="ghost"
                 className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
                 onClick={() => setSelectedVideo(null)}
+                data-testid="button-close-video"
               >
                 <X className="h-6 w-6" />
               </Button>
               {selectedVideo.videoUrl ? (
                 <video
                   src={selectedVideo.videoUrl}
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full object-contain"
                   controls
                   autoPlay
                   playsInline
+                  data-testid="video-player"
                 />
               ) : (
                 <img
                   src={selectedVideo.thumbnail}
                   alt=""
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full object-contain"
+                  data-testid="image-viewer"
                 />
               )}
             </div>
