@@ -39,7 +39,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
-import ReactDOM from "react-dom";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -968,68 +967,27 @@ export default function MyProfile() {
       </Dialog>
 
       {/* Fullscreen content viewer */}
-      {selectedContent && ReactDOM.createPortal(
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'black',
-            zIndex: 99999,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div style={{
-            position: 'absolute',
-            top: '12px',
-            left: '12px',
-            zIndex: 100000,
-          }}>
-            <button
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
+      {selectedContent && (
+        <div className="fixed inset-0 z-[99999] bg-black flex flex-col">
+          <div className="absolute top-3 left-3 z-[100000]">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-11 w-11 rounded-full bg-white/20 text-white"
               onClick={() => setSelectedContent(null)}
               data-testid="button-close-content"
             >
-              <X style={{ width: '24px', height: '24px' }} />
-            </button>
+              <X className="h-6 w-6" />
+            </Button>
           </div>
-          <div 
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <div className="w-full h-full flex items-center justify-center">
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
-                style={selectedContent.isVertical ? {
-                  height: '100%',
-                  width: 'auto',
-                  maxWidth: '100%',
-                } : {
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '100%',
-                }}
+                className={selectedContent.isVertical 
+                  ? "h-full w-auto max-w-full object-contain"
+                  : "w-full h-auto max-h-full object-contain"
+                }
                 controls
                 autoPlay
                 playsInline
@@ -1039,21 +997,15 @@ export default function MyProfile() {
               <img
                 src={selectedContent.thumbnailUrl}
                 alt=""
-                style={selectedContent.isVertical ? {
-                  height: '100%',
-                  width: 'auto',
-                  maxWidth: '100%',
-                } : {
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '100%',
-                }}
+                className={selectedContent.isVertical 
+                  ? "h-full w-auto max-w-full object-contain"
+                  : "w-full h-auto max-h-full object-contain"
+                }
                 data-testid="fullscreen-image"
               />
             )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
       
       <div className="h-24" />
