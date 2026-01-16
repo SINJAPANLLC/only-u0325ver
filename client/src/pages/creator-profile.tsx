@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,7 +35,7 @@ const demoCreatorData: Record<string, {
   likes: number;
   posts: number;
   isVerified: boolean;
-  videos: { id: string; thumbnail: string; views: number; likes: number }[];
+  videos: { id: string; thumbnail: string; videoUrl?: string; views: number; likes: number; requiredTier?: number }[];
 }> = {
   "Risa": {
     name: "Risa",
@@ -114,6 +114,7 @@ export default function CreatorProfile() {
   const { toast } = useToast();
   const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ id: string; videoUrl: string; thumbnail: string } | null>(null);
   
   const creatorId = params?.username || "";
   const isRealCreator = creatorId && !demoCreatorData[creatorId];
@@ -222,8 +223,10 @@ export default function CreatorProfile() {
     videos: (creatorVideos || []).map((v, i) => ({
       id: v.id,
       thumbnail: v.thumbnailUrl || demoCreator.videos[i % demoCreator.videos.length]?.thumbnail || img1,
+      videoUrl: v.videoUrl || "",
       views: v.viewCount || 0,
       likes: v.likeCount || 0,
+      requiredTier: v.requiredTier || 0,
     }))
   } : demoCreator;
   
@@ -289,6 +292,21 @@ export default function CreatorProfile() {
   const getSubscriptionPrice = () => {
     const plan = getSelectedPlan();
     return plan?.price || DEFAULT_SUBSCRIPTION_PRICE;
+  };
+
+  const userTier = subscriptionStatus?.subscription?.tier || 0;
+  
+  const hasAccessToVideo = (requiredTier: number) => {
+    if (requiredTier === 0) return true;
+    return userTier >= requiredTier;
+  };
+
+  const handleVideoClick = (video: { id: string; videoUrl: string; thumbnail: string; requiredTier: number }) => {
+    if (!hasAccessToVideo(video.requiredTier)) {
+      setShowSubscribeDialog(true);
+      return;
+    }
+    setSelectedVideo({ id: video.id, videoUrl: video.videoUrl, thumbnail: video.thumbnail });
   };
   
   return (
@@ -530,23 +548,35 @@ export default function CreatorProfile() {
           
           <TabsContent value="videos" className="mt-0">
             <div className="grid grid-cols-3 gap-0.5">
-              {creator.videos.map((video) => (
-                <div 
-                  key={video.id} 
-                  className="aspect-[9/16] relative bg-muted"
-                  data-testid={`video-thumbnail-${video.id}`}
-                >
-                  <img 
-                    src={video.thumbnail} 
-                    alt="" 
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs">
-                    <PlaySquare className="h-3 w-3" />
-                    <span>{formatCount(video.views)}</span>
+              {creator.videos.map((video) => {
+                const canAccess = hasAccessToVideo(video.requiredTier || 0);
+                return (
+                  <div 
+                    key={video.id} 
+                    className="aspect-[9/16] relative bg-muted cursor-pointer"
+                    onClick={() => handleVideoClick({ id: video.id, videoUrl: video.videoUrl || "", thumbnail: video.thumbnail, requiredTier: video.requiredTier || 0 })}
+                    data-testid={`video-thumbnail-${video.id}`}
+                  >
+                    <img 
+                      src={video.thumbnail} 
+                      alt="" 
+                      className={`absolute inset-0 w-full h-full object-cover ${!canAccess ? 'blur-lg' : ''}`}
+                    />
+                    {!canAccess && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <div className="flex flex-col items-center text-white">
+                          <Lock className="h-6 w-6 mb-1" />
+                          <span className="text-xs">Tier {video.requiredTier}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-xs">
+                      <Heart className="h-3 w-3" />
+                      <span>{formatCount(video.likes)}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </TabsContent>
           
@@ -563,6 +593,38 @@ export default function CreatorProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {selectedVideo && (
+        <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
+          <DialogContent className="max-w-full h-full p-0 bg-black border-none">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
+                onClick={() => setSelectedVideo(null)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+              {selectedVideo.videoUrl ? (
+                <video
+                  src={selectedVideo.videoUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  autoPlay
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={selectedVideo.thumbnail}
+                  alt=""
+                  className="w-full h-full object-contain"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       
       <div className="h-24" />
     </motion.div>

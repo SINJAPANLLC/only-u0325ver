@@ -592,8 +592,8 @@ export default function MyProfile() {
                 )}
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-[10px] font-bold drop-shadow-md">
-                  <PlaySquare className="h-3 w-3" />
-                  <span>{formatCount(video.viewCount || 0)}</span>
+                  <Heart className="h-3 w-3" />
+                  <span>{formatCount(video.likeCount || 0)}</span>
                 </div>
               </div>
             ))}
