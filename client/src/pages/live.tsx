@@ -72,6 +72,7 @@ function LiveStreamPage({
   const [sessionTime, setSessionTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [comment, setComment] = useState("");
+  const [flowingComments, setFlowingComments] = useState<{id: number; text: string; username: string}[]>([]);
 
   useEffect(() => {
     if (currentMode !== "waiting" && isActive) {
@@ -160,6 +161,23 @@ function LiveStreamPage({
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);
+  };
+
+  const handleSendComment = () => {
+    if (!comment.trim()) return;
+    
+    const newComment = {
+      id: Date.now(),
+      text: comment,
+      username: "あなた",
+    };
+    
+    setFlowingComments(prev => [...prev, newComment]);
+    setComment("");
+    
+    setTimeout(() => {
+      setFlowingComments(prev => prev.filter(c => c.id !== newComment.id));
+    }, 5000);
   };
 
   return (
@@ -358,24 +376,47 @@ function LiveStreamPage({
       </div>
 
       {currentMode !== "waiting" && (
-        <div className="absolute left-4 right-24 bottom-24 z-20">
-          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-            <Input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="コメントを入力..."
-              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
-              data-testid="input-comment"
-            />
-            <Button
-              size="icon"
-              className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
-              data-testid="button-send-comment"
-            >
-              <Send className="h-3 w-3 text-white" />
-            </Button>
+        <>
+          <div className="absolute left-4 right-4 bottom-44 z-20 pointer-events-none">
+            <div className="space-y-2">
+              {flowingComments.map((c) => (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, x: -20, y: 20 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={{ opacity: 0, y: -50 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-sm">
+                    <span className="text-pink-400 font-medium mr-1">{c.username}</span>
+                    {c.text}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+          <div className="absolute left-4 right-16 bottom-24 z-20">
+            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5">
+              <Input
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
+                placeholder="コメントを入力..."
+                className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-sm h-7 focus-visible:ring-0"
+                data-testid="input-comment"
+              />
+              <Button
+                size="icon"
+                onClick={handleSendComment}
+                className="h-7 w-7 rounded-full bg-pink-500 hover:bg-pink-600"
+                data-testid="button-send-comment"
+              >
+                <Send className="h-3.5 w-3.5 text-white" />
+              </Button>
+            </div>
+          </div>
+        </>
       )}
 
     </motion.div>
