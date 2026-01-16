@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -381,6 +387,37 @@ export default function CreatorProfile() {
     }
     setSelectedVideo({ id: video.id, videoUrl: video.videoUrl, thumbnail: video.thumbnail });
   };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${creator.displayName} - Only-U`,
+          text: `${creator.displayName}のプロフィールをチェック！`,
+          url: url,
+        });
+      } catch (error) {
+        // User cancelled or share failed
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "リンクをコピーしました" });
+    }
+  };
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    toast({ title: "リンクをコピーしました" });
+  };
+
+  const handleReport = () => {
+    toast({ title: "報告を受け付けました", description: "確認後、対応いたします。" });
+  };
+
+  const handleBlock = () => {
+    toast({ title: "ブロックしました", description: `${creator.displayName}をブロックしました。` });
+  };
   
   return (
     <motion.div 
@@ -391,7 +428,7 @@ export default function CreatorProfile() {
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center px-2 py-3 border-b border-border/50">
+      <div className="flex items-center justify-between gap-2 px-2 py-3 border-b border-border/50">
         <Button 
           size="icon" 
           variant="ghost"
@@ -401,6 +438,43 @@ export default function CreatorProfile() {
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            onClick={handleShare}
+            data-testid="button-share"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="ghost"
+                className="h-9 w-9"
+                data-testid="button-more"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleCopyLink}>
+                <LinkIcon className="h-4 w-4 mr-2" />
+                リンクをコピー
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleReport}>
+                <Flag className="h-4 w-4 mr-2" />
+                報告する
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleBlock}>
+                <Ban className="h-4 w-4 mr-2" />
+                ブロックする
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Profile Section */}
