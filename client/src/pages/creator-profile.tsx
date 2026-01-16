@@ -391,7 +391,7 @@ export default function CreatorProfile() {
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-2 py-3 border-b border-border/50">
+      <div className="flex items-center px-2 py-3 border-b border-border/50">
         <Button 
           size="icon" 
           variant="ghost"
@@ -401,24 +401,6 @@ export default function CreatorProfile() {
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <div className="flex items-center gap-2">
-          <Button 
-            size="icon" 
-            variant="ghost"
-            className="h-9 w-9"
-            data-testid="button-share"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-          <Button 
-            size="icon" 
-            variant="ghost"
-            className="h-9 w-9"
-            data-testid="button-more"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       {/* Profile Section */}
