@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock } from "lucide-react";
+import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
@@ -70,6 +71,7 @@ function LiveStreamPage({
   const [pendingMode, setPendingMode] = useState<RoomMode | null>(null);
   const [sessionTime, setSessionTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (currentMode !== "waiting" && isActive) {
@@ -355,6 +357,26 @@ function LiveStreamPage({
 
       </div>
 
+      {currentMode !== "waiting" && (
+        <div className="absolute left-4 right-24 bottom-24 z-20">
+          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
+            <Input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="コメントを入力..."
+              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
+              data-testid="input-comment"
+            />
+            <Button
+              size="icon"
+              className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
+              data-testid="button-send-comment"
+            >
+              <Send className="h-3 w-3 text-white" />
+            </Button>
+          </div>
+        </div>
+      )}
 
     </motion.div>
   );
