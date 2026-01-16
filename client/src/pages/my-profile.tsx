@@ -53,12 +53,12 @@ const demoProducts = [
 ];
 
 const demoVideos = [
-  { id: "v1", thumbnailUrl: img1, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 28500, likeCount: 1250, title: "深夜の密会" },
-  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", viewCount: 15600, likeCount: 890, title: "バスタイム" },
-  { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "シャワーの誘惑" },
-  { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "ベッドルーム" },
-  { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "秘密の時間" },
-  { id: "v6", thumbnailUrl: img3, viewCount: 2100, likeCount: 98, title: "プライベート" },
+  { id: "v1", thumbnailUrl: img1, videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-woman-dancing-happily-at-home-8736-large.mp4", viewCount: 28500, likeCount: 1250, title: "縦型動画サンプル" },
+  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "横型動画サンプル" },
+  { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "画像のみ" },
+  { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "画像のみ2" },
+  { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "画像のみ3" },
+  { id: "v6", thumbnailUrl: img3, viewCount: 2100, likeCount: 98, title: "画像のみ4" },
 ];
 
 export default function MyProfile() {
@@ -767,23 +767,27 @@ export default function MyProfile() {
       {/* Fullscreen content viewer */}
       {selectedContent && (
         <div 
-          className="fixed top-0 left-0 right-0 bottom-0 z-[100] bg-black"
-          style={{ width: '100vw', height: '100vh' }}
+          className="fixed inset-0 z-[100] bg-black"
+          onClick={() => setSelectedContent(null)}
         >
           <Button
             size="icon"
             variant="ghost"
-            className="absolute top-4 right-4 z-[110] h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/40"
-            onClick={() => setSelectedContent(null)}
+            className="absolute top-2 left-2 z-[110] h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/40"
+            onClick={(e) => { e.stopPropagation(); setSelectedContent(null); }}
             data-testid="button-close-content"
           >
             <X className="h-6 w-6" />
           </Button>
-          <div className="w-full h-full flex items-center justify-center p-4">
+          <div 
+            className="w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-full"
+                style={{ objectFit: 'contain' }}
                 controls
                 autoPlay
                 playsInline
@@ -793,7 +797,8 @@ export default function MyProfile() {
               <img
                 src={selectedContent.thumbnailUrl}
                 alt=""
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-full"
+                style={{ objectFit: 'contain' }}
                 data-testid="fullscreen-image"
               />
             )}
