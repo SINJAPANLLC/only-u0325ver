@@ -124,7 +124,7 @@ export default function MyProfile() {
   const [isNewPlan, setIsNewPlan] = useState(true);
   
   // Fullscreen video/image viewer
-  const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; title?: string } | null>(null);
+  const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; videoUrl?: string; title?: string } | null>(null);
   
   const createPlanMutation = useMutation({
     mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
@@ -580,7 +580,7 @@ export default function MyProfile() {
               <div 
                 key={video.id} 
                 className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
-                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", title: video.title })}
+                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title })}
                 data-testid={`video-thumbnail-${video.id}`}
               >
                 {video.thumbnailUrl ? (
@@ -766,37 +766,39 @@ export default function MyProfile() {
 
       {/* Fullscreen content viewer */}
       {selectedContent && (
-        <Dialog open={!!selectedContent} onOpenChange={() => setSelectedContent(null)}>
-          <DialogContent className="sm:max-w-[100vw] max-w-[100vw] h-[100vh] p-0 bg-black border-none rounded-none">
-            <DialogHeader className="sr-only">
-              <DialogTitle>{selectedContent.title || "コンテンツビューア"}</DialogTitle>
-            </DialogHeader>
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
-                onClick={() => setSelectedContent(null)}
-                data-testid="button-close-content"
-              >
-                <X className="h-6 w-6" />
-              </Button>
-              <img
-                src={selectedContent.thumbnailUrl}
-                alt={selectedContent.title || ""}
-                className="max-w-full max-h-full object-contain"
-                data-testid="fullscreen-image"
-              />
-              {selectedContent.title && (
-                <div className="absolute bottom-8 left-0 right-0 text-center">
-                  <span className="text-white text-lg font-bold bg-black/50 px-4 py-2 rounded-full">
-                    {selectedContent.title}
-                  </span>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div 
+          className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+          onClick={() => setSelectedContent(null)}
+        >
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute top-4 right-4 z-[110] h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
+            onClick={() => setSelectedContent(null)}
+            data-testid="button-close-content"
+          >
+            <X className="h-6 w-6" />
+          </Button>
+          {selectedContent.videoUrl ? (
+            <video
+              src={selectedContent.videoUrl}
+              className="max-w-full max-h-full object-contain"
+              controls
+              autoPlay
+              playsInline
+              onClick={(e) => e.stopPropagation()}
+              data-testid="fullscreen-video"
+            />
+          ) : (
+            <img
+              src={selectedContent.thumbnailUrl}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+              data-testid="fullscreen-image"
+            />
+          )}
+        </div>
       )}
       
       <div className="h-24" />
