@@ -182,10 +182,10 @@ function LiveStreamPage({
           )}
           <button
             onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-            className={`flex items-center gap-1 text-[10px] font-medium ${
+            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
               currentMode === "party" 
-                ? "text-pink-400" 
-                : "text-white"
+                ? "bg-pink-500 text-white" 
+                : "bg-white text-black"
             }`}
             data-testid="button-party-mode"
           >
@@ -194,10 +194,10 @@ function LiveStreamPage({
           </button>
           <button
             onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-            className={`flex items-center gap-1 text-[10px] font-medium ${
+            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
               currentMode === "twoshot" 
-                ? "text-purple-400" 
-                : "text-white"
+                ? "bg-purple-500 text-white" 
+                : "bg-white text-black"
             }`}
             data-testid="button-twoshot-mode"
           >
@@ -260,20 +260,13 @@ function LiveStreamPage({
       </Dialog>
 
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
-        <div className="relative mb-1">
+        <div className="mb-1">
           <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <Button
-            size="icon"
-            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 hover:bg-pink-600 border-0 shadow-lg"
-            data-testid={`button-follow-${id}`}
-          >
-            <Plus className="h-3 w-3 text-white" />
-          </Button>
         </div>
 
         <button
@@ -344,24 +337,26 @@ function LiveStreamPage({
 
       </div>
 
-      <div className="absolute left-4 right-24 bottom-24 z-20">
-        <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-          <Input
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="コメントを入力..."
-            className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
-            data-testid="input-comment"
-          />
-          <Button
-            size="icon"
-            className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
-            data-testid="button-send-comment"
-          >
-            <Send className="h-3 w-3 text-white" />
-          </Button>
+      {currentMode !== "waiting" && (
+        <div className="absolute left-4 right-24 bottom-24 z-20">
+          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
+            <Input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="コメントを入力..."
+              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
+              data-testid="input-comment"
+            />
+            <Button
+              size="icon"
+              className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
+              data-testid="button-send-comment"
+            >
+              <Send className="h-3 w-3 text-white" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
     </motion.div>
   );
