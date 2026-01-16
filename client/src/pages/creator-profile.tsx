@@ -647,7 +647,7 @@ export default function CreatorProfile() {
           </TabsContent>
           
           <TabsContent value="liked" className="mt-0">
-            <div className="grid grid-cols-2 gap-0.5">
+            <div className="grid grid-cols-3 gap-0.5">
               {[
                 { id: "liked1", thumbnail: img2, views: 456000, likes: 38200, creatorName: "ゆあ" },
                 { id: "liked2", thumbnail: img3, views: 198000, likes: 16700, creatorName: "みお" },
@@ -656,6 +656,7 @@ export default function CreatorProfile() {
                 <div 
                   key={video.id}
                   className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                  onClick={() => setSelectedVideo({ id: video.id, videoUrl: "", thumbnail: video.thumbnail })}
                   data-testid={`liked-video-${video.id}`}
                 >
                   <img 

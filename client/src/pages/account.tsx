@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { 
   User, Settings, CreditCard, ShoppingBag, Heart, Bell, 
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
-  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye, Phone, Mail
+  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye, Phone, Mail, Crown, Loader2, Trash2
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,8 +23,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import type { UserProfile, CreatorApplication } from "@shared/schema";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { UserProfile, CreatorApplication, Subscription } from "@shared/schema";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 
@@ -74,6 +86,8 @@ export default function Account() {
   const [, setLocation] = useLocation();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
+  const [isSubscriptionsDialogOpen, setIsSubscriptionsDialogOpen] = useState(false);
+  const [subscriptionToCancel, setSubscriptionToCancel] = useState<Subscription | null>(null);
   
   const [profileForm, setProfileForm] = useState({
     displayName: "",
@@ -93,6 +107,25 @@ export default function Account() {
 
   const { data: creatorApplication } = useQuery<CreatorApplication | null>({
     queryKey: ["/api/creator-applications/me"],
+  });
+
+  const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useQuery<Subscription[]>({
+    queryKey: ["/api/subscriptions"],
+    enabled: !!user,
+  });
+
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (creatorId: string) => {
+      await apiRequest("DELETE", `/api/subscription/${creatorId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      setSubscriptionToCancel(null);
+      toast({ title: "サブスクリプションを解約しました" });
+    },
+    onError: () => {
+      toast({ title: "解約に失敗しました", variant: "destructive" });
+    },
   });
 
   const updateProfileMutation = useMutation({
@@ -140,7 +173,7 @@ export default function Account() {
   const userMenuItems: MenuItemProps[] = [
     { icon: User, label: "プロフィール", description: "自分のプロフィールを見る", onClick: () => setLocation("/my-profile") },
     { icon: Eye, label: "高画質プラン", description: "高画質で視聴" },
-    { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理" },
+    { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理", badge: userSubscriptions && userSubscriptions.length > 0 ? `${userSubscriptions.length}件` : undefined, onClick: () => setIsSubscriptionsDialogOpen(true) },
     { icon: CreditCard, label: "お支払い方法", description: "カードを管理" },
     { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認" },
   ];
@@ -323,6 +356,98 @@ export default function Account() {
         </Button>
 
       </div>
+
+      <Dialog open={isSubscriptionsDialogOpen} onOpenChange={setIsSubscriptionsDialogOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>加入中のプラン</DialogTitle>
+            <DialogDescription>
+              現在加入中のサブスクリプションを管理できます
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {isLoadingSubscriptions ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : userSubscriptions && userSubscriptions.length > 0 ? (
+              userSubscriptions.map((subscription) => (
+                <div 
+                  key={subscription.id} 
+                  className="flex items-center justify-between p-4 rounded-lg bg-muted"
+                  data-testid={`subscription-item-${subscription.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
+                      <Crown className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium">@{subscription.creatorId}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>Tier {subscription.tier}</span>
+                        <span>•</span>
+                        <span>
+                          {subscription.expiresAt 
+                            ? `有効期限: ${new Date(subscription.expiresAt).toLocaleDateString("ja-JP")}`
+                            : "アクティブ"
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => setSubscriptionToCancel(subscription)}
+                    data-testid={`button-cancel-subscription-${subscription.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Crown className="h-12 w-12 text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">加入中のプランはありません</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  クリエイターのプロフィールから登録できます
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!subscriptionToCancel} onOpenChange={(open) => !open && setSubscriptionToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>サブスクリプションを解約しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              @{subscriptionToCancel?.creatorId} のサブスクリプションを解約します。
+              解約すると、プレミアムコンテンツにアクセスできなくなります。
+              残りの期間分のポイントは返金されません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-dialog">キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground"
+              onClick={() => {
+                if (subscriptionToCancel) {
+                  cancelSubscriptionMutation.mutate(subscriptionToCancel.creatorId);
+                }
+              }}
+              disabled={cancelSubscriptionMutation.isPending}
+              data-testid="button-confirm-cancel-subscription"
+            >
+              {cancelSubscriptionMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              解約する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
