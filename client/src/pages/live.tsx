@@ -203,7 +203,7 @@ function LiveStreamPage({
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
       <div className="absolute top-24 left-4 right-4 z-20">
-        <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center justify-between gap-2">
           <div className={`flex items-center gap-1 text-[10px] font-bold ${
             currentMode === "party" ? "text-pink-400" : currentMode === "twoshot" ? "text-purple-400" : "text-white"
           }`}>
@@ -224,10 +224,10 @@ function LiveStreamPage({
           )}
           <button
             onClick={() => handleModeRequest(currentMode === "party" ? "waiting" : "party")}
-            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
+            className={`flex items-center gap-1 text-[10px] font-medium px-3 py-1 rounded-full ${
               currentMode === "party" 
-                ? "bg-pink-500 text-white" 
-                : "bg-white text-black"
+                ? "bg-pink-600 text-white" 
+                : "bg-pink-500 text-white"
             }`}
             data-testid="button-party-mode"
           >
@@ -236,10 +236,10 @@ function LiveStreamPage({
           </button>
           <button
             onClick={() => handleModeRequest(currentMode === "twoshot" ? "waiting" : "twoshot")}
-            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
+            className={`flex items-center gap-1 text-[10px] font-medium px-3 py-1 rounded-full ${
               currentMode === "twoshot" 
-                ? "bg-purple-500 text-white" 
-                : "bg-white text-black"
+                ? "bg-pink-600 text-white" 
+                : "bg-pink-500 text-white"
             }`}
             data-testid="button-twoshot-mode"
           >
