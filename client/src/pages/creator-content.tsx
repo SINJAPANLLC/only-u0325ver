@@ -653,10 +653,10 @@ export default function CreatorContent() {
               <button 
                 type="button"
                 className="text-pink-500 underline flex items-center gap-1"
-                onClick={() => toast({ title: "ヘルプページは準備中です" })}
+                onClick={() => setLocation("/guidelines")}
               >
                 <HelpCircle className="h-3 w-3" />
-                投稿に関するヘルプはこちら
+                掲載ガイドライン
               </button>
             </div>
           </form>
