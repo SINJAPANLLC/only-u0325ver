@@ -407,6 +407,25 @@ export async function registerRoutes(
     }
   });
 
+  // Get products by creator
+  app.get("/api/creators/:creatorId/products", async (req, res) => {
+    try {
+      const { creatorId } = req.params;
+      const creatorProducts = await db
+        .select()
+        .from(products)
+        .where(and(
+          eq(products.creatorId, creatorId),
+          eq(products.isAvailable, true)
+        ))
+        .orderBy(desc(products.createdAt));
+      res.json(creatorProducts);
+    } catch (error) {
+      console.error("Error fetching creator products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
   app.post("/api/products", isAuthenticated, isCreator, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

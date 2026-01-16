@@ -24,6 +24,8 @@ import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
 import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
 
+type DemoProduct = { id: string; name: string; price: number; imageUrl: string; productType: "digital" | "physical"; description?: string };
+
 const demoCreatorData: Record<string, {
   name: string;
   displayName: string;
@@ -36,6 +38,7 @@ const demoCreatorData: Record<string, {
   posts: number;
   isVerified: boolean;
   videos: { id: string; thumbnail: string; videoUrl?: string; views: number; likes: number; requiredTier?: number }[];
+  products: DemoProduct[];
 }> = {
   "Risa": {
     name: "Risa",
@@ -53,6 +56,10 @@ const demoCreatorData: Record<string, {
       { id: "v2", thumbnail: img2, views: 156000, likes: 18200, requiredTier: 1 },
       { id: "v3", thumbnail: img3, views: 98000, likes: 12400, requiredTier: 2 },
       { id: "v4", thumbnail: img4, views: 76000, likes: 8900, requiredTier: 3 },
+    ],
+    products: [
+      { id: "demo-p1", name: "限定デジタル写真集 Vol.1", price: 3000, imageUrl: img1, productType: "digital" },
+      { id: "demo-p2", name: "サイン入りチェキ", price: 5000, imageUrl: img2, productType: "physical" },
     ]
   },
   "Yua": {
@@ -69,6 +76,9 @@ const demoCreatorData: Record<string, {
     videos: [
       { id: "v1", thumbnail: img2, views: 456000, likes: 38200, requiredTier: 0 },
       { id: "v2", thumbnail: img1, views: 234000, likes: 21500, requiredTier: 2 },
+    ],
+    products: [
+      { id: "demo-p3", name: "おやすみボイスメッセージ", price: 2000, imageUrl: img3, productType: "digital" },
     ]
   },
   "Mio": {
@@ -85,6 +95,9 @@ const demoCreatorData: Record<string, {
     videos: [
       { id: "v1", thumbnail: img3, views: 198000, likes: 16700, requiredTier: 0 },
       { id: "v2", thumbnail: img4, views: 145000, likes: 12100, requiredTier: 1 },
+    ],
+    products: [
+      { id: "demo-p4", name: "オリジナルTシャツ", price: 4500, imageUrl: img4, productType: "physical" },
     ]
   }
 };
@@ -103,7 +116,8 @@ const defaultDemoCreator = {
   videos: [
     { id: "v1", thumbnail: img1, views: 10000, likes: 1000, requiredTier: 0 },
     { id: "v2", thumbnail: img2, views: 8000, likes: 800, requiredTier: 1 },
-  ]
+  ],
+  products: [] as DemoProduct[]
 };
 
 const DEFAULT_SUBSCRIPTION_PRICE = 500;
@@ -148,7 +162,7 @@ export default function CreatorProfile() {
   });
 
   const { data: creatorProducts } = useQuery<Product[]>({
-    queryKey: ["/api/products", creatorId],
+    queryKey: ["/api/creators", creatorId, "products"],
     enabled: Boolean(isRealCreator),
   });
 
@@ -259,8 +273,21 @@ export default function CreatorProfile() {
       views: v.viewCount || 0,
       likes: v.likeCount || 0,
       requiredTier: v.requiredTier || 0,
-    }))
+    })),
+    products: [] as DemoProduct[]
   } : demoCreator;
+  
+  // Get products to display - real products for real creators, demo for demo creators
+  const displayProducts = isRealCreator 
+    ? (creatorProducts || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        imageUrl: p.imageUrl || img1,
+        productType: (p.productType || "digital") as "digital" | "physical",
+        description: p.description || undefined
+      }))
+    : demoCreator.products;
   
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -633,13 +660,20 @@ export default function CreatorProfile() {
 
           <TabsContent value="shop" className="mt-0">
             <div className="grid grid-cols-2 gap-0.5">
-              {(creatorProducts && creatorProducts.length > 0 ? creatorProducts : []).map((product) => (
+              {displayProducts.map((product) => (
                 <div 
                   key={product.id} 
                   className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
                   onClick={() => {
-                    setSelectedProduct(product);
-                    setProductDetailOpen(true);
+                    if (isRealCreator) {
+                      const realProduct = creatorProducts?.find(p => p.id === product.id);
+                      if (realProduct) {
+                        setSelectedProduct(realProduct);
+                        setProductDetailOpen(true);
+                      }
+                    } else {
+                      toast({ title: "デモ商品", description: "これはデモ商品です。実際の購入はできません。" });
+                    }
                   }}
                   data-testid={`product-card-${product.id}`}
                 >
@@ -660,7 +694,7 @@ export default function CreatorProfile() {
                   </div>
                 </div>
               ))}
-              {(!creatorProducts || creatorProducts.length === 0) && (
+              {displayProducts.length === 0 && (
                 <div className="col-span-2 flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <ShoppingBag className="h-10 w-10 mb-2 opacity-50" />
                   <p>商品はまだありません</p>
