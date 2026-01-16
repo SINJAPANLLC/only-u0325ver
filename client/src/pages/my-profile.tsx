@@ -471,107 +471,63 @@ export default function MyProfile() {
 
         {/* Subscription Plans */}
         <div className="w-full mt-6 px-4">
-          <h2 className="text-sm font-bold text-left mb-3">サブスクリプションプラン</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold">サブスクリプションプラン</h2>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-7 rounded-full text-[10px] px-3"
+              onClick={() => {
+                setIsNewPlan(true);
+                setEditingPlan(null);
+                setNewPlanName("");
+                setNewPlanDescription("");
+                setNewPlanPrice("500");
+                setNewPlanTier("1");
+                setPlanEditOpen(true);
+              }}
+              data-testid="button-add-plan"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              追加
+            </Button>
+          </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm">
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">スタンダードプラン</span>
-                <span className="text-[10px] text-muted-foreground">{standardPlanDesc}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-pink-500 font-bold text-sm">{standardPlanPrice}pt / 月</span>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
+            {mySubscriptionPlans && mySubscriptionPlans.length > 0 ? (
+              mySubscriptionPlans.map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold">{plan.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{plan.description}</span>
+                    <span className="text-[9px] text-muted-foreground/70">Tier {plan.tier}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-pink-500 font-bold text-sm">{plan.price}pt / 月</span>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-7 rounded-full text-[10px] px-3"
+                      onClick={() => {
+                        setIsNewPlan(false);
+                        setEditingPlan(plan);
+                        setNewPlanName(plan.name);
+                        setNewPlanDescription(plan.description || "");
+                        setNewPlanPrice(plan.price.toString());
+                        setNewPlanTier(plan.tier.toString());
+                        setPlanEditOpen(true);
+                      }}
+                      data-testid={`button-edit-plan-${plan.id}`}
+                    >
                       編集
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-[360px] rounded-2xl bg-white text-black">
-                    <DialogHeader>
-                      <DialogTitle>スタンダードプラン編集</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label className="text-black/70 text-xs">月額ポイント</Label>
-                        <Input 
-                          type="number"
-                          value={standardPlanPrice}
-                          onChange={(e) => setStandardPlanPrice(e.target.value)}
-                          className="bg-black/5 border-black/10 text-black"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-black/70 text-xs">プラン説明</Label>
-                        <Input 
-                          value={standardPlanDesc}
-                          onChange={(e) => setStandardPlanDesc(e.target.value)}
-                          className="bg-black/5 border-black/10 text-black"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button 
-                        className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-                        onClick={() => toast({ title: "プランを保存しました" })}
-                      >
-                        保存
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                プランがまだありません
               </div>
-            </div>
-            <div className={`flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm ${!premiumPlanEnabled ? 'opacity-60' : ''}`}>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold">プレミアムプラン</span>
-                <span className="text-[10px] text-muted-foreground">{premiumPlanDesc}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-pink-500 font-bold text-sm">{premiumPlanPrice}pt / 月</span>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-7 rounded-full text-[10px] px-3">
-                      {premiumPlanEnabled ? "編集" : "追加"}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-[360px] rounded-2xl bg-white text-black">
-                    <DialogHeader>
-                      <DialogTitle>プレミアムプラン編集</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <Label className="text-black/70 text-xs">月額ポイント</Label>
-                        <Input 
-                          type="number"
-                          value={premiumPlanPrice}
-                          onChange={(e) => setPremiumPlanPrice(e.target.value)}
-                          className="bg-black/5 border-black/10 text-black"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-black/70 text-xs">プラン説明</Label>
-                        <Input 
-                          value={premiumPlanDesc}
-                          onChange={(e) => setPremiumPlanDesc(e.target.value)}
-                          className="bg-black/5 border-black/10 text-black"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button 
-                        className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-                        onClick={() => {
-                          setPremiumPlanEnabled(true);
-                          toast({ title: "プランを保存しました" });
-                        }}
-                      >
-                        {premiumPlanEnabled ? "保存" : "プランを有効化"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
