@@ -728,11 +728,18 @@ export default function MyProfile() {
 
 
         <TabsContent value="liked" className="mt-0">
-          <div className="grid grid-cols-2 gap-0.5">
+          <div className="grid grid-cols-3 gap-0.5">
             {demoLikedVideos.map((video) => (
               <div 
                 key={video.id}
                 className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                onClick={() => setSelectedContent({
+                  id: video.id,
+                  thumbnailUrl: video.thumbnail,
+                  videoUrl: "",
+                  title: video.creatorName,
+                  isVertical: true,
+                })}
                 data-testid={`liked-video-${video.id}`}
               >
                 <img 
