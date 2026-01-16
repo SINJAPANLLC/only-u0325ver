@@ -757,41 +757,38 @@ export default function CreatorProfile() {
         </Tabs>
 
       {selectedVideo && (
-        <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-          <DialogContent className="fixed inset-0 w-screen h-screen max-w-none p-0 bg-black border-none rounded-none m-0 translate-x-0 translate-y-0 top-0 left-0">
-            <DialogHeader className="sr-only">
-              <DialogTitle>Video Player</DialogTitle>
-            </DialogHeader>
+        <div className="absolute inset-0 z-50 bg-black flex flex-col">
+          <div className="absolute top-3 left-3 z-50">
             <Button
               size="icon"
               variant="ghost"
-              className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white"
+              className="h-10 w-10 rounded-full bg-white/20 text-white"
               onClick={() => setSelectedVideo(null)}
               data-testid="button-close-video"
             >
               <X className="h-6 w-6" />
             </Button>
-            <div className="w-full h-full flex items-center justify-center">
-              {selectedVideo.videoUrl ? (
-                <video
-                  src={selectedVideo.videoUrl}
-                  className="max-w-full max-h-full object-contain"
-                  controls
-                  autoPlay
-                  playsInline
-                  data-testid="video-player"
-                />
-              ) : (
-                <img
-                  src={selectedVideo.thumbnail}
-                  alt=""
-                  className="max-w-full max-h-full object-contain"
-                  data-testid="image-viewer"
-                />
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+          <div className="w-full h-full flex items-center justify-center">
+            {selectedVideo.videoUrl ? (
+              <video
+                src={selectedVideo.videoUrl}
+                className="h-full w-auto max-w-full object-contain"
+                controls
+                autoPlay
+                playsInline
+                data-testid="video-player"
+              />
+            ) : (
+              <img
+                src={selectedVideo.thumbnail}
+                alt=""
+                className="h-full w-auto max-w-full object-contain"
+                data-testid="image-viewer"
+              />
+            )}
+          </div>
+        </div>
       )}
       
       <div className="h-24" />
