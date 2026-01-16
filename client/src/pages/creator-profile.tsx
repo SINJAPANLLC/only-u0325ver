@@ -741,7 +741,6 @@ export default function CreatorProfile() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
 
       {selectedVideo && (
         <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
