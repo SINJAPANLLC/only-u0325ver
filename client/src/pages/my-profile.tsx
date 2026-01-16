@@ -15,7 +15,8 @@ import {
   Crown,
   Plus,
   Trash2,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -121,6 +122,9 @@ export default function MyProfile() {
   const [newPlanPrice, setNewPlanPrice] = useState("500");
   const [newPlanTier, setNewPlanTier] = useState("1");
   const [isNewPlan, setIsNewPlan] = useState(true);
+  
+  // Fullscreen video/image viewer
+  const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; title?: string } | null>(null);
   
   const createPlanMutation = useMutation({
     mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
@@ -499,7 +503,6 @@ export default function MyProfile() {
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{plan.name}</span>
                     <span className="text-[10px] text-muted-foreground">{plan.description}</span>
-                    <span className="text-[9px] text-muted-foreground/70">Tier {plan.tier}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-pink-500 font-bold text-sm">{plan.price}pt / 月</span>
@@ -577,6 +580,7 @@ export default function MyProfile() {
               <div 
                 key={video.id} 
                 className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
+                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", title: video.title })}
                 data-testid={`video-thumbnail-${video.id}`}
               >
                 {video.thumbnailUrl ? (
@@ -654,28 +658,20 @@ export default function MyProfile() {
                     <div 
                       key={plan.id} 
                       className="bg-card border border-border rounded-lg p-4"
-                      data-testid={`plan-card-${plan.tier}`}
+                      data-testid={`plan-card-${plan.id}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold">{plan.name}</h4>
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded">
-                              Tier {plan.tier}
-                            </span>
-                            {plan.tier === 3 && (
-                              <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
-                            )}
-                          </div>
+                          <h4 className="font-bold text-lg">{plan.name}</h4>
                           <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-                          <p className="text-pink-500 font-bold mt-2">{plan.price.toLocaleString()}pt/月</p>
+                          <p className="text-pink-500 font-bold mt-2 text-lg">{plan.price.toLocaleString()}pt/月</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button 
                             size="icon" 
                             variant="ghost" 
                             onClick={() => handleEditPlan(plan)}
-                            data-testid={`button-edit-plan-${plan.tier}`}
+                            data-testid={`button-edit-plan-${plan.id}`}
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -685,7 +681,7 @@ export default function MyProfile() {
                             className="text-red-500 hover:text-red-600"
                             onClick={() => deletePlanMutation.mutate(plan.id)}
                             disabled={deletePlanMutation.isPending}
-                            data-testid={`button-delete-plan-${plan.tier}`}
+                            data-testid={`button-delete-plan-${plan.id}`}
                           >
                             {deletePlanMutation.isPending ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -704,13 +700,6 @@ export default function MyProfile() {
                   <p className="text-sm">プランを作成してファンからの収益を得ましょう</p>
                 </div>
               )}
-              
-              <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted/30 rounded-lg">
-                <p className="font-medium mb-1">Tierについて</p>
-                <p>Tier 1: ベーシック - 基本的なコンテンツへのアクセス</p>
-                <p>Tier 2: スタンダード - より多くのコンテンツへのアクセス</p>
-                <p>Tier 3: VIP - すべてのコンテンツへのアクセス</p>
-              </div>
             </div>
 
           </TabsContent>
@@ -743,33 +732,17 @@ export default function MyProfile() {
                 data-testid="input-plan-description"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="plan-price">料金（ポイント/月）</Label>
-                <Input
-                  id="plan-price"
-                  type="number"
-                  value={newPlanPrice}
-                  onChange={(e) => setNewPlanPrice(e.target.value)}
-                  min="100"
-                  step="100"
-                  data-testid="input-plan-price"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="plan-tier">Tier</Label>
-                <select
-                  id="plan-tier"
-                  value={newPlanTier}
-                  onChange={(e) => setNewPlanTier(e.target.value)}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  data-testid="select-plan-tier"
-                >
-                  <option value="1">Tier 1 - ベーシック</option>
-                  <option value="2">Tier 2 - スタンダード</option>
-                  <option value="3">Tier 3 - VIP</option>
-                </select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-price">料金（ポイント/月）</Label>
+              <Input
+                id="plan-price"
+                type="number"
+                value={newPlanPrice}
+                onChange={(e) => setNewPlanPrice(e.target.value)}
+                min="100"
+                step="100"
+                data-testid="input-plan-price"
+              />
             </div>
           </div>
           <DialogFooter>
@@ -790,6 +763,41 @@ export default function MyProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Fullscreen content viewer */}
+      {selectedContent && (
+        <Dialog open={!!selectedContent} onOpenChange={() => setSelectedContent(null)}>
+          <DialogContent className="sm:max-w-[100vw] max-w-[100vw] h-[100vh] p-0 bg-black border-none rounded-none">
+            <DialogHeader className="sr-only">
+              <DialogTitle>{selectedContent.title || "コンテンツビューア"}</DialogTitle>
+            </DialogHeader>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-4 right-4 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
+                onClick={() => setSelectedContent(null)}
+                data-testid="button-close-content"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+              <img
+                src={selectedContent.thumbnailUrl}
+                alt={selectedContent.title || ""}
+                className="max-w-full max-h-full object-contain"
+                data-testid="fullscreen-image"
+              />
+              {selectedContent.title && (
+                <div className="absolute bottom-8 left-0 right-0 text-center">
+                  <span className="text-white text-lg font-bold bg-black/50 px-4 py-2 rounded-full">
+                    {selectedContent.title}
+                  </span>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       
       <div className="h-24" />
     </motion.div>
