@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { CreatorProfile as CreatorProfileType, Video, Subscription, SubscriptionPlan } from "@shared/schema";
+import type { CreatorProfile as CreatorProfileType, Video, Subscription, SubscriptionPlan, Product } from "@shared/schema";
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
@@ -116,6 +116,8 @@ export default function CreatorProfile() {
   const [showSubscribeDialog, setShowSubscribeDialog] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<{ id: string; videoUrl: string; thumbnail: string } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
   
   const creatorId = params?.username || "";
   const isRealCreator = creatorId && !demoCreatorData[creatorId];
@@ -143,6 +145,35 @@ export default function CreatorProfile() {
   const { data: subscriptionPlans } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription-plans", creatorId],
     enabled: Boolean(creatorId),
+  });
+
+  const { data: creatorProducts } = useQuery<Product[]>({
+    queryKey: ["/api/products", creatorId],
+    enabled: Boolean(isRealCreator),
+  });
+
+  const { data: userData } = useQuery<{ points: number }>({
+    queryKey: ["/api/user/points"],
+    enabled: !!user,
+  });
+
+  const userPoints = userData?.points ?? 0;
+
+  const purchaseMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const res = await apiRequest("POST", `/api/products/${productId}/purchase`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/points"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+      setProductDetailOpen(false);
+      setSelectedProduct(null);
+      toast({ title: "購入完了", description: "商品を購入しました！" });
+    },
+    onError: (error: any) => {
+      toast({ title: "購入エラー", description: error.message || "購入に失敗しました", variant: "destructive" });
+    },
   });
 
   const followMutation = useMutation({
@@ -545,6 +576,13 @@ export default function CreatorProfile() {
             >
               <Bookmark className="h-5 w-5" />
             </TabsTrigger>
+            <TabsTrigger 
+              value="shop" 
+              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
+              data-testid="tab-shop"
+            >
+              <ShoppingBag className="h-5 w-5" />
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="videos" className="mt-0">
@@ -592,6 +630,44 @@ export default function CreatorProfile() {
               保存した動画はここに表示されます
             </div>
           </TabsContent>
+
+          <TabsContent value="shop" className="mt-0">
+            <div className="grid grid-cols-2 gap-0.5">
+              {(creatorProducts && creatorProducts.length > 0 ? creatorProducts : []).map((product) => (
+                <div 
+                  key={product.id} 
+                  className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setProductDetailOpen(true);
+                  }}
+                  data-testid={`product-card-${product.id}`}
+                >
+                  <img 
+                    src={product.imageUrl || img1} 
+                    alt={product.name} 
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
+                      {product.productType === "digital" ? "デジタル" : "物販"}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p className="text-white font-bold text-sm truncate">{product.name}</p>
+                    <p className="text-pink-400 font-bold text-xs">{product.price.toLocaleString()}pt</p>
+                  </div>
+                </div>
+              ))}
+              {(!creatorProducts || creatorProducts.length === 0) && (
+                <div className="col-span-2 flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <ShoppingBag className="h-10 w-10 mb-2 opacity-50" />
+                  <p>商品はまだありません</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -634,6 +710,90 @@ export default function CreatorProfile() {
       )}
       
       <div className="h-24" />
+
+      {/* Product Detail Modal with Purchase */}
+      <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
+        <DialogContent className="sm:max-w-md">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedProduct.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="aspect-square relative rounded-lg overflow-hidden">
+                  <img 
+                    src={selectedProduct.imageUrl || img1} 
+                    alt={selectedProduct.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs font-bold text-white">
+                      {selectedProduct.productType === "digital" ? "デジタル" : "物販"}
+                    </span>
+                  </div>
+                </div>
+                
+                {selectedProduct.description && (
+                  <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                )}
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
+                    <p className="text-sm text-muted-foreground">所持ポイント: {userPoints.toLocaleString()}pt</p>
+                  </div>
+                  {userPoints < selectedProduct.price && (
+                    <p className="text-sm text-red-500">ポイントが不足しています</p>
+                  )}
+                </div>
+                
+                <DialogFooter className="flex-col gap-2 sm:flex-col">
+                  {user ? (
+                    <>
+                      <Button
+                        className="w-full bg-pink-500 hover:bg-pink-600"
+                        disabled={userPoints < selectedProduct.price || purchaseMutation.isPending}
+                        onClick={() => purchaseMutation.mutate(selectedProduct.id)}
+                        data-testid="button-purchase"
+                      >
+                        {purchaseMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            購入中...
+                          </>
+                        ) : (
+                          `${selectedProduct.price.toLocaleString()}pt で購入`
+                        )}
+                      </Button>
+                      {userPoints < selectedProduct.price && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            setProductDetailOpen(false);
+                            setLocation("/points-purchase");
+                          }}
+                          data-testid="button-buy-points"
+                        >
+                          ポイントを購入する
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => setLocation("/login")}
+                      data-testid="button-login-to-purchase"
+                    >
+                      ログインして購入
+                    </Button>
+                  )}
+                </DialogFooter>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

@@ -1020,7 +1020,7 @@ export default function MyProfile() {
       
       <div className="h-24" />
       
-      {/* Product Detail Modal */}
+      {/* Product Detail Modal (Preview - own shop) */}
       <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
         <DialogContent className="sm:max-w-md">
           {selectedProduct && (
@@ -1042,45 +1042,20 @@ export default function MyProfile() {
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
-                    <p className="text-sm text-muted-foreground">所持ポイント: {userPoints.toLocaleString()}pt</p>
-                  </div>
-                  {userPoints < selectedProduct.price && (
-                    <p className="text-sm text-red-500">ポイントが不足しています</p>
-                  )}
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
+                  <p className="text-sm text-muted-foreground mt-2">これはあなたの商品のプレビューです</p>
                 </div>
                 
-                <DialogFooter className="flex-col gap-2 sm:flex-col">
+                <DialogFooter>
                   <Button
-                    className="w-full bg-pink-500 hover:bg-pink-600"
-                    disabled={userPoints < selectedProduct.price || purchaseMutation.isPending}
-                    onClick={() => purchaseMutation.mutate(selectedProduct.id)}
-                    data-testid="button-purchase"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setProductDetailOpen(false)}
+                    data-testid="button-close-preview"
                   >
-                    {purchaseMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        購入中...
-                      </>
-                    ) : (
-                      `${selectedProduct.price.toLocaleString()}pt で購入`
-                    )}
+                    閉じる
                   </Button>
-                  {userPoints < selectedProduct.price && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setProductDetailOpen(false);
-                        setLocation("/points-purchase");
-                      }}
-                      data-testid="button-buy-points"
-                    >
-                      ポイントを購入する
-                    </Button>
-                  )}
                 </DialogFooter>
               </div>
             </>
