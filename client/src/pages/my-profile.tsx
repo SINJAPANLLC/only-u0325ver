@@ -773,7 +773,7 @@ export default function MyProfile() {
           <Button
             size="icon"
             variant="ghost"
-            className="absolute top-2 left-2 z-[110] h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/40"
+            className="absolute top-2 left-2 z-[110] h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
             onClick={(e) => { e.stopPropagation(); setSelectedContent(null); }}
             data-testid="button-close-content"
           >
@@ -786,8 +786,7 @@ export default function MyProfile() {
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
-                className="max-w-full max-h-full"
-                style={{ objectFit: 'contain' }}
+                className="w-full h-full object-contain"
                 controls
                 autoPlay
                 playsInline
@@ -797,8 +796,7 @@ export default function MyProfile() {
               <img
                 src={selectedContent.thumbnailUrl}
                 alt=""
-                className="max-w-full max-h-full"
-                style={{ objectFit: 'contain' }}
+                className="w-full h-full object-contain"
                 data-testid="fullscreen-image"
               />
             )}
