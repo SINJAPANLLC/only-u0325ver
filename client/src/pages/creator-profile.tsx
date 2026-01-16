@@ -322,6 +322,7 @@ export default function CreatorProfile() {
   const isSubscribed = localIsSubscribed;
   const isLoading = followMutation.isPending || unfollowMutation.isPending;
   const isSubscribeLoading = subscribeMutation.isPending;
+  const isLive = false;
 
   const handleMessage = () => {
     if (!user) {
