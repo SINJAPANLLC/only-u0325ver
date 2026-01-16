@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, MessageCircle, Share2, Plus, Volume2, Coins, UserRound, UsersRound, Clock, Send } from "lucide-react";
+import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
@@ -69,8 +68,8 @@ function LiveStreamPage({
   const [, setLocation] = useLocation();
   const [showModeDialog, setShowModeDialog] = useState(false);
   const [pendingMode, setPendingMode] = useState<RoomMode | null>(null);
-  const [comment, setComment] = useState("");
   const [sessionTime, setSessionTime] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     if (currentMode !== "waiting" && isActive) {
@@ -136,6 +135,29 @@ function LiveStreamPage({
       setLocalLikes(prev => prev - 1);
     }
     setIsLiked(!isLiked);
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/live/${id}`;
+    const shareData = {
+      title: `${displayName || creatorName}のライブ配信`,
+      text: title,
+      url: shareUrl,
+    };
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled or share failed
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+    }
+  };
+
+  const handleToggleMute = () => {
+    setIsMuted(!isMuted);
   };
 
   return (
@@ -219,32 +241,32 @@ function LiveStreamPage({
       </div>
 
       <Dialog open={showModeDialog} onOpenChange={setShowModeDialog}>
-        <DialogContent className="max-w-[320px] bg-black/90 backdrop-blur-xl border-white/20 text-white">
+        <DialogContent className="max-w-[320px] bg-white border-border">
           <DialogHeader>
-            <DialogTitle className="text-center">
+            <DialogTitle className="text-center text-foreground">
               {pendingMode === "party" ? "パーティー" : "2ショット"}に入室
             </DialogTitle>
-            <DialogDescription className="text-center text-white/70">
+            <DialogDescription className="text-center text-muted-foreground">
               入室すると1分ごとにポイントが消費されます
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-3">
-            <div className="flex justify-between items-center bg-white/10 rounded-lg px-4 py-3">
-              <span className="text-sm">料金</span>
-              <span className="font-bold text-pink-400">
+            <div className="flex justify-between items-center bg-muted rounded-lg px-4 py-3">
+              <span className="text-sm text-foreground">料金</span>
+              <span className="font-bold text-pink-500">
                 {pendingMode === "party" ? partyRatePerMinute : twoshotRatePerMinute}pt/分
               </span>
             </div>
-            <div className="flex justify-between items-center bg-white/10 rounded-lg px-4 py-3">
-              <span className="text-sm">持ちポイント</span>
-              <span className="font-bold text-amber-400">{userPoints.toLocaleString()}pt</span>
+            <div className="flex justify-between items-center bg-muted rounded-lg px-4 py-3">
+              <span className="text-sm text-foreground">持ちポイント</span>
+              <span className="font-bold text-amber-500">{userPoints.toLocaleString()}pt</span>
             </div>
           </div>
           <DialogFooter className="flex gap-2">
             <Button 
               variant="outline" 
               onClick={() => setShowModeDialog(false)}
-              className="flex-1 border-white/20 text-white hover:bg-white/10"
+              className="flex-1"
             >
               キャンセル
             </Button>
@@ -292,16 +314,7 @@ function LiveStreamPage({
         </button>
 
         <button
-          className="flex flex-col items-center gap-1"
-          data-testid={`button-comment-${id}`}
-        >
-          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-[10px] text-white font-semibold">コメント</span>
-        </button>
-
-        <button
+          onClick={handleShare}
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
@@ -312,11 +325,16 @@ function LiveStreamPage({
         </button>
 
         <button
+          onClick={handleToggleMute}
           className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Volume2 className="h-4 w-4 text-white" />
+          <div className={`h-9 w-9 rounded-full ${isMuted ? "bg-pink-500/20" : "bg-white/10"} backdrop-blur-sm flex items-center justify-center`}>
+            {isMuted ? (
+              <VolumeX className="h-4 w-4 text-pink-500" />
+            ) : (
+              <Volume2 className="h-4 w-4 text-white" />
+            )}
           </div>
         </button>
       </div>
@@ -337,26 +355,6 @@ function LiveStreamPage({
 
       </div>
 
-      {currentMode !== "waiting" && (
-        <div className="absolute left-4 right-24 bottom-24 z-20">
-          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-            <Input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="コメントを入力..."
-              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 text-xs h-6 focus-visible:ring-0"
-              data-testid="input-comment"
-            />
-            <Button
-              size="icon"
-              className="h-6 w-6 rounded-full bg-pink-500 hover:bg-pink-600"
-              data-testid="button-send-comment"
-            >
-              <Send className="h-3 w-3 text-white" />
-            </Button>
-          </div>
-        </div>
-      )}
 
     </motion.div>
   );
