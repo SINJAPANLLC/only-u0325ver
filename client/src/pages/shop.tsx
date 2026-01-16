@@ -340,7 +340,7 @@ export default function Shop() {
       <div className="h-14" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
-          <TabsList className="w-full h-14 bg-transparent rounded-none flex justify-start px-4 gap-4">
+          <TabsList className="w-full h-14 bg-transparent rounded-none !inline-flex !justify-start px-4 gap-4">
             <TabsTrigger 
               value="all" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
