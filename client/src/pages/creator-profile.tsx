@@ -757,12 +757,12 @@ export default function CreatorProfile() {
         </Tabs>
 
       {selectedVideo && (
-        <div className="absolute inset-0 z-50 bg-black flex flex-col">
-          <div className="absolute top-3 left-3 z-50">
+        <div className="fixed inset-0 z-[99999] bg-black flex flex-col">
+          <div className="absolute top-3 left-3 z-[100000]">
             <Button
               size="icon"
               variant="ghost"
-              className="h-10 w-10 rounded-full bg-white/20 text-white"
+              className="h-11 w-11 rounded-full bg-white/20 text-white"
               onClick={() => setSelectedVideo(null)}
               data-testid="button-close-video"
             >
