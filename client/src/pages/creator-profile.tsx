@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Bookmark, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -376,88 +376,99 @@ export default function CreatorProfile() {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className="relative">
-        <div className="h-44 relative">
-          <img 
-            src={creator.cover} 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-          
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 z-10">
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-              onClick={handleBack}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-                data-testid="button-share"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50"
-                data-testid="button-more"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 px-2 py-3 border-b border-border/50">
+        <Button 
+          size="icon" 
+          variant="ghost"
+          className="h-9 w-9"
+          onClick={handleBack}
+          data-testid="button-back"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            data-testid="button-share"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost"
+            className="h-9 w-9"
+            data-testid="button-more"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Profile Section */}
+      <div className="flex flex-col items-center px-4 pt-6">
+        {/* Avatar */}
+        <div className="relative">
+          <Avatar className="h-28 w-28 ring-4 ring-pink-500 shadow-xl overflow-hidden">
+            <AvatarImage 
+              src={creator.avatar} 
+              className="object-cover w-full h-full"
+            />
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-3xl font-bold">
+              {creator.name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          {isLive && (
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-pulse">
+              LIVE
             </div>
+          )}
+        </div>
+
+        {/* Username */}
+        <div className="flex items-center gap-2 mt-4">
+          <h1 className="text-lg font-bold flex items-center gap-1">
+            {creator.displayName}
+            {creator.isVerified && (
+              <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-500 text-xs font-medium">
+                認証済み
+              </span>
+            )}
+          </h1>
+        </div>
+
+        {/* Handle */}
+        <p className="text-muted-foreground text-sm mt-1">@{creator.name}</p>
+
+        {/* Stats Row */}
+        <div className="flex items-center justify-center gap-8 mt-5">
+          <div className="text-center">
+            <p className="text-lg font-bold">{creator.following}</p>
+            <p className="text-xs text-muted-foreground">フォロー</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold">{formatCount(creator.followers)}</p>
+            <p className="text-xs text-muted-foreground">フォロワー</p>
+          </div>
+          <div className="text-center">
+            <p className="text-lg font-bold">{formatCount(creator.likes)}</p>
+            <p className="text-xs text-muted-foreground">いいね</p>
           </div>
         </div>
-        
-        <div className="relative px-4 -mt-12">
-          <div className="flex items-end gap-4">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-xl">
-              <AvatarImage src={creator.avatar} />
-              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
-                {creator.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 pb-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold">{creator.displayName}</h1>
-                {creator.isVerified && (
-                  <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-500 text-xs font-medium">
-                    認証済み
-                  </span>
-                )}
-              </div>
-              <p className="text-muted-foreground text-sm">@{creator.name}</p>
-            </div>
-          </div>
-          
-          <p className="mt-4 text-sm whitespace-pre-line">{creator.bio}</p>
-          
-          <div className="flex items-center gap-6 mt-4">
-            <div className="text-center">
-              <p className="font-bold">{formatCount(creator.followers)}</p>
-              <p className="text-xs text-muted-foreground">フォロワー</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold">{creator.following}</p>
-              <p className="text-xs text-muted-foreground">フォロー中</p>
-            </div>
-            <div className="text-center">
-              <p className="font-bold">{formatCount(creator.likes)}</p>
-              <p className="text-xs text-muted-foreground">いいね</p>
-            </div>
-          </div>
-          
-          <div className="flex gap-2 mt-4">
+
+        {/* Bio Section */}
+        <div className="w-full mt-4 text-center">
+          <p className="text-sm font-medium whitespace-pre-line">{creator.bio}</p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full mt-4 space-y-2">
+          <div className="flex gap-2">
             <Button 
-              className={`flex-1 ${isFollowing ? "bg-secondary text-foreground" : "bg-pink-500 hover:bg-pink-600 text-white"}`}
+              variant={isFollowing ? "secondary" : "default"}
+              className="flex-1"
               onClick={handleFollowToggle}
               disabled={isLoading}
               data-testid="button-follow-toggle"
@@ -483,7 +494,8 @@ export default function CreatorProfile() {
           </div>
           
           <Button 
-            className={`w-full mt-3 ${isSubscribed ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white" : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"}`}
+            variant={isSubscribed ? "secondary" : "default"}
+            className="w-full"
             onClick={handleSubscribe}
             disabled={isSubscribed || isSubscribeLoading}
             data-testid="button-subscribe"
@@ -506,6 +518,7 @@ export default function CreatorProfile() {
             )}
           </Button>
         </div>
+      </div>
 
         <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
           <DialogContent className="max-w-md">
@@ -583,34 +596,34 @@ export default function CreatorProfile() {
           </DialogContent>
         </Dialog>
         
-        <Tabs defaultValue="videos" className="mt-6">
-          <TabsList className="w-full bg-transparent border-b rounded-none">
-            <TabsTrigger 
-              value="videos" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
+      {/* Content Tabs */}
+      <Tabs defaultValue="videos" className="mt-2">
+        <TabsList className="w-full bg-transparent border-b border-border/50 rounded-none h-12 justify-start px-2">
+          <TabsTrigger 
+            value="videos" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-videos"
+          >
+            <div className="flex items-center gap-1">
               <Grid3X3 className="h-5 w-5" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="liked" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
-              <Heart className="h-5 w-5" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="saved" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-            >
-              <Bookmark className="h-5 w-5" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="shop" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none"
-              data-testid="tab-shop"
-            >
-              <ShoppingBag className="h-5 w-5" />
-            </TabsTrigger>
-          </TabsList>
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="shop" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-shop"
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </TabsTrigger>
+          <TabsTrigger 
+            value="liked" 
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            data-testid="tab-liked"
+          >
+            <Heart className="h-5 w-5" />
+          </TabsTrigger>
+        </TabsList>
           
           <TabsContent value="videos" className="mt-0">
             <div className="grid grid-cols-3 gap-0.5">
@@ -683,13 +696,7 @@ export default function CreatorProfile() {
             </div>
           </TabsContent>
           
-          <TabsContent value="saved" className="mt-0">
-            <div className="flex items-center justify-center h-40 text-muted-foreground">
-              保存した動画はここに表示されます
-            </div>
-          </TabsContent>
-
-          <TabsContent value="shop" className="mt-0">
+        <TabsContent value="shop" className="mt-0">
             <div className="grid grid-cols-2 gap-0.5">
               {displayProducts.map((product) => (
                 <div 
