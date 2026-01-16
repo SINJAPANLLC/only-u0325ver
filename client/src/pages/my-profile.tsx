@@ -54,12 +54,12 @@ const demoProducts = [
 ];
 
 const demoVideos = [
-  { id: "v1", thumbnailUrl: img1, videoUrl: "https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4", viewCount: 28500, likeCount: 1250, title: "縦型動画" },
-  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "横型動画" },
-  { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "画像のみ" },
-  { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "画像のみ2" },
-  { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "画像のみ3" },
-  { id: "v6", thumbnailUrl: img3, viewCount: 2100, likeCount: 98, title: "画像のみ4" },
+  { id: "v1", thumbnailUrl: img1, videoUrl: "https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4", viewCount: 28500, likeCount: 1250, title: "縦型動画", isVertical: true },
+  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "横型動画", isVertical: false },
+  { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "画像のみ", isVertical: true },
+  { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "画像のみ2", isVertical: false },
+  { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "画像のみ3", isVertical: true },
+  { id: "v6", thumbnailUrl: img3, viewCount: 2100, likeCount: 98, title: "画像のみ4", isVertical: true },
 ];
 
 export default function MyProfile() {
@@ -125,7 +125,7 @@ export default function MyProfile() {
   const [isNewPlan, setIsNewPlan] = useState(true);
   
   // Fullscreen video/image viewer
-  const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; videoUrl?: string; title?: string } | null>(null);
+  const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; videoUrl?: string; title?: string; isVertical?: boolean } | null>(null);
   
   const createPlanMutation = useMutation({
     mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
@@ -581,7 +581,7 @@ export default function MyProfile() {
               <div 
                 key={video.id} 
                 className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
-                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title })}
+                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title, isVertical: (video as any).isVertical })}
                 data-testid={`video-thumbnail-${video.id}`}
               >
                 {video.thumbnailUrl ? (
@@ -819,10 +819,14 @@ export default function MyProfile() {
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
-                style={{
+                style={selectedContent.isVertical ? {
+                  height: '100%',
+                  width: 'auto',
                   maxWidth: '100%',
+                } : {
+                  width: '100%',
+                  height: 'auto',
                   maxHeight: '100%',
-                  objectFit: 'contain',
                 }}
                 controls
                 autoPlay
@@ -833,10 +837,14 @@ export default function MyProfile() {
               <img
                 src={selectedContent.thumbnailUrl}
                 alt=""
-                style={{
+                style={selectedContent.isVertical ? {
+                  height: '100%',
+                  width: 'auto',
                   maxWidth: '100%',
+                } : {
+                  width: '100%',
+                  height: 'auto',
                   maxHeight: '100%',
-                  objectFit: 'contain',
                 }}
                 data-testid="fullscreen-image"
               />
