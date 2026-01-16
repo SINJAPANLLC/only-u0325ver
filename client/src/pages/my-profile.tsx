@@ -820,9 +820,9 @@ export default function MyProfile() {
               <video
                 src={selectedContent.videoUrl}
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
                 }}
                 controls
                 autoPlay
@@ -834,9 +834,9 @@ export default function MyProfile() {
                 src={selectedContent.thumbnailUrl}
                 alt=""
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
                 }}
                 data-testid="fullscreen-image"
               />
