@@ -713,82 +713,83 @@ export default function MyProfile() {
               </div>
             </div>
 
-            <Dialog open={planEditOpen} onOpenChange={setPlanEditOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{isNewPlan ? "新しいプランを作成" : "プランを編集"}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="plan-name">プラン名</Label>
-                    <Input
-                      id="plan-name"
-                      value={newPlanName}
-                      onChange={(e) => setNewPlanName(e.target.value)}
-                      placeholder="例: ベーシックプラン"
-                      data-testid="input-plan-name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="plan-description">説明</Label>
-                    <Textarea
-                      id="plan-description"
-                      value={newPlanDescription}
-                      onChange={(e) => setNewPlanDescription(e.target.value)}
-                      placeholder="プランの特典を説明してください"
-                      data-testid="input-plan-description"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="plan-price">料金（ポイント/月）</Label>
-                      <Input
-                        id="plan-price"
-                        type="number"
-                        value={newPlanPrice}
-                        onChange={(e) => setNewPlanPrice(e.target.value)}
-                        min="100"
-                        step="100"
-                        data-testid="input-plan-price"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="plan-tier">Tier</Label>
-                      <select
-                        id="plan-tier"
-                        value={newPlanTier}
-                        onChange={(e) => setNewPlanTier(e.target.value)}
-                        className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                        data-testid="select-plan-tier"
-                      >
-                        <option value="1">Tier 1 - ベーシック</option>
-                        <option value="2">Tier 2 - スタンダード</option>
-                        <option value="3">Tier 3 - VIP</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setPlanEditOpen(false)}>
-                    キャンセル
-                  </Button>
-                  <Button 
-                    onClick={handleSavePlan}
-                    disabled={!newPlanName || createPlanMutation.isPending || updatePlanMutation.isPending}
-                    className="bg-pink-500 hover:bg-pink-600"
-                    data-testid="button-save-plan"
-                  >
-                    {(createPlanMutation.isPending || updatePlanMutation.isPending) && (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    )}
-                    {isNewPlan ? "作成" : "保存"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </TabsContent>
         )}
       </Tabs>
+
+      <Dialog open={planEditOpen} onOpenChange={setPlanEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isNewPlan ? "新しいプランを作成" : "プランを編集"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan-name">プラン名</Label>
+              <Input
+                id="plan-name"
+                value={newPlanName}
+                onChange={(e) => setNewPlanName(e.target.value)}
+                placeholder="例: ベーシックプラン"
+                data-testid="input-plan-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-description">説明</Label>
+              <Textarea
+                id="plan-description"
+                value={newPlanDescription}
+                onChange={(e) => setNewPlanDescription(e.target.value)}
+                placeholder="プランの特典を説明してください"
+                data-testid="input-plan-description"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="plan-price">料金（ポイント/月）</Label>
+                <Input
+                  id="plan-price"
+                  type="number"
+                  value={newPlanPrice}
+                  onChange={(e) => setNewPlanPrice(e.target.value)}
+                  min="100"
+                  step="100"
+                  data-testid="input-plan-price"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="plan-tier">Tier</Label>
+                <select
+                  id="plan-tier"
+                  value={newPlanTier}
+                  onChange={(e) => setNewPlanTier(e.target.value)}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  data-testid="select-plan-tier"
+                >
+                  <option value="1">Tier 1 - ベーシック</option>
+                  <option value="2">Tier 2 - スタンダード</option>
+                  <option value="3">Tier 3 - VIP</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPlanEditOpen(false)}>
+              キャンセル
+            </Button>
+            <Button 
+              onClick={handleSavePlan}
+              disabled={!newPlanName || createPlanMutation.isPending || updatePlanMutation.isPending}
+              className="bg-pink-500 hover:bg-pink-600"
+              data-testid="button-save-plan"
+            >
+              {(createPlanMutation.isPending || updatePlanMutation.isPending) && (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              )}
+              {isNewPlan ? "作成" : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <div className="h-24" />
     </motion.div>
