@@ -7,16 +7,15 @@ import {
   Video, 
   PlaySquare, 
   Trash2, 
-  Eye, 
-  EyeOff,
+  Image,
   Upload,
-  X
+  X,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -33,43 +32,59 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Video as VideoType } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
+import type { Video as VideoType, SubscriptionPlan } from "@shared/schema";
 
 export default function CreatorContent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [form, setForm] = useState({
-    title: "",
-    description: "",
+    contentType: "video" as "video" | "image",
     thumbnailUrl: "",
     videoUrl: "",
-    contentType: "free" as "free" | "premium",
-    isPublished: true,
+    requiredTier: 0,
+    title: "",
+    tags: "",
+    termsAgreed: {
+      copyright: false,
+      noMinors: false,
+      mosaic: false,
+      guidelines: false,
+    },
   });
 
   const { data: myVideos, isLoading } = useQuery<VideoType[]>({
     queryKey: ["/api/my-videos"],
   });
 
+  const { data: myPlans } = useQuery<SubscriptionPlan[]>({
+    queryKey: ["/api/my-subscription-plans"],
+    enabled: !!user,
+  });
+
   const createVideoMutation = useMutation({
-    mutationFn: async (data: typeof form) => {
-      const response = await apiRequest("POST", "/api/videos", data);
+    mutationFn: async (data: {
+      title: string;
+      thumbnailUrl: string;
+      videoUrl: string;
+      requiredTier: number;
+      tags: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/videos", {
+        ...data,
+        contentType: data.requiredTier > 0 ? "premium" : "free",
+        isPublished: true,
+      });
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-videos"] });
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
       setIsDialogOpen(false);
-      setForm({
-        title: "",
-        description: "",
-        thumbnailUrl: "",
-        videoUrl: "",
-        contentType: "free",
-        isPublished: true,
-      });
-      toast({ title: "動画を投稿しました" });
+      resetForm();
+      toast({ title: "コンテンツを投稿しました" });
     },
     onError: (error: any) => {
       const message = error?.message || "投稿に失敗しました。クリエイター登録が必要です。";
@@ -85,26 +100,86 @@ export default function CreatorContent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-videos"] });
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
-      toast({ title: "動画を削除しました" });
+      toast({ title: "コンテンツを削除しました" });
     },
     onError: () => {
       toast({ title: "削除に失敗しました", variant: "destructive" });
     },
   });
 
+  const resetForm = () => {
+    setForm({
+      contentType: "video",
+      thumbnailUrl: "",
+      videoUrl: "",
+      requiredTier: 0,
+      title: "",
+      tags: "",
+      termsAgreed: {
+        copyright: false,
+        noMinors: false,
+        mosaic: false,
+        guidelines: false,
+      },
+    });
+  };
+
+  const allTermsAgreed = 
+    form.termsAgreed.copyright && 
+    form.termsAgreed.noMinors && 
+    form.termsAgreed.mosaic && 
+    form.termsAgreed.guidelines;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!form.title) {
       toast({ title: "タイトルを入力してください", variant: "destructive" });
       return;
     }
-    createVideoMutation.mutate(form);
+    
+    if (!form.thumbnailUrl) {
+      toast({ title: "サムネイル画像を選択してください", variant: "destructive" });
+      return;
+    }
+
+    if (form.contentType === "video" && !form.videoUrl) {
+      toast({ title: "動画を選択してください", variant: "destructive" });
+      return;
+    }
+
+    if (!allTermsAgreed) {
+      toast({ title: "規約への同意が必要です", variant: "destructive" });
+      return;
+    }
+
+    createVideoMutation.mutate({
+      title: form.title,
+      thumbnailUrl: form.thumbnailUrl,
+      videoUrl: form.contentType === "video" ? form.videoUrl : form.thumbnailUrl,
+      requiredTier: form.requiredTier,
+      tags: form.tags,
+    });
   };
 
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
     return count.toString();
+  };
+
+  const getPlanName = (tier: number) => {
+    if (tier === 0) return "無料（全員に公開）";
+    if (myPlans && myPlans.length > 0) {
+      const plan = myPlans.find(p => p.tier === tier);
+      if (plan) return `${plan.name}（${plan.price.toLocaleString()}pt/月）`;
+    }
+    const defaultNames: Record<number, string> = {
+      1: "ベーシック",
+      2: "スタンダード",
+      3: "プレミアム",
+    };
+    return defaultNames[tier] || `Tier ${tier}`;
   };
 
   return (
@@ -115,7 +190,7 @@ export default function CreatorContent() {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/50">
         <div className="flex items-center gap-3">
           <Button 
             size="icon" 
@@ -191,100 +266,237 @@ export default function CreatorContent() {
         ) : (
           <div className="flex flex-col items-center justify-center h-60 text-muted-foreground">
             <Video className="h-12 w-12 mb-3 opacity-50" />
-            <p>まだ動画がありません</p>
-            <p className="text-sm mt-1">新規投稿ボタンから動画を追加しましょう</p>
+            <p>まだコンテンツがありません</p>
+            <p className="text-sm mt-1">新規投稿ボタンからコンテンツを追加しましょう</p>
           </div>
         )}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>新規動画を投稿</DialogTitle>
+            <DialogTitle>新規コンテンツを投稿</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label>コンテンツタイプ *</Label>
+              <Select
+                value={form.contentType}
+                onValueChange={(value) => setForm({ ...form, contentType: value as "video" | "image" })}
+              >
+                <SelectTrigger data-testid="select-content-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="video">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4" />
+                      動画
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="image">
+                    <div className="flex items-center gap-2">
+                      <Image className="h-4 w-4" />
+                      画像
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {form.contentType === "video" && (
+              <div>
+                <Label htmlFor="videoUrl">動画を選択 *</Label>
+                <div className="mt-1">
+                  <Input
+                    id="videoUrl"
+                    value={form.videoUrl}
+                    onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+                    placeholder="動画URLを入力..."
+                    data-testid="input-video-url"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="thumbnailUrl">
+                サムネイル画像を選択 * 
+                <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
+              </Label>
+              <div className="mt-1">
+                <Input
+                  id="thumbnailUrl"
+                  value={form.thumbnailUrl}
+                  onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
+                  placeholder="画像URLを入力..."
+                  data-testid="input-thumbnail"
+                />
+              </div>
+              {form.thumbnailUrl && (
+                <div className="mt-2 w-20 h-28 bg-muted rounded-md overflow-hidden">
+                  <img 
+                    src={form.thumbnailUrl} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label>公開範囲 *</Label>
+              <Select
+                value={form.requiredTier.toString()}
+                onValueChange={(value) => setForm({ ...form, requiredTier: parseInt(value) })}
+              >
+                <SelectTrigger data-testid="select-required-tier">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">{getPlanName(0)}</SelectItem>
+                  {myPlans && myPlans.length > 0 ? (
+                    myPlans.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.tier.toString()}>
+                        {plan.name}（{plan.price.toLocaleString()}pt/月）
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="1">{getPlanName(1)}</SelectItem>
+                      <SelectItem value="2">{getPlanName(2)}</SelectItem>
+                      <SelectItem value="3">{getPlanName(3)}</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <Label htmlFor="title">タイトル *</Label>
               <Input
                 id="title"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="動画のタイトル"
+                placeholder="コンテンツのタイトル"
                 data-testid="input-title"
               />
             </div>
+
             <div>
-              <Label htmlFor="description">説明</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="動画の説明"
-                rows={3}
-                data-testid="input-description"
-              />
-            </div>
-            <div>
-              <Label htmlFor="thumbnailUrl">サムネイルURL</Label>
+              <Label htmlFor="tags">タグ</Label>
               <Input
-                id="thumbnailUrl"
-                value={form.thumbnailUrl}
-                onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
-                placeholder="https://..."
-                data-testid="input-thumbnail"
+                id="tags"
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                placeholder="タグをカンマ区切りで入力（例: グラビア, 水着, 撮影会）"
+                data-testid="input-tags"
               />
             </div>
-            <div>
-              <Label htmlFor="videoUrl">動画URL</Label>
-              <Input
-                id="videoUrl"
-                value={form.videoUrl}
-                onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                placeholder="https://..."
-                data-testid="input-video-url"
-              />
+
+            <div className="space-y-3 pt-2 border-t">
+              <Label className="text-base font-semibold">規約への同意 *</Label>
+              
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="copyright"
+                  checked={form.termsAgreed.copyright}
+                  onCheckedChange={(checked) => 
+                    setForm({ 
+                      ...form, 
+                      termsAgreed: { ...form.termsAgreed, copyright: checked === true } 
+                    })
+                  }
+                  data-testid="checkbox-copyright"
+                />
+                <label htmlFor="copyright" className="text-sm leading-tight cursor-pointer">
+                  投稿内容が著作権の侵害とわいせつ物の公開にあたらない事を確認した。
+                </label>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="noMinors"
+                  checked={form.termsAgreed.noMinors}
+                  onCheckedChange={(checked) => 
+                    setForm({ 
+                      ...form, 
+                      termsAgreed: { ...form.termsAgreed, noMinors: checked === true } 
+                    })
+                  }
+                  data-testid="checkbox-no-minors"
+                />
+                <label htmlFor="noMinors" className="text-sm leading-tight cursor-pointer">
+                  投稿内容に未成年者が写っていないこと、また未成年者を連想させる表現等を含まないことを確認した。
+                </label>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="mosaic"
+                  checked={form.termsAgreed.mosaic}
+                  onCheckedChange={(checked) => 
+                    setForm({ 
+                      ...form, 
+                      termsAgreed: { ...form.termsAgreed, mosaic: checked === true } 
+                    })
+                  }
+                  data-testid="checkbox-mosaic"
+                />
+                <label htmlFor="mosaic" className="text-sm leading-tight cursor-pointer">
+                  性器または挿入に対してモザイク修正を行っているかを確認した。
+                </label>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="guidelines"
+                  checked={form.termsAgreed.guidelines}
+                  onCheckedChange={(checked) => 
+                    setForm({ 
+                      ...form, 
+                      termsAgreed: { ...form.termsAgreed, guidelines: checked === true } 
+                    })
+                  }
+                  data-testid="checkbox-guidelines"
+                />
+                <label htmlFor="guidelines" className="text-sm leading-tight cursor-pointer">
+                  当社の利用規約およびガイドラインに則ったコンテンツであることを確認しました。
+                </label>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="contentType">コンテンツタイプ</Label>
-              <Select
-                value={form.contentType}
-                onValueChange={(value) => setForm({ ...form, contentType: value as "free" | "premium" })}
-              >
-                <SelectTrigger data-testid="select-content-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">無料</SelectItem>
-                  <SelectItem value="premium">プレミアム（有料）</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="published">公開する</Label>
-              <Switch
-                id="published"
-                checked={form.isPublished}
-                onCheckedChange={(checked) => setForm({ ...form, isPublished: checked })}
-                data-testid="switch-published"
-              />
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createVideoMutation.isPending || !allTermsAgreed}
+              data-testid="button-submit"
+            >
+              {createVideoMutation.isPending ? "投稿中..." : "投稿する"}
+            </Button>
+
+            <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t">
+              <p>
+                いつも安心安全なプラットフォームの運営にご協力頂きありがとうございます。
+                利用規約に則したコンテンツの投稿をお願いいたします。
+              </p>
+              <p className="text-destructive/80">
+                他人のコンテンツをアップロードする行為は著作権の侵害となり10年以下の懲役又は1000万円以下の罰金が課せられます。
+              </p>
+              <p className="text-destructive/80">
+                モザイク処理を行っていないコンテンツはわいせつ物頒布等となり犯罪行為ですのでおやめください。
+              </p>
+              <p>
+                性器や挿入箇所へのモザイク修正が行われていない場合、全ての投稿を削除する可能性があります。
+              </p>
+              <button 
                 type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => setIsDialogOpen(false)}
+                className="text-pink-500 underline flex items-center gap-1"
+                onClick={() => toast({ title: "ヘルプページは準備中です" })}
               >
-                キャンセル
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={createVideoMutation.isPending}
-                data-testid="button-submit"
-              >
-                {createVideoMutation.isPending ? "投稿中..." : "投稿する"}
-              </Button>
+                <HelpCircle className="h-3 w-3" />
+                投稿に関するヘルプはこちら
+              </button>
             </div>
           </form>
         </DialogContent>
