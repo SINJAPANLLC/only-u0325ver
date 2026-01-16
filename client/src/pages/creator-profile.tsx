@@ -361,6 +361,19 @@ export default function CreatorProfile() {
     return userTier >= requiredTier;
   };
 
+  const getPlanNameByTier = (tier: number): string => {
+    if (subscriptionPlans && subscriptionPlans.length > 0) {
+      const plan = subscriptionPlans.find(p => p.tier === tier);
+      if (plan) return plan.name;
+    }
+    const defaultNames: Record<number, string> = {
+      1: "ベーシック",
+      2: "スタンダード", 
+      3: "プレミアム"
+    };
+    return defaultNames[tier] || `Tier ${tier}`;
+  };
+
   const handleVideoClick = (video: { id: string; videoUrl: string; thumbnail: string; requiredTier: number }) => {
     if (!hasAccessToVideo(video.requiredTier)) {
       setShowSubscribeDialog(true);
@@ -506,7 +519,7 @@ export default function CreatorProfile() {
             ) : isSubscribed ? (
               <>
                 <Crown className="h-4 w-4 mr-2" />
-                プレミアム会員（Tier {subscriptionStatus?.subscription?.tier || 1}）
+                プレミアム会員（{getPlanNameByTier(subscriptionStatus?.subscription?.tier || 1)}）
               </>
             ) : (
               <>
@@ -646,7 +659,7 @@ export default function CreatorProfile() {
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                         <div className="flex flex-col items-center text-white">
                           <Lock className="h-6 w-6 mb-1" />
-                          <span className="text-xs">Tier {video.requiredTier}</span>
+                          <span className="text-xs">{getPlanNameByTier(video.requiredTier || 1)}</span>
                         </div>
                       </div>
                     )}
