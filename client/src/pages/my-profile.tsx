@@ -53,8 +53,8 @@ const demoProducts = [
 ];
 
 const demoVideos = [
-  { id: "v1", thumbnailUrl: img1, videoUrl: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4", viewCount: 28500, likeCount: 1250, title: "動画サンプル1" },
-  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "動画サンプル2" },
+  { id: "v1", thumbnailUrl: img1, videoUrl: "https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4", viewCount: 28500, likeCount: 1250, title: "縦型動画" },
+  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "横型動画" },
   { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "画像のみ" },
   { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "画像のみ2" },
   { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "画像のみ3" },
