@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Download, Package, Lock, Heart, Star, Clock, Loader2, Check } from "lucide-react";
+import { ShoppingBag, Download, Package, Lock, Loader2, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,147 +48,74 @@ interface ProductCardProps {
 function ProductCard({
   id,
   name,
-  description,
   price,
-  originalPrice,
   imageUrl,
-  creatorName,
-  creatorAvatar,
   productType,
   isAvailable,
   isPremium,
-  isLimited,
-  salesCount,
   onPurchase,
 }: ProductCardProps) {
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()}pt`;
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
-      className="group relative rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-300"
+      onClick={onPurchase}
+      className="relative aspect-[4/5] rounded-lg overflow-hidden cursor-pointer"
       data-testid={`card-product-${id}`}
     >
-      <div className="aspect-square relative overflow-hidden">
-        {imageUrl ? (
-          <img 
-            src={imageUrl} 
-            alt={name}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-            {productType === "digital" ? (
-              <Download className="h-16 w-16 text-white/30" />
-            ) : (
-              <Package className="h-16 w-16 text-white/30" />
-            )}
-          </div>
-        )}
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={name}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+          {productType === "digital" ? (
+            <Download className="h-16 w-16 text-white/30" />
+          ) : (
+            <Package className="h-16 w-16 text-white/30" />
+          )}
+        </div>
+      )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-        {isPremium && (
-          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
-            <Lock className="h-10 w-10 text-white" />
-            <span className="text-white text-xs font-medium">メンバー限定</span>
-          </div>
-        )}
+      <Badge 
+        className={`absolute top-2 left-1/2 -translate-x-1/2 border-0 text-white text-xs px-3 py-1 ${
+          productType === "digital" 
+            ? "bg-pink-500" 
+            : "bg-gray-600"
+        }`}
+        data-testid={`badge-product-type-${id}`}
+      >
+        {productType === "digital" ? "デジタル" : "物販"}
+      </Badge>
 
-        <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-          <Badge 
-            className={`gap-1 ${
-              productType === "digital" 
-                ? "bg-blue-500 border-0 text-white" 
-                : "bg-emerald-500 border-0 text-white"
-            }`}
-            data-testid={`badge-product-type-${id}`}
-          >
-            {productType === "digital" ? (
-              <>
-                <Download className="h-3 w-3" />
-                デジタル
-              </>
-            ) : (
-              <>
-                <Package className="h-3 w-3" />
-                物販
-              </>
-            )}
+      {isPremium && (
+        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2">
+          <Lock className="h-10 w-10 text-white" />
+          <span className="text-white text-xs font-medium">メンバー限定</span>
+        </div>
+      )}
+
+      {!isAvailable && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+          <Badge variant="secondary" className="text-base px-4 py-2">
+            SOLD OUT
           </Badge>
-          {isLimited && (
-            <Badge className="bg-red-500 border-0 text-white gap-1">
-              <Clock className="h-3 w-3" />
-              期間限定
-            </Badge>
-          )}
         </div>
+      )}
 
-        <button className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors">
-          <Heart className="h-4 w-4 text-white" />
-        </button>
-
-        {!isAvailable && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <Badge variant="secondary" className="text-base px-4 py-2">
-              SOLD OUT
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4 space-y-3">
-        <div>
-          <h3 className="font-bold line-clamp-2 leading-tight text-sm" data-testid={`text-product-name-${id}`}>{name}</h3>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{description}</p>
-          )}
-        </div>
-
-        <div className="flex items-baseline gap-2">
-          <p className="text-xl font-bold text-pink-500" data-testid={`text-product-price-${id}`}>
-            {formatPrice(price)}
-          </p>
-          {originalPrice && originalPrice > price && (
-            <p className="text-sm text-muted-foreground line-through">
-              {formatPrice(originalPrice)}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={creatorAvatar} />
-              <AvatarFallback className="text-xs bg-gradient-to-br from-pink-400 to-rose-500 text-white">
-                {creatorName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground font-medium" data-testid={`text-product-creator-${id}`}>
-              {creatorName}
-            </span>
-          </div>
-          {salesCount && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Star className="h-3 w-3 text-amber-400" fill="currentColor" />
-              {salesCount}件販売
-            </span>
-          )}
-        </div>
-
-        <Button 
-          className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 border-0 font-semibold" 
-          disabled={!isAvailable}
-          onClick={onPurchase}
-          data-testid={`button-buy-${id}`}
-        >
-          {isAvailable ? "購入する" : "売り切れ"}
-        </Button>
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${id}`}>
+          {name}
+        </h3>
+        <p className="text-pink-400 font-bold text-sm" data-testid={`text-product-price-${id}`}>
+          {price.toLocaleString()}pt
+        </p>
       </div>
     </motion.div>
   );
@@ -197,17 +123,8 @@ function ProductCard({
 
 function ProductCardSkeleton() {
   return (
-    <div className="rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-pink-100/50 dark:border-pink-900/30">
-      <Skeleton className="aspect-square" />
-      <div className="p-4 space-y-3">
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-6 w-1/2" />
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-6 w-6 rounded-full" />
-          <Skeleton className="h-4 w-20" />
-        </div>
-        <Skeleton className="h-10 w-full rounded-xl" />
-      </div>
+    <div className="relative aspect-[4/5] rounded-lg overflow-hidden">
+      <Skeleton className="absolute inset-0" />
     </div>
   );
 }
@@ -419,8 +336,8 @@ export default function Shop() {
   const userPoints = profile?.points || 0;
 
   return (
-    <div className="pb-24 min-h-screen overflow-y-auto scrollbar-hide bg-gradient-to-b from-background to-pink-50/30 dark:to-pink-950/10">
-      <div className="h-16" />
+    <div className="pb-24 min-h-screen overflow-y-auto scrollbar-hide bg-background">
+      <div className="h-14" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-14 bg-transparent rounded-none justify-start px-4 gap-4">
@@ -448,9 +365,9 @@ export default function Shop() {
           </TabsList>
         </div>
 
-        <TabsContent value={activeTab} className="mt-0 p-4">
+        <TabsContent value={activeTab} className="mt-0 p-2">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-1">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <ProductCardSkeleton key={i} />
               ))}
@@ -458,7 +375,7 @@ export default function Shop() {
           ) : filteredProducts.length === 0 ? (
             <EmptyProductState />
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-1">
               {filteredProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
