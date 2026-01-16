@@ -767,37 +767,37 @@ export default function MyProfile() {
       {/* Fullscreen content viewer */}
       {selectedContent && (
         <div 
-          className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
-          onClick={() => setSelectedContent(null)}
+          className="fixed top-0 left-0 right-0 bottom-0 z-[100] bg-black"
+          style={{ width: '100vw', height: '100vh' }}
         >
           <Button
             size="icon"
             variant="ghost"
-            className="absolute top-4 right-4 z-[110] h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
+            className="absolute top-4 right-4 z-[110] h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/40"
             onClick={() => setSelectedContent(null)}
             data-testid="button-close-content"
           >
             <X className="h-6 w-6" />
           </Button>
-          {selectedContent.videoUrl ? (
-            <video
-              src={selectedContent.videoUrl}
-              className="max-w-full max-h-full object-contain"
-              controls
-              autoPlay
-              playsInline
-              onClick={(e) => e.stopPropagation()}
-              data-testid="fullscreen-video"
-            />
-          ) : (
-            <img
-              src={selectedContent.thumbnailUrl}
-              alt=""
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-              data-testid="fullscreen-image"
-            />
-          )}
+          <div className="w-full h-full flex items-center justify-center p-4">
+            {selectedContent.videoUrl ? (
+              <video
+                src={selectedContent.videoUrl}
+                className="w-full h-full object-contain"
+                controls
+                autoPlay
+                playsInline
+                data-testid="fullscreen-video"
+              />
+            ) : (
+              <img
+                src={selectedContent.thumbnailUrl}
+                alt=""
+                className="w-full h-full object-contain"
+                data-testid="fullscreen-image"
+              />
+            )}
+          </div>
         </div>
       )}
       
