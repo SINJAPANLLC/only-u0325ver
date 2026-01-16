@@ -809,11 +809,11 @@ export default function MyProfile() {
           </div>
           <div 
             style={{
-              flex: 1,
+              width: '100%',
+              height: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              overflow: 'hidden',
             }}
           >
             {selectedContent.videoUrl ? (
@@ -822,7 +822,7 @@ export default function MyProfile() {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                 }}
                 controls
                 autoPlay
@@ -836,7 +836,7 @@ export default function MyProfile() {
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                 }}
                 data-testid="fullscreen-image"
               />
