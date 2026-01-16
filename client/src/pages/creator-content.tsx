@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { 
@@ -9,8 +9,8 @@ import {
   Trash2, 
   Image,
   Upload,
-  X,
-  HelpCircle
+  HelpCircle,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useUpload } from "@/hooks/use-upload";
 import type { Video as VideoType, SubscriptionPlan } from "@shared/schema";
 
 export default function CreatorContent() {
@@ -40,10 +41,15 @@ export default function CreatorContent() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  
   const [form, setForm] = useState({
     contentType: "video" as "video" | "image",
     thumbnailUrl: "",
+    thumbnailPreview: "",
     videoUrl: "",
+    videoPreview: "",
     requiredTier: 0,
     title: "",
     tags: "",
@@ -52,6 +58,15 @@ export default function CreatorContent() {
       noMinors: false,
       mosaic: false,
       guidelines: false,
+    },
+  });
+
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+
+  const { uploadFile } = useUpload({
+    onError: (error) => {
+      toast({ title: "アップロードに失敗しました", description: error.message, variant: "destructive" });
     },
   });
 
@@ -111,7 +126,9 @@ export default function CreatorContent() {
     setForm({
       contentType: "video",
       thumbnailUrl: "",
+      thumbnailPreview: "",
       videoUrl: "",
+      videoPreview: "",
       requiredTier: 0,
       title: "",
       tags: "",
@@ -122,6 +139,73 @@ export default function CreatorContent() {
         guidelines: false,
       },
     });
+  };
+
+  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      toast({ title: "動画ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    const preview = URL.createObjectURL(file);
+    setForm(prev => ({ ...prev, videoPreview: preview }));
+
+    const result = await uploadFile(file);
+    if (result) {
+      setForm(prev => ({ ...prev, videoUrl: result.objectPath }));
+      toast({ title: "動画をアップロードしました" });
+    }
+    setIsUploadingVideo(false);
+  };
+
+  const handleThumbnailSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingThumbnail(true);
+    const preview = URL.createObjectURL(file);
+    setForm(prev => ({ ...prev, thumbnailPreview: preview }));
+
+    const result = await uploadFile(file);
+    if (result) {
+      setForm(prev => ({ ...prev, thumbnailUrl: result.objectPath }));
+      toast({ title: "サムネイルをアップロードしました" });
+    }
+    setIsUploadingThumbnail(false);
+  };
+
+  const handleImageContentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingThumbnail(true);
+    const preview = URL.createObjectURL(file);
+    setForm(prev => ({ ...prev, thumbnailPreview: preview }));
+
+    const result = await uploadFile(file);
+    if (result) {
+      setForm(prev => ({ 
+        ...prev, 
+        thumbnailUrl: result.objectPath,
+        videoUrl: result.objectPath 
+      }));
+      toast({ title: "画像をアップロードしました" });
+    }
+    setIsUploadingThumbnail(false);
   };
 
   const allTermsAgreed = 
@@ -282,7 +366,9 @@ export default function CreatorContent() {
               <Label>コンテンツタイプ *</Label>
               <Select
                 value={form.contentType}
-                onValueChange={(value) => setForm({ ...form, contentType: value as "video" | "image" })}
+                onValueChange={(value) => {
+                  setForm({ ...form, contentType: value as "video" | "image", videoUrl: "", thumbnailUrl: "", videoPreview: "", thumbnailPreview: "" });
+                }}
               >
                 <SelectTrigger data-testid="select-content-type">
                   <SelectValue />
@@ -304,45 +390,120 @@ export default function CreatorContent() {
               </Select>
             </div>
 
-            {form.contentType === "video" && (
-              <div>
-                <Label htmlFor="videoUrl">動画を選択 *</Label>
-                <div className="mt-1">
-                  <Input
-                    id="videoUrl"
-                    value={form.videoUrl}
-                    onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                    placeholder="動画URLを入力..."
-                    data-testid="input-video-url"
+            {form.contentType === "video" ? (
+              <>
+                <div>
+                  <Label>動画を選択 *</Label>
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleVideoSelect}
                   />
+                  <div 
+                    className="mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-pink-500 transition-colors"
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    {isUploadingVideo ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
+                      </div>
+                    ) : form.videoPreview ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <video 
+                          src={form.videoPreview} 
+                          className="w-full max-h-32 object-contain rounded"
+                        />
+                        <p className="text-xs text-green-500">アップロード完了</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>
+                    サムネイル画像を選択 * 
+                    <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
+                  </Label>
+                  <input
+                    ref={thumbnailInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleThumbnailSelect}
+                  />
+                  <div 
+                    className="mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-pink-500 transition-colors"
+                    onClick={() => thumbnailInputRef.current?.click()}
+                  >
+                    {isUploadingThumbnail ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
+                      </div>
+                    ) : form.thumbnailPreview ? (
+                      <div className="flex items-center justify-center">
+                        <img 
+                          src={form.thumbnailPreview} 
+                          alt="Preview" 
+                          className="w-20 h-28 object-cover rounded"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Image className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">クリックしてサムネイルを選択</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <Label>
+                  画像を選択 * 
+                  <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
+                </Label>
+                <input
+                  ref={thumbnailInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageContentSelect}
+                />
+                <div 
+                  className="mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-pink-500 transition-colors"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                >
+                  {isUploadingThumbnail ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
+                    </div>
+                  ) : form.thumbnailPreview ? (
+                    <div className="flex items-center justify-center">
+                      <img 
+                        src={form.thumbnailPreview} 
+                        alt="Preview" 
+                        className="w-20 h-28 object-cover rounded"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <Image className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">クリックして画像を選択</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-
-            <div>
-              <Label htmlFor="thumbnailUrl">
-                サムネイル画像を選択 * 
-                <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
-              </Label>
-              <div className="mt-1">
-                <Input
-                  id="thumbnailUrl"
-                  value={form.thumbnailUrl}
-                  onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
-                  placeholder="画像URLを入力..."
-                  data-testid="input-thumbnail"
-                />
-              </div>
-              {form.thumbnailUrl && (
-                <div className="mt-2 w-20 h-28 bg-muted rounded-md overflow-hidden">
-                  <img 
-                    src={form.thumbnailUrl} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
 
             <div>
               <Label>公開範囲 *</Label>
@@ -469,7 +630,7 @@ export default function CreatorContent() {
             <Button
               type="submit"
               className="w-full"
-              disabled={createVideoMutation.isPending || !allTermsAgreed}
+              disabled={createVideoMutation.isPending || !allTermsAgreed || isUploadingVideo || isUploadingThumbnail}
               data-testid="button-submit"
             >
               {createVideoMutation.isPending ? "投稿中..." : "投稿する"}
