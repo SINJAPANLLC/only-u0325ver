@@ -38,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
+import ReactDOM from "react-dom";
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -765,61 +766,62 @@ export default function MyProfile() {
       </Dialog>
 
       {/* Fullscreen content viewer */}
-      {selectedContent && (
+      {selectedContent && ReactDOM.createPortal(
         <div 
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
-            width: '100vw',
-            height: '100vh',
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
             backgroundColor: 'black',
-            zIndex: 9999,
+            zIndex: 99999,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            flexDirection: 'column',
           }}
-          onClick={() => setSelectedContent(null)}
         >
-          <button
-            style={{
-              position: 'absolute',
-              top: '16px',
-              left: '16px',
-              zIndex: 10000,
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(0,0,0,0.6)',
-              color: 'white',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            onClick={(e) => { e.stopPropagation(); setSelectedContent(null); }}
-            data-testid="button-close-content"
-          >
-            <X style={{ width: '24px', height: '24px' }} />
-          </button>
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            zIndex: 100000,
+          }}>
+            <button
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              onClick={() => setSelectedContent(null)}
+              data-testid="button-close-content"
+            >
+              <X style={{ width: '24px', height: '24px' }} />
+            </button>
+          </div>
           <div 
             style={{
-              width: '100%',
-              height: '100%',
+              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '60px 16px 16px 16px',
+              overflow: 'hidden',
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             {selectedContent.videoUrl ? (
               <video
                 src={selectedContent.videoUrl}
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'contain',
                 }}
                 controls
@@ -832,15 +834,16 @@ export default function MyProfile() {
                 src={selectedContent.thumbnailUrl}
                 alt=""
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'contain',
                 }}
                 data-testid="fullscreen-image"
               />
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       
       <div className="h-24" />
