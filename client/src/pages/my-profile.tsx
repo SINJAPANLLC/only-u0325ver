@@ -444,7 +444,7 @@ export default function MyProfile() {
         <div className="flex items-center justify-center gap-8 mt-5">
           <div className="text-center">
             <p className="text-lg font-bold">{formatCount(following)}</p>
-            <p className="text-xs text-muted-foreground">フォロー中</p>
+            <p className="text-xs text-muted-foreground">フォロー</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold">{formatCount(followers)}</p>
