@@ -38,6 +38,7 @@ interface VideoPageProps {
   isActive: boolean;
   musicName?: string;
   thumbnailUrl?: string;
+  videoUrl?: string;
   isHorizontal?: boolean;
   isPremium?: boolean;
   hasAccess?: boolean;
@@ -55,10 +56,12 @@ function VideoPage({
   duration,
   isActive,
   thumbnailUrl,
+  videoUrl,
   isHorizontal = false,
   isPremium = false,
   hasAccess = true,
 }: VideoPageProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -102,12 +105,35 @@ function VideoPage({
   };
 
   const togglePause = () => {
-    setIsPaused(!isPaused);
+    const newPaused = !isPaused;
+    setIsPaused(newPaused);
+    if (videoRef.current) {
+      if (newPaused) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(() => {});
+      }
+    }
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    if (videoRef.current) {
+      videoRef.current.muted = newMuted;
+    }
   };
+
+  // Control video playback based on isActive
+  useEffect(() => {
+    if (videoRef.current && videoUrl) {
+      if (isActive && !isPaused && hasAccess) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isActive, isPaused, videoUrl, hasAccess]);
 
   // Progress bar auto-advance
   useEffect(() => {
@@ -208,19 +234,29 @@ function VideoPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
-      {/* Video background with image */}
+      {/* Video background */}
       <div 
         className="absolute inset-0 cursor-pointer"
         onClick={togglePause}
       >
-        {/* Background image */}
-        {thumbnailUrl && (
+        {/* Video or fallback image */}
+        {videoUrl && hasAccess ? (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className={`absolute inset-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
+            loop
+            muted={isMuted}
+            playsInline
+            poster={thumbnailUrl}
+          />
+        ) : thumbnailUrl ? (
           <img 
             src={thumbnailUrl} 
             alt="" 
             className={`absolute inset-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
           />
-        )}
+        ) : null}
         
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
@@ -602,6 +638,7 @@ export default function Home() {
       isActive: false,
       musicName: "オリジナル音源",
       thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
+      videoUrl: v.videoUrl,
     };
   };
 

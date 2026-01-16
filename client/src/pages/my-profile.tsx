@@ -16,7 +16,8 @@ import {
   Plus,
   Trash2,
   Loader2,
-  X
+  X,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -127,6 +128,15 @@ export default function MyProfile() {
   // Fullscreen video/image viewer
   const [selectedContent, setSelectedContent] = useState<{ id: string; thumbnailUrl: string; videoUrl?: string; title?: string; isVertical?: boolean } | null>(null);
   
+  // Video upload
+  const [videoUploadOpen, setVideoUploadOpen] = useState(false);
+  const [newVideoTitle, setNewVideoTitle] = useState("");
+  const [newVideoDescription, setNewVideoDescription] = useState("");
+  const [newVideoThumbnailUrl, setNewVideoThumbnailUrl] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newVideoTier, setNewVideoTier] = useState("0");
+  const [newVideoIsVertical, setNewVideoIsVertical] = useState(true);
+  
   const createPlanMutation = useMutation({
     mutationFn: async (data: { name: string; description: string; price: number; tier: number }) => {
       const res = await apiRequest("POST", "/api/subscription-plans", data);
@@ -169,6 +179,42 @@ export default function MyProfile() {
       toast({ title: "プランを削除しました" });
     },
   });
+
+  const createVideoMutation = useMutation({
+    mutationFn: async (data: { title: string; description: string; thumbnailUrl: string; videoUrl: string; requiredTier: number; contentType: string }) => {
+      const res = await apiRequest("POST", "/api/videos", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-videos"] });
+      setVideoUploadOpen(false);
+      setNewVideoTitle("");
+      setNewVideoDescription("");
+      setNewVideoThumbnailUrl("");
+      setNewVideoUrl("");
+      setNewVideoTier("0");
+      toast({ title: "動画を投稿しました" });
+    },
+    onError: (error: any) => {
+      toast({ title: "エラー", description: error.message || "動画の投稿に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const handleSubmitVideo = () => {
+    if (!newVideoTitle || !newVideoThumbnailUrl || !newVideoUrl) {
+      toast({ title: "エラー", description: "タイトル、サムネイル、動画URLは必須です", variant: "destructive" });
+      return;
+    }
+    const tier = parseInt(newVideoTier) || 0;
+    createVideoMutation.mutate({
+      title: newVideoTitle,
+      description: newVideoDescription,
+      thumbnailUrl: newVideoThumbnailUrl,
+      videoUrl: newVideoUrl,
+      requiredTier: tier,
+      contentType: tier > 0 ? "premium" : "free",
+    });
+  };
 
   const handleOpenNewPlan = () => {
     setIsNewPlan(true);
@@ -576,6 +622,14 @@ export default function MyProfile() {
         </TabsList>
         
         <TabsContent value="videos" className="mt-0">
+          {creatorProfile && (
+            <div className="p-4 border-b border-border">
+              <Button onClick={() => setVideoUploadOpen(true)} className="w-full" data-testid="button-upload-video">
+                <Upload className="h-4 w-4 mr-2" />
+                動画を投稿
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-0.5">
             {displayVideos?.map((video) => (
               <div 
@@ -760,6 +814,84 @@ export default function MyProfile() {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               )}
               {isNewPlan ? "作成" : "保存"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video upload dialog */}
+      <Dialog open={videoUploadOpen} onOpenChange={setVideoUploadOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>動画を投稿</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="video-title">タイトル</Label>
+              <Input
+                id="video-title"
+                value={newVideoTitle}
+                onChange={(e) => setNewVideoTitle(e.target.value)}
+                placeholder="動画のタイトル"
+                data-testid="input-video-title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video-description">説明</Label>
+              <Textarea
+                id="video-description"
+                value={newVideoDescription}
+                onChange={(e) => setNewVideoDescription(e.target.value)}
+                placeholder="動画の説明"
+                data-testid="input-video-description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video-thumbnail">サムネイルURL</Label>
+              <Input
+                id="video-thumbnail"
+                value={newVideoThumbnailUrl}
+                onChange={(e) => setNewVideoThumbnailUrl(e.target.value)}
+                placeholder="https://example.com/thumbnail.jpg"
+                data-testid="input-video-thumbnail"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video-url">動画URL</Label>
+              <Input
+                id="video-url"
+                value={newVideoUrl}
+                onChange={(e) => setNewVideoUrl(e.target.value)}
+                placeholder="https://example.com/video.mp4"
+                data-testid="input-video-url"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video-tier">必要なTier（0=無料）</Label>
+              <Input
+                id="video-tier"
+                type="number"
+                value={newVideoTier}
+                onChange={(e) => setNewVideoTier(e.target.value)}
+                min="0"
+                data-testid="input-video-tier"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVideoUploadOpen(false)}>
+              キャンセル
+            </Button>
+            <Button 
+              onClick={handleSubmitVideo}
+              disabled={!newVideoTitle || !newVideoThumbnailUrl || !newVideoUrl || createVideoMutation.isPending}
+              className="bg-pink-500 hover:bg-pink-600"
+              data-testid="button-submit-video"
+            >
+              {createVideoMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              )}
+              投稿
             </Button>
           </DialogFooter>
         </DialogContent>
