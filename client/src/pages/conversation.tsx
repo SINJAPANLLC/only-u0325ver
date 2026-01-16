@@ -145,7 +145,7 @@ export default function ConversationPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Avatar className="h-10 w-10">
-            <AvatarImage src={participantAvatar} />
+            <AvatarImage src={participantAvatar} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
               {participantName.charAt(0)}
             </AvatarFallback>

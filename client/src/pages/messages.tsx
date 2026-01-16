@@ -47,7 +47,7 @@ function ConversationPreview({
     >
       <div className="relative">
         <Avatar className="h-14 w-14">
-          <AvatarImage src={participantAvatar} />
+          <AvatarImage src={participantAvatar} className="object-cover" />
           <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-lg">
             {participantName.charAt(0)}
           </AvatarFallback>
