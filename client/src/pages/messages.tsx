@@ -2,14 +2,19 @@ import { motion } from "framer-motion";
 import { MessageCircle, Search, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import type { Conversation, CreatorProfile, Message } from "@shared/schema";
+import type { Conversation, CreatorProfile } from "@shared/schema";
+
+import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
+import img2 from "@assets/generated_images/nude_bath_2.jpg";
+import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
+import img4 from "@assets/generated_images/nude_shower_4.jpg";
+import img5 from "@assets/generated_images/bunny_girl_5.jpg";
 
 interface ConversationWithDetails {
   id: string;
@@ -110,7 +115,62 @@ export default function Messages() {
     };
   });
 
-  const filteredConversations = conversationDetails.filter((conv) =>
+  const demoConversations: ConversationWithDetails[] = [
+    {
+      id: "demo-1",
+      participantId: "demo-user-1",
+      participantName: "れいな💋",
+      participantAvatar: img1,
+      lastMessage: "今夜の配信楽しみにしててね💕",
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 5),
+      unreadCount: 3,
+      isVerified: true,
+    },
+    {
+      id: "demo-2",
+      participantId: "demo-user-2",
+      participantName: "ゆあ🌙",
+      participantAvatar: img2,
+      lastMessage: "写真集見てくれた？感想聞かせて♡",
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 30),
+      unreadCount: 1,
+      isVerified: true,
+    },
+    {
+      id: "demo-3",
+      participantId: "demo-user-3",
+      participantName: "みお",
+      participantAvatar: img3,
+      lastMessage: "ありがとう！嬉しい😊",
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+      unreadCount: 0,
+      isVerified: false,
+    },
+    {
+      id: "demo-4",
+      participantId: "demo-user-4",
+      participantName: "さき💜",
+      participantAvatar: img4,
+      lastMessage: "2ショットでお話しよう？",
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
+      unreadCount: 2,
+      isVerified: true,
+    },
+    {
+      id: "demo-5",
+      participantId: "demo-user-5",
+      participantName: "ひな🐰",
+      participantAvatar: img5,
+      lastMessage: "新しいコスプレ写真撮ったよ！",
+      lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+      unreadCount: 0,
+      isVerified: true,
+    },
+  ];
+
+  const displayConversations = conversationDetails.length > 0 ? conversationDetails : demoConversations;
+
+  const filteredConversations = displayConversations.filter((conv) =>
     conv.participantName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

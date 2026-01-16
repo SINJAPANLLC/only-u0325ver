@@ -11,26 +11,72 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import type { Message, Conversation, CreatorProfile } from "@shared/schema";
 
+import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
+import img2 from "@assets/generated_images/nude_bath_2.jpg";
+import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
+import img4 from "@assets/generated_images/nude_shower_4.jpg";
+import img5 from "@assets/generated_images/bunny_girl_5.jpg";
+
+const demoCreators: Record<string, { name: string; avatar: string }> = {
+  "demo-1": { name: "れいな💋", avatar: img1 },
+  "demo-2": { name: "ゆあ🌙", avatar: img2 },
+  "demo-3": { name: "みお", avatar: img3 },
+  "demo-4": { name: "さき💜", avatar: img4 },
+  "demo-5": { name: "ひな🐰", avatar: img5 },
+};
+
+const demoMessages: Record<string, { id: string; senderId: string; content: string; createdAt: Date }[]> = {
+  "demo-1": [
+    { id: "m1", senderId: "creator", content: "こんにちは！フォローありがとう💕", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) },
+    { id: "m2", senderId: "user", content: "いつも配信楽しみにしてます！", createdAt: new Date(Date.now() - 1000 * 60 * 60) },
+    { id: "m3", senderId: "creator", content: "嬉しい！今夜も配信するね", createdAt: new Date(Date.now() - 1000 * 60 * 30) },
+    { id: "m4", senderId: "creator", content: "今夜の配信楽しみにしててね💕", createdAt: new Date(Date.now() - 1000 * 60 * 5) },
+  ],
+  "demo-2": [
+    { id: "m1", senderId: "creator", content: "新しい写真集出したよ🌙", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3) },
+    { id: "m2", senderId: "user", content: "買いました！すごく良かったです", createdAt: new Date(Date.now() - 1000 * 60 * 60) },
+    { id: "m3", senderId: "creator", content: "写真集見てくれた？感想聞かせて♡", createdAt: new Date(Date.now() - 1000 * 60 * 30) },
+  ],
+  "demo-3": [
+    { id: "m1", senderId: "user", content: "ASMRの新作最高でした！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3) },
+    { id: "m2", senderId: "creator", content: "ありがとう！嬉しい😊", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) },
+  ],
+  "demo-4": [
+    { id: "m1", senderId: "creator", content: "いつもありがとう💜", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6) },
+    { id: "m2", senderId: "creator", content: "2ショットでお話しよう？", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5) },
+  ],
+  "demo-5": [
+    { id: "m1", senderId: "creator", content: "バニーコスプレどうだった？🐰", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 25) },
+    { id: "m2", senderId: "user", content: "めっちゃ可愛かったです！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24.5) },
+    { id: "m3", senderId: "creator", content: "新しいコスプレ写真撮ったよ！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) },
+  ],
+};
+
 export default function ConversationPage() {
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
   const [messageText, setMessageText] = useState("");
+  const [localDemoMessages, setLocalDemoMessages] = useState<{ id: string; senderId: string; content: string; createdAt: Date }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isDemo = params.id?.startsWith("demo-");
+  const demoCreator = isDemo ? demoCreators[params.id || ""] : null;
 
   const { data: conversation } = useQuery<Conversation>({
     queryKey: ["/api/conversations", params.id],
-    enabled: !!params.id,
+    enabled: !!params.id && !isDemo,
   });
 
   const { data: messages, isLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", params.id, "messages"],
-    enabled: !!params.id,
+    enabled: !!params.id && !isDemo,
     refetchInterval: 5000,
   });
 
   const { data: creators } = useQuery<CreatorProfile[]>({
     queryKey: ["/api/creators"],
+    enabled: !isDemo,
   });
 
   const sendMutation = useMutation({
@@ -45,8 +91,14 @@ export default function ConversationPage() {
   });
 
   useEffect(() => {
+    if (isDemo && params.id) {
+      setLocalDemoMessages(demoMessages[params.id] || []);
+    }
+  }, [isDemo, params.id]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, localDemoMessages]);
 
   const userId = user?.id;
   const participantId = conversation
@@ -54,17 +106,31 @@ export default function ConversationPage() {
     : null;
 
   const participant = creators?.find(c => c.userId === participantId);
-  const participantName = participant?.displayName || "ユーザー";
+  const participantName = isDemo ? (demoCreator?.name || "クリエイター") : (participant?.displayName || "ユーザー");
+  const participantAvatar = isDemo ? demoCreator?.avatar : undefined;
 
   const handleSend = () => {
-    if (messageText.trim() && !sendMutation.isPending) {
+    if (!messageText.trim()) return;
+    
+    if (isDemo) {
+      const newMsg = {
+        id: `user-${Date.now()}`,
+        senderId: "user",
+        content: messageText.trim(),
+        createdAt: new Date(),
+      };
+      setLocalDemoMessages(prev => [...prev, newMsg]);
+      setMessageText("");
+    } else if (!sendMutation.isPending) {
       sendMutation.mutate(messageText.trim());
     }
   };
 
-  const sortedMessages = [...(messages || [])].sort(
-    (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
-  );
+  const displayMessages = isDemo 
+    ? localDemoMessages
+    : [...(messages || [])].sort(
+        (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+      );
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -79,6 +145,7 @@ export default function ConversationPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Avatar className="h-10 w-10">
+            <AvatarImage src={participantAvatar} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
               {participantName.charAt(0)}
             </AvatarFallback>
@@ -90,17 +157,17 @@ export default function ConversationPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {isLoading ? (
+        {isLoading && !isDemo ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : sortedMessages.length === 0 ? (
+        ) : displayMessages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">メッセージを送信してみよう</p>
           </div>
         ) : (
-          sortedMessages.map((msg) => {
-            const isOwn = msg.senderId === userId;
+          displayMessages.map((msg) => {
+            const isOwn = isDemo ? msg.senderId === "user" : msg.senderId === userId;
             return (
               <div
                 key={msg.id}
@@ -139,11 +206,11 @@ export default function ConversationPage() {
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!messageText.trim() || sendMutation.isPending}
+            disabled={!messageText.trim() || (!isDemo && sendMutation.isPending)}
             className="rounded-full bg-pink-500 hover:bg-pink-600"
             data-testid="button-send"
           >
-            {sendMutation.isPending ? (
+            {!isDemo && sendMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />
