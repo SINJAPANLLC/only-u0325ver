@@ -27,7 +27,8 @@ import {
   Twitter,
   Facebook,
   MessageCircle,
-  Check
+  Check,
+  Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -903,7 +904,7 @@ export default function CreatorLive() {
               disabled={!commentText.trim()}
               data-testid="button-send-comment"
             >
-              <Heart className="h-5 w-5" />
+              <Send className="h-5 w-5" />
             </Button>
           </form>
         </div>
