@@ -81,6 +81,7 @@ export function useWebRTC({
 
   const createOfferForViewer = useCallback(async (viewerId: string, ws: WebSocket) => {
     if (!localStreamRef.current) return;
+    if (ws.readyState !== WebSocket.OPEN) return;
     
     const pc = createPeerConnection(viewerId);
     peerConnectionsRef.current.set(viewerId, pc);
@@ -92,13 +93,15 @@ export function useWebRTC({
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
-    ws.send(JSON.stringify({
-      type: "offer",
-      streamId,
-      offer,
-      viewerId,
-      broadcasterId: streamId,
-    }));
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: "offer",
+        streamId,
+        offer,
+        viewerId,
+        broadcasterId: streamId,
+      }));
+    }
   }, [streamId, createPeerConnection]);
 
   const startBroadcast = useCallback(async () => {
@@ -216,12 +219,14 @@ export function useWebRTC({
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
 
-          ws.send(JSON.stringify({
-            type: "answer",
-            streamId,
-            answer,
-            viewerId: viewerIdRef.current,
-          }));
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+              type: "answer",
+              streamId,
+              answer,
+              viewerId: viewerIdRef.current,
+            }));
+          }
           break;
 
         case "ice-candidate":
@@ -272,7 +277,9 @@ export function useWebRTC({
     }
 
     if (wsRef.current) {
-      wsRef.current.send(JSON.stringify({ type: "leave", streamId }));
+      if (wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "leave", streamId }));
+      }
       wsRef.current.close();
       wsRef.current = null;
     }
