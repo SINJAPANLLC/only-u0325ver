@@ -108,6 +108,9 @@ export default function CreatorLive() {
     saveToDevice: false,
   });
   
+  const [commentText, setCommentText] = useState("");
+  const [creatorComments, setCreatorComments] = useState<string[]>([]);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -388,6 +391,13 @@ export default function CreatorLive() {
       blur: 0,
       beautyMode: false,
     });
+  };
+
+  const handleSendComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setCreatorComments(prev => [...prev, commentText.trim()]);
+    setCommentText("");
   };
 
   const formatDuration = (seconds: number) => {
@@ -800,7 +810,7 @@ export default function CreatorLive() {
           </div>
         </div>
 
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+        <div className="absolute right-4 bottom-36 flex flex-col gap-3">
           <Button
             size="icon"
             variant="ghost"
@@ -848,28 +858,54 @@ export default function CreatorLive() {
           </Button>
         </div>
 
-        <div className="absolute left-4 bottom-24 max-h-60 overflow-y-auto space-y-2 w-64">
-          <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
-            <p className="text-pink-400 font-medium mb-1">配信中</p>
-            <p className="text-white/80 text-xs leading-relaxed">
-              {streamTitle || "ライブ配信"}
-            </p>
-          </div>
+        <div className="absolute left-4 bottom-28 max-h-48 overflow-y-auto space-y-2 w-64">
+          {creatorComments.map((comment, idx) => (
+            <div key={idx} className="flex items-start gap-2 bg-black/40 rounded-lg px-3 py-2">
+              <Avatar className="h-6 w-6 flex-shrink-0">
+                <AvatarFallback className="bg-pink-500 text-white text-xs">
+                  {displayName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <span className="text-white text-xs font-medium">{displayName}</span>
+                  <Badge className="bg-pink-500/80 text-white text-[8px] px-1">配信者</Badge>
+                </div>
+                <p className="text-white/90 text-sm break-words">{comment}</p>
+              </div>
+            </div>
+          ))}
+          {creatorComments.length === 0 && (
+            <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
+              <p className="text-pink-400 font-medium mb-1">配信中</p>
+              <p className="text-white/80 text-xs leading-relaxed">
+                {streamTitle || "ライブ配信"}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center gap-2">
+          <form onSubmit={handleSendComment} className="flex items-center gap-2">
             <div className="flex-1 relative">
               <Input
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="コメントを入力..."
-                className="bg-black/50 border-white/20 text-white placeholder:text-white/40 rounded-full"
+                className="bg-black/50 border-white/20 text-white placeholder:text-white/40 rounded-full pr-12"
                 data-testid="input-comment"
               />
             </div>
-            <Button size="icon" variant="ghost" className="text-white">
-              <Heart className="h-6 w-6" />
+            <Button 
+              type="submit"
+              size="icon" 
+              className="bg-pink-500 hover:bg-pink-600 rounded-full"
+              disabled={!commentText.trim()}
+              data-testid="button-send-comment"
+            >
+              <Heart className="h-5 w-5" />
             </Button>
-          </div>
+          </form>
         </div>
 
         <Sheet open={isEffectsOpen} onOpenChange={setIsEffectsOpen}>
