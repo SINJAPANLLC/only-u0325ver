@@ -28,7 +28,8 @@ import {
   Facebook,
   MessageCircle,
   Check,
-  Send
+  Send,
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,8 @@ export default function CreatorLive() {
   
   const [commentText, setCommentText] = useState("");
   const [creatorComments, setCreatorComments] = useState<string[]>([]);
+  const [pointsPerMinute, setPointsPerMinute] = useState(50);
+  const [earnedPoints, setEarnedPoints] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -253,13 +256,20 @@ export default function CreatorLive() {
   useEffect(() => {
     if (viewMode === "streaming") {
       timerRef.current = setInterval(() => {
-        setStreamDuration(prev => prev + 1);
+        setStreamDuration(prev => {
+          const newDuration = prev + 1;
+          if (newDuration % 60 === 0) {
+            setEarnedPoints(current => current + (pointsPerMinute * Math.max(1, viewerCount)));
+          }
+          return newDuration;
+        });
       }, 1000);
     } else {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
       setStreamDuration(0);
+      setEarnedPoints(0);
     }
     
     return () => {
@@ -267,7 +277,7 @@ export default function CreatorLive() {
         clearInterval(timerRef.current);
       }
     };
-  }, [viewMode]);
+  }, [viewMode, pointsPerMinute, viewerCount]);
 
   useEffect(() => {
     return () => {
@@ -476,6 +486,28 @@ export default function CreatorLive() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="mb-4 bg-black/40 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-white">
+                <Coins className="h-5 w-5 text-yellow-400" />
+                <span className="font-medium">1分あたりのポイント</span>
+              </div>
+              <span className="text-yellow-400 font-bold">{pointsPerMinute}pt</span>
+            </div>
+            <Slider
+              value={[pointsPerMinute]}
+              onValueChange={([v]) => setPointsPerMinute(v)}
+              min={10}
+              max={500}
+              step={10}
+              className="mt-2"
+              data-testid="slider-points"
+            />
+            <div className="flex justify-between text-xs text-white/60 mt-1">
+              <span>10pt</span>
+              <span>500pt</span>
+            </div>
+          </div>
           <Button
             className="w-full h-14 bg-pink-500 hover:bg-pink-600 text-lg font-bold rounded-full"
             onClick={() => setIsTitleDialogOpen(true)}
@@ -789,7 +821,7 @@ export default function CreatorLive() {
 
         <div className="absolute top-0 left-0 right-0 p-4 pt-12">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full">
                 <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
                 <span className="text-white text-sm font-bold">LIVE</span>
@@ -798,6 +830,10 @@ export default function CreatorLive() {
               <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-full">
                 <Users className="h-4 w-4 text-white" />
                 <span className="text-white text-sm font-medium">{viewerCount}</span>
+              </div>
+              <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500/80 rounded-full">
+                <Coins className="h-4 w-4 text-white" />
+                <span className="text-white text-sm font-bold">{earnedPoints.toLocaleString()}pt</span>
               </div>
             </div>
             <Button
