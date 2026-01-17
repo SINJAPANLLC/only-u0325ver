@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerEmailAuthRoutes } from "./emailAuth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { setupWebRTCSignaling } from "./webrtc";
 import { db } from "./db";
 import { 
   videos, liveStreams, products, conversations, messages, 
@@ -61,6 +62,9 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerEmailAuthRoutes(app);
   registerObjectStorageRoutes(app);
+  
+  // Setup WebRTC signaling for live streaming
+  setupWebRTCSignaling(httpServer);
 
   // Search API - search creators and videos
   app.get("/api/search", async (req, res) => {

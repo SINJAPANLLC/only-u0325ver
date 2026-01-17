@@ -38,6 +38,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useWebRTC } from "@/hooks/use-webrtc";
 import type { LiveStream, UserProfile } from "@shared/schema";
 
 type ViewMode = "list" | "preview" | "streaming";
@@ -59,6 +60,23 @@ export default function CreatorLive() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+
+  const handleWebRTCViewerCount = useCallback((count: number) => {
+    setViewerCount(count);
+  }, []);
+
+  const handleWebRTCError = useCallback((error: string) => {
+    toast({ title: error, variant: "destructive" });
+  }, [toast]);
+
+  const webrtc = useWebRTC({
+    streamId: currentStreamId || "",
+    isBroadcaster: true,
+    localStream,
+    onViewerCountChange: handleWebRTCViewerCount,
+    onError: handleWebRTCError,
+  });
 
   const { data: profile } = useQuery<UserProfile | null>({
     queryKey: ["/api/profile"],
@@ -85,6 +103,7 @@ export default function CreatorLive() {
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      setLocalStream(stream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -112,6 +131,7 @@ export default function CreatorLive() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      setLocalStream(null);
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
@@ -163,7 +183,6 @@ export default function CreatorLive() {
     if (viewMode === "streaming") {
       timerRef.current = setInterval(() => {
         setStreamDuration(prev => prev + 1);
-        setViewerCount(prev => Math.max(0, prev + Math.floor(Math.random() * 3) - 1));
       }, 1000);
     } else {
       if (timerRef.current) {
@@ -185,6 +204,12 @@ export default function CreatorLive() {
     };
   }, [stopCamera]);
 
+  useEffect(() => {
+    if (currentStreamId && viewMode === "streaming" && localStream) {
+      webrtc.startBroadcast();
+    }
+  }, [currentStreamId, viewMode, localStream]);
+
   const startLiveMutation = useMutation({
     mutationFn: async (title: string) => {
       const response = await apiRequest("POST", "/api/live", {
@@ -199,7 +224,7 @@ export default function CreatorLive() {
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
       setCurrentStreamId(data.id);
       setViewMode("streaming");
-      setViewerCount(Math.floor(Math.random() * 10) + 1);
+      setViewerCount(0);
       toast({ title: "ライブ配信を開始しました" });
     },
     onError: (error: any) => {
@@ -218,6 +243,7 @@ export default function CreatorLive() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
+      webrtc.stopBroadcast();
       setViewMode("list");
       setCurrentStreamId(null);
       stopCamera();

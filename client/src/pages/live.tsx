@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock, Send } from "lucide-react";
+import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock, Send, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
+import { useWebRTC } from "@/hooks/use-webrtc";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ interface LiveStreamPageProps {
   userPoints: number;
   currentMode: RoomMode;
   onModeChange: (mode: RoomMode) => void;
+  isRealStream?: boolean;
 }
 
 function LiveStreamPage({
@@ -63,6 +65,7 @@ function LiveStreamPage({
   userPoints,
   currentMode,
   onModeChange,
+  isRealStream = false,
 }: LiveStreamPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(likeCount);
@@ -73,6 +76,41 @@ function LiveStreamPage({
   const [isMuted, setIsMuted] = useState(false);
   const [comment, setComment] = useState("");
   const [flowingComments, setFlowingComments] = useState<{id: number; text: string; username: string}[]>([]);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleStreamReceived = useCallback((stream: MediaStream | null) => {
+    setRemoteStream(stream);
+    setIsConnecting(false);
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, []);
+
+  const webrtc = useWebRTC({
+    streamId: id,
+    isBroadcaster: false,
+    onStreamReceived: handleStreamReceived,
+  });
+
+  useEffect(() => {
+    if (isRealStream && isActive) {
+      setIsConnecting(true);
+      webrtc.joinAsViewer();
+    }
+    return () => {
+      if (isRealStream) {
+        webrtc.stopViewing();
+      }
+    };
+  }, [isRealStream, isActive]);
+
+  useEffect(() => {
+    if (remoteStream && videoRef.current) {
+      videoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
   useEffect(() => {
     if (currentMode !== "waiting" && isActive) {
@@ -190,7 +228,15 @@ function LiveStreamPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
-      {thumbnailUrl ? (
+      {isRealStream && remoteStream ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted={isMuted}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : thumbnailUrl ? (
         <img 
           src={thumbnailUrl} 
           alt={title}
@@ -198,6 +244,15 @@ function LiveStreamPage({
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-pink-600 to-rose-700" />
+      )}
+
+      {isRealStream && isConnecting && !remoteStream && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+          <div className="text-center text-white">
+            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-2" />
+            <p className="text-sm">配信に接続中...</p>
+          </div>
+        </div>
       )}
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
@@ -534,6 +589,7 @@ export default function Live() {
     category: "LIVE配信中",
     partyRatePerMinute: 50,
     twoshotRatePerMinute: 200,
+    isRealStream: true,
   }));
 
   const baseStreams = feedType === "following"
@@ -599,6 +655,7 @@ export default function Live() {
             userPoints={userPoints}
             currentMode={roomModes[stream.id] || "waiting"}
             onModeChange={(mode) => handleModeChange(stream.id, mode)}
+            isRealStream={"isRealStream" in stream && stream.isRealStream}
           />
         ))}
       </div>
