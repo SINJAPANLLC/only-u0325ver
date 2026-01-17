@@ -84,7 +84,7 @@ function ProductCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
       <Badge 
-        className={`absolute top-2 left-1/2 -translate-x-1/2 border-0 text-white text-xs px-3 py-1 ${
+        className={`absolute top-2 left-2 border-0 text-white text-xs px-3 py-1 ${
           productType === "digital" 
             ? "bg-pink-500" 
             : "bg-gray-600"
