@@ -644,7 +644,26 @@ export async function registerRoutes(
     }
   });
 
-  // Get unread notification count
+  // ModelsLab Image Generation API
+  app.post("/api/generate-adult-content", isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      // Default high-quality adult content vertical prompt
+      const fullPrompt = `${prompt}, detailed skin texture, high resolution, 8k, masterpiece, realistic, cinematic lighting, vertical portrait`;
+      const negativePrompt = "ugly, blurry, bad anatomy, low quality, deformed, disfigured, cartoon, 3d, render, illustration";
+
+      const imageUrl = await generateImage(fullPrompt, negativePrompt, "512", "1024");
+      res.json({ imageUrl });
+    } catch (error: any) {
+      console.error("Error generating adult content:", error);
+      res.status(500).json({ message: error.message || "Failed to generate image" });
+    }
+  });
+
   app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

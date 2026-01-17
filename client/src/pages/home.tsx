@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Crown, Volume2, VolumeX, Lock } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Crown, Volume2, VolumeX, Lock, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { Video as VideoType, Subscription } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CommentsModal } from "@/components/comments-modal";
+import { Loader2 } from "lucide-react";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -590,6 +590,44 @@ export default function Home() {
   const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const containerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [aiGeneratedContent, setAiGeneratedContent] = useState<VideoPageProps[]>([]);
+
+  const generateAiContent = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/generate-adult-content", {
+        prompt: "Japanese beautiful girl, sexy pose, highly detailed, realistic"
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      const newVideo: VideoPageProps = {
+        id: `ai-${Date.now()}`,
+        title: "AI Generated Premium Content ✨",
+        creatorName: "AI_Creator",
+        displayName: "AI Creator ✨",
+        viewCount: 0,
+        likeCount: 0,
+        commentCount: 0,
+        duration: 30,
+        isActive: false,
+        thumbnailUrl: data.imageUrl,
+        isPremium: true,
+        hasAccess: true,
+        musicName: "AI Generated",
+        isHorizontal: false
+      };
+      setAiGeneratedContent(prev => [newVideo, ...prev]);
+      toast({ title: "新しいAIコンテンツを生成しました" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "生成に失敗しました",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
 
   // Recommended videos (all new videos)
   const { data: recommendedVideos } = useQuery<any[]>({
@@ -643,13 +681,16 @@ export default function Home() {
   };
 
   // Use API data when available, fallback to demo data for showcase
-  const displayVideos: VideoPageProps[] = feedType === "following" 
-    ? (followingVideosData && followingVideosData.length > 0
-        ? followingVideosData.map(mapVideoToProps)
-        : [])
-    : (recommendedVideos && recommendedVideos.length > 0
-        ? recommendedVideos.map(mapVideoToProps)
-        : demoVideos);
+  const displayVideos: VideoPageProps[] = [
+    ...aiGeneratedContent,
+    ...(feedType === "following" 
+      ? (followingVideosData && followingVideosData.length > 0
+          ? followingVideosData.map(mapVideoToProps)
+          : [])
+      : (recommendedVideos && recommendedVideos.length > 0
+          ? recommendedVideos.map(mapVideoToProps)
+          : demoVideos))
+  ];
 
   // Track scroll position to determine active video
   useEffect(() => {
@@ -681,6 +722,20 @@ export default function Home() {
         feedType={feedType} 
         onFeedTypeChange={handleFeedTypeChange}
         showFeedTabs={true}
+        leftContent={
+          <button
+            onClick={() => generateAiContent.mutate()}
+            disabled={generateAiContent.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-500/80 backdrop-blur-md text-white text-[10px] font-bold border border-pink-400/30 shadow-lg hover:bg-pink-600 transition-colors disabled:opacity-50 pointer-events-auto"
+          >
+            {generateAiContent.isPending ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Sparkles className="h-3 w-3" />
+            )}
+            AI生成
+          </button>
+        }
       />
       <div 
         ref={containerRef}
