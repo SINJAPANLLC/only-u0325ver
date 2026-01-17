@@ -519,12 +519,13 @@ export default function Live() {
 
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
-  const realLiveStreamsFormatted = (liveStreams || []).map((s, idx) => ({
+  const realLiveStreamsFormatted = (liveStreams || []).map((s: any, idx) => ({
     id: s.id,
     title: s.title,
     thumbnailUrl: s.thumbnailUrl || demoLiveStreams[idx % demoLiveStreams.length]?.thumbnailUrl,
-    creatorName: "Creator",
-    displayName: s.title,
+    creatorName: s.creatorDisplayName || "Creator",
+    displayName: s.creatorDisplayName || s.title,
+    creatorAvatar: s.creatorAvatar,
     viewerCount: s.viewerCount || Math.floor(Math.random() * 100) + 1,
     likeCount: Math.floor(Math.random() * 1000),
     isLive: s.status === "live",

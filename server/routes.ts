@@ -285,20 +285,39 @@ export async function registerRoutes(
   app.get("/api/live", async (req, res) => {
     try {
       const { status } = req.query;
-      let query = db
+      const streams = await db
         .select()
         .from(liveStreams)
         .orderBy(desc(liveStreams.createdAt))
         .limit(20);
       
-      const streams = await query;
+      const filteredStreams = status === "live" 
+        ? streams.filter(s => s.status === "live")
+        : streams;
       
-      if (status === "live") {
-        const liveOnly = streams.filter(s => s.status === "live");
-        return res.json(liveOnly);
-      }
+      const streamsWithCreator = await Promise.all(
+        filteredStreams.map(async (stream) => {
+          const [creatorProfile] = await db
+            .select()
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, stream.creatorId))
+            .limit(1);
+          
+          const [userProfile] = await db
+            .select()
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, stream.creatorId))
+            .limit(1);
+          
+          return {
+            ...stream,
+            creatorDisplayName: creatorProfile?.displayName || userProfile?.displayName || "Creator",
+            creatorAvatar: userProfile?.avatarUrl || null,
+          };
+        })
+      );
       
-      res.json(streams);
+      res.json(streamsWithCreator);
     } catch (error) {
       console.error("Error fetching live streams:", error);
       res.status(500).json({ message: "Failed to fetch live streams" });
