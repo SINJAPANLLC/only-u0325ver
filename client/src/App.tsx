@@ -260,7 +260,7 @@ function App() {
           <TooltipProvider>
             {/* Mobile-only container - fixed to smartphone dimensions */}
             <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-              <div className="w-full max-w-[430px] h-screen max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
+              <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
                 <AppContent />
               </div>
             </div>
