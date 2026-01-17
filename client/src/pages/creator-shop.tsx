@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { 
@@ -6,7 +6,10 @@ import {
   Plus, 
   Package, 
   Trash2,
-  Tag
+  Tag,
+  Upload,
+  ImageIcon,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +39,9 @@ export default function CreatorShop() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -44,6 +50,64 @@ export default function CreatorShop() {
     productType: "digital" as "digital" | "physical",
     isAvailable: true,
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "ファイルサイズは10MB以下にしてください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await fetch("/api/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get upload URL");
+
+      const { uploadURL, objectPath } = await response.json();
+
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload file");
+
+      const imageUrl = objectPath;
+      setForm(prev => ({ ...prev, imageUrl }));
+      setImagePreview(URL.createObjectURL(file));
+      toast({ title: "画像をアップロードしました" });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ title: "画像のアップロードに失敗しました", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const clearImage = () => {
+    setForm(prev => ({ ...prev, imageUrl: "" }));
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const { data: myProducts, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/my-products"],
@@ -69,6 +133,10 @@ export default function CreatorShop() {
         productType: "digital",
         isAvailable: true,
       });
+      setImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       toast({ title: "商品を登録しました" });
     },
     onError: (error: any) => {
@@ -242,14 +310,53 @@ export default function CreatorShop() {
               <p className="text-xs text-muted-foreground mt-1">1ポイント = 1円</p>
             </div>
             <div>
-              <Label htmlFor="imageUrl">商品画像URL</Label>
-              <Input
-                id="imageUrl"
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                placeholder="https://..."
-                data-testid="input-image"
+              <Label>商品画像</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                data-testid="input-image-file"
               />
+              {imagePreview || form.imageUrl ? (
+                <div className="relative mt-2">
+                  <img 
+                    src={imagePreview || form.imageUrl}
+                    alt="商品画像プレビュー"
+                    className="w-full h-40 object-cover rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={clearImage}
+                    data-testid="button-clear-image"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-2 border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 transition-colors"
+                  data-testid="button-upload-image"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">クリックして画像をアップロード</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">10MB以下</p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="productType">商品タイプ</Label>
