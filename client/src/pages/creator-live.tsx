@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   X, 
   Radio, 
@@ -15,25 +15,39 @@ import {
   Sparkles,
   Settings,
   Share2,
-  Gift,
   Heart,
+  ChevronLeft,
+  Sun,
+  Contrast,
+  Palette,
+  Volume2,
+  Video,
+  Smartphone,
+  Copy,
+  Twitter,
+  Facebook,
   MessageCircle,
-  Zap,
-  Target,
-  Crown
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +56,22 @@ import { useWebRTC } from "@/hooks/use-webrtc";
 import type { LiveStream, UserProfile } from "@shared/schema";
 
 type ViewMode = "list" | "preview" | "streaming";
+
+interface EffectSettings {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  blur: number;
+  beautyMode: boolean;
+}
+
+interface StreamSettings {
+  resolution: "720p" | "1080p";
+  frameRate: 30 | 60;
+  audioBitrate: "low" | "medium" | "high";
+  lowLatencyMode: boolean;
+  saveToDevice: boolean;
+}
 
 export default function CreatorLive() {
   const [, setLocation] = useLocation();
@@ -56,6 +86,27 @@ export default function CreatorLive() {
   const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
   const [streamTitle, setStreamTitle] = useState("");
   const [isTitleDialogOpen, setIsTitleDialogOpen] = useState(false);
+  
+  const [isEffectsOpen, setIsEffectsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  
+  const [effects, setEffects] = useState<EffectSettings>({
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+    blur: 0,
+    beautyMode: false,
+  });
+  
+  const [settings, setSettings] = useState<StreamSettings>({
+    resolution: "1080p",
+    frameRate: 30,
+    audioBitrate: "medium",
+    lowLatencyMode: true,
+    saveToDevice: false,
+  });
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -86,18 +137,34 @@ export default function CreatorLive() {
     queryKey: ["/api/my-live"],
   });
 
+  const getVideoFilters = useCallback(() => {
+    const filters: string[] = [];
+    if (effects.brightness !== 100) filters.push(`brightness(${effects.brightness}%)`);
+    if (effects.contrast !== 100) filters.push(`contrast(${effects.contrast}%)`);
+    if (effects.saturation !== 100) filters.push(`saturate(${effects.saturation}%)`);
+    if (effects.blur > 0) filters.push(`blur(${effects.blur}px)`);
+    if (effects.beautyMode) {
+      filters.push("contrast(105%)");
+      filters.push("brightness(103%)");
+    }
+    return filters.join(" ") || "none";
+  }, [effects]);
+
   const startCamera = useCallback(async () => {
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       
+      const videoConstraints: MediaTrackConstraints = {
+        facingMode,
+        width: { ideal: settings.resolution === "1080p" ? 1920 : 1280 },
+        height: { ideal: settings.resolution === "1080p" ? 1080 : 720 },
+        frameRate: { ideal: settings.frameRate }
+      };
+      
       const constraints: MediaStreamConstraints = {
-        video: { 
-          facingMode,
-          width: { ideal: 1080 },
-          height: { ideal: 1920 }
-        },
+        video: videoConstraints,
         audio: true
       };
       
@@ -125,7 +192,7 @@ export default function CreatorLive() {
       });
       setViewMode("list");
     }
-  }, [facingMode, isCameraOn, isMicOn, toast]);
+  }, [facingMode, isCameraOn, isMicOn, toast, settings.resolution, settings.frameRate]);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -289,6 +356,40 @@ export default function CreatorLive() {
     setViewMode("list");
   };
 
+  const handleShare = async (platform: string) => {
+    const shareUrl = `${window.location.origin}/live/${currentStreamId || "preview"}`;
+    const shareText = `${displayName}のライブ配信を見に来てね！`;
+    
+    if (platform === "copy") {
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+      toast({ title: "リンクをコピーしました" });
+    } else if (platform === "twitter") {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, "_blank");
+    } else if (platform === "facebook") {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
+    } else if (platform === "line") {
+      window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`, "_blank");
+    } else if (navigator.share) {
+      try {
+        await navigator.share({ title: shareText, url: shareUrl });
+      } catch (e) {
+        console.log("Share cancelled");
+      }
+    }
+  };
+
+  const resetEffects = () => {
+    setEffects({
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      blur: 0,
+      beautyMode: false,
+    });
+  };
+
   const formatDuration = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -310,6 +411,7 @@ export default function CreatorLive() {
           autoPlay 
           playsInline 
           muted
+          style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
         />
         
@@ -326,136 +428,299 @@ export default function CreatorLive() {
               variant="ghost"
               className="text-white hover:bg-white/20"
               onClick={handleClosePreview}
-              data-testid="button-close"
+              data-testid="button-back"
             >
-              <X className="h-6 w-6" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
             <div className="flex items-center gap-2">
-              <Badge className="bg-amber-500/90 text-white border-0">
-                <Zap className="h-3 w-3 mr-1" />
-                段階的LIVE報酬
-              </Badge>
-              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20">
-                <Gift className="h-5 w-5" />
-              </Button>
-              <Button size="icon" variant="ghost" className="text-white hover:bg-white/20">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-          <div className="px-4 pt-8 pb-4">
-            <div className="grid grid-cols-5 gap-4 mb-4">
-              <button 
-                onClick={switchCamera}
-                className="flex flex-col items-center gap-1 text-white"
-                data-testid="button-switch-camera"
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="text-white hover:bg-white/20"
+                onClick={() => setIsEffectsOpen(true)}
+                data-testid="button-effects"
               >
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
-                  <RotateCcw className="h-5 w-5" />
-                </div>
-                <span className="text-xs">切り替え</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white">
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <span className="text-xs">美肌</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white">
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center relative">
-                  <Sparkles className="h-5 w-5" />
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full" />
-                </div>
-                <span className="text-xs">エフェクト</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white">
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
-                  <Settings className="h-5 w-5" />
-                </div>
-                <span className="text-xs">設定</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white">
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
-                  <Crown className="h-5 w-5" />
-                </div>
-                <span className="text-xs">ビジネス</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              <button className="flex flex-col items-center gap-1 text-white/80">
-                <Heart className="h-5 w-5" />
-                <span className="text-xs">ファンクラブ</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white/80">
-                <Zap className="h-5 w-5" />
-                <span className="text-xs">サービス+</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white/80">
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-xs">交流</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white/80">
+                <Sparkles className="h-5 w-5" />
+              </Button>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="text-white hover:bg-white/20"
+                onClick={() => setIsShareOpen(true)}
+                data-testid="button-share"
+              >
                 <Share2 className="h-5 w-5" />
-                <span className="text-xs">シェア</span>
-              </button>
-              <button className="flex flex-col items-center gap-1 text-white/80">
-                <Radio className="h-5 w-5" />
-                <span className="text-xs">プロモート</span>
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.avatarUrl || ""} />
-                  <AvatarFallback className="bg-pink-500 text-white text-xs">
-                    {displayName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-white text-sm">Please like and share!</span>
-              </div>
-              <Badge variant="outline" className="text-white border-white/30">
-                <Target className="h-3 w-3 mr-1" />
-                LIVEゴール
-              </Badge>
-            </div>
-
-            <Button
-              className="w-full h-14 bg-pink-500 hover:bg-pink-600 text-lg font-bold rounded-full"
-              onClick={() => setIsTitleDialogOpen(true)}
-              data-testid="button-start-live"
-            >
-              LIVEを開始
-            </Button>
-
-            <div className="flex justify-around mt-4 pt-4 border-t border-white/10">
-              <button 
-                onClick={toggleMic}
-                className="flex items-center gap-2 text-white/80"
-                data-testid="button-toggle-mic"
+              </Button>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="text-white hover:bg-white/20"
+                onClick={() => setIsSettingsOpen(true)}
+                data-testid="button-settings"
               >
-                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5 text-red-400" />}
-                <span className="text-sm">音声チャット</span>
-              </button>
-              <button 
-                onClick={toggleCamera}
-                className="flex items-center gap-2 text-white/80"
-                data-testid="button-toggle-camera"
-              >
-                {isCameraOn ? <Camera className="h-5 w-5" /> : <CameraOff className="h-5 w-5 text-red-400" />}
-                <span className="text-sm">デバイスカメラ</span>
-              </button>
-              <button className="flex items-center gap-2 text-white/80">
                 <Settings className="h-5 w-5" />
-                <span className="text-sm">LIVE Manager</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+          <Button
+            className="w-full h-14 bg-pink-500 hover:bg-pink-600 text-lg font-bold rounded-full"
+            onClick={() => setIsTitleDialogOpen(true)}
+            data-testid="button-start-live"
+          >
+            LIVEを開始
+          </Button>
+        </div>
+
+        <Sheet open={isEffectsOpen} onOpenChange={setIsEffectsOpen}>
+          <SheetContent side="bottom" className="h-[60vh] rounded-t-3xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle className="flex items-center justify-between">
+                <span>エフェクト</span>
+                <Button variant="ghost" size="sm" onClick={resetEffects}>
+                  リセット
+                </Button>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="space-y-6 overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-pink-500" />
+                  <Label>美肌モード</Label>
+                </div>
+                <Switch
+                  checked={effects.beautyMode}
+                  onCheckedChange={(checked) => setEffects(prev => ({ ...prev, beautyMode: checked }))}
+                  data-testid="switch-beauty"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Sun className="h-5 w-5 text-yellow-500" />
+                  <Label>明るさ: {effects.brightness}%</Label>
+                </div>
+                <Slider
+                  value={[effects.brightness]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, brightness: v }))}
+                  min={50}
+                  max={150}
+                  step={1}
+                  data-testid="slider-brightness"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Contrast className="h-5 w-5 text-blue-500" />
+                  <Label>コントラスト: {effects.contrast}%</Label>
+                </div>
+                <Slider
+                  value={[effects.contrast]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, contrast: v }))}
+                  min={50}
+                  max={150}
+                  step={1}
+                  data-testid="slider-contrast"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Palette className="h-5 w-5 text-purple-500" />
+                  <Label>彩度: {effects.saturation}%</Label>
+                </div>
+                <Slider
+                  value={[effects.saturation]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, saturation: v }))}
+                  min={0}
+                  max={200}
+                  step={1}
+                  data-testid="slider-saturation"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-indigo-500" />
+                  <Label>ぼかし: {effects.blur}px</Label>
+                </div>
+                <Slider
+                  value={[effects.blur]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, blur: v }))}
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  data-testid="slider-blur"
+                />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+          <SheetContent side="bottom" className="h-[60vh] rounded-t-3xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle>配信設定</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-6 overflow-y-auto">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Video className="h-5 w-5 text-pink-500" />
+                  <Label>解像度</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={settings.resolution === "720p" ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, resolution: "720p" }))}
+                    data-testid="button-720p"
+                  >
+                    720p HD
+                  </Button>
+                  <Button
+                    variant={settings.resolution === "1080p" ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, resolution: "1080p" }))}
+                    data-testid="button-1080p"
+                  >
+                    1080p Full HD
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="h-5 w-5 text-blue-500" />
+                  <Label>フレームレート</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={settings.frameRate === 30 ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, frameRate: 30 }))}
+                    data-testid="button-30fps"
+                  >
+                    30 FPS
+                  </Button>
+                  <Button
+                    variant={settings.frameRate === 60 ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, frameRate: 60 }))}
+                    data-testid="button-60fps"
+                  >
+                    60 FPS
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Volume2 className="h-5 w-5 text-green-500" />
+                  <Label>音声品質</Label>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={settings.audioBitrate === "low" ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, audioBitrate: "low" }))}
+                    size="sm"
+                    data-testid="button-audio-low"
+                  >
+                    低
+                  </Button>
+                  <Button
+                    variant={settings.audioBitrate === "medium" ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, audioBitrate: "medium" }))}
+                    size="sm"
+                    data-testid="button-audio-medium"
+                  >
+                    中
+                  </Button>
+                  <Button
+                    variant={settings.audioBitrate === "high" ? "default" : "outline"}
+                    onClick={() => setSettings(prev => ({ ...prev, audioBitrate: "high" }))}
+                    size="sm"
+                    data-testid="button-audio-high"
+                  >
+                    高
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="h-5 w-5 text-orange-500" />
+                  <Label>低遅延モード</Label>
+                </div>
+                <Switch
+                  checked={settings.lowLatencyMode}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, lowLatencyMode: checked }))}
+                  data-testid="switch-low-latency"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Video className="h-5 w-5 text-purple-500" />
+                  <Label>端末に保存</Label>
+                </div>
+                <Switch
+                  checked={settings.saveToDevice}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, saveToDevice: checked }))}
+                  data-testid="switch-save"
+                />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={isShareOpen} onOpenChange={setIsShareOpen}>
+          <SheetContent side="bottom" className="h-auto rounded-t-3xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle>シェア</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-4 gap-4 pb-6">
+              <button
+                onClick={() => handleShare("copy")}
+                className="flex flex-col items-center gap-2"
+                data-testid="button-share-copy"
+              >
+                <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {linkCopied ? <Check className="h-6 w-6 text-green-500" /> : <Copy className="h-6 w-6" />}
+                </div>
+                <span className="text-xs">{linkCopied ? "コピー済み" : "リンクをコピー"}</span>
+              </button>
+              <button
+                onClick={() => handleShare("twitter")}
+                className="flex flex-col items-center gap-2"
+                data-testid="button-share-twitter"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#1DA1F2] flex items-center justify-center">
+                  <Twitter className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">Twitter</span>
+              </button>
+              <button
+                onClick={() => handleShare("facebook")}
+                className="flex flex-col items-center gap-2"
+                data-testid="button-share-facebook"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#4267B2] flex items-center justify-center">
+                  <Facebook className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">Facebook</span>
+              </button>
+              <button
+                onClick={() => handleShare("line")}
+                className="flex flex-col items-center gap-2"
+                data-testid="button-share-line"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#00B900] flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">LINE</span>
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         <Dialog open={isTitleDialogOpen} onOpenChange={setIsTitleDialogOpen}>
           <DialogContent className="max-w-sm">
@@ -501,6 +766,7 @@ export default function CreatorLive() {
           autoPlay 
           playsInline 
           muted
+          style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
         />
         
@@ -513,41 +779,24 @@ export default function CreatorLive() {
         <div className="absolute top-0 left-0 right-0 p-4 pt-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Avatar className="h-10 w-10 ring-2 ring-pink-500">
-                <AvatarImage src={profile?.avatarUrl || ""} />
-                <AvatarFallback className="bg-pink-500 text-white">
-                  {displayName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <Badge className="bg-amber-400 text-black border-0 font-medium">
-                あなたのファンクラブ
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full">
+                <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
+                <span className="text-white text-sm font-bold">LIVE</span>
+                <span className="text-white/80 text-sm">{formatDuration(streamDuration)}</span>
+              </div>
               <div className="flex items-center gap-1 px-3 py-1.5 bg-black/50 rounded-full">
                 <Users className="h-4 w-4 text-white" />
                 <span className="text-white text-sm font-medium">{viewerCount}</span>
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-                onClick={handleEndStream}
-                data-testid="button-close-stream"
-              >
-                <X className="h-6 w-6" />
-              </Button>
             </div>
-          </div>
-          
-          <div className="flex items-center justify-between mt-2">
-            <Badge variant="outline" className="text-amber-400 border-amber-400/50">
-              <Zap className="h-3 w-3 mr-1" />
-              日間ランキング
-            </Badge>
-            <Badge variant="outline" className="text-white border-white/30">
-              今すぐ追加
-            </Badge>
+            <Button
+              variant="ghost"
+              className="text-white hover:bg-white/20 px-4"
+              onClick={handleEndStream}
+              data-testid="button-end-stream"
+            >
+              配信終了
+            </Button>
           </div>
         </div>
 
@@ -579,34 +828,37 @@ export default function CreatorLive() {
           >
             <RotateCcw className="h-5 w-5" />
           </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 rounded-full bg-black/40 text-white hover:bg-black/60"
+            onClick={() => setIsEffectsOpen(true)}
+            data-testid="button-effects-stream"
+          >
+            <Sparkles className="h-5 w-5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 rounded-full bg-black/40 text-white hover:bg-black/60"
+            onClick={() => setIsShareOpen(true)}
+            data-testid="button-share-stream"
+          >
+            <Share2 className="h-5 w-5" />
+          </Button>
         </div>
 
-        <div className="absolute left-4 bottom-36 max-h-60 overflow-y-auto space-y-2 w-64">
+        <div className="absolute left-4 bottom-24 max-h-60 overflow-y-auto space-y-2 w-64">
           <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
-            <p className="text-pink-400 font-medium mb-1">Only-U LIVEへようこそ！</p>
+            <p className="text-pink-400 font-medium mb-1">配信中</p>
             <p className="text-white/80 text-xs leading-relaxed">
-              リアルタイムで視聴者と楽しく交流しましょう。クリエイターは18歳以上でなければLIVEを配信することはできません。
+              {streamTitle || "ライブ配信"}
             </p>
-          </div>
-          
-          <div className="flex items-center gap-2 bg-black/40 rounded-lg px-3 py-2">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback className="bg-pink-500 text-white text-xs">
-                {displayName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <span className="text-white text-sm font-medium">{displayName}</span>
-                <Badge className="bg-pink-500/80 text-white text-[10px] px-1">配信者</Badge>
-              </div>
-              <p className="text-white/60 text-xs">{streamTitle}</p>
-            </div>
           </div>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2">
             <div className="flex-1 relative">
               <Input
                 placeholder="コメントを入力..."
@@ -614,41 +866,124 @@ export default function CreatorLive() {
                 data-testid="input-comment"
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button className="text-white/80">
-                <Heart className="h-6 w-6" />
-              </button>
-              <button className="text-white/80">
-                <Users className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="text-white/80">
-                <Gift className="h-6 w-6" />
-              </button>
-              <button className="text-white/80">
-                <Share2 className="h-6 w-6" />
-              </button>
-              <button className="text-white/80">
-                <Sparkles className="h-6 w-6" />
-              </button>
-              <button className="text-white/80">
-                <Settings className="h-6 w-6" />
-              </button>
-            </div>
+            <Button size="icon" variant="ghost" className="text-white">
+              <Heart className="h-6 w-6" />
+            </Button>
           </div>
         </div>
 
-        <div className="absolute top-1/2 left-4 -translate-y-1/2">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500 rounded-full">
-            <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
-            <span className="text-white text-sm font-bold">LIVE</span>
-            <span className="text-white/80 text-sm">{formatDuration(streamDuration)}</span>
-          </div>
-        </div>
+        <Sheet open={isEffectsOpen} onOpenChange={setIsEffectsOpen}>
+          <SheetContent side="bottom" className="h-[60vh] rounded-t-3xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle className="flex items-center justify-between">
+                <span>エフェクト</span>
+                <Button variant="ghost" size="sm" onClick={resetEffects}>
+                  リセット
+                </Button>
+              </SheetTitle>
+            </SheetHeader>
+            <div className="space-y-6 overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-pink-500" />
+                  <Label>美肌モード</Label>
+                </div>
+                <Switch
+                  checked={effects.beautyMode}
+                  onCheckedChange={(checked) => setEffects(prev => ({ ...prev, beautyMode: checked }))}
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Sun className="h-5 w-5 text-yellow-500" />
+                  <Label>明るさ: {effects.brightness}%</Label>
+                </div>
+                <Slider
+                  value={[effects.brightness]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, brightness: v }))}
+                  min={50}
+                  max={150}
+                  step={1}
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Contrast className="h-5 w-5 text-blue-500" />
+                  <Label>コントラスト: {effects.contrast}%</Label>
+                </div>
+                <Slider
+                  value={[effects.contrast]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, contrast: v }))}
+                  min={50}
+                  max={150}
+                  step={1}
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Palette className="h-5 w-5 text-purple-500" />
+                  <Label>彩度: {effects.saturation}%</Label>
+                </div>
+                <Slider
+                  value={[effects.saturation]}
+                  onValueChange={([v]) => setEffects(prev => ({ ...prev, saturation: v }))}
+                  min={0}
+                  max={200}
+                  step={1}
+                />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={isShareOpen} onOpenChange={setIsShareOpen}>
+          <SheetContent side="bottom" className="h-auto rounded-t-3xl">
+            <SheetHeader className="pb-4">
+              <SheetTitle>シェア</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-4 gap-4 pb-6">
+              <button
+                onClick={() => handleShare("copy")}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {linkCopied ? <Check className="h-6 w-6 text-green-500" /> : <Copy className="h-6 w-6" />}
+                </div>
+                <span className="text-xs">{linkCopied ? "コピー済み" : "リンクをコピー"}</span>
+              </button>
+              <button
+                onClick={() => handleShare("twitter")}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#1DA1F2] flex items-center justify-center">
+                  <Twitter className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">Twitter</span>
+              </button>
+              <button
+                onClick={() => handleShare("facebook")}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#4267B2] flex items-center justify-center">
+                  <Facebook className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">Facebook</span>
+              </button>
+              <button
+                onClick={() => handleShare("line")}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className="h-14 w-14 rounded-full bg-[#00B900] flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xs">LINE</span>
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     );
   }
@@ -669,7 +1004,7 @@ export default function CreatorLive() {
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <X className="h-6 w-6" />
+            <ChevronLeft className="h-6 w-6" />
           </Button>
           <h1 className="text-lg font-bold">ライブ配信</h1>
         </div>
