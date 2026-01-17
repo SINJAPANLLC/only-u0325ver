@@ -567,12 +567,10 @@ export default function Live() {
   const [roomModes, setRoomModes] = useState<Record<string, RoomMode>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: liveStreamsData } = useQuery<any[]>({
-    queryKey: ["/api/live"],
+  const { data: liveStreams } = useQuery<any[]>({
+    queryKey: ["/api/live/active"],
     refetchInterval: 5000,
   });
-  
-  const liveStreams = (liveStreamsData || []).filter((s: any) => s.status === "live");
 
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
