@@ -589,6 +589,7 @@ export default function Live() {
   const activeSessionsRef = useRef<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: liveStreams } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -604,10 +605,22 @@ export default function Live() {
   const joinSessionMutation = useMutation({
     mutationFn: async ({ streamId, mode }: { streamId: string; mode: string }) => {
       const res = await apiRequest("POST", `/api/live/${streamId}/join`, { mode });
+      if (!res.ok) {
+        const data = await res.json();
+        if (data.insufficientPoints) {
+          throw new Error("insufficient_points");
+        }
+        throw new Error(data.message || "入室に失敗しました");
+      }
       return res.json();
     },
     onError: (error: any) => {
-      toast({ title: "入室エラー", description: error.message || "入室に失敗しました", variant: "destructive" });
+      if (error.message === "insufficient_points") {
+        toast({ title: "ポイント不足", description: "ポイントを購入してください", variant: "destructive" });
+        setLocation("/points-purchase");
+      } else {
+        toast({ title: "入室エラー", description: error.message || "入室に失敗しました", variant: "destructive" });
+      }
     },
   });
 
@@ -640,10 +653,12 @@ export default function Live() {
     },
     onError: (error: any, streamId: string) => {
       if (error.message === "insufficient_points") {
-        toast({ title: "ポイント不足", description: "ポイントが不足したためセッションを終了しました", variant: "destructive" });
+        toast({ title: "ポイント不足", description: "ポイントを購入してください", variant: "destructive" });
         stopSession(streamId);
         // Call leave API
         apiRequest("POST", `/api/live/${streamId}/leave`).catch(() => {});
+        // Redirect to points purchase
+        setLocation("/points-purchase");
       }
     },
   });
