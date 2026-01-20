@@ -95,13 +95,20 @@ function VideoPage({
     return count.toString();
   };
 
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/videos/${id}/like`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setIsLiked(data.liked);
+      setLikes(prev => data.liked ? prev + 1 : prev - 1);
+      queryClient.invalidateQueries({ queryKey: ["/api/my-likes"] });
+    },
+  });
+
   const handleLike = () => {
-    if (isLiked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
-    }
-    setIsLiked(!isLiked);
+    likeMutation.mutate();
   };
 
   const togglePause = () => {

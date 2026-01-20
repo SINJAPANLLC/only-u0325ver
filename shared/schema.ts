@@ -316,6 +316,22 @@ export const insertProductSchema = createInsertSchema(products).omit({ id: true,
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 
+// Video likes
+export const videoLikes = pgTable("video_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  videoId: varchar("video_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertVideoLikeSchema = createInsertSchema(videoLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type VideoLike = typeof videoLikes.$inferSelect;
+export type InsertVideoLike = z.infer<typeof insertVideoLikeSchema>;
+
 // Types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;

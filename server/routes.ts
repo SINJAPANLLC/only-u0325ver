@@ -674,6 +674,56 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/videos/:videoId/like", isAuthenticated, async (req: any, res) => {
+    try {
+      const { videoId } = req.params;
+      const userId = req.user.claims.sub;
+
+      const [existingLike] = await db
+        .select()
+        .from(videoLikes)
+        .where(and(eq(videoLikes.userId, userId), eq(videoLikes.videoId, videoId)));
+
+      if (existingLike) {
+        await db.delete(videoLikes).where(eq(videoLikes.id, existingLike.id));
+        await db.update(videos).set({ likeCount: sql`${videos.likeCount} - 1` }).where(eq(videos.id, videoId));
+        return res.json({ liked: false });
+      }
+
+      await db.insert(videoLikes).values({ userId, videoId });
+      await db.update(videos).set({ likeCount: sql`${videos.likeCount} + 1` }).where(eq(videos.id, videoId));
+      res.json({ liked: true });
+    } catch (error) {
+      console.error("Error liking video:", error);
+      res.status(500).json({ message: "Failed to like video" });
+    }
+  });
+
+  app.get("/api/my-likes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const likedVideos = await db
+        .select({
+          id: videos.id,
+          title: videos.title,
+          thumbnailUrl: videos.thumbnailUrl,
+          creatorId: videos.creatorId,
+          creatorDisplayName: creatorProfiles.displayName,
+          viewCount: videos.viewCount,
+          likeCount: videos.likeCount,
+        })
+        .from(videoLikes)
+        .innerJoin(videos, eq(videoLikes.videoId, videos.id))
+        .leftJoin(creatorProfiles, eq(videos.creatorId, creatorProfiles.userId))
+        .where(eq(videoLikes.userId, userId))
+        .orderBy(desc(videoLikes.createdAt));
+      res.json(likedVideos);
+    } catch (error) {
+      console.error("Error fetching liked videos:", error);
+      res.status(500).json({ message: "Failed to fetch liked videos" });
+    }
+  });
+
   // Create or get conversation with a user
   app.post("/api/conversations", isAuthenticated, async (req: any, res) => {
     try {

@@ -82,8 +82,8 @@ export default function MyProfile() {
     enabled: !!user?.id,
   });
 
-  const { data: myVideos } = useQuery<VideoType[]>({
-    queryKey: ["/api/my-videos"],
+  const { data: myLikedVideos } = useQuery<any[]>({
+    queryKey: ["/api/my-likes"],
   });
 
   const { data: myLiveStreams } = useQuery<LiveStream[]>({
@@ -745,40 +745,53 @@ export default function MyProfile() {
 
         <TabsContent value="liked" className="mt-0">
           <div className="grid grid-cols-3 gap-0.5">
-            {demoLikedVideos.map((video) => (
-              <div 
-                key={video.id}
-                className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
-                onClick={() => setSelectedContent({
-                  id: video.id,
-                  thumbnailUrl: video.thumbnail,
-                  videoUrl: "",
-                  title: video.creatorName,
-                  isVertical: true,
-                })}
-                data-testid={`liked-video-${video.id}`}
-              >
-                <img 
-                  src={video.thumbnail} 
-                  alt="いいねした動画"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-white text-xs mb-1">{video.creatorName}</p>
-                  <div className="flex items-center gap-3 text-white/90 text-[10px]">
-                    <span className="flex items-center gap-1">
-                      <PlaySquare className="h-3 w-3" />
-                      {video.views >= 10000 ? `${(video.views / 10000).toFixed(1)}万` : video.views.toLocaleString()}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3 w-3 fill-current text-pink-400" />
-                      {video.likes >= 10000 ? `${(video.likes / 10000).toFixed(1)}万` : video.likes.toLocaleString()}
-                    </span>
+            {myLikedVideos && myLikedVideos.length > 0 ? (
+              myLikedVideos.map((video) => (
+                <div 
+                  key={video.id}
+                  className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                  onClick={() => setSelectedContent({
+                    id: video.id,
+                    thumbnailUrl: video.thumbnailUrl || "",
+                    videoUrl: video.videoUrl,
+                    title: video.creatorDisplayName || video.title,
+                    isVertical: true,
+                  })}
+                  data-testid={`liked-video-${video.id}`}
+                >
+                  {video.thumbnailUrl ? (
+                    <img 
+                      src={video.thumbnailUrl} 
+                      alt="いいねした動画"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <Video className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p className="text-white text-xs mb-1">{video.creatorDisplayName || "Creator"}</p>
+                    <div className="flex items-center gap-3 text-white/90 text-[10px]">
+                      <span className="flex items-center gap-1">
+                        <PlaySquare className="h-3 w-3" />
+                        {video.viewCount >= 10000 ? `${(video.viewCount / 10000).toFixed(1)}万` : video.viewCount?.toLocaleString() || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3 fill-current text-pink-400" />
+                        {video.likeCount >= 10000 ? `${(video.likeCount / 10000).toFixed(1)}万` : video.likeCount?.toLocaleString() || 0}
+                      </span>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-3 flex flex-col items-center justify-center py-20 text-muted-foreground">
+                <Heart className="h-12 w-12 mb-2 opacity-20" />
+                <p className="text-sm">いいねした動画がありません</p>
               </div>
-            ))}
+            )}
           </div>
         </TabsContent>
 
