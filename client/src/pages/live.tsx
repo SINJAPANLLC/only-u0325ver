@@ -84,6 +84,25 @@ function LiveStreamPage({
   const [isConnecting, setIsConnecting] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const { data: streamStatus } = useQuery<{
+    activeSessionCount: number;
+    hasParty: boolean;
+    hasTwoshot: boolean;
+    currentMode: string | null;
+  }>({
+    queryKey: ["/api/live", id, "status"],
+    queryFn: async () => {
+      const res = await fetch(`/api/live/${id}/status`);
+      return res.json();
+    },
+    refetchInterval: 3000,
+    enabled: isRealStream && isActive,
+  });
+
+  const isSessionActive = streamStatus?.currentMode !== null;
+  const activeMode = streamStatus?.currentMode;
+  const userInSession = currentMode !== "waiting";
+
   const handleStreamReceived = useCallback((stream: MediaStream | null) => {
     setRemoteStream(stream);
     setIsConnecting(false);
@@ -110,16 +129,19 @@ function LiveStreamPage({
   });
 
   useEffect(() => {
-    if (isRealStream && isActive) {
+    if (isRealStream && isActive && userInSession) {
       setIsConnecting(true);
       webrtc.joinAsViewer();
+    } else if (isRealStream && !userInSession) {
+      webrtc.stopViewing();
+      setRemoteStream(null);
     }
     return () => {
       if (isRealStream) {
         webrtc.stopViewing();
       }
     };
-  }, [isRealStream, isActive]);
+  }, [isRealStream, isActive, userInSession]);
 
   useEffect(() => {
     if (remoteStream && videoRef.current) {
@@ -233,7 +255,7 @@ function LiveStreamPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
-      {isRealStream && remoteStream ? (
+      {isRealStream && remoteStream && userInSession ? (
         <video
           ref={videoRef}
           autoPlay
@@ -251,7 +273,38 @@ function LiveStreamPage({
         <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-pink-600 to-rose-700" />
       )}
 
-      {isRealStream && isConnecting && !remoteStream && (
+      {isRealStream && isSessionActive && !userInSession && (
+        <div className="absolute inset-0 z-30">
+          {thumbnailUrl ? (
+            <img 
+              src={thumbnailUrl} 
+              alt={title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-900 via-pink-800 to-rose-950" />
+          )}
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+            <div className="text-center text-white p-6">
+              <div className={`text-4xl font-bold mb-4 ${activeMode === "twoshot" ? "text-purple-400" : "text-pink-400"}`}>
+                {activeMode === "twoshot" ? "2SHOT中" : "パーティー中"}
+              </div>
+              <p className="text-sm text-white/80 mb-4">
+                {activeMode === "twoshot" ? "2ショット" : "パーティー"}に入室すると配信を視聴できます
+              </p>
+              <Button
+                onClick={() => handleModeRequest(activeMode as RoomMode)}
+                className={`${activeMode === "twoshot" ? "bg-purple-600 hover:bg-purple-700" : "bg-pink-600 hover:bg-pink-700"}`}
+                data-testid="button-join-session"
+              >
+                {activeMode === "twoshot" ? "2ショットに入室" : "パーティーに入室"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRealStream && isConnecting && !remoteStream && userInSession && (
         <div className="absolute inset-0 z-10">
           {thumbnailUrl ? (
             <img 

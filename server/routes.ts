@@ -586,6 +586,36 @@ export async function registerRoutes(
     }
   });
 
+  // Get stream session status (for checking if party/2shot is active)
+  app.get("/api/live/:streamId/status", async (req, res) => {
+    try {
+      const { streamId } = req.params;
+
+      // Get all active sessions for this stream
+      const activeSessions = await db
+        .select()
+        .from(liveViewingSessions)
+        .where(and(
+          eq(liveViewingSessions.liveStreamId, streamId),
+          eq(liveViewingSessions.isActive, true)
+        ));
+
+      // Determine the current mode (party or twoshot)
+      const hasParty = activeSessions.some(s => s.mode === "party");
+      const hasTwoshot = activeSessions.some(s => s.mode === "twoshot");
+
+      res.json({
+        activeSessionCount: activeSessions.length,
+        hasParty,
+        hasTwoshot,
+        currentMode: hasTwoshot ? "twoshot" : hasParty ? "party" : null,
+      });
+    } catch (error) {
+      console.error("Error getting stream status:", error);
+      res.status(500).json({ message: "Failed to get stream status" });
+    }
+  });
+
   // Leave a live viewing session
   app.post("/api/live/:streamId/leave", isAuthenticated, async (req: any, res) => {
     try {
