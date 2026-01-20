@@ -758,7 +758,7 @@ export default function MyProfile() {
                     id: video.id,
                     thumbnailUrl: video.thumbnailUrl || "",
                     videoUrl: video.videoUrl || "",
-                    title: video.creatorDisplayName || video.title || "",
+                    title: video.title || "",
                     isVertical: true,
                   })}
                   data-testid={`liked-video-${video.id}`}

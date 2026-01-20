@@ -708,6 +708,7 @@ export async function registerRoutes(
           id: videos.id,
           title: videos.title,
           thumbnailUrl: videos.thumbnailUrl,
+          videoUrl: videos.videoUrl,
           creatorId: videos.creatorId,
           creatorDisplayName: creatorProfiles.displayName,
           viewCount: videos.viewCount,
