@@ -8,7 +8,13 @@ import { ja } from "date-fns/locale";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { queryClient } from "@/lib/queryClient";
 import type { Conversation, CreatorProfile } from "@shared/schema";
+
+interface ConversationWithUnread extends Conversation {
+  unreadCount: number;
+  lastMessageContent: string;
+}
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
@@ -89,7 +95,7 @@ export default function Messages() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
 
-  const { data: conversations, isLoading: conversationsLoading } = useQuery<Conversation[]>({
+  const { data: conversations, isLoading: conversationsLoading } = useQuery<ConversationWithUnread[]>({
     queryKey: ["/api/conversations"],
     enabled: !!user,
   });
@@ -97,6 +103,14 @@ export default function Messages() {
   const { data: creators } = useQuery<CreatorProfile[]>({
     queryKey: ["/api/creators"],
   });
+
+  const handleConversationClick = (conversationId: string) => {
+    setLocation(`/conversation/${conversationId}`);
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/messages/unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+    }, 500);
+  };
 
   const conversationDetails: ConversationWithDetails[] = (conversations || []).map((conv) => {
     const participantId = conv.participant1Id === user?.id 
@@ -109,9 +123,9 @@ export default function Messages() {
       participantId,
       participantName: participant?.displayName || "ユーザー",
       isVerified: participant?.isVerified || false,
-      lastMessage: "",
+      lastMessage: conv.lastMessageContent || "",
       lastMessageAt: new Date(conv.lastMessageAt || conv.createdAt || Date.now()),
-      unreadCount: 0,
+      unreadCount: conv.unreadCount || 0,
     };
   });
 
@@ -206,7 +220,7 @@ export default function Messages() {
               >
                 <ConversationPreview 
                   {...conversation} 
-                  onClick={() => setLocation(`/conversation/${conversation.id}`)}
+                  onClick={() => handleConversationClick(conversation.id)}
                 />
               </motion.div>
             ))}

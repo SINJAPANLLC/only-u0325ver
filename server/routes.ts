@@ -15,7 +15,7 @@ import {
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
 } from "@shared/schema";
-import { eq, desc, and, or, sql, gt, isNull } from "drizzle-orm";
+import { eq, desc, and, or, sql, gt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
 
 // Admin check middleware
@@ -718,7 +718,39 @@ export async function registerRoutes(
         )
         .orderBy(desc(conversations.lastMessageAt))
         .limit(50);
-      res.json(userConversations);
+      
+      // Get unread counts and last messages for each conversation
+      const conversationsWithDetails = await Promise.all(
+        userConversations.map(async (conv) => {
+          // Get unread count
+          const [unreadResult] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(messages)
+            .where(
+              and(
+                eq(messages.conversationId, conv.id),
+                ne(messages.senderId, userId),
+                ne(messages.status, "read")
+              )
+            );
+          
+          // Get last message
+          const [lastMessage] = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.conversationId, conv.id))
+            .orderBy(desc(messages.createdAt))
+            .limit(1);
+          
+          return {
+            ...conv,
+            unreadCount: Number(unreadResult?.count || 0),
+            lastMessageContent: lastMessage?.content || "",
+          };
+        })
+      );
+      
+      res.json(conversationsWithDetails);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       res.status(500).json({ message: "Failed to fetch conversations" });
@@ -728,6 +760,20 @@ export async function registerRoutes(
   app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      // Mark messages as read (messages sent to this user)
+      await db
+        .update(messages)
+        .set({ status: "read" })
+        .where(
+          and(
+            eq(messages.conversationId, id),
+            ne(messages.senderId, userId),
+            ne(messages.status, "read")
+          )
+        );
+      
       const conversationMessages = await db
         .select()
         .from(messages)
@@ -789,6 +835,47 @@ export async function registerRoutes(
       res.json({ count: Number(result[0]?.count || 0) });
     } catch (error) {
       console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch count" });
+    }
+  });
+
+  // Get unread message count (messages sent to user that are not read)
+  app.get("/api/messages/unread-count", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get all conversations where user is a participant
+      const userConversations = await db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .where(
+          or(
+            eq(conversations.participant1Id, userId),
+            eq(conversations.participant2Id, userId)
+          )
+        );
+      
+      if (userConversations.length === 0) {
+        return res.json({ count: 0 });
+      }
+      
+      const conversationIds = userConversations.map(c => c.id);
+      
+      // Count unread messages (sent to user, not from user, and status is not 'read')
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(messages)
+        .where(
+          and(
+            inArray(messages.conversationId, conversationIds),
+            ne(messages.senderId, userId),
+            ne(messages.status, "read")
+          )
+        );
+      
+      res.json({ count: Number(result[0]?.count || 0) });
+    } catch (error) {
+      console.error("Error fetching unread message count:", error);
       res.status(500).json({ message: "Failed to fetch count" });
     }
   });

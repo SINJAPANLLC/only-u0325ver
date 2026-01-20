@@ -1,17 +1,17 @@
 import { PiHouseDuotone, PiBroadcastDuotone, PiShoppingBagDuotone, PiChatCircleDotsDuotone, PiUserCircleDuotone } from "react-icons/pi";
 import { useLocation, Link } from "wouter";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import type { IconType } from "react-icons";
 import { useI18n } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 interface NavItem {
   path: string;
   icon: IconType;
   labelKey: string;
   hasLiveIndicator?: boolean;
-  badgeCount?: number;
   iconSize?: string;
 }
 
@@ -19,13 +19,22 @@ const navItems: NavItem[] = [
   { path: "/", icon: PiHouseDuotone, labelKey: "nav.home", iconSize: "h-7 w-7" },
   { path: "/live", icon: PiBroadcastDuotone, labelKey: "nav.live", iconSize: "h-7 w-7" },
   { path: "/shop", icon: PiShoppingBagDuotone, labelKey: "nav.shop", iconSize: "h-8 w-8" },
-  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", badgeCount: 3, iconSize: "h-8 w-8" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", iconSize: "h-8 w-8" },
   { path: "/account", icon: PiUserCircleDuotone, labelKey: "nav.account", iconSize: "h-8 w-8" },
 ];
 
 export function BottomNavigation() {
   const [location] = useLocation();
   const { t } = useI18n();
+  const { user } = useAuth();
+
+  const { data: unreadMessages } = useQuery<{ count: number }>({
+    queryKey: ["/api/messages/unread-count"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = unreadMessages?.count || 0;
 
   return (
     <nav 
@@ -35,6 +44,7 @@ export function BottomNavigation() {
         {navItems.map((item) => {
           const isActive = location === item.path;
           const Icon = item.icon;
+          const showBadge = item.path === "/messages" && unreadCount > 0;
 
           return (
             <Link key={item.path} href={item.path}>
@@ -74,9 +84,9 @@ export function BottomNavigation() {
                     />
                   )}
                   
-                  {item.badgeCount && item.badgeCount > 0 && (
+                  {showBadge && (
                     <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg ring-1 ring-black/20">
-                      {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                      {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
                 </div>
