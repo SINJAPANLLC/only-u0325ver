@@ -574,12 +574,32 @@ export async function registerRoutes(
         return res.status(400).json({ message: "ポイント不足のためセッションを終了しました", insufficientPoints: true });
       }
 
-      // Deduct points
+      // Deduct points from viewer
       const newPoints = (userProfile.points || 0) - session.ratePerMinute;
       await db
         .update(userProfiles)
         .set({ points: newPoints })
         .where(eq(userProfiles.userId, userId));
+
+      // Add points to creator
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, streamId));
+
+      if (stream) {
+        const [creatorProfile] = await db
+          .select()
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, stream.creatorId));
+
+        if (creatorProfile) {
+          await db
+            .update(userProfiles)
+            .set({ points: (creatorProfile.points || 0) + session.ratePerMinute })
+            .where(eq(userProfiles.userId, stream.creatorId));
+        }
+      }
 
       // Update session totals
       await db

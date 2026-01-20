@@ -157,6 +157,23 @@ export default function CreatorLive() {
     queryKey: ["/api/my-live"],
   });
 
+  const { data: streamStatus } = useQuery<{
+    activeSessionCount: number;
+    hasParty: boolean;
+    hasTwoshot: boolean;
+    currentMode: string | null;
+  }>({
+    queryKey: ["/api/live", currentStreamId, "status"],
+    queryFn: async () => {
+      const res = await fetch(`/api/live/${currentStreamId}/status`);
+      return res.json();
+    },
+    refetchInterval: 3000,
+    enabled: !!currentStreamId && viewMode === "streaming",
+  });
+
+  const currentSessionMode = streamStatus?.currentMode || null;
+
   const { uploadFile, isUploading: isUploadingThumbnail } = useUpload({
     onSuccess: (response) => {
       setThumbnailUrl(response.objectPath);
@@ -949,6 +966,21 @@ export default function CreatorLive() {
                 <Coins className="h-4 w-4 text-white" />
                 <span className="text-white text-sm font-bold">{earnedPoints.toLocaleString()}pt</span>
               </div>
+              {currentSessionMode ? (
+                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full ${
+                  currentSessionMode === "twoshot" ? "bg-purple-500" : "bg-pink-500"
+                }`}>
+                  <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
+                  <span className="text-white text-sm font-bold">
+                    {currentSessionMode === "twoshot" ? "2SHOT中" : "パーティー中"}
+                  </span>
+                  <span className="text-white/80 text-xs">({streamStatus?.activeSessionCount || 0}人)</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-500/80 rounded-full">
+                  <span className="text-white text-sm">待機中</span>
+                </div>
+              )}
             </div>
             <Button
               variant="ghost"
