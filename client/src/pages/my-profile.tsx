@@ -96,7 +96,6 @@ export default function MyProfile() {
 
   const { data: mySubscriptionPlans, refetch: refetchPlans } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/my-subscription-plans"],
-    enabled: !!creatorProfile,
   });
 
   const isLive = myLiveStreams?.some(stream => stream.status === "live") || false;
