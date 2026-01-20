@@ -81,8 +81,9 @@ function VideoPage({
   const handleDragEnd = (_: any, info: { offset: { x: number }; velocity: { x: number } }) => {
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
+      const targetId = creatorName || id;
       setTimeout(() => {
-        setLocation(`/creator/${creatorName}`);
+        setLocation(`/creator/${targetId}`);
       }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
@@ -629,10 +630,12 @@ export default function Home() {
     const isPremium = requiredTier > 0 || v.contentType === "premium";
     const hasAccess = requiredTier === 0 || hasAccessToCreator(v.creatorId, requiredTier);
     
+    const creatorId = (v as any).creatorId;
+    
     return {
       id: v.id,
       title: v.title,
-      creatorName: v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
+      creatorName: creatorId || v.creatorDisplayName || v.creatorId?.slice(0, 8) || "Creator",
       displayName: v.creatorDisplayName,
       creatorAvatar: v.creatorAvatarUrl,
       viewCount: v.viewCount || 0,
