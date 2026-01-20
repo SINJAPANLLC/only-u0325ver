@@ -71,6 +71,16 @@ export function setupWebRTCSignaling(httpServer: Server) {
             handleLeave(ws, currentRoom, isBroadcaster);
             currentRoom = null;
             break;
+
+          case "chat":
+            broadcastChat(message.streamId, {
+              type: "chat",
+              id: message.id,
+              text: message.text,
+              username: message.username,
+              senderId: (ws as any).viewerId || "broadcaster",
+            });
+            break;
         }
       } catch (error) {
         console.error("WebRTC signaling error:", error);
@@ -220,4 +230,19 @@ function sendToSocket(ws: WebSocket, message: any) {
 
 function generateViewerId(): string {
   return `viewer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function broadcastChat(streamId: string, message: any) {
+  const room = rooms.get(streamId);
+  if (!room) return;
+
+  // Send to broadcaster
+  if (room.broadcaster) {
+    sendToSocket(room.broadcaster, message);
+  }
+
+  // Send to all viewers
+  room.viewers.forEach((viewer) => {
+    sendToSocket(viewer, message);
+  });
 }

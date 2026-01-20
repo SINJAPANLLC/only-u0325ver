@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+interface ChatMessage {
+  id: number;
+  text: string;
+  username: string;
+  senderId: string;
+}
+
 interface WebRTCConfig {
   streamId: string;
   isBroadcaster: boolean;
   localStream?: MediaStream | null;
   onStreamReceived?: (stream: MediaStream | null) => void;
   onViewerCountChange?: (count: number) => void;
+  onChatReceived?: (message: ChatMessage) => void;
   onError?: (error: string) => void;
 }
 
@@ -26,6 +34,7 @@ export function useWebRTC({
   localStream: externalLocalStream,
   onStreamReceived,
   onViewerCountChange,
+  onChatReceived,
   onError,
 }: WebRTCConfig) {
   const wsRef = useRef<WebSocket | null>(null);
@@ -180,6 +189,10 @@ export function useWebRTC({
               peerConnectionsRef.current.delete(message.viewerId);
             }
             break;
+
+          case "chat":
+            onChatReceived?.(message);
+            break;
         }
       };
 
@@ -194,7 +207,7 @@ export function useWebRTC({
     } catch (error: any) {
       onError?.(error.message || "Failed to start broadcast");
     }
-  }, [streamId, getWebSocketUrl, createOfferForViewer, onViewerCountChange, onError]);
+  }, [streamId, getWebSocketUrl, createOfferForViewer, onViewerCountChange, onChatReceived, onError]);
 
   const joinAsViewer = useCallback(() => {
     const ws = new WebSocket(getWebSocketUrl());
@@ -254,6 +267,10 @@ export function useWebRTC({
             viewerPcRef.current = null;
           }
           break;
+
+        case "chat":
+          onChatReceived?.(message);
+          break;
       }
     };
 
@@ -264,7 +281,7 @@ export function useWebRTC({
     ws.onclose = () => {
       setIsConnected(false);
     };
-  }, [streamId, getWebSocketUrl, createPeerConnection, onStreamReceived, onError]);
+  }, [streamId, getWebSocketUrl, createPeerConnection, onStreamReceived, onChatReceived, onError]);
 
   const stopBroadcast = useCallback(() => {
     peerConnectionsRef.current.forEach((pc) => pc.close());
@@ -298,6 +315,18 @@ export function useWebRTC({
     setIsConnected(false);
   }, [streamId]);
 
+  const sendChat = useCallback((text: string, username: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "chat",
+        streamId,
+        id: Date.now(),
+        text,
+        username,
+      }));
+    }
+  }, [streamId]);
+
   useEffect(() => {
     return () => {
       if (isBroadcaster) {
@@ -315,5 +344,6 @@ export function useWebRTC({
     stopBroadcast,
     joinAsViewer,
     stopViewing,
+    sendChat,
   };
 }

@@ -92,10 +92,21 @@ function LiveStreamPage({
     }
   }, []);
 
+  const handleChatReceived = useCallback((message: { id: number; text: string; username: string; senderId: string }) => {
+    setFlowingComments(prev => {
+      if (prev.some(c => c.id === message.id)) return prev;
+      return [...prev, { id: message.id, text: message.text, username: message.username }];
+    });
+    setTimeout(() => {
+      setFlowingComments(prev => prev.filter(c => c.id !== message.id));
+    }, 5000);
+  }, []);
+
   const webrtc = useWebRTC({
     streamId: id,
     isBroadcaster: false,
     onStreamReceived: handleStreamReceived,
+    onChatReceived: handleChatReceived,
   });
 
   useEffect(() => {
@@ -208,18 +219,8 @@ function LiveStreamPage({
   const handleSendComment = () => {
     if (!comment.trim()) return;
     
-    const newComment = {
-      id: Date.now(),
-      text: comment,
-      username: "あなた",
-    };
-    
-    setFlowingComments(prev => [...prev, newComment]);
+    webrtc.sendChat(comment, "あなた");
     setComment("");
-    
-    setTimeout(() => {
-      setFlowingComments(prev => prev.filter(c => c.id !== newComment.id));
-    }, 5000);
   };
 
   return (

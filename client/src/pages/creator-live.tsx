@@ -133,11 +133,19 @@ export default function CreatorLive() {
     toast({ title: error, variant: "destructive" });
   }, [toast]);
 
+  const handleChatReceived = useCallback((message: { id: number; text: string; username: string; senderId: string }) => {
+    setCreatorComments(prev => {
+      if (prev.includes(message.text)) return prev;
+      return [...prev, `${message.username}: ${message.text}`];
+    });
+  }, []);
+
   const webrtc = useWebRTC({
     streamId: currentStreamId || "",
     isBroadcaster: true,
     localStream,
     onViewerCountChange: handleWebRTCViewerCount,
+    onChatReceived: handleChatReceived,
     onError: handleWebRTCError,
   });
 
@@ -436,7 +444,8 @@ export default function CreatorLive() {
   const handleSendComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    setCreatorComments(prev => [...prev, commentText.trim()]);
+    const displayName = profile?.displayName || "配信者";
+    webrtc.sendChat(commentText.trim(), displayName);
     setCommentText("");
   };
 
