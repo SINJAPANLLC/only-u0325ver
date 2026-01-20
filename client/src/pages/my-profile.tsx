@@ -82,6 +82,10 @@ export default function MyProfile() {
     enabled: !!user?.id,
   });
 
+  const { data: myVideos } = useQuery<VideoType[]>({
+    queryKey: ["/api/my-videos"],
+  });
+
   const { data: myLikedVideos } = useQuery<any[]>({
     queryKey: ["/api/my-likes"],
   });
