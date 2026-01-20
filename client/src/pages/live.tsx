@@ -664,6 +664,9 @@ export default function Live() {
         if (data.insufficientPoints) {
           throw new Error("insufficient_points");
         }
+        if (data.twoshotOccupied) {
+          throw new Error("twoshot_occupied");
+        }
         throw new Error(data.message || "入室に失敗しました");
       }
       return res.json();
@@ -672,6 +675,8 @@ export default function Live() {
       if (error.message === "insufficient_points") {
         toast({ title: "ポイント不足", description: "ポイントを購入してください", variant: "destructive" });
         setLocation("/points-purchase");
+      } else if (error.message === "twoshot_occupied") {
+        toast({ title: "2ショット利用中", description: "他のユーザーが2ショット中です。しばらくお待ちください。", variant: "destructive" });
       } else {
         toast({ title: "入室エラー", description: error.message || "入室に失敗しました", variant: "destructive" });
       }

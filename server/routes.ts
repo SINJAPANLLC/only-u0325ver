@@ -489,6 +489,22 @@ export async function registerRoutes(
         return res.status(400).json({ message: "ポイントが不足しています", insufficientPoints: true });
       }
 
+      // For 2shot mode, check if someone else is already in a session
+      if (mode === "twoshot") {
+        const [existingTwoshotSession] = await db
+          .select()
+          .from(liveViewingSessions)
+          .where(and(
+            eq(liveViewingSessions.liveStreamId, streamId),
+            eq(liveViewingSessions.mode, "twoshot"),
+            eq(liveViewingSessions.isActive, true)
+          ));
+
+        if (existingTwoshotSession && existingTwoshotSession.userId !== userId) {
+          return res.status(400).json({ message: "2ショットは現在他のユーザーが利用中です", twoshotOccupied: true });
+        }
+      }
+
       // End any active sessions for this user on this stream
       await db
         .update(liveViewingSessions)
