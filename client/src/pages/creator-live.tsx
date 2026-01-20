@@ -121,8 +121,12 @@ export default function CreatorLive() {
   
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const canvasStreamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const effectsRef = useRef(effects);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   const handleWebRTCViewerCount = useCallback((count: number) => {
@@ -195,6 +199,10 @@ export default function CreatorLive() {
     }
   }, [uploadFile, toast]);
 
+  useEffect(() => {
+    effectsRef.current = effects;
+  }, [effects]);
+
   const getVideoFilters = useCallback(() => {
     const filters: string[] = [];
     if (effects.brightness !== 100) filters.push(`brightness(${effects.brightness}%)`);
@@ -208,10 +216,27 @@ export default function CreatorLive() {
     return filters.join(" ") || "none";
   }, [effects]);
 
+  const getCanvasFilters = useCallback(() => {
+    const e = effectsRef.current;
+    const filters: string[] = [];
+    if (e.brightness !== 100) filters.push(`brightness(${e.brightness}%)`);
+    if (e.contrast !== 100) filters.push(`contrast(${e.contrast}%)`);
+    if (e.saturation !== 100) filters.push(`saturate(${e.saturation}%)`);
+    if (e.blur > 0) filters.push(`blur(${e.blur}px)`);
+    if (e.beautyMode) {
+      filters.push("contrast(105%)");
+      filters.push("brightness(103%)");
+    }
+    return filters.join(" ") || "none";
+  }, []);
+
   const startCamera = useCallback(async () => {
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
       
       const videoConstraints: MediaTrackConstraints = {
@@ -228,7 +253,6 @@ export default function CreatorLive() {
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      setLocalStream(stream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -240,6 +264,45 @@ export default function CreatorLive() {
       stream.getAudioTracks().forEach(track => {
         track.enabled = isMicOn;
       });
+
+      // Set up canvas processing for effects
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      if (canvas && video) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const processFrame = () => {
+            if (video.readyState >= 2) {
+              canvas.width = video.videoWidth || 1920;
+              canvas.height = video.videoHeight || 1080;
+              
+              ctx.filter = getCanvasFilters();
+              
+              if (facingMode === "user") {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+              }
+              
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              if (facingMode === "user") {
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+              }
+            }
+            animationFrameRef.current = requestAnimationFrame(processFrame);
+          };
+          processFrame();
+
+          // Create canvas stream with audio from original stream
+          const canvasStream = canvas.captureStream(30);
+          const audioTracks = stream.getAudioTracks();
+          audioTracks.forEach(track => {
+            canvasStream.addTrack(track);
+          });
+          canvasStreamRef.current = canvasStream;
+          setLocalStream(canvasStream);
+        }
+      }
       
     } catch (error) {
       console.error("Camera access error:", error);
@@ -250,14 +313,22 @@ export default function CreatorLive() {
       });
       setViewMode("list");
     }
-  }, [facingMode, isCameraOn, isMicOn, toast, settings.resolution, settings.frameRate]);
+  }, [facingMode, isCameraOn, isMicOn, toast, settings.resolution, settings.frameRate, getCanvasFilters]);
 
   const stopCamera = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
-      setLocalStream(null);
     }
+    if (canvasStreamRef.current) {
+      canvasStreamRef.current.getTracks().forEach(track => track.stop());
+      canvasStreamRef.current = null;
+    }
+    setLocalStream(null);
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
@@ -490,6 +561,7 @@ export default function CreatorLive() {
           style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
         />
+        <canvas ref={canvasRef} className="hidden" />
         
         {!isCameraOn && (
           <div className="absolute inset-0 bg-black flex items-center justify-center">
@@ -943,6 +1015,7 @@ export default function CreatorLive() {
           style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
         />
+        <canvas ref={canvasRef} className="hidden" />
         
         {!isCameraOn && (
           <div className="absolute inset-0 bg-gradient-to-b from-rose-900 to-rose-950 flex items-center justify-center">
