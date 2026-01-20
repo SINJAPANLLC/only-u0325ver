@@ -466,7 +466,6 @@ export default function CreatorShop() {
                   data-testid="input-price"
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">1ポイント = 1円</p>
             </div>
             <div>
               <Label htmlFor="stock">販売個数</Label>
