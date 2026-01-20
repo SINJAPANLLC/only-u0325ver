@@ -461,15 +461,11 @@ export default function CreatorContent() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-sm truncate">{video.title}</h3>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <PlaySquare className="h-3 w-3" />
-                      {formatCount(video.viewCount || 0)}
-                    </span>
                     <span className={video.isPublished ? "text-green-500" : "text-yellow-500"}>
                       {video.isPublished ? "公開中" : "非公開"}
                     </span>
                     <span className={video.contentType === "premium" ? "text-pink-500" : ""}>
-                      {video.contentType === "premium" ? "プレミアム" : "無料"}
+                      {video.contentType === "premium" ? getPlanName(video.requiredTier || 1) : "無料"}
                     </span>
                   </div>
                 </div>
