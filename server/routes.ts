@@ -58,9 +58,6 @@ async function isCreator(req: any, res: any, next: any) {
 // Helper function to send automatic message between creator and buyer
 async function sendAutoMessage(creatorId: string, buyerId: string, messageContent: string) {
   try {
-    // Don't send message to self
-    if (creatorId === buyerId) return;
-    
     // Find existing conversation
     const [existingConversation] = await db
       .select()
