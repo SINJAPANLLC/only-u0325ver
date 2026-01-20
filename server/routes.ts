@@ -280,6 +280,14 @@ export async function registerRoutes(
         content: content.trim(),
       }).returning();
 
+      // Update comment count on video
+      await db
+        .update(videos)
+        .set({
+          commentCount: sql`${videos.commentCount} + 1`
+        })
+        .where(eq(videos.id, videoId));
+
       res.status(201).json(comment);
     } catch (error) {
       console.error("Error creating comment:", error);

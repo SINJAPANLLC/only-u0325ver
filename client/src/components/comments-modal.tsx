@@ -49,6 +49,8 @@ export function CommentsModal({ open, onOpenChange, videoId, commentCount }: Com
     onSuccess: () => {
       setNewComment("");
       queryClient.invalidateQueries({ queryKey: ["/api/videos", videoId, "comments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/videos/following"] });
     },
   });
 

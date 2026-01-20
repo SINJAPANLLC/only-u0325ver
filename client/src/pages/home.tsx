@@ -687,7 +687,7 @@ export default function Home() {
       creatorAvatar: v.creatorAvatarUrl,
       viewCount: v.viewCount || 0,
       likeCount: v.likeCount || 0,
-      commentCount: 0,
+      commentCount: v.commentCount || 0,
       duration: v.duration || 0,
       isPremium,
       hasAccess,
