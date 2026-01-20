@@ -944,6 +944,11 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Product not available" });
       }
 
+      // Check stock for physical products
+      if (product.productType === "physical" && product.stock !== null && product.stock !== 0 && product.stock <= 0) {
+        return res.status(400).json({ message: "Out of stock" });
+      }
+
       // Check if already purchased (for digital products)
       if (product.productType === "digital") {
         const [existingPurchase] = await db
@@ -974,9 +979,17 @@ export async function registerRoutes(
 
       // Update stock for physical products
       if (product.productType === "physical" && product.stock !== null && product.stock > 0) {
+        const newStock = product.stock - 1;
+        const updateData: any = { stock: newStock };
+        
+        // If stock reaches 0, set product as unavailable
+        if (newStock <= 0) {
+          updateData.isAvailable = false;
+        }
+        
         await db
           .update(products)
-          .set({ stock: product.stock - 1 })
+          .set(updateData)
           .where(eq(products.id, id));
       }
 
