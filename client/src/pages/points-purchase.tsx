@@ -28,10 +28,10 @@ const DEFAULT_PACKAGES = [
 ];
 
 const BANK_INFO = {
-  bankName: "三菱UFJ銀行",
-  branchName: "渋谷支店",
+  bankName: "相愛信用組合（2318）",
+  branchName: "本店（003）",
   accountType: "普通",
-  accountNumber: "1234567",
+  accountNumber: "0172246",
   accountName: "ゴウドウガイシャシンジャパンカナガワ",
 };
 
