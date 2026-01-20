@@ -71,6 +71,7 @@ function VideoPage({
   const [showComments, setShowComments] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const { toast } = useToast();
   
   const videoDuration = duration || 30;
