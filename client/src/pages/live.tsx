@@ -102,6 +102,7 @@ function LiveStreamPage({
   const isSessionActive = streamStatus?.currentMode !== null;
   const activeMode = streamStatus?.currentMode;
   const userInSession = currentMode !== "waiting";
+  const canViewStream = !isSessionActive || userInSession;
 
   const handleStreamReceived = useCallback((stream: MediaStream | null) => {
     setRemoteStream(stream);
@@ -129,10 +130,10 @@ function LiveStreamPage({
   });
 
   useEffect(() => {
-    if (isRealStream && isActive && userInSession) {
+    if (isRealStream && isActive && canViewStream) {
       setIsConnecting(true);
       webrtc.joinAsViewer();
-    } else if (isRealStream && !userInSession) {
+    } else if (isRealStream && !canViewStream) {
       webrtc.stopViewing();
       setRemoteStream(null);
     }
@@ -141,7 +142,7 @@ function LiveStreamPage({
         webrtc.stopViewing();
       }
     };
-  }, [isRealStream, isActive, userInSession]);
+  }, [isRealStream, isActive, canViewStream]);
 
   useEffect(() => {
     if (remoteStream && videoRef.current) {
@@ -255,7 +256,7 @@ function LiveStreamPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
-      {isRealStream && remoteStream && userInSession ? (
+      {isRealStream && remoteStream && canViewStream ? (
         <video
           ref={videoRef}
           autoPlay
@@ -273,7 +274,7 @@ function LiveStreamPage({
         <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-pink-600 to-rose-700" />
       )}
 
-      {isRealStream && isSessionActive && !userInSession && (
+      {isRealStream && isSessionActive && !canViewStream && (
         <div className="absolute inset-0 z-30">
           {thumbnailUrl ? (
             <img 
@@ -304,7 +305,7 @@ function LiveStreamPage({
         </div>
       )}
 
-      {isRealStream && isConnecting && !remoteStream && userInSession && (
+      {isRealStream && isConnecting && !remoteStream && canViewStream && (
         <div className="absolute inset-0 z-10">
           {thumbnailUrl ? (
             <img 
