@@ -114,7 +114,8 @@ export default function CreatorLive() {
   
   const [commentText, setCommentText] = useState("");
   const [creatorComments, setCreatorComments] = useState<string[]>([]);
-  const [pointsPerMinute, setPointsPerMinute] = useState(50);
+  const [partyPointsPerMinute, setPartyPointsPerMinute] = useState(50);
+  const [twoshotPointsPerMinute, setTwoshotPointsPerMinute] = useState(100);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
   
@@ -284,7 +285,7 @@ export default function CreatorLive() {
         setStreamDuration(prev => {
           const newDuration = prev + 1;
           if (newDuration % 60 === 0) {
-            setEarnedPoints(current => current + (pointsPerMinute * Math.max(1, viewerCount)));
+            setEarnedPoints(current => current + (partyPointsPerMinute * Math.max(1, viewerCount)));
           }
           return newDuration;
         });
@@ -302,7 +303,7 @@ export default function CreatorLive() {
         clearInterval(timerRef.current);
       }
     };
-  }, [viewMode, pointsPerMinute, viewerCount]);
+  }, [viewMode, partyPointsPerMinute, viewerCount]);
 
   useEffect(() => {
     return () => {
@@ -564,26 +565,50 @@ export default function CreatorLive() {
               視聴者が配信に接続中に表示される縦型画像
             </p>
           </div>
-          <div className="mb-4 bg-black/40 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-white">
-                <Coins className="h-5 w-5 text-yellow-400" />
-                <span className="font-medium">1分あたりのポイント</span>
+          <div className="mb-4 bg-black/40 rounded-xl p-4 space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-white">
+                  <Users className="h-5 w-5 text-pink-400" />
+                  <span className="font-medium">パーティー（1分あたり）</span>
+                </div>
+                <span className="text-pink-400 font-bold">{partyPointsPerMinute}pt</span>
               </div>
-              <span className="text-yellow-400 font-bold">{pointsPerMinute}pt</span>
+              <Slider
+                value={[partyPointsPerMinute]}
+                onValueChange={([v]) => setPartyPointsPerMinute(v)}
+                min={10}
+                max={500}
+                step={10}
+                className="mt-2"
+                data-testid="slider-party-points"
+              />
+              <div className="flex justify-between text-xs text-white/60 mt-1">
+                <span>10pt</span>
+                <span>500pt</span>
+              </div>
             </div>
-            <Slider
-              value={[pointsPerMinute]}
-              onValueChange={([v]) => setPointsPerMinute(v)}
-              min={10}
-              max={500}
-              step={10}
-              className="mt-2"
-              data-testid="slider-points"
-            />
-            <div className="flex justify-between text-xs text-white/60 mt-1">
-              <span>10pt</span>
-              <span>500pt</span>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-white">
+                  <Heart className="h-5 w-5 text-purple-400" />
+                  <span className="font-medium">2ショット（1分あたり）</span>
+                </div>
+                <span className="text-purple-400 font-bold">{twoshotPointsPerMinute}pt</span>
+              </div>
+              <Slider
+                value={[twoshotPointsPerMinute]}
+                onValueChange={([v]) => setTwoshotPointsPerMinute(v)}
+                min={10}
+                max={1000}
+                step={10}
+                className="mt-2"
+                data-testid="slider-twoshot-points"
+              />
+              <div className="flex justify-between text-xs text-white/60 mt-1">
+                <span>10pt</span>
+                <span>1000pt</span>
+              </div>
             </div>
           </div>
           <Button
