@@ -757,8 +757,8 @@ export default function MyProfile() {
                   onClick={() => setSelectedContent({
                     id: video.id,
                     thumbnailUrl: video.thumbnailUrl || "",
-                    videoUrl: video.videoUrl,
-                    title: video.creatorDisplayName || video.title,
+                    videoUrl: video.videoUrl || "",
+                    title: video.creatorDisplayName || video.title || "",
                     isVertical: true,
                   })}
                   data-testid={`liked-video-${video.id}`}
