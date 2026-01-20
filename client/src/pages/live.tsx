@@ -247,10 +247,21 @@ function LiveStreamPage({
       )}
 
       {isRealStream && isConnecting && !remoteStream && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
-          <div className="text-center text-white">
-            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-2" />
-            <p className="text-sm">配信に接続中...</p>
+        <div className="absolute inset-0 z-10">
+          {thumbnailUrl ? (
+            <img 
+              src={thumbnailUrl} 
+              alt="接続中"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-900 via-pink-800 to-rose-950" />
+          )}
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="text-center text-white">
+              <Loader2 className="h-10 w-10 animate-spin mx-auto mb-2" />
+              <p className="text-sm">配信に接続中...</p>
+            </div>
           </div>
         </div>
       )}

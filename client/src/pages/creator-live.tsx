@@ -55,6 +55,8 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebRTC } from "@/hooks/use-webrtc";
+import { useUpload } from "@/hooks/use-upload";
+import { ImagePlus, Loader2 } from "lucide-react";
 import type { LiveStream, UserProfile } from "@shared/schema";
 
 type ViewMode = "list" | "preview" | "streaming";
@@ -114,7 +116,9 @@ export default function CreatorLive() {
   const [creatorComments, setCreatorComments] = useState<string[]>([]);
   const [pointsPerMinute, setPointsPerMinute] = useState(50);
   const [earnedPoints, setEarnedPoints] = useState(0);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
   
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -143,6 +147,28 @@ export default function CreatorLive() {
   const { data: myLiveStreams, isLoading } = useQuery<LiveStream[]>({
     queryKey: ["/api/my-live"],
   });
+
+  const { uploadFile, isUploading: isUploadingThumbnail } = useUpload({
+    onSuccess: (response) => {
+      const publicUrl = `/api/object-storage/${response.objectPath}`;
+      setThumbnailUrl(publicUrl);
+      toast({ title: "背景画像を設定しました" });
+    },
+    onError: () => {
+      toast({ title: "画像のアップロードに失敗しました", variant: "destructive" });
+    },
+  });
+
+  const handleThumbnailUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+        return;
+      }
+      await uploadFile(file);
+    }
+  }, [uploadFile, toast]);
 
   const getVideoFilters = useCallback(() => {
     const filters: string[] = [];
@@ -297,6 +323,7 @@ export default function CreatorLive() {
         title,
         description: "",
         status: "live",
+        thumbnailUrl: thumbnailUrl || undefined,
       });
       return response.json();
     },
@@ -486,6 +513,58 @@ export default function CreatorLive() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="mb-4 bg-black/40 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-white">
+                <ImagePlus className="h-5 w-5 text-pink-400" />
+                <span className="font-medium">接続中の背景画像</span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-white border-white/40 hover:bg-white/20"
+                onClick={() => thumbnailInputRef.current?.click()}
+                disabled={isUploadingThumbnail}
+                data-testid="button-upload-thumbnail"
+              >
+                {isUploadingThumbnail ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : thumbnailUrl ? (
+                  "変更"
+                ) : (
+                  "選択"
+                )}
+              </Button>
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleThumbnailUpload}
+              />
+            </div>
+            {thumbnailUrl && (
+              <div className="mb-3 relative">
+                <img 
+                  src={thumbnailUrl} 
+                  alt="接続中背景" 
+                  className="w-full h-20 object-cover rounded-lg opacity-80"
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-1 right-1 h-6 w-6 bg-black/50 hover:bg-black/70 text-white"
+                  onClick={() => setThumbnailUrl("")}
+                  data-testid="button-remove-thumbnail"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            <p className="text-xs text-white/60 mb-3">
+              視聴者が配信に接続中に表示される縦型画像
+            </p>
+          </div>
           <div className="mb-4 bg-black/40 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-white">
