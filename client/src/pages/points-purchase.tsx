@@ -216,20 +216,20 @@ export default function PointsPurchase() {
 
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">購入ポイント</span>
-                  <span className="font-bold">{pendingTransfer.points.toLocaleString()} pt</span>
+                  <span className="text-muted-foreground">ポイント</span>
+                  <span>¥{pendingTransfer.points.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">税抜金額</span>
-                  <span>¥{pendingTransfer.amountExcludingTax.toLocaleString()}</span>
+                  <span className="text-muted-foreground">購入手数料（10%）</span>
+                  <span>¥{Math.floor(pendingTransfer.points * 0.1).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">消費税（10%）</span>
-                  <span>¥{pendingTransfer.taxAmount.toLocaleString()}</span>
+                  <span>¥{Math.floor(pendingTransfer.points * 0.1).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
                   <span>振込金額（税込）</span>
-                  <span className="text-primary">¥{pendingTransfer.amount.toLocaleString()}</span>
+                  <span className="text-pink-600 dark:text-pink-400">¥{pendingTransfer.amount.toLocaleString()}</span>
                 </div>
               </div>
 
