@@ -148,6 +148,32 @@ export const liveStreams = pgTable("live_streams", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Live viewing mode enum
+export const viewingModeEnum = pgEnum("viewing_mode", ["waiting", "party", "twoshot"]);
+
+// Live viewing sessions (tracks when users join party/2shot modes)
+export const liveViewingSessions = pgTable("live_viewing_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  liveStreamId: varchar("live_stream_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  mode: viewingModeEnum("mode").notNull(),
+  ratePerMinute: integer("rate_per_minute").notNull(),
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+  totalMinutes: integer("total_minutes").default(0),
+  totalPointsCharged: integer("total_points_charged").default(0),
+  isActive: boolean("is_active").default(true),
+});
+
+export const insertLiveViewingSessionSchema = createInsertSchema(liveViewingSessions).omit({
+  id: true,
+  startedAt: true,
+  endedAt: true,
+  totalMinutes: true,
+  totalPointsCharged: true,
+  isActive: true,
+});
+
 // Products
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
@@ -583,7 +585,10 @@ export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const [roomModes, setRoomModes] = useState<Record<string, RoomMode>>({});
+  const chargeIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const activeSessionsRef = useRef<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const { data: liveStreams } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -595,6 +600,60 @@ export default function Live() {
   });
 
   const userPoints = userProfile?.points || 0;
+
+  const joinSessionMutation = useMutation({
+    mutationFn: async ({ streamId, mode }: { streamId: string; mode: string }) => {
+      const res = await apiRequest("POST", `/api/live/${streamId}/join`, { mode });
+      return res.json();
+    },
+    onError: (error: any) => {
+      toast({ title: "入室エラー", description: error.message || "入室に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const stopSession = useCallback((streamId: string) => {
+    // Clear interval
+    if (chargeIntervalsRef.current[streamId]) {
+      clearInterval(chargeIntervalsRef.current[streamId]);
+      delete chargeIntervalsRef.current[streamId];
+    }
+    // Remove from active sessions
+    activeSessionsRef.current.delete(streamId);
+    // Reset mode
+    setRoomModes(prev => ({ ...prev, [streamId]: "waiting" }));
+  }, []);
+
+  const chargeSessionMutation = useMutation({
+    mutationFn: async (streamId: string) => {
+      const res = await apiRequest("POST", `/api/live/${streamId}/charge`);
+      if (!res.ok) {
+        const data = await res.json();
+        if (data.insufficientPoints) {
+          throw new Error("insufficient_points");
+        }
+        throw new Error(data.message || "Failed to charge");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+    },
+    onError: (error: any, streamId: string) => {
+      if (error.message === "insufficient_points") {
+        toast({ title: "ポイント不足", description: "ポイントが不足したためセッションを終了しました", variant: "destructive" });
+        stopSession(streamId);
+        // Call leave API
+        apiRequest("POST", `/api/live/${streamId}/leave`).catch(() => {});
+      }
+    },
+  });
+
+  const leaveSessionMutation = useMutation({
+    mutationFn: async (streamId: string) => {
+      const res = await apiRequest("POST", `/api/live/${streamId}/leave`);
+      return res.json();
+    },
+  });
 
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
@@ -621,8 +680,45 @@ export default function Live() {
       ? realLiveStreamsFormatted
       : demoLiveStreams;
 
-  const handleModeChange = (streamId: string, mode: RoomMode) => {
-    setRoomModes(prev => ({ ...prev, [streamId]: mode }));
+  const handleModeChange = async (streamId: string, mode: RoomMode) => {
+    const previousMode = roomModes[streamId] || "waiting";
+    
+    // Clear existing charge interval for this stream
+    if (chargeIntervalsRef.current[streamId]) {
+      clearInterval(chargeIntervalsRef.current[streamId]);
+      delete chargeIntervalsRef.current[streamId];
+    }
+
+    // If leaving party/twoshot mode
+    if (mode === "waiting" && previousMode !== "waiting") {
+      leaveSessionMutation.mutate(streamId);
+      activeSessionsRef.current.delete(streamId);
+      setRoomModes(prev => ({ ...prev, [streamId]: mode }));
+      return;
+    }
+
+    // If entering party/twoshot mode
+    if (mode === "party" || mode === "twoshot") {
+      try {
+        await joinSessionMutation.mutateAsync({ streamId, mode });
+        setRoomModes(prev => ({ ...prev, [streamId]: mode }));
+        activeSessionsRef.current.add(streamId);
+        
+        // Start charging every minute
+        const intervalId = setInterval(() => {
+          chargeSessionMutation.mutate(streamId);
+        }, 60000); // Every 60 seconds
+        
+        chargeIntervalsRef.current[streamId] = intervalId;
+        
+        // Invalidate profile to get updated points
+        queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      } catch (error) {
+        // Error already handled in mutation onError
+      }
+    } else {
+      setRoomModes(prev => ({ ...prev, [streamId]: mode }));
+    }
   };
 
   useEffect(() => {
@@ -647,6 +743,20 @@ export default function Live() {
     setActiveIndex(0);
     containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Cleanup intervals and sessions on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all intervals
+      Object.values(chargeIntervalsRef.current).forEach(intervalId => {
+        clearInterval(intervalId);
+      });
+      // Call leave API for all active sessions
+      activeSessionsRef.current.forEach(streamId => {
+        apiRequest("POST", `/api/live/${streamId}/leave`).catch(() => {});
+      });
+    };
+  }, []);
 
   return (
     <>

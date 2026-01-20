@@ -10,7 +10,7 @@ import {
   users, videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
   userProfiles, creatorApplications, phoneVerificationCodes,
-  videoLikes,
+  videoLikes, liveViewingSessions,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
@@ -448,6 +448,169 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error creating live stream:", error);
       res.status(500).json({ message: "Failed to create live stream" });
+    }
+  });
+
+  // Join a live viewing session (party/2shot mode)
+  app.post("/api/live/:streamId/join", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+      const { mode } = req.body;
+
+      if (!mode || !["party", "twoshot"].includes(mode)) {
+        return res.status(400).json({ message: "Invalid mode" });
+      }
+
+      // Get the stream to check rates
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, streamId));
+
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      const ratePerMinute = mode === "party" ? stream.partyRatePerMinute : stream.twoshotRatePerMinute;
+
+      // Get user's current points
+      const [userProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      if (!userProfile) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+
+      // Check if user has enough points for at least 1 minute
+      if ((userProfile.points || 0) < (ratePerMinute || 0)) {
+        return res.status(400).json({ message: "ポイントが不足しています" });
+      }
+
+      // End any active sessions for this user on this stream
+      await db
+        .update(liveViewingSessions)
+        .set({ isActive: false, endedAt: new Date() })
+        .where(and(
+          eq(liveViewingSessions.userId, userId),
+          eq(liveViewingSessions.liveStreamId, streamId),
+          eq(liveViewingSessions.isActive, true)
+        ));
+
+      // Create new session
+      const [session] = await db
+        .insert(liveViewingSessions)
+        .values({
+          liveStreamId: streamId,
+          userId,
+          mode,
+          ratePerMinute: ratePerMinute || 50,
+        })
+        .returning();
+
+      res.json({ session, userPoints: userProfile.points });
+    } catch (error) {
+      console.error("Error joining live session:", error);
+      res.status(500).json({ message: "Failed to join session" });
+    }
+  });
+
+  // Charge points for active session (called every minute)
+  app.post("/api/live/:streamId/charge", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+
+      // Get active session
+      const [session] = await db
+        .select()
+        .from(liveViewingSessions)
+        .where(and(
+          eq(liveViewingSessions.userId, userId),
+          eq(liveViewingSessions.liveStreamId, streamId),
+          eq(liveViewingSessions.isActive, true)
+        ));
+
+      if (!session) {
+        return res.status(404).json({ message: "No active session" });
+      }
+
+      // Get user's current points
+      const [userProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      if (!userProfile) {
+        return res.status(404).json({ message: "User profile not found" });
+      }
+
+      // Check if user has enough points
+      if ((userProfile.points || 0) < session.ratePerMinute) {
+        // End session due to insufficient points
+        await db
+          .update(liveViewingSessions)
+          .set({ isActive: false, endedAt: new Date() })
+          .where(eq(liveViewingSessions.id, session.id));
+        
+        return res.status(400).json({ message: "ポイント不足のためセッションを終了しました", insufficientPoints: true });
+      }
+
+      // Deduct points
+      const newPoints = (userProfile.points || 0) - session.ratePerMinute;
+      await db
+        .update(userProfiles)
+        .set({ points: newPoints })
+        .where(eq(userProfiles.userId, userId));
+
+      // Update session totals
+      await db
+        .update(liveViewingSessions)
+        .set({
+          totalMinutes: (session.totalMinutes || 0) + 1,
+          totalPointsCharged: (session.totalPointsCharged || 0) + session.ratePerMinute,
+        })
+        .where(eq(liveViewingSessions.id, session.id));
+
+      res.json({ 
+        newPoints, 
+        charged: session.ratePerMinute,
+        totalMinutes: (session.totalMinutes || 0) + 1,
+        totalCharged: (session.totalPointsCharged || 0) + session.ratePerMinute
+      });
+    } catch (error) {
+      console.error("Error charging session:", error);
+      res.status(500).json({ message: "Failed to charge session" });
+    }
+  });
+
+  // Leave a live viewing session
+  app.post("/api/live/:streamId/leave", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+
+      // End active session
+      const result = await db
+        .update(liveViewingSessions)
+        .set({ isActive: false, endedAt: new Date() })
+        .where(and(
+          eq(liveViewingSessions.userId, userId),
+          eq(liveViewingSessions.liveStreamId, streamId),
+          eq(liveViewingSessions.isActive, true)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.json({ message: "No active session to end" });
+      }
+
+      res.json({ session: result[0] });
+    } catch (error) {
+      console.error("Error leaving session:", error);
+      res.status(500).json({ message: "Failed to leave session" });
     }
   });
 
