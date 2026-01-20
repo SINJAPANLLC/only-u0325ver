@@ -82,7 +82,11 @@ function VideoPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
-        setLocation(`/creator/${creatorName}`);
+        if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+          setLocation("/my-profile");
+        } else {
+          setLocation(`/creator/${creatorName}`);
+        }
       }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
@@ -193,7 +197,11 @@ function VideoPage({
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLocation(`/creator/${creatorName}`);
+    if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+      setLocation("/my-profile");
+    } else {
+      setLocation(`/creator/${creatorName}`);
+    }
   };
 
   const handleComment = (e: React.MouseEvent) => {
@@ -284,7 +292,13 @@ function VideoPage({
                 <p className="text-white/80 text-sm">クリエイターを購読して視聴</p>
               </div>
               <Button
-                onClick={() => setLocation(`/creator/${creatorName}`)}
+                onClick={() => {
+                  if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+                    setLocation("/my-profile");
+                  } else {
+                    setLocation(`/creator/${creatorName}`);
+                  }
+                }}
                 className="bg-pink-500 hover:bg-pink-600 text-white rounded-full px-6"
                 data-testid="button-subscribe-premium"
               >
@@ -426,7 +440,13 @@ function VideoPage({
 
         {/* Full content CTA */}
         <button
-          onClick={() => setLocation(`/creator/${creatorName}`)}
+          onClick={() => {
+            if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+              setLocation("/my-profile");
+            } else {
+              setLocation(`/creator/${creatorName}`);
+            }
+          }}
           className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold shadow-lg shadow-pink-500/30 w-fit"
           data-testid={`button-full-content-${id}`}
         >
