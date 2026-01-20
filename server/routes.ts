@@ -486,7 +486,7 @@ export async function registerRoutes(
 
       // Check if user has enough points for at least 1 minute
       if ((userProfile.points || 0) < (ratePerMinute || 0)) {
-        return res.status(400).json({ message: "ポイントが不足しています" });
+        return res.status(400).json({ message: "ポイントが不足しています", insufficientPoints: true });
       }
 
       // End any active sessions for this user on this stream
