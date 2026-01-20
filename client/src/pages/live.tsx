@@ -651,6 +651,12 @@ export default function Live() {
     refetchInterval: 5000,
   });
 
+  const { data: followingLiveStreams } = useQuery<any[]>({
+    queryKey: ["/api/live/following"],
+    refetchInterval: 5000,
+    enabled: feedType === "following",
+  });
+
   const { data: userProfile } = useQuery<any>({
     queryKey: ["/api/profile"],
   });
@@ -730,9 +736,7 @@ export default function Live() {
     },
   });
 
-  const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
-
-  const realLiveStreamsFormatted = (liveStreams || []).map((s: any, idx) => ({
+  const formatStreamData = (s: any, idx: number) => ({
     id: s.id,
     creatorId: s.creatorId,
     title: s.title,
@@ -747,10 +751,13 @@ export default function Live() {
     partyRatePerMinute: s.partyRatePerMinute || 50,
     twoshotRatePerMinute: s.twoshotRatePerMinute || 200,
     isRealStream: true,
-  }));
+  });
+
+  const realLiveStreamsFormatted = (liveStreams || []).map(formatStreamData);
+  const followingStreamsFormatted = (followingLiveStreams || []).map(formatStreamData);
 
   const baseStreams = feedType === "following"
-    ? followingStreams
+    ? (followingStreamsFormatted.length > 0 ? followingStreamsFormatted : [])
     : realLiveStreamsFormatted.length > 0
       ? realLiveStreamsFormatted
       : demoLiveStreams;
@@ -845,7 +852,24 @@ export default function Live() {
         className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
         data-testid="live-feed-container"
       >
-        {baseStreams.map((stream, index) => (
+        {baseStreams.length === 0 && feedType === "following" ? (
+          <div className="h-[100svh] flex items-center justify-center bg-gradient-to-b from-rose-900 to-black">
+            <div className="text-center text-white p-8">
+              <Users className="h-16 w-16 mx-auto mb-4 text-pink-400" />
+              <h2 className="text-xl font-bold mb-2">フォロー中の配信がありません</h2>
+              <p className="text-white/70 text-sm mb-4">
+                クリエイターをフォローすると、ここに配信が表示されます
+              </p>
+              <Button
+                onClick={() => handleFeedTypeChange("recommend")}
+                className="bg-pink-500 hover:bg-pink-600"
+                data-testid="button-switch-to-recommend"
+              >
+                おすすめを見る
+              </Button>
+            </div>
+          </div>
+        ) : baseStreams.map((stream, index) => (
           <LiveStreamPage
             key={stream.id}
             id={stream.id}

@@ -526,6 +526,12 @@ export async function registerRoutes(
         })
         .returning();
 
+      // Update viewer count
+      await db
+        .update(liveStreams)
+        .set({ viewerCount: (stream.viewerCount || 0) + 1 })
+        .where(eq(liveStreams.id, streamId));
+
       res.json({ session, userPoints: userProfile.points });
     } catch (error) {
       console.error("Error joining live session:", error);
@@ -673,10 +679,71 @@ export async function registerRoutes(
         return res.json({ message: "No active session to end" });
       }
 
+      // Decrement viewer count
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, streamId));
+
+      if (stream && (stream.viewerCount || 0) > 0) {
+        await db
+          .update(liveStreams)
+          .set({ viewerCount: (stream.viewerCount || 1) - 1 })
+          .where(eq(liveStreams.id, streamId));
+      }
+
       res.json({ session: result[0] });
     } catch (error) {
       console.error("Error leaving session:", error);
       res.status(500).json({ message: "Failed to leave session" });
+    }
+  });
+
+  // Get live streams from followed creators
+  app.get("/api/live/following", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      // Get list of creators the user follows
+      const userFollows = await db
+        .select({ followingId: follows.followingId })
+        .from(follows)
+        .where(eq(follows.followerId, userId));
+
+      const followedCreatorIds = userFollows.map(f => f.followingId);
+
+      if (followedCreatorIds.length === 0) {
+        return res.json([]);
+      }
+
+      // Get active live streams from followed creators
+      const followedStreams = await db
+        .select({
+          id: liveStreams.id,
+          title: liveStreams.title,
+          creatorId: liveStreams.creatorId,
+          status: liveStreams.status,
+          thumbnailUrl: liveStreams.thumbnailUrl,
+          viewerCount: liveStreams.viewerCount,
+          partyRatePerMinute: liveStreams.partyRatePerMinute,
+          twoshotRatePerMinute: liveStreams.twoshotRatePerMinute,
+          createdAt: liveStreams.createdAt,
+          creatorDisplayName: creatorProfiles.displayName,
+          creatorAvatar: userProfiles.avatarUrl,
+        })
+        .from(liveStreams)
+        .leftJoin(creatorProfiles, eq(liveStreams.creatorId, creatorProfiles.userId))
+        .leftJoin(userProfiles, eq(liveStreams.creatorId, userProfiles.userId))
+        .where(and(
+          eq(liveStreams.status, "live"),
+          sql`${liveStreams.creatorId} IN (${sql.join(followedCreatorIds.map(id => sql`${id}`), sql`, `)})`
+        ))
+        .orderBy(desc(liveStreams.viewerCount));
+
+      res.json(followedStreams);
+    } catch (error) {
+      console.error("Error fetching following live streams:", error);
+      res.status(500).json({ message: "Failed to fetch following live streams" });
     }
   });
 
