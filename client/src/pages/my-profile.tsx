@@ -296,10 +296,10 @@ export default function MyProfile() {
       setEditUsername(profile?.username || username);
       setEditBio(profile?.bio || "");
       setEditUrl(profile?.location || "");
-      setEditAvatar(profile?.avatarUrl || currentAvatar);
+      setEditAvatar(profile?.avatarUrl || currentAvatar || "");
     }
   }, [editOpen, profile, currentAvatar, displayName, username]);
-  
+
   // Update currentAvatar when profile data loads
   useEffect(() => {
     if (profile?.avatarUrl) {
@@ -832,8 +832,12 @@ export default function MyProfile() {
                           <Button 
                             size="icon" 
                             variant="ghost" 
-                            className="text-red-500 hover:text-red-600"
-                            onClick={() => deletePlanMutation.mutate(plan.id)}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              if (window.confirm("このプランを削除してもよろしいですか？")) {
+                                deletePlanMutation.mutate(plan.id);
+                              }
+                            }}
                             disabled={deletePlanMutation.isPending}
                             data-testid={`button-delete-plan-${plan.id}`}
                           >
