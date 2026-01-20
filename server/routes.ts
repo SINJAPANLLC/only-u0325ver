@@ -1322,10 +1322,18 @@ export async function registerRoutes(
   app.get("/api/creators/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const [creator] = await db
+      
+      let [creator] = await db
         .select()
         .from(creatorProfiles)
         .where(eq(creatorProfiles.id, id));
+      
+      if (!creator) {
+        [creator] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.userId, id));
+      }
       
       if (!creator) {
         return res.status(404).json({ message: "Creator not found" });
@@ -1340,10 +1348,25 @@ export async function registerRoutes(
   app.get("/api/creators/:id/videos", async (req, res) => {
     try {
       const { id } = req.params;
+      
+      let [creator] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.id, id));
+      
+      if (!creator) {
+        [creator] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.userId, id));
+      }
+      
+      const creatorUserId = creator?.userId || id;
+      
       const creatorVideos = await db
         .select()
         .from(videos)
-        .where(and(eq(videos.creatorId, id), eq(videos.isPublished, true)))
+        .where(and(eq(videos.creatorId, creatorUserId), eq(videos.isPublished, true)))
         .orderBy(desc(videos.createdAt))
         .limit(20);
       res.json(creatorVideos);
