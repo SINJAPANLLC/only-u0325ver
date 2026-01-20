@@ -909,16 +909,25 @@ export async function registerRoutes(
     }
   });
 
-  // Get user's purchases
+  // Get user's purchases with product details
   app.get("/api/purchases", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const userPurchases = await db
-        .select()
+        .select({
+          purchase: purchases,
+          product: products,
+        })
         .from(purchases)
+        .leftJoin(products, eq(purchases.productId, products.id))
         .where(eq(purchases.userId, userId))
         .orderBy(desc(purchases.createdAt));
-      res.json(userPurchases);
+      
+      const result = userPurchases.map(p => ({
+        ...p.purchase,
+        product: p.product,
+      }));
+      res.json(result);
     } catch (error) {
       console.error("Error fetching purchases:", error);
       res.status(500).json({ message: "Failed to fetch purchases" });
@@ -930,6 +939,7 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
+      const { shippingName, shippingPostalCode, shippingAddress, shippingPhone } = req.body || {};
 
       // Get product
       const [product] = await db
@@ -948,6 +958,13 @@ export async function registerRoutes(
       // Check stock for physical products
       if (product.productType === "physical" && product.stock !== null && product.stock !== 0 && product.stock <= 0) {
         return res.status(400).json({ message: "Out of stock" });
+      }
+
+      // Require shipping info for physical products
+      if (product.productType === "physical") {
+        if (!shippingName || !shippingPostalCode || !shippingAddress || !shippingPhone) {
+          return res.status(400).json({ message: "Shipping information required for physical products" });
+        }
       }
 
       // Check if already purchased (for digital products)
@@ -995,12 +1012,23 @@ export async function registerRoutes(
       }
 
       // Create purchase record
-      const [purchase] = await db.insert(purchases).values({
+      const purchaseData: any = {
         userId,
         productId: id,
+        creatorId: product.creatorId,
         price: product.price,
-        status: "completed",
-      }).returning();
+        status: product.productType === "physical" ? "pending" : "completed",
+      };
+      
+      // Add shipping info for physical products
+      if (product.productType === "physical") {
+        purchaseData.shippingName = shippingName;
+        purchaseData.shippingPostalCode = shippingPostalCode;
+        purchaseData.shippingAddress = shippingAddress;
+        purchaseData.shippingPhone = shippingPhone;
+      }
+      
+      const [purchase] = await db.insert(purchases).values(purchaseData).returning();
 
       // Create notification
       await db.insert(notifications).values({
@@ -1014,6 +1042,69 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error purchasing product:", error);
       res.status(500).json({ message: "Failed to purchase product" });
+    }
+  });
+
+  // Get creator's orders (for physical products)
+  app.get("/api/creator-orders", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const orders = await db
+        .select({
+          purchase: purchases,
+          product: products,
+          buyer: users,
+        })
+        .from(purchases)
+        .leftJoin(products, eq(purchases.productId, products.id))
+        .leftJoin(users, eq(purchases.userId, users.id))
+        .where(eq(purchases.creatorId, userId))
+        .orderBy(desc(purchases.createdAt));
+      
+      const result = orders.map(o => ({
+        ...o.purchase,
+        product: o.product,
+        buyer: o.buyer ? { 
+          id: o.buyer.id, 
+          email: o.buyer.email,
+          firstName: o.buyer.firstName,
+          lastName: o.buyer.lastName,
+        } : null,
+      }));
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching creator orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Update order status (for creators)
+  app.patch("/api/creator-orders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const [order] = await db
+        .select()
+        .from(purchases)
+        .where(and(eq(purchases.id, id), eq(purchases.creatorId, userId)));
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      const [updated] = await db
+        .update(purchases)
+        .set({ status })
+        .where(eq(purchases.id, id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      res.status(500).json({ message: "Failed to update order" });
     }
   });
 

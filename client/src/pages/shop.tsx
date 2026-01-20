@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Download, Package, Lock, Loader2, Check } from "lucide-react";
+import { ShoppingBag, Download, Package, Lock, Loader2, Check, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -267,6 +269,12 @@ const demoProducts: DemoProduct[] = [
 export default function Shop() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState<DemoProduct | null>(null);
+  const [shippingInfo, setShippingInfo] = useState({
+    name: "",
+    postalCode: "",
+    address: "",
+    phone: "",
+  });
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -281,13 +289,23 @@ export default function Shop() {
   });
 
   const purchaseMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      await apiRequest("POST", `/api/products/${productId}/purchase`);
+    mutationFn: async ({ productId, shipping }: { 
+      productId: string; 
+      shipping?: { 
+        shippingName: string; 
+        shippingPostalCode: string; 
+        shippingAddress: string; 
+        shippingPhone: string; 
+      } 
+    }) => {
+      await apiRequest("POST", `/api/products/${productId}/purchase`, shipping);
     },
     onSuccess: () => {
       setSelectedProduct(null);
+      setShippingInfo({ name: "", postalCode: "", address: "", phone: "" });
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
         title: "購入完了",
         description: "商品を購入しました",
@@ -311,8 +329,28 @@ export default function Shop() {
   };
 
   const confirmPurchase = () => {
-    if (selectedProduct) {
-      purchaseMutation.mutate(selectedProduct.id);
+    if (!selectedProduct) return;
+    
+    if (selectedProduct.productType === "physical") {
+      if (!shippingInfo.name || !shippingInfo.postalCode || !shippingInfo.address || !shippingInfo.phone) {
+        toast({
+          title: "入力エラー",
+          description: "配送先情報を入力してください",
+          variant: "destructive",
+        });
+        return;
+      }
+      purchaseMutation.mutate({
+        productId: selectedProduct.id,
+        shipping: {
+          shippingName: shippingInfo.name,
+          shippingPostalCode: shippingInfo.postalCode,
+          shippingAddress: shippingInfo.address,
+          shippingPhone: shippingInfo.phone,
+        },
+      });
+    } else {
+      purchaseMutation.mutate({ productId: selectedProduct.id });
     }
   };
 
@@ -431,6 +469,61 @@ export default function Shop() {
               {userPoints < selectedProduct.price && (
                 <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
                   ポイントが不足しています。ポイントをチャージしてください。
+                </div>
+              )}
+
+              {selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <Truck className="h-4 w-4" />
+                    配送先情報
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="shipping-name" className="text-xs">お名前 *</Label>
+                      <Input
+                        id="shipping-name"
+                        value={shippingInfo.name}
+                        onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
+                        placeholder="山田 太郎"
+                        className="h-9"
+                        data-testid="input-shipping-name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shipping-postal" className="text-xs">郵便番号 *</Label>
+                      <Input
+                        id="shipping-postal"
+                        value={shippingInfo.postalCode}
+                        onChange={(e) => setShippingInfo({ ...shippingInfo, postalCode: e.target.value })}
+                        placeholder="123-4567"
+                        className="h-9"
+                        data-testid="input-shipping-postal"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shipping-address" className="text-xs">住所 *</Label>
+                      <Input
+                        id="shipping-address"
+                        value={shippingInfo.address}
+                        onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
+                        placeholder="東京都渋谷区..."
+                        className="h-9"
+                        data-testid="input-shipping-address"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="shipping-phone" className="text-xs">電話番号 *</Label>
+                      <Input
+                        id="shipping-phone"
+                        value={shippingInfo.phone}
+                        onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
+                        placeholder="090-1234-5678"
+                        className="h-9"
+                        data-testid="input-shipping-phone"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -175,13 +175,14 @@ export default function Account() {
     { icon: Eye, label: "高画質プラン", description: "高画質で視聴" },
     { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理", badge: userSubscriptions && userSubscriptions.length > 0 ? `${userSubscriptions.length}件` : undefined, onClick: () => setIsSubscriptionsDialogOpen(true) },
     { icon: CreditCard, label: "お支払い方法", description: "カードを管理" },
-    { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認" },
+    { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認", href: "/my-purchases" },
   ];
 
   const creatorMenuItems: MenuItemProps[] = [
     { icon: Radio, label: "ライブ配信", description: "配信を開始する", href: "/creator-live" },
     { icon: Package, label: "コンテンツ管理", description: "動画・商品を管理", href: "/creator-content" },
     { icon: ShoppingBag, label: "ショップ管理", description: "商品を管理", href: "/creator-shop" },
+    { icon: Package, label: "注文管理", description: "物販注文を管理", href: "/creator-orders" },
     { icon: BarChart3, label: "売上管理", description: "収益を確認" },
     { icon: Wallet, label: "振込申請", description: "口座登録・出金" },
   ];
