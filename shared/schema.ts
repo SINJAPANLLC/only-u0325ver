@@ -303,6 +303,7 @@ export const purchases = pgTable("purchases", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   productId: varchar("product_id").notNull(),
+  creatorId: varchar("creator_id"),
   price: integer("price").notNull(),
   status: varchar("status").default("completed"),
   // Shipping info for physical products

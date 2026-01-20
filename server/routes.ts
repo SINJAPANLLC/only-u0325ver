@@ -6,7 +6,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import { setupWebRTCSignaling } from "./webrtc";
 import { db } from "./db";
 import { 
-  videos, liveStreams, products, conversations, messages, 
+  users, videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes,
