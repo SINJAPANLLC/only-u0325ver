@@ -658,7 +658,7 @@ export default function Home() {
         : [])
     : (recommendedVideos && recommendedVideos.length > 0
         ? recommendedVideos.map(mapVideoToProps)
-        : demoVideos);
+        : (recommendedVideos ? [] : demoVideos));
 
   // Track scroll position to determine active video
   useEffect(() => {
