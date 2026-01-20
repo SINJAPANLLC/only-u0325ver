@@ -52,6 +52,7 @@ export default function CreatorShop() {
     name: "",
     description: "",
     price: "",
+    stock: "",
     imageUrl: "",
     productType: "digital" as "digital" | "physical",
     isAvailable: true,
@@ -61,6 +62,7 @@ export default function CreatorShop() {
     name: "",
     description: "",
     price: "",
+    stock: "",
     imageUrl: "",
     productType: "digital" as "digital" | "physical",
     isAvailable: true,
@@ -133,6 +135,7 @@ export default function CreatorShop() {
       const response = await apiRequest("POST", "/api/products", {
         ...data,
         price: parseInt(data.price) || 0,
+        stock: parseInt(data.stock) || 0,
       });
       return response.json();
     },
@@ -144,6 +147,7 @@ export default function CreatorShop() {
         name: "",
         description: "",
         price: "",
+        stock: "",
         imageUrl: "",
         productType: "digital",
         isAvailable: true,
@@ -181,6 +185,7 @@ export default function CreatorShop() {
       name: string;
       description: string;
       price: number;
+      stock: number;
       imageUrl: string;
       productType: "digital" | "physical";
       isAvailable: boolean;
@@ -189,6 +194,7 @@ export default function CreatorShop() {
         name: data.name,
         description: data.description,
         price: data.price,
+        stock: data.stock,
         imageUrl: data.imageUrl,
         productType: data.productType,
         isAvailable: data.isAvailable,
@@ -213,6 +219,7 @@ export default function CreatorShop() {
       name: product.name,
       description: product.description || "",
       price: product.price.toString(),
+      stock: (product.stock || 0).toString(),
       imageUrl: product.imageUrl || "",
       productType: product.productType as "digital" | "physical",
       isAvailable: product.isAvailable !== false,
@@ -286,6 +293,7 @@ export default function CreatorShop() {
       name: editForm.name,
       description: editForm.description,
       price: parseInt(editForm.price),
+      stock: parseInt(editForm.stock) || 0,
       imageUrl: editForm.imageUrl,
       productType: editForm.productType,
       isAvailable: editForm.isAvailable,
@@ -453,6 +461,18 @@ export default function CreatorShop() {
               <p className="text-xs text-muted-foreground mt-1">1ポイント = 1円</p>
             </div>
             <div>
+              <Label htmlFor="stock">販売個数</Label>
+              <Input
+                id="stock"
+                type="number"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                placeholder="100"
+                data-testid="input-stock"
+              />
+              <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
+            </div>
+            <div>
               <Label>商品画像</Label>
               <input
                 ref={fileInputRef}
@@ -588,6 +608,18 @@ export default function CreatorShop() {
                   data-testid="edit-input-price"
                 />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-stock">販売個数</Label>
+              <Input
+                id="edit-stock"
+                type="number"
+                value={editForm.stock}
+                onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
+                placeholder="100"
+                data-testid="edit-input-stock"
+              />
+              <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
             </div>
             <div>
               <Label>商品画像</Label>
