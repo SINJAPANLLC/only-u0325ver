@@ -17,7 +17,8 @@ import {
   Trash2,
   Loader2,
   X,
-  Upload
+  Upload,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -693,31 +694,48 @@ export default function MyProfile() {
             </div>
           )}
           <div className="grid grid-cols-3 gap-0.5">
-            {displayVideos?.map((video) => (
-              <div 
-                key={video.id} 
-                className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
-                onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title, isVertical: (video as any).isVertical })}
-                data-testid={`video-thumbnail-${video.id}`}
-              >
-                {video.thumbnailUrl ? (
-                  <img 
-                    src={video.thumbnailUrl} 
-                    alt={video.title} 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                    <Video className="h-8 w-8 text-muted-foreground" />
+            {displayVideos?.map((video) => {
+              const isPremium = (video as any).contentType === "premium" || ((video as any).requiredTier && (video as any).requiredTier > 0);
+              return (
+                <div 
+                  key={video.id} 
+                  className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
+                  onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title, isVertical: (video as any).isVertical })}
+                  data-testid={`video-thumbnail-${video.id}`}
+                >
+                  {video.thumbnailUrl ? (
+                    <img 
+                      src={video.thumbnailUrl} 
+                      alt={video.title} 
+                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isPremium ? 'blur-md' : ''}`}
+                    />
+                  ) : (
+                    <div className={`absolute inset-0 flex items-center justify-center bg-muted ${isPremium ? 'blur-md' : ''}`}>
+                      <Video className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  {isPremium && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-black/50 rounded-full p-2">
+                        <Lock className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-[10px] font-bold drop-shadow-md">
+                    <Heart className="h-3 w-3" />
+                    <span>{formatCount(video.likeCount || 0)}</span>
                   </div>
-                )}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute bottom-1 left-1 flex items-center gap-1 text-white text-[10px] font-bold drop-shadow-md">
-                  <Heart className="h-3 w-3" />
-                  <span>{formatCount(video.likeCount || 0)}</span>
+                  {isPremium && (
+                    <div className="absolute top-1 right-1">
+                      <span className="px-1.5 py-0.5 rounded bg-pink-500 text-white text-[8px] font-bold">
+                        サブスク
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
         
