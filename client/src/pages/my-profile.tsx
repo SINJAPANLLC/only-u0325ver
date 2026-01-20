@@ -695,26 +695,39 @@ export default function MyProfile() {
           )}
           <div className="grid grid-cols-3 gap-0.5">
             {displayVideos?.map((video) => {
-              const isPremium = (video as any).contentType === "premium" || ((video as any).requiredTier && (video as any).requiredTier > 0);
+              const requiredTier = (video as any).requiredTier || 0;
+              const isPremium = (video as any).contentType === "premium" || requiredTier > 0;
+              const isOwner = (video as any).creatorId === user?.id;
+              const matchingPlan = mySubscriptionPlans?.find(p => p.tier === requiredTier);
+              const planName = matchingPlan?.name || `Tier ${requiredTier}`;
+              
+              const handleVideoClick = () => {
+                if (isPremium && !isOwner) {
+                  toast({ title: "プランへの加入が必要です", description: `この動画を視聴するには「${planName}」プランへの加入が必要です`, variant: "destructive" });
+                  return;
+                }
+                setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title, isVertical: (video as any).isVertical });
+              };
+              
               return (
                 <div 
                   key={video.id} 
                   className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
-                  onClick={() => setSelectedContent({ id: video.id, thumbnailUrl: video.thumbnailUrl || "", videoUrl: (video as any).videoUrl, title: video.title, isVertical: (video as any).isVertical })}
+                  onClick={handleVideoClick}
                   data-testid={`video-thumbnail-${video.id}`}
                 >
                   {video.thumbnailUrl ? (
                     <img 
                       src={video.thumbnailUrl} 
                       alt={video.title} 
-                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isPremium ? 'blur-md' : ''}`}
+                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isPremium && !isOwner ? 'blur-md' : ''}`}
                     />
                   ) : (
-                    <div className={`absolute inset-0 flex items-center justify-center bg-muted ${isPremium ? 'blur-md' : ''}`}>
+                    <div className={`absolute inset-0 flex items-center justify-center bg-muted ${isPremium && !isOwner ? 'blur-md' : ''}`}>
                       <Video className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
-                  {isPremium && (
+                  {isPremium && !isOwner && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="bg-black/50 rounded-full p-2">
                         <Lock className="h-6 w-6 text-white" />
@@ -728,8 +741,8 @@ export default function MyProfile() {
                   </div>
                   {isPremium && (
                     <div className="absolute top-1 right-1">
-                      <span className="px-1.5 py-0.5 rounded bg-pink-500 text-white text-[8px] font-bold">
-                        サブスク
+                      <span className="px-1.5 py-0.5 rounded bg-pink-500 text-white text-[8px] font-bold truncate max-w-[60px]">
+                        {planName}
                       </span>
                     </div>
                   )}
