@@ -122,6 +122,7 @@ export default function Messages() {
       id: conv.id,
       participantId,
       participantName: participant?.displayName || "ユーザー",
+      participantAvatar: participant?.avatarUrl || undefined,
       isVerified: participant?.isVerified || false,
       lastMessage: conv.lastMessageContent || "",
       lastMessageAt: new Date(conv.lastMessageAt || conv.createdAt || Date.now()),
