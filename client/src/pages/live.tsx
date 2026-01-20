@@ -1,12 +1,11 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Radio, Users, Heart, Share2, Volume2, VolumeX, UserRound, UsersRound, Clock, Send, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import type { LiveStream } from "@shared/schema";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
@@ -46,9 +45,7 @@ interface LiveStreamPageProps {
   userPoints: number;
   currentMode: RoomMode;
   onModeChange: (mode: RoomMode) => void;
-  onPointsDeducted: (amount: number) => void;
   isRealStream?: boolean;
-  twoshotOccupied?: boolean;
 }
 
 function LiveStreamPage({
@@ -68,16 +65,12 @@ function LiveStreamPage({
   userPoints,
   currentMode,
   onModeChange,
-  onPointsDeducted,
   isRealStream = false,
-  twoshotOccupied = false,
 }: LiveStreamPageProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(likeCount);
   const [, setLocation] = useLocation();
   const [showModeDialog, setShowModeDialog] = useState(false);
-  const [showInsufficientPointsDialog, setShowInsufficientPointsDialog] = useState(false);
-  const [showTwoshotOccupiedDialog, setShowTwoshotOccupiedDialog] = useState(false);
   const [pendingMode, setPendingMode] = useState<RoomMode | null>(null);
   const [sessionTime, setSessionTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -86,7 +79,6 @@ function LiveStreamPage({
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const lastDeductMinuteRef = useRef(0);
 
   const handleStreamReceived = useCallback((stream: MediaStream | null) => {
     setRemoteStream(stream);
@@ -122,46 +114,18 @@ function LiveStreamPage({
 
   useEffect(() => {
     if (currentMode !== "waiting" && isActive) {
-      lastDeductMinuteRef.current = 0;
       const timer = setInterval(() => {
-        setSessionTime(prev => {
-          const newTime = prev + 1;
-          const currentMinute = Math.floor(newTime / 60);
-          if (currentMinute > lastDeductMinuteRef.current) {
-            lastDeductMinuteRef.current = currentMinute;
-            const rate = currentMode === "party" ? partyRatePerMinute : twoshotRatePerMinute;
-            onPointsDeducted(rate);
-          }
-          return newTime;
-        });
+        setSessionTime(prev => prev + 1);
       }, 1000);
       return () => clearInterval(timer);
-    } else {
-      lastDeductMinuteRef.current = 0;
     }
-  }, [currentMode, isActive, partyRatePerMinute, twoshotRatePerMinute, onPointsDeducted]);
-
-  useEffect(() => {
-    if (currentMode !== "waiting" && userPoints <= 0) {
-      onModeChange("waiting");
-      setSessionTime(0);
-    }
-  }, [userPoints, currentMode, onModeChange]);
+  }, [currentMode, isActive]);
 
   const handleModeRequest = (mode: RoomMode) => {
     if (mode === "waiting") {
       onModeChange("waiting");
       setSessionTime(0);
     } else {
-      const requiredRate = mode === "party" ? partyRatePerMinute : twoshotRatePerMinute;
-      if (userPoints < requiredRate) {
-        setShowInsufficientPointsDialog(true);
-        return;
-      }
-      if (mode === "twoshot" && twoshotOccupied) {
-        setShowTwoshotOccupiedDialog(true);
-        return;
-      }
       setPendingMode(mode);
       setShowModeDialog(true);
     }
@@ -254,8 +218,6 @@ function LiveStreamPage({
     }, 5000);
   };
 
-  const showStream = currentMode !== "waiting";
-
   return (
     <motion.div 
       className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black touch-pan-y"
@@ -266,7 +228,7 @@ function LiveStreamPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
-      {showStream && isRealStream && remoteStream ? (
+      {isRealStream && remoteStream ? (
         <video
           ref={videoRef}
           autoPlay
@@ -274,55 +236,17 @@ function LiveStreamPage({
           muted={isMuted}
           className="absolute inset-0 w-full h-full object-cover"
         />
-      ) : showStream && thumbnailUrl ? (
+      ) : thumbnailUrl ? (
         <img 
           src={thumbnailUrl} 
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
-            <div className="mb-6">
-              <Avatar className="h-24 w-24 ring-4 ring-pink-500/50 shadow-lg mb-4 mx-auto">
-                <AvatarImage src={creatorAvatar} />
-                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white text-2xl font-bold">
-                  {creatorName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <h3 className="text-white font-bold text-lg">{displayName || creatorName}</h3>
-              <p className="text-white/60 text-sm">@{creatorName}</p>
-            </div>
-            <div className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 max-w-xs">
-              <p className="text-white/90 text-sm mb-4">
-                配信を視聴するにはパーティーまたは2ショットに入室してください
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleModeRequest("party")}
-                  className="flex flex-col items-center gap-1 bg-pink-500 hover:bg-pink-600 text-white rounded-xl py-3 px-4 transition-colors"
-                  data-testid="button-join-party"
-                >
-                  <UsersRound className="h-5 w-5" />
-                  <span className="text-xs font-medium">パーティー</span>
-                  <span className="text-[10px] opacity-80">{partyRatePerMinute}pt/分</span>
-                </button>
-                <button
-                  onClick={() => handleModeRequest("twoshot")}
-                  className="flex flex-col items-center gap-1 bg-purple-500 hover:bg-purple-600 text-white rounded-xl py-3 px-4 transition-colors"
-                  data-testid="button-join-twoshot"
-                >
-                  <UserRound className="h-5 w-5" />
-                  <span className="text-xs font-medium">2ショット</span>
-                  <span className="text-[10px] opacity-80">{twoshotRatePerMinute}pt/分</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-pink-600 to-rose-700" />
       )}
 
-      {showStream && isRealStream && isConnecting && !remoteStream && (
+      {isRealStream && isConnecting && !remoteStream && (
         <div className="absolute inset-0 z-10">
           {thumbnailUrl ? (
             <img 
@@ -442,136 +366,82 @@ function LiveStreamPage({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showInsufficientPointsDialog} onOpenChange={setShowInsufficientPointsDialog}>
-        <DialogContent className="max-w-[320px] bg-white border-border">
-          <DialogHeader>
-            <DialogTitle className="text-center text-foreground">
-              ポイントが不足しています
-            </DialogTitle>
-            <DialogDescription className="text-center text-muted-foreground">
-              入室するにはポイントが必要です
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <div className="flex justify-between items-center bg-muted rounded-lg px-4 py-3">
-              <span className="text-sm text-foreground">必要ポイント</span>
-              <span className="font-bold text-pink-500">
-                {pendingMode === "party" ? partyRatePerMinute : twoshotRatePerMinute}pt/分以上
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-muted rounded-lg px-4 py-3">
-              <span className="text-sm text-foreground">現在のポイント</span>
-              <span className="font-bold text-red-500">{userPoints.toLocaleString()}pt</span>
-            </div>
+      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
+        <div className="mb-1">
+          <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
+            <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white font-bold">
+              {creatorName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        <button
+          onClick={handleLike}
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-like-${id}`}
+        >
+          <motion.div
+            whileTap={{ scale: 1.3 }}
+            className={`h-9 w-9 rounded-full flex items-center justify-center ${
+              isLiked ? "bg-pink-500/20" : "bg-white/10"
+            } backdrop-blur-sm transition-colors`}
+          >
+            <Heart
+              className={`h-4 w-4 transition-colors ${
+                isLiked ? "text-pink-500 fill-pink-500" : "text-white"
+              }`}
+            />
+          </motion.div>
+          <span className="text-[10px] text-white font-semibold">
+            {formatCount(localLikes)}
+          </span>
+        </button>
+
+        <button
+          onClick={handleShare}
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-share-${id}`}
+        >
+          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Share2 className="h-4 w-4 text-white" />
           </div>
-          <DialogFooter>
-            <Button 
-              onClick={() => setShowInsufficientPointsDialog(false)}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white"
-            >
-              ポイントを購入する
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <span className="text-[10px] text-white font-semibold">シェア</span>
+        </button>
 
-      <Dialog open={showTwoshotOccupiedDialog} onOpenChange={setShowTwoshotOccupiedDialog}>
-        <DialogContent className="max-w-[320px] bg-white border-border">
-          <DialogHeader>
-            <DialogTitle className="text-center text-foreground">
-              2ショット中
-            </DialogTitle>
-            <DialogDescription className="text-center text-muted-foreground">
-              現在他の視聴者が2ショット中です。終了までお待ちください。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              onClick={() => setShowTwoshotOccupiedDialog(false)}
-              className="w-full"
-              variant="outline"
-            >
-              閉じる
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <button
+          onClick={handleToggleMute}
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-volume-${id}`}
+        >
+          <div className={`h-9 w-9 rounded-full ${isMuted ? "bg-pink-500/20" : "bg-white/10"} backdrop-blur-sm flex items-center justify-center`}>
+            {isMuted ? (
+              <VolumeX className="h-4 w-4 text-pink-500" />
+            ) : (
+              <Volume2 className="h-4 w-4 text-white" />
+            )}
+          </div>
+        </button>
+      </div>
 
-      {showStream && (
+      <div className="absolute left-4 right-20 bottom-36 z-10 space-y-2">
+        <div className="flex flex-col">
+          <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
+            {displayName || creatorName}
+          </span>
+          <span className="text-white/70 text-sm">
+            @{creatorName}
+          </span>
+        </div>
+
+        <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-live-title-${id}`}>
+          {title}
+        </p>
+
+      </div>
+
+      {currentMode !== "waiting" && (
         <>
-          <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
-            <div className="mb-1">
-              <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
-                <AvatarImage src={creatorAvatar} />
-                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white font-bold">
-                  {creatorName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-
-            <button
-              onClick={handleLike}
-              className="flex flex-col items-center gap-1"
-              data-testid={`button-like-${id}`}
-            >
-              <motion.div
-                whileTap={{ scale: 1.3 }}
-                className={`h-9 w-9 rounded-full flex items-center justify-center ${
-                  isLiked ? "bg-pink-500/20" : "bg-white/10"
-                } backdrop-blur-sm transition-colors`}
-              >
-                <Heart
-                  className={`h-4 w-4 transition-colors ${
-                    isLiked ? "text-pink-500 fill-pink-500" : "text-white"
-                  }`}
-                />
-              </motion.div>
-              <span className="text-[10px] text-white font-semibold">
-                {formatCount(localLikes)}
-              </span>
-            </button>
-
-            <button
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1"
-              data-testid={`button-share-${id}`}
-            >
-              <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                <Share2 className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-[10px] text-white font-semibold">シェア</span>
-            </button>
-
-            <button
-              onClick={handleToggleMute}
-              className="flex flex-col items-center gap-1"
-              data-testid={`button-volume-${id}`}
-            >
-              <div className={`h-9 w-9 rounded-full ${isMuted ? "bg-pink-500/20" : "bg-white/10"} backdrop-blur-sm flex items-center justify-center`}>
-                {isMuted ? (
-                  <VolumeX className="h-4 w-4 text-pink-500" />
-                ) : (
-                  <Volume2 className="h-4 w-4 text-white" />
-                )}
-              </div>
-            </button>
-          </div>
-
-          <div className="absolute left-4 right-20 bottom-36 z-10 space-y-2">
-            <div className="flex flex-col">
-              <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
-                {displayName || creatorName}
-              </span>
-              <span className="text-white/70 text-sm">
-                @{creatorName}
-              </span>
-            </div>
-
-            <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-live-title-${id}`}>
-              {title}
-            </p>
-          </div>
-
           <div className="absolute left-4 right-4 bottom-44 z-20 pointer-events-none">
             <div className="space-y-2">
               {flowingComments.map((c) => (
@@ -717,25 +587,6 @@ export default function Live() {
 
   const userPoints = userProfile?.points || 0;
 
-  const deductPointsMutation = useMutation({
-    mutationFn: async (amount: number) => {
-      const response = await apiRequest("POST", "/api/points/spend", {
-        amount,
-        description: "ライブ視聴料",
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-    },
-  });
-
-  const handlePointsDeducted = useCallback((amount: number) => {
-    if (userPoints >= amount) {
-      deductPointsMutation.mutate(amount);
-    }
-  }, [userPoints, deductPointsMutation]);
-
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
   const realLiveStreamsFormatted = (liveStreams || []).map((s: any, idx) => ({
@@ -807,7 +658,6 @@ export default function Live() {
             thumbnailUrl={stream.thumbnailUrl}
             creatorName={stream.creatorName}
             displayName={stream.displayName}
-            creatorAvatar={"creatorAvatar" in stream ? stream.creatorAvatar : undefined}
             viewerCount={stream.viewerCount}
             likeCount={stream.likeCount}
             isLive={stream.isLive}
@@ -818,7 +668,6 @@ export default function Live() {
             userPoints={userPoints}
             currentMode={roomModes[stream.id] || "waiting"}
             onModeChange={(mode) => handleModeChange(stream.id, mode)}
-            onPointsDeducted={handlePointsDeducted}
             isRealStream={"isRealStream" in stream && stream.isRealStream}
           />
         ))}
