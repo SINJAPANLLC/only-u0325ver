@@ -150,8 +150,7 @@ export default function CreatorLive() {
 
   const { uploadFile, isUploading: isUploadingThumbnail } = useUpload({
     onSuccess: (response) => {
-      const publicUrl = `/api/object-storage/${response.objectPath}`;
-      setThumbnailUrl(publicUrl);
+      setThumbnailUrl(response.objectPath);
       toast({ title: "背景画像を設定しました" });
     },
     onError: () => {
