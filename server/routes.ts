@@ -124,7 +124,7 @@ export async function registerRoutes(
         .from(videos)
         .leftJoin(creatorProfiles, eq(videos.creatorId, creatorProfiles.userId))
         .leftJoin(userProfiles, eq(videos.creatorId, userProfiles.userId))
-        .where(eq(videos.isPublished, true))
+        .where(and(eq(videos.isPublished, true), eq(videos.contentType, "free")))
         .orderBy(desc(videos.createdAt))
         .limit(20);
       res.json(allVideos);
