@@ -156,19 +156,15 @@ function VideoPage({
     }
   }, [isActive, isPaused, videoUrl, hasAccess]);
 
-  // Progress bar auto-advance
-  useEffect(() => {
-    if (!isActive || isPaused || isDragging) return;
-    
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 0;
-        return prev + (100 / videoDuration / 10);
-      });
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, [isActive, isPaused, isDragging, videoDuration]);
+  const handleTimeUpdate = () => {
+    if (videoRef.current && !isDragging) {
+      const current = videoRef.current.currentTime;
+      const duration = videoRef.current.duration;
+      if (duration > 0) {
+        setProgress((current / duration) * 100);
+      }
+    }
+  };
 
   // Reset progress when video changes
   useEffect(() => {
@@ -178,13 +174,15 @@ function VideoPage({
   }, [isActive]);
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-    if (!progressRef.current) return;
+    if (!progressRef.current || !videoRef.current) return;
     
     const rect = progressRef.current.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clickPosition = (clientX - rect.left) / rect.width;
     const newProgress = Math.max(0, Math.min(100, clickPosition * 100));
     setProgress(newProgress);
+    
+    videoRef.current.currentTime = (clickPosition * videoRef.current.duration);
   };
 
   const handleProgressDragStart = () => {
@@ -193,10 +191,13 @@ function VideoPage({
 
   const handleProgressDragEnd = () => {
     setIsDragging(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = (progress / 100) * videoRef.current.duration;
+    }
   };
 
   const handleProgressDrag = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
-    if (!isDragging || !progressRef.current) return;
+    if (!isDragging || !progressRef.current || !videoRef.current) return;
     
     const rect = progressRef.current.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -281,6 +282,7 @@ function VideoPage({
             muted={isMuted}
             playsInline
             poster={thumbnailUrl}
+            onTimeUpdate={handleTimeUpdate}
           />
         ) : thumbnailUrl ? (
           <img 

@@ -286,7 +286,7 @@ export async function registerRoutes(
       await db
         .update(videos)
         .set({
-          commentCount: sql`${videos.commentCount} + 1`
+          commentCount: sql`COALESCE(${videos.commentCount}, 0) + 1`
         })
         .where(eq(videos.id, videoId));
 
