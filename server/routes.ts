@@ -394,7 +394,30 @@ export async function registerRoutes(
         .where(eq(liveStreams.status, "live"))
         .orderBy(desc(liveStreams.viewerCount))
         .limit(20);
-      res.json(activeStreams);
+      
+      const streamsWithCreator = await Promise.all(
+        activeStreams.map(async (stream) => {
+          const [creatorProfile] = await db
+            .select()
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, stream.creatorId))
+            .limit(1);
+          
+          const [userProfile] = await db
+            .select()
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, stream.creatorId))
+            .limit(1);
+          
+          return {
+            ...stream,
+            creatorDisplayName: creatorProfile?.displayName || userProfile?.displayName || "Creator",
+            creatorAvatar: userProfile?.avatarUrl || null,
+          };
+        })
+      );
+      
+      res.json(streamsWithCreator);
     } catch (error) {
       console.error("Error fetching active streams:", error);
       res.status(500).json({ message: "Failed to fetch active streams" });
@@ -1871,6 +1894,60 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Points spend endpoint for live viewing
+  app.post("/api/points/spend", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { amount, description } = req.body;
+
+      const parsedAmount = parseInt(amount);
+      if (!parsedAmount || parsedAmount <= 0 || isNaN(parsedAmount)) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      // Atomic update with conditional check - only update if points are sufficient
+      const result = await db
+        .update(userProfiles)
+        .set({ 
+          points: sql`CASE WHEN ${userProfiles.points} >= ${parsedAmount} THEN ${userProfiles.points} - ${parsedAmount} ELSE ${userProfiles.points} END`
+        })
+        .where(and(
+          eq(userProfiles.userId, userId),
+          sql`${userProfiles.points} >= ${parsedAmount}`
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        // Either profile not found or insufficient points
+        const [profile] = await db
+          .select()
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, userId));
+        
+        if (!profile) {
+          return res.status(404).json({ message: "Profile not found" });
+        }
+        return res.status(400).json({ message: "Insufficient points" });
+      }
+
+      const updatedProfile = result[0];
+
+      // Record the transaction
+      await db.insert(pointTransactions).values({
+        userId,
+        type: "spend",
+        amount: -parsedAmount,
+        balance: updatedProfile.points || 0,
+        description: description || "ライブ視聴料",
+      });
+
+      res.json({ success: true, remainingPoints: updatedProfile.points });
+    } catch (error) {
+      console.error("Error spending points:", error);
+      res.status(500).json({ message: "Failed to spend points" });
     }
   });
 
