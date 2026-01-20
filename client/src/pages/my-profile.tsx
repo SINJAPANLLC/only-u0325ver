@@ -220,6 +220,9 @@ export default function MyProfile() {
       refetchPlans();
       toast({ title: "プランを削除しました" });
     },
+    onError: (error: any) => {
+      toast({ title: "エラー", description: error.message || "プランの削除に失敗しました", variant: "destructive" });
+    },
   });
 
   const createVideoMutation = useMutation({
@@ -611,6 +614,24 @@ export default function MyProfile() {
                       data-testid={`button-edit-plan-${plan.id}`}
                     >
                       編集
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="text-red-500"
+                      onClick={() => {
+                        if (window.confirm("このプランを削除してもよろしいですか？")) {
+                          deletePlanMutation.mutate(plan.id);
+                        }
+                      }}
+                      disabled={deletePlanMutation.isPending}
+                      data-testid={`button-delete-plan-${plan.id}`}
+                    >
+                      {deletePlanMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -1055,7 +1076,7 @@ export default function MyProfile() {
               <div className="space-y-4">
                 <div className="aspect-square relative rounded-lg overflow-hidden">
                   <img 
-                    src={selectedProduct.imageUrl} 
+                    src={selectedProduct.imageUrl ?? undefined} 
                     alt={selectedProduct.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
