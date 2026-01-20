@@ -366,7 +366,7 @@ export default function CreatorShop() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-sm truncate">{product.name}</h3>
                   <p className="text-lg font-bold text-pink-500 mt-1">
-                    ¥{formatPrice(product.price)}
+                    {formatPrice(product.price)}pt
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" className="text-[10px]">
