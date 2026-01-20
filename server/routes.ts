@@ -1126,7 +1126,7 @@ export async function registerRoutes(
       const plans = await db
         .select()
         .from(subscriptionPlans)
-        .where(eq(subscriptionPlans.creatorId, userId))
+        .where(and(eq(subscriptionPlans.creatorId, userId), eq(subscriptionPlans.isActive, true)))
         .orderBy(subscriptionPlans.tier);
       res.json(plans);
     } catch (error) {
