@@ -341,7 +341,7 @@ export default function PointsPurchase() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">消費税（10%）</span>
-                <span>¥{Math.floor(selectedPackage.points * 0.1 * 0.1).toLocaleString()}</span>
+                <span>¥{Math.floor(selectedPackage.points * 0.1).toLocaleString()}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between text-lg font-bold">
