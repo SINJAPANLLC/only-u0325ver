@@ -104,6 +104,7 @@ export const videos = pgTable("videos", {
   duration: integer("duration").default(0),
   viewCount: integer("view_count").default(0),
   likeCount: integer("like_count").default(0),
+  commentCount: integer("comment_count").default(0),
   contentType: contentTypeEnum("content_type").default("free"),
   requiredTier: integer("required_tier").default(0), // 0=無料, 1以上=そのtier以上の購読が必要
   isPublished: boolean("is_published").default(true),
