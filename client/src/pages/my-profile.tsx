@@ -24,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile, SubscriptionPlan } from "@shared/schema";
+import type { UserProfile, Video as VideoType, LiveStream, CreatorProfile, SubscriptionPlan, Product } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -142,10 +142,13 @@ export default function MyProfile() {
   const [newVideoTier, setNewVideoTier] = useState("0");
   const [newVideoIsVertical, setNewVideoIsVertical] = useState(true);
   
+  // Product purchase
+  const [selectedProduct, setSelectedProduct] = useState<Product | typeof demoProducts[0] | null>(null);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
+
   const { data: myProducts } = useQuery<Product[]>({
     queryKey: ["/api/my-products"],
   });
-  const [productDetailOpen, setProductDetailOpen] = useState(false);
   
   // Get user's point balance
   const { data: userData } = useQuery<{ points: number }>({
