@@ -191,9 +191,9 @@ export default function CreatorLive() {
       
       const videoConstraints: MediaTrackConstraints = {
         facingMode,
-        width: { ideal: settings.resolution === "1080p" ? 1920 : 1280 },
-        height: { ideal: settings.resolution === "1080p" ? 1080 : 720 },
-        frameRate: { ideal: settings.frameRate }
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 60, min: 30 }
       };
       
       const constraints: MediaStreamConstraints = {

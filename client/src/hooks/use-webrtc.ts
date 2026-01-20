@@ -94,8 +94,9 @@ export function useWebRTC({
         if (!params.encodings) {
           params.encodings = [{}];
         }
-        params.encodings[0].maxBitrate = 2500000;
-        params.encodings[0].maxFramerate = 30;
+        params.encodings[0].maxBitrate = 8000000;
+        params.encodings[0].maxFramerate = 60;
+        params.encodings[0].scaleResolutionDownBy = 1.0;
         sender.setParameters(params).catch(() => {});
       }
     });
