@@ -158,7 +158,7 @@ function LiveStreamPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
-        setLocation(`/creator/${creatorId}`);
+        setLocation("/my-profile");
       }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
