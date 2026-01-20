@@ -1013,18 +1013,6 @@ export async function registerRoutes(
         }
       }
 
-      // Check if already purchased (for digital products)
-      if (product.productType === "digital") {
-        const [existingPurchase] = await db
-          .select()
-          .from(purchases)
-          .where(and(eq(purchases.userId, userId), eq(purchases.productId, id)));
-
-        if (existingPurchase) {
-          return res.status(400).json({ message: "Already purchased" });
-        }
-      }
-
       // Check user points
       const [userProfile] = await db
         .select()
