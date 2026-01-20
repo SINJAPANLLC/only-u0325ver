@@ -1276,8 +1276,21 @@ export async function registerRoutes(
   app.get("/api/creators", async (req, res) => {
     try {
       const creators = await db
-        .select()
+        .select({
+          id: creatorProfiles.id,
+          userId: creatorProfiles.userId,
+          displayName: creatorProfiles.displayName,
+          bio: creatorProfiles.bio,
+          coverImageUrl: creatorProfiles.coverImageUrl,
+          isVerified: creatorProfiles.isVerified,
+          followerCount: creatorProfiles.followerCount,
+          followingCount: creatorProfiles.followingCount,
+          postCount: creatorProfiles.postCount,
+          createdAt: creatorProfiles.createdAt,
+          avatarUrl: userProfiles.avatarUrl,
+        })
         .from(creatorProfiles)
+        .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
         .orderBy(desc(creatorProfiles.followerCount))
         .limit(20);
       res.json(creators);
