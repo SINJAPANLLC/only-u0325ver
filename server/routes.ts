@@ -389,8 +389,26 @@ export async function registerRoutes(
   app.get("/api/live/active", async (req, res) => {
     try {
       const activeStreams = await db
-        .select()
+        .select({
+          id: liveStreams.id,
+          creatorId: liveStreams.creatorId,
+          title: liveStreams.title,
+          description: liveStreams.description,
+          thumbnailUrl: liveStreams.thumbnailUrl,
+          streamKey: liveStreams.streamKey,
+          status: liveStreams.status,
+          viewerCount: liveStreams.viewerCount,
+          partyRatePerMinute: liveStreams.partyRatePerMinute,
+          twoshotRatePerMinute: liveStreams.twoshotRatePerMinute,
+          scheduledAt: liveStreams.scheduledAt,
+          startedAt: liveStreams.startedAt,
+          endedAt: liveStreams.endedAt,
+          createdAt: liveStreams.createdAt,
+          creatorDisplayName: userProfiles.displayName,
+          creatorAvatar: userProfiles.avatarUrl,
+        })
         .from(liveStreams)
+        .leftJoin(userProfiles, eq(liveStreams.creatorId, userProfiles.userId))
         .where(eq(liveStreams.status, "live"))
         .orderBy(desc(liveStreams.viewerCount))
         .limit(20);

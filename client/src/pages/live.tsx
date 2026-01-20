@@ -32,6 +32,7 @@ interface LiveStreamPageProps {
   id: string;
   title: string;
   thumbnailUrl?: string;
+  creatorId: string;
   creatorName: string;
   displayName?: string;
   creatorAvatar?: string;
@@ -52,6 +53,7 @@ function LiveStreamPage({
   id,
   title,
   thumbnailUrl,
+  creatorId,
   creatorName,
   displayName,
   creatorAvatar,
@@ -156,7 +158,7 @@ function LiveStreamPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
-        setLocation(`/creator/${creatorName}`);
+        setLocation(`/creator/${creatorId}`);
       }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
@@ -490,9 +492,11 @@ function LiveStreamPage({
 
 interface DemoStreamData {
   id: string;
+  creatorId: string;
   title: string;
   creatorName: string;
   displayName?: string;
+  creatorAvatar?: string;
   viewerCount: number;
   likeCount: number;
   isLive: boolean;
@@ -505,9 +509,10 @@ interface DemoStreamData {
 const demoLiveStreams: DemoStreamData[] = [
   {
     id: "live-1",
-    title: "【18禁】脱衣リクエスト配信💋 どんどん脱ぐよ",
+    creatorId: "demo-creator-1",
+    title: "【18禁】脱衣リクエスト配信 どんどん脱ぐよ",
     creatorName: "Reina",
-    displayName: "れいな💋",
+    displayName: "れいな",
     viewerCount: 2450,
     likeCount: 18500,
     isLive: true,
@@ -518,9 +523,10 @@ const demoLiveStreams: DemoStreamData[] = [
   },
   {
     id: "live-2",
-    title: "透けブラ＆Tバック試着会🖤 全部見せちゃう",
+    creatorId: "demo-creator-2",
+    title: "透けブラ＆Tバック試着会 全部見せちゃう",
     creatorName: "Yua",
-    displayName: "ゆあ🖤",
+    displayName: "ゆあ",
     viewerCount: 1890,
     likeCount: 15200,
     isLive: true,
@@ -531,9 +537,10 @@ const demoLiveStreams: DemoStreamData[] = [
   },
   {
     id: "live-3",
-    title: "バニーガール配信🐰 今夜はご主人様のために何でもします",
+    creatorId: "demo-creator-3",
+    title: "バニーガール配信 今夜はご主人様のために何でもします",
     creatorName: "Mio",
-    displayName: "みお🐰",
+    displayName: "みお",
     viewerCount: 1250,
     likeCount: 9800,
     isLive: true,
@@ -544,9 +551,10 @@ const demoLiveStreams: DemoStreamData[] = [
   },
   {
     id: "live-4",
-    title: "シャワー配信💦 全身見せちゃうかも...？",
+    creatorId: "demo-creator-4",
+    title: "シャワー配信 全身見せちゃうかも...？",
     creatorName: "Hina",
-    displayName: "ひな💦",
+    displayName: "ひな",
     viewerCount: 3200,
     likeCount: 24500,
     isLive: true,
@@ -557,9 +565,10 @@ const demoLiveStreams: DemoStreamData[] = [
   },
   {
     id: "live-5",
-    title: "メイドコス配信🎀 ご主人様のリクエストに全部応えます",
+    creatorId: "demo-creator-5",
+    title: "メイドコス配信 ご主人様のリクエストに全部応えます",
     creatorName: "Saki",
-    displayName: "さき🎀",
+    displayName: "さき",
     viewerCount: 1680,
     likeCount: 12300,
     isLive: true,
@@ -591,6 +600,7 @@ export default function Live() {
 
   const realLiveStreamsFormatted = (liveStreams || []).map((s: any, idx) => ({
     id: s.id,
+    creatorId: s.creatorId,
     title: s.title,
     thumbnailUrl: s.thumbnailUrl || demoLiveStreams[idx % demoLiveStreams.length]?.thumbnailUrl,
     creatorName: s.creatorDisplayName || "Creator",
@@ -654,10 +664,12 @@ export default function Live() {
           <LiveStreamPage
             key={stream.id}
             id={stream.id}
+            creatorId={stream.creatorId || stream.id}
             title={stream.title}
             thumbnailUrl={stream.thumbnailUrl}
             creatorName={stream.creatorName}
             displayName={stream.displayName}
+            creatorAvatar={stream.creatorAvatar}
             viewerCount={stream.viewerCount}
             likeCount={stream.likeCount}
             isLive={stream.isLive}
