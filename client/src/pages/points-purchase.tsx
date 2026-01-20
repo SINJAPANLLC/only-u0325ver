@@ -285,9 +285,6 @@ export default function PointsPurchase() {
                   </div>
                   <div>
                     <p className="font-bold text-lg text-pink-600 dark:text-pink-400">{selectedPackage.points.toLocaleString()} pt</p>
-                    {(selectedPackage.bonusPoints ?? 0) > 0 && (
-                      <p className="text-sm text-green-600">+{(selectedPackage.bonusPoints ?? 0).toLocaleString()} pt ボーナス</p>
-                    )}
                   </div>
                 </div>
                 <div className="text-right">
@@ -336,13 +333,7 @@ export default function PointsPurchase() {
                 <span className="text-muted-foreground">ポイント</span>
                 <span>{selectedPackage.points.toLocaleString()} pt</span>
               </div>
-              {(selectedPackage.bonusPoints ?? 0) > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>ボーナスポイント</span>
-                  <span>+{(selectedPackage.bonusPoints ?? 0).toLocaleString()} pt</span>
-                </div>
-              )}
-              <Separator className="my-2" />
+                            <Separator className="my-2" />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">税抜金額</span>
                 <span>¥{selectedPackage.priceExcludingTax.toLocaleString()}</span>
@@ -430,12 +421,7 @@ export default function PointsPurchase() {
                 onClick={() => handleSelectPackage(pkg)}
                 data-testid={`card-package-${pkg.points}`}
               >
-                {(pkg.bonusPoints ?? 0) > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs">
-                    +{pkg.bonusPoints ?? 0} pt
-                  </Badge>
-                )}
-                <div className="text-center">
+                                <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-2">
                     <span className="text-xl font-bold text-pink-600 dark:text-pink-400">{pkg.points.toLocaleString()}</span>
                   </div>
