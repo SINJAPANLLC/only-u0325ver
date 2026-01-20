@@ -2392,8 +2392,8 @@ export async function registerRoutes(
     }
   });
 
-  // Stripe: Create checkout session for point purchase
-  app.post("/api/stripe/checkout-session", isAuthenticated, async (req: any, res) => {
+  // Stripe: Create payment intent for point purchase (embedded checkout)
+  app.post("/api/stripe/create-payment-intent", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { points, amount } = req.body;
@@ -2403,64 +2403,50 @@ export async function registerRoutes(
       }
 
       const stripe = await getUncachableStripeClient();
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-      const host = req.get('host');
-      const baseUrl = `${protocol}://${host}`;
 
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'jpy',
-              product_data: {
-                name: `${points.toLocaleString()} ポイント`,
-                description: 'Only-U ポイント購入',
-              },
-              unit_amount: amount,
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${baseUrl}/points-purchase?success=true&points=${points}`,
-        cancel_url: `${baseUrl}/points-purchase?canceled=true`,
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: 'jpy',
         metadata: {
           userId,
           points: points.toString(),
           type: 'point_purchase',
         },
+        description: `Only-U ポイント購入 (${points.toLocaleString()} pt)`,
       });
 
-      res.json({ sessionId: session.id, url: session.url });
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      });
     } catch (error: any) {
-      console.error("Error creating checkout session:", error);
-      res.status(500).json({ message: error.message || "チェックアウトセッションの作成に失敗しました" });
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: error.message || "決済の準備に失敗しました" });
     }
   });
 
-  // Stripe: Handle successful payment (called from frontend after redirect)
+  // Stripe: Handle successful payment (called from frontend after payment)
   app.post("/api/stripe/confirm-payment", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { sessionId } = req.body;
+      const { paymentIntentId } = req.body;
 
-      if (!sessionId) {
-        return res.status(400).json({ message: "Session ID is required" });
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment Intent ID is required" });
       }
 
       const stripe = await getUncachableStripeClient();
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-      if (session.payment_status !== 'paid') {
+      if (paymentIntent.status !== 'succeeded') {
         return res.status(400).json({ message: "支払いが完了していません" });
       }
 
-      if (session.metadata?.userId !== userId) {
+      if (paymentIntent.metadata?.userId !== userId) {
         return res.status(403).json({ message: "不正なリクエストです" });
       }
 
-      const points = parseInt(session.metadata?.points || '0', 10);
+      const points = parseInt(paymentIntent.metadata?.points || '0', 10);
       if (points <= 0) {
         return res.status(400).json({ message: "Invalid points value" });
       }

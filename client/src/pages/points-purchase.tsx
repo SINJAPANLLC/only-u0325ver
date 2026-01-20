@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CreditCard, Building2, Star, Check, Info, Copy, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, Building2, Star, Check, Info, Copy, Clock, Loader2 } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { PointPackage, UserProfile, BankTransferRequest } from "@shared/schema";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 const TAX_RATE = 0.10;
 
@@ -36,8 +38,116 @@ const BANK_INFO = {
 };
 
 type PaymentMethod = "card" | "bank";
-type Step = "select" | "payment" | "bank_info" | "complete" | "card_success";
+type Step = "select" | "payment" | "bank_info" | "complete" | "card_success" | "card_payment";
 type PackageType = { id: string; points: number; priceExcludingTax: number; taxAmount: number; priceIncludingTax: number; bonusPoints: number | null };
+
+let stripePromise: Promise<Stripe | null> | null = null;
+
+function getStripePromise() {
+  if (!stripePromise) {
+    stripePromise = fetch("/api/stripe/publishable-key")
+      .then((res) => res.json())
+      .then(({ publishableKey }) => loadStripe(publishableKey));
+  }
+  return stripePromise;
+}
+
+function CheckoutForm({ 
+  onSuccess, 
+  onCancel,
+  points,
+  paymentIntentId,
+}: { 
+  onSuccess: (points: number) => void; 
+  onCancel: () => void;
+  points: number;
+  paymentIntentId: string;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    const { error: submitError } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.href,
+      },
+      redirect: "if_required",
+    });
+
+    if (submitError) {
+      setError(submitError.message || "決済に失敗しました");
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const response = await apiRequest("POST", "/api/stripe/confirm-payment", {
+        paymentIntentId,
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+        onSuccess(points);
+      } else {
+        setError(result.message || "ポイントの付与に失敗しました");
+      }
+    } catch (err: any) {
+      setError(err.message || "決済確認に失敗しました");
+    }
+
+    setIsProcessing(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      {error && (
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="flex-1"
+          onClick={onCancel}
+          disabled={isProcessing}
+        >
+          戻る
+        </Button>
+        <Button
+          type="submit"
+          className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500"
+          disabled={!stripe || isProcessing}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              処理中...
+            </>
+          ) : (
+            "支払う"
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+}
 
 export default function PointsPurchase() {
   const { user } = useAuth();
@@ -50,6 +160,8 @@ export default function PointsPurchase() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [pendingTransfer, setPendingTransfer] = useState<BankTransferRequest | null>(null);
   const [purchasedPoints, setPurchasedPoints] = useState<number | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
@@ -96,17 +208,19 @@ export default function PointsPurchase() {
     },
   });
 
-  const createCheckoutSessionMutation = useMutation({
+  const createPaymentIntentMutation = useMutation({
     mutationFn: async (packageData: PackageType) => {
-      const response = await apiRequest("POST", "/api/stripe/checkout-session", {
+      const response = await apiRequest("POST", "/api/stripe/create-payment-intent", {
         points: packageData.points,
         amount: packageData.priceIncludingTax,
       });
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
+        setStep("card_payment");
       }
     },
     onError: (error: any) => {
@@ -125,10 +239,23 @@ export default function PointsPurchase() {
     if (!selectedPackage) return;
 
     if (paymentMethod === "card") {
-      createCheckoutSessionMutation.mutate(selectedPackage);
+      createPaymentIntentMutation.mutate(selectedPackage);
     } else {
       createBankTransferMutation.mutate(selectedPackage);
     }
+  };
+
+  const handlePaymentSuccess = (pts: number) => {
+    setPurchasedPoints(pts);
+    setStep("card_success");
+    setClientSecret(null);
+    setPaymentIntentId(null);
+  };
+
+  const handlePaymentCancel = () => {
+    setStep("payment");
+    setClientSecret(null);
+    setPaymentIntentId(null);
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -141,6 +268,67 @@ export default function PointsPurchase() {
     const d = new Date(date);
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日まで`;
   };
+
+  if (step === "card_payment" && clientSecret && selectedPackage && paymentIntentId) {
+    return (
+      <div className="pb-20 overflow-y-auto scrollbar-hide">
+        <div className="sticky top-0 z-10 bg-background border-b">
+          <div className="flex items-center gap-3 p-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handlePaymentCancel}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-bold">カード決済</h1>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">購入ポイント</p>
+                <p className="text-xl font-bold">{selectedPackage.points.toLocaleString()} pt</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">お支払い金額</p>
+                <p className="text-xl font-bold text-pink-600 dark:text-pink-400">
+                  ¥{selectedPackage.priceIncludingTax.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h3 className="font-bold mb-4">カード情報</h3>
+            <Elements
+              stripe={getStripePromise()}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#ec4899',
+                  },
+                },
+                locale: 'ja',
+              }}
+            >
+              <CheckoutForm
+                onSuccess={handlePaymentSuccess}
+                onCancel={handlePaymentCancel}
+                points={selectedPackage.points}
+                paymentIntentId={paymentIntentId}
+              />
+            </Elements>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "card_success" && purchasedPoints) {
     return (
@@ -448,10 +636,10 @@ export default function PointsPurchase() {
             className="w-full bg-gradient-to-r from-pink-500 to-rose-500" 
             size="lg"
             onClick={handlePayment}
-            disabled={createBankTransferMutation.isPending || createCheckoutSessionMutation.isPending}
+            disabled={createBankTransferMutation.isPending || createPaymentIntentMutation.isPending}
             data-testid="button-confirm-payment"
           >
-            {createBankTransferMutation.isPending || createCheckoutSessionMutation.isPending ? "処理中..." : 
+            {createBankTransferMutation.isPending || createPaymentIntentMutation.isPending ? "処理中..." : 
               paymentMethod === "card" ? "カード決済に進む" : "振込情報を確認"
             }
           </Button>
