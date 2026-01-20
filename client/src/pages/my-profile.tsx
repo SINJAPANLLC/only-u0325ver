@@ -142,8 +142,9 @@ export default function MyProfile() {
   const [newVideoTier, setNewVideoTier] = useState("0");
   const [newVideoIsVertical, setNewVideoIsVertical] = useState(true);
   
-  // Product purchase
-  const [selectedProduct, setSelectedProduct] = useState<typeof demoProducts[0] | null>(null);
+  const { data: myProducts } = useQuery<Product[]>({
+    queryKey: ["/api/my-products"],
+  });
   const [productDetailOpen, setProductDetailOpen] = useState(false);
   
   // Get user's point balance
@@ -695,33 +696,46 @@ export default function MyProfile() {
         
         <TabsContent value="shop" className="mt-0">
           <div className="grid grid-cols-2 gap-0.5">
-            {demoProducts.map((product) => (
-              <div 
-                key={product.id} 
-                className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
-                onClick={() => {
-                  setSelectedProduct(product);
-                  setProductDetailOpen(true);
-                }}
-                data-testid={`product-card-${product.id}`}
-              >
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name} 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-2 right-2">
-                  <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
-                    {product.productType === "digital" ? "デジタル" : "物販"}
-                  </span>
+            {myProducts && myProducts.length > 0 ? (
+              myProducts.map((product) => (
+                <div 
+                  key={product.id} 
+                  className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                  onClick={() => {
+                    setSelectedProduct(product as any);
+                    setProductDetailOpen(true);
+                  }}
+                  data-testid={`product-card-${product.id}`}
+                >
+                  {product.imageUrl ? (
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name} 
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <ShoppingBag className="h-12 w-12 text-muted-foreground opacity-20" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-white">
+                      {product.productType === "digital" ? "デジタル" : "物販"}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                    <p className="text-white font-bold text-sm truncate">{product.name}</p>
+                    <p className="text-pink-400 font-bold text-xs">{product.price.toLocaleString()}pt</p>
+                  </div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-white font-bold text-sm truncate">{product.name}</p>
-                  <p className="text-pink-400 font-bold text-xs">{product.price.toLocaleString()}pt</p>
-                </div>
+              ))
+            ) : (
+              <div className="col-span-2 flex flex-col items-center justify-center py-20 text-muted-foreground">
+                <ShoppingBag className="h-12 w-12 mb-3 opacity-20" />
+                <p className="text-sm">商品がまだありません</p>
               </div>
-            ))}
+            )}
           </div>
         </TabsContent>
 
