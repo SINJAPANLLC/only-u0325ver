@@ -488,7 +488,7 @@ function VideoPage({
       {/* Progress bar */}
       <div
         ref={progressRef}
-        className="absolute bottom-24 left-0 right-0 h-2 bg-white/20 cursor-pointer touch-none"
+        className="absolute bottom-16 left-0 right-0 h-2 bg-white/20 cursor-pointer touch-none"
         onClick={handleProgressBarClick}
         onMouseDown={handleProgressDragStart}
         onMouseUp={handleProgressDragEnd}
