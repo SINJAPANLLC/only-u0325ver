@@ -17,12 +17,12 @@ import type { PointPackage, UserProfile, BankTransferRequest } from "@shared/sch
 const TAX_RATE = 0.10;
 
 const DEFAULT_PACKAGES = [
-  { id: "1", points: 500, priceExcludingTax: 500, taxAmount: 50, priceIncludingTax: 550, bonusPoints: 0 },
-  { id: "2", points: 1000, priceExcludingTax: 1000, taxAmount: 100, priceIncludingTax: 1100, bonusPoints: 0 },
-  { id: "3", points: 3000, priceExcludingTax: 3000, taxAmount: 300, priceIncludingTax: 3300, bonusPoints: 100 },
-  { id: "4", points: 5000, priceExcludingTax: 5000, taxAmount: 500, priceIncludingTax: 5500, bonusPoints: 250 },
-  { id: "5", points: 10000, priceExcludingTax: 10000, taxAmount: 1000, priceIncludingTax: 11000, bonusPoints: 700 },
-  { id: "6", points: 30000, priceExcludingTax: 30000, taxAmount: 3000, priceIncludingTax: 33000, bonusPoints: 3000 },
+  { id: "1", points: 500, priceExcludingTax: 545, taxAmount: 55, priceIncludingTax: 600, bonusPoints: 0 },
+  { id: "2", points: 1000, priceExcludingTax: 1091, taxAmount: 109, priceIncludingTax: 1200, bonusPoints: 0 },
+  { id: "3", points: 3000, priceExcludingTax: 3273, taxAmount: 327, priceIncludingTax: 3600, bonusPoints: 100 },
+  { id: "4", points: 5000, priceExcludingTax: 5455, taxAmount: 545, priceIncludingTax: 6000, bonusPoints: 250 },
+  { id: "5", points: 10000, priceExcludingTax: 10909, taxAmount: 1091, priceIncludingTax: 12000, bonusPoints: 700 },
+  { id: "6", points: 30000, priceExcludingTax: 32727, taxAmount: 3273, priceIncludingTax: 36000, bonusPoints: 3000 },
 ];
 
 const BANK_INFO = {
@@ -280,11 +280,11 @@ export default function PointsPurchase() {
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                    <Star className="h-6 w-6 text-white fill-white" />
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">pt</span>
                   </div>
                   <div>
-                    <p className="font-bold text-lg">{selectedPackage.points.toLocaleString()} pt</p>
+                    <p className="font-bold text-lg text-pink-600 dark:text-pink-400">{selectedPackage.points.toLocaleString()} pt</p>
                     {(selectedPackage.bonusPoints ?? 0) > 0 && (
                       <p className="text-sm text-green-600">+{(selectedPackage.bonusPoints ?? 0).toLocaleString()} pt ボーナス</p>
                     )}
@@ -396,11 +396,11 @@ export default function PointsPurchase() {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                  <Star className="h-6 w-6 text-white fill-white" />
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">pt</span>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">現在の保有ポイント</p>
+                  <p className="text-sm text-pink-600 dark:text-pink-400">現在の保有ポイント</p>
                   <p className="text-2xl font-bold" data-testid="text-current-points">
                     {(profile?.points ?? 0).toLocaleString()} pt
                   </p>
@@ -410,9 +410,9 @@ export default function PointsPurchase() {
           </Card>
         </motion.div>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-pink-600 dark:text-pink-400">
           <Info className="h-4 w-4" />
-          <span>1ポイント = 1円（税別）</span>
+          <span>1ポイント = 1.2円（税込）</span>
         </div>
 
         <h2 className="font-bold text-lg">ポイントパッケージを選択</h2>
@@ -437,13 +437,12 @@ export default function PointsPurchase() {
                 )}
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 mb-2">
-                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                    <span className="text-xl font-bold">{pkg.points.toLocaleString()}</span>
+                    <span className="text-xl font-bold text-pink-600 dark:text-pink-400">{pkg.points.toLocaleString()}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">ポイント</p>
+                  <p className="text-sm text-pink-500 dark:text-pink-400">ポイント</p>
                   <Separator className="my-2" />
-                  <p className="font-bold text-primary">¥{pkg.priceIncludingTax.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">税込</p>
+                  <p className="font-bold text-pink-600 dark:text-pink-400">¥{pkg.priceIncludingTax.toLocaleString()}</p>
+                  <p className="text-xs text-pink-500 dark:text-pink-400">税込</p>
                 </div>
               </Card>
             </motion.div>
