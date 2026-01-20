@@ -333,21 +333,20 @@ export default function PointsPurchase() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">ポイント</span>
-                <span>{selectedPackage.points.toLocaleString()} pt</span>
+                <span>¥{selectedPackage.points.toLocaleString()}</span>
               </div>
-                            <Separator className="my-2" />
               <div className="flex justify-between">
-                <span className="text-muted-foreground">税抜金額</span>
-                <span>¥{selectedPackage.priceExcludingTax.toLocaleString()}</span>
+                <span className="text-muted-foreground">購入手数料（10%）</span>
+                <span>¥{Math.floor(selectedPackage.points * 0.1).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">消費税（10%）</span>
-                <span>¥{selectedPackage.taxAmount.toLocaleString()}</span>
+                <span>¥{Math.floor(selectedPackage.points * 0.1 * 0.1).toLocaleString()}</span>
               </div>
               <Separator className="my-2" />
               <div className="flex justify-between text-lg font-bold">
                 <span>合計（税込）</span>
-                <span className="text-primary">¥{selectedPackage.priceIncludingTax.toLocaleString()}</span>
+                <span className="text-pink-600 dark:text-pink-400">¥{selectedPackage.priceIncludingTax.toLocaleString()}</span>
               </div>
             </div>
           </Card>
