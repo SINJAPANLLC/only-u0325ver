@@ -75,7 +75,7 @@ function LiveStreamPage({
   const [showModeDialog, setShowModeDialog] = useState(false);
   const [pendingMode, setPendingMode] = useState<RoomMode | null>(null);
   const [sessionTime, setSessionTime] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [comment, setComment] = useState("");
   const [flowingComments, setFlowingComments] = useState<{id: number; text: string; username: string}[]>([]);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
