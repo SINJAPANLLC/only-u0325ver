@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Radio, Users, Heart, Share2, Volume2, VolumeX, Coins, UserRound, UsersRound, Clock, Send, Loader2 } from "lucide-react";
+import { Radio, Users, Heart, Share2, Volume2, VolumeX, UserRound, UsersRound, Clock, Send, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -313,8 +313,7 @@ function LiveStreamPage({
             2ショット
           </button>
           <div className="flex items-center gap-1 text-amber-400 text-[10px] font-bold" data-testid="badge-points">
-            <Coins className="h-3 w-3" />
-            {userPoints.toLocaleString()}pt
+            {userPoints.toLocaleString()}ポイント
           </div>
         </div>
         {currentMode !== "waiting" && (
@@ -574,7 +573,6 @@ const demoLiveStreams: DemoStreamData[] = [
 export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
-  const [userPoints, setUserPoints] = useState(5000);
   const [roomModes, setRoomModes] = useState<Record<string, RoomMode>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -582,6 +580,12 @@ export default function Live() {
     queryKey: ["/api/live/active"],
     refetchInterval: 5000,
   });
+
+  const { data: userProfile } = useQuery<any>({
+    queryKey: ["/api/profile"],
+  });
+
+  const userPoints = userProfile?.points || 0;
 
   const followingStreams = demoLiveStreams.filter((_, i) => i % 2 === 0);
 
@@ -592,12 +596,12 @@ export default function Live() {
     creatorName: s.creatorDisplayName || "Creator",
     displayName: s.creatorDisplayName || s.title,
     creatorAvatar: s.creatorAvatar,
-    viewerCount: s.viewerCount || Math.floor(Math.random() * 100) + 1,
-    likeCount: Math.floor(Math.random() * 1000),
+    viewerCount: s.viewerCount || 0,
+    likeCount: s.likeCount || 0,
     isLive: s.status === "live",
     category: "LIVE配信中",
-    partyRatePerMinute: 50,
-    twoshotRatePerMinute: 200,
+    partyRatePerMinute: s.partyRatePerMinute || 50,
+    twoshotRatePerMinute: s.twoshotRatePerMinute || 200,
     isRealStream: true,
   }));
 

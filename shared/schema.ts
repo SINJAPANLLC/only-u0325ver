@@ -140,6 +140,8 @@ export const liveStreams = pgTable("live_streams", {
   streamKey: varchar("stream_key"),
   status: liveStatusEnum("status").default("scheduled"),
   viewerCount: integer("viewer_count").default(0),
+  partyRatePerMinute: integer("party_rate_per_minute").default(50),
+  twoshotRatePerMinute: integer("twoshot_rate_per_minute").default(100),
   scheduledAt: timestamp("scheduled_at"),
   startedAt: timestamp("started_at"),
   endedAt: timestamp("ended_at"),

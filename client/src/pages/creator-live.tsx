@@ -324,6 +324,8 @@ export default function CreatorLive() {
         description: "",
         status: "live",
         thumbnailUrl: thumbnailUrl || undefined,
+        partyRatePerMinute: partyPointsPerMinute,
+        twoshotRatePerMinute: twoshotPointsPerMinute,
       });
       return response.json();
     },
