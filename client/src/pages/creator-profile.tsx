@@ -262,9 +262,9 @@ export default function CreatorProfile() {
   const demoCreator = demoCreatorData[creatorId] || defaultDemoCreator;
   
   const creator = isRealCreator && creatorProfile ? {
-    name: creatorProfile.userId,
-    displayName: creatorProfile.displayName,
-    avatar: demoCreator.avatar,
+    name: (creatorProfile as any).username || creatorProfile.userId,
+    displayName: creatorProfile.displayName || "クリエイター",
+    avatar: (creatorProfile as any).avatarUrl || demoCreator.avatar,
     cover: creatorProfile.coverImageUrl || demoCreator.cover,
     bio: creatorProfile.bio || "",
     followers: creatorProfile.followerCount || 0,

@@ -1323,22 +1323,48 @@ export async function registerRoutes(
     try {
       const { id } = req.params;
       
-      let [creator] = await db
-        .select()
+      let result = await db
+        .select({
+          id: creatorProfiles.id,
+          userId: creatorProfiles.userId,
+          displayName: userProfiles.displayName,
+          bio: creatorProfiles.bio,
+          coverImageUrl: creatorProfiles.coverImageUrl,
+          isVerified: creatorProfiles.isVerified,
+          followerCount: creatorProfiles.followerCount,
+          followingCount: creatorProfiles.followingCount,
+          postCount: creatorProfiles.postCount,
+          avatarUrl: userProfiles.avatarUrl,
+          username: userProfiles.username,
+        })
         .from(creatorProfiles)
+        .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
         .where(eq(creatorProfiles.id, id));
       
-      if (!creator) {
-        [creator] = await db
-          .select()
+      if (result.length === 0) {
+        result = await db
+          .select({
+            id: creatorProfiles.id,
+            userId: creatorProfiles.userId,
+            displayName: userProfiles.displayName,
+            bio: creatorProfiles.bio,
+            coverImageUrl: creatorProfiles.coverImageUrl,
+            isVerified: creatorProfiles.isVerified,
+            followerCount: creatorProfiles.followerCount,
+            followingCount: creatorProfiles.followingCount,
+            postCount: creatorProfiles.postCount,
+            avatarUrl: userProfiles.avatarUrl,
+            username: userProfiles.username,
+          })
           .from(creatorProfiles)
+          .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
           .where(eq(creatorProfiles.userId, id));
       }
       
-      if (!creator) {
+      if (result.length === 0) {
         return res.status(404).json({ message: "Creator not found" });
       }
-      res.json(creator);
+      res.json(result[0]);
     } catch (error) {
       console.error("Error fetching creator:", error);
       res.status(500).json({ message: "Failed to fetch creator" });
