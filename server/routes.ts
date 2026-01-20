@@ -523,6 +523,45 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/videos/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { title, thumbnailUrl, videoUrl, requiredTier, tags, isPublished } = req.body;
+      
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.creatorId, userId)));
+      
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+
+      const updateData: any = {};
+      if (title !== undefined) updateData.title = title;
+      if (thumbnailUrl !== undefined) updateData.thumbnailUrl = thumbnailUrl;
+      if (videoUrl !== undefined) updateData.videoUrl = videoUrl;
+      if (requiredTier !== undefined) {
+        updateData.requiredTier = requiredTier;
+        updateData.contentType = requiredTier > 0 ? "premium" : "free";
+      }
+      if (tags !== undefined) updateData.tags = tags;
+      if (isPublished !== undefined) updateData.isPublished = isPublished;
+
+      const [updated] = await db
+        .update(videos)
+        .set(updateData)
+        .where(eq(videos.id, id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating video:", error);
+      res.status(500).json({ message: "Failed to update video" });
+    }
+  });
+
   app.patch("/api/live/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

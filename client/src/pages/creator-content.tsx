@@ -10,7 +10,8 @@ import {
   Image,
   Upload,
   HelpCircle,
-  Loader2
+  Loader2,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,8 +42,12 @@ export default function CreatorContent() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const editVideoInputRef = useRef<HTMLInputElement>(null);
+  const editThumbnailInputRef = useRef<HTMLInputElement>(null);
   
   const [form, setForm] = useState({
     contentType: "video" as "video" | "image",
@@ -63,6 +68,19 @@ export default function CreatorContent() {
 
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isUploadingEditVideo, setIsUploadingEditVideo] = useState(false);
+  const [isUploadingEditThumbnail, setIsUploadingEditThumbnail] = useState(false);
+  
+  const [editForm, setEditForm] = useState({
+    title: "",
+    thumbnailUrl: "",
+    thumbnailPreview: "",
+    videoUrl: "",
+    videoPreview: "",
+    requiredTier: 0,
+    tags: "",
+    isPublished: true,
+  });
 
   const { uploadFile } = useUpload({
     onError: (error) => {
@@ -119,6 +137,38 @@ export default function CreatorContent() {
     },
     onError: () => {
       toast({ title: "削除に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const updateVideoMutation = useMutation({
+    mutationFn: async (data: {
+      id: string;
+      title: string;
+      thumbnailUrl: string;
+      videoUrl: string;
+      requiredTier: number;
+      tags: string;
+      isPublished: boolean;
+    }) => {
+      const response = await apiRequest("PATCH", `/api/videos/${data.id}`, {
+        title: data.title,
+        thumbnailUrl: data.thumbnailUrl,
+        videoUrl: data.videoUrl,
+        requiredTier: data.requiredTier,
+        tags: data.tags,
+        isPublished: data.isPublished,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-videos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
+      setIsEditDialogOpen(false);
+      setEditingVideo(null);
+      toast({ title: "コンテンツを更新しました" });
+    },
+    onError: () => {
+      toast({ title: "更新に失敗しました", variant: "destructive" });
     },
   });
 
@@ -246,6 +296,94 @@ export default function CreatorContent() {
     });
   };
 
+  const openEditDialog = (video: VideoType) => {
+    setEditingVideo(video);
+    setEditForm({
+      title: video.title,
+      thumbnailUrl: video.thumbnailUrl || "",
+      thumbnailPreview: video.thumbnailUrl || "",
+      videoUrl: video.videoUrl || "",
+      videoPreview: video.videoUrl || "",
+      requiredTier: video.requiredTier || 0,
+      tags: video.tags || "",
+      isPublished: video.isPublished !== false,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/")) {
+      toast({ title: "動画ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingEditVideo(true);
+    const preview = URL.createObjectURL(file);
+    setEditForm(prev => ({ ...prev, videoPreview: preview }));
+
+    const result = await uploadFile(file);
+    if (result) {
+      setEditForm(prev => ({ ...prev, videoUrl: result.objectPath }));
+      toast({ title: "動画をアップロードしました" });
+    }
+    setIsUploadingEditVideo(false);
+  };
+
+  const handleEditThumbnailSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingEditThumbnail(true);
+    const preview = URL.createObjectURL(file);
+    setEditForm(prev => ({ ...prev, thumbnailPreview: preview }));
+
+    const result = await uploadFile(file);
+    if (result) {
+      setEditForm(prev => ({ ...prev, thumbnailUrl: result.objectPath }));
+      toast({ title: "サムネイルをアップロードしました" });
+    }
+    setIsUploadingEditThumbnail(false);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingVideo) return;
+    
+    if (!editForm.title) {
+      toast({ title: "タイトルを入力してください", variant: "destructive" });
+      return;
+    }
+    
+    if (!editForm.thumbnailUrl) {
+      toast({ title: "サムネイル画像を選択してください", variant: "destructive" });
+      return;
+    }
+
+    if (!editForm.videoUrl) {
+      toast({ title: "動画を選択してください", variant: "destructive" });
+      return;
+    }
+
+    updateVideoMutation.mutate({
+      id: editingVideo.id,
+      title: editForm.title,
+      thumbnailUrl: editForm.thumbnailUrl,
+      videoUrl: editForm.videoUrl,
+      requiredTier: editForm.requiredTier,
+      tags: editForm.tags,
+      isPublished: editForm.isPublished,
+    });
+  };
+
   const formatCount = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -335,15 +473,26 @@ export default function CreatorContent() {
                     </span>
                   </div>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => deleteVideoMutation.mutate(video.id)}
-                  data-testid={`button-delete-${video.id}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => openEditDialog(video)}
+                    data-testid={`button-edit-${video.id}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => deleteVideoMutation.mutate(video.id)}
+                    data-testid={`button-delete-${video.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -659,6 +808,158 @@ export default function CreatorContent() {
                 掲載ガイドライン
               </button>
             </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>コンテンツを編集</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <Label>動画を変更</Label>
+              <input
+                ref={editVideoInputRef}
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={handleEditVideoSelect}
+              />
+              <div 
+                className="mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-pink-500 transition-colors"
+                onClick={() => editVideoInputRef.current?.click()}
+              >
+                {isUploadingEditVideo ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                    <p className="text-sm text-muted-foreground">アップロード中...</p>
+                  </div>
+                ) : editForm.videoPreview ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <video 
+                      src={editForm.videoPreview} 
+                      className="w-full max-h-32 object-contain rounded"
+                    />
+                    <p className="text-xs text-green-500">クリックして変更</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>サムネイル画像を変更</Label>
+              <input
+                ref={editThumbnailInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleEditThumbnailSelect}
+              />
+              <div 
+                className="mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-pink-500 transition-colors"
+                onClick={() => editThumbnailInputRef.current?.click()}
+              >
+                {isUploadingEditThumbnail ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+                    <p className="text-sm text-muted-foreground">アップロード中...</p>
+                  </div>
+                ) : editForm.thumbnailPreview ? (
+                  <div className="flex items-center justify-center">
+                    <img 
+                      src={editForm.thumbnailPreview} 
+                      alt="Preview" 
+                      className="w-20 h-28 object-cover rounded"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Image className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">クリックしてサムネイルを選択</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>公開範囲</Label>
+              <Select
+                value={editForm.requiredTier.toString()}
+                onValueChange={(value) => setEditForm({ ...editForm, requiredTier: parseInt(value) })}
+              >
+                <SelectTrigger data-testid="edit-select-required-tier">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">{getPlanName(0)}</SelectItem>
+                  {myPlans && myPlans.length > 0 ? (
+                    myPlans.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.tier.toString()}>
+                        {plan.name}（{plan.price.toLocaleString()}pt/月）
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="1">{getPlanName(1)}</SelectItem>
+                      <SelectItem value="2">{getPlanName(2)}</SelectItem>
+                      <SelectItem value="3">{getPlanName(3)}</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-title">タイトル *</Label>
+              <Input
+                id="edit-title"
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                placeholder="コンテンツのタイトル"
+                data-testid="edit-input-title"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="edit-tags">タグ</Label>
+              <Input
+                id="edit-tags"
+                value={editForm.tags}
+                onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+                placeholder="タグをカンマ区切りで入力"
+                data-testid="edit-input-tags"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="edit-published"
+                checked={editForm.isPublished}
+                onCheckedChange={(checked) => 
+                  setEditForm({ ...editForm, isPublished: checked === true })
+                }
+                data-testid="edit-checkbox-published"
+              />
+              <label htmlFor="edit-published" className="text-sm cursor-pointer">
+                公開する
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={updateVideoMutation.isPending || isUploadingEditVideo || isUploadingEditThumbnail}
+              data-testid="button-edit-submit"
+            >
+              {updateVideoMutation.isPending ? "更新中..." : "更新する"}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
