@@ -1064,7 +1064,7 @@ export default function MyProfile() {
       
       <div className="h-24" />
       
-      {/* Product Detail Modal (Preview - own shop) */}
+      {/* Product Detail Modal */}
       <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
         <DialogContent className="sm:max-w-md">
           {selectedProduct && (
@@ -1088,10 +1088,32 @@ export default function MyProfile() {
                 
                 <div className="text-center">
                   <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
-                  <p className="text-sm text-muted-foreground mt-2">これはあなたの商品のプレビューです</p>
+                  <p className="text-xs text-muted-foreground">現在のポイント残高: {userPoints.toLocaleString()}pt</p>
                 </div>
                 
-                <DialogFooter>
+                <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+                  {('creatorId' in selectedProduct && selectedProduct.creatorId === user?.id) ? (
+                    <p className="text-sm text-muted-foreground text-center">これはあなたの商品のプレビューです</p>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        if ('id' in selectedProduct) {
+                          purchaseMutation.mutate(selectedProduct.id);
+                        }
+                      }}
+                      disabled={purchaseMutation.isPending || userPoints < selectedProduct.price}
+                      data-testid="button-purchase-product"
+                    >
+                      {purchaseMutation.isPending ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" />購入中...</>
+                      ) : userPoints < selectedProduct.price ? (
+                        "ポイントが不足しています"
+                      ) : (
+                        `${selectedProduct.price.toLocaleString()}ptで購入する`
+                      )}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="w-full"
