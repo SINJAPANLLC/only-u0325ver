@@ -501,6 +501,42 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/products/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      const { name, description, price, imageUrl, productType, isAvailable } = req.body;
+      
+      const [product] = await db
+        .select()
+        .from(products)
+        .where(and(eq(products.id, id), eq(products.creatorId, userId)));
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (price !== undefined) updateData.price = price;
+      if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+      if (productType !== undefined) updateData.productType = productType;
+      if (isAvailable !== undefined) updateData.isAvailable = isAvailable;
+
+      const [updated] = await db
+        .update(products)
+        .set(updateData)
+        .where(eq(products.id, id))
+        .returning();
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
   app.delete("/api/videos/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

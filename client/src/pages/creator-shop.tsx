@@ -9,7 +9,8 @@ import {
   Tag,
   Upload,
   ImageIcon,
-  Loader2
+  Loader2,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,10 +40,24 @@ export default function CreatorShop() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditUploading, setIsEditUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    imageUrl: "",
+    productType: "digital" as "digital" | "physical",
+    isAvailable: true,
+  });
+
+  const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     price: "",
@@ -160,6 +175,123 @@ export default function CreatorShop() {
     },
   });
 
+  const updateProductMutation = useMutation({
+    mutationFn: async (data: {
+      id: string;
+      name: string;
+      description: string;
+      price: number;
+      imageUrl: string;
+      productType: "digital" | "physical";
+      isAvailable: boolean;
+    }) => {
+      const response = await apiRequest("PATCH", `/api/products/${data.id}`, {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        imageUrl: data.imageUrl,
+        productType: data.productType,
+        isAvailable: data.isAvailable,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/my-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setIsEditDialogOpen(false);
+      setEditingProduct(null);
+      toast({ title: "商品を更新しました" });
+    },
+    onError: () => {
+      toast({ title: "更新に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const openEditDialog = (product: Product) => {
+    setEditingProduct(product);
+    setEditForm({
+      name: product.name,
+      description: product.description || "",
+      price: product.price.toString(),
+      imageUrl: product.imageUrl || "",
+      productType: product.productType as "digital" | "physical",
+      isAvailable: product.isAvailable !== false,
+    });
+    setEditImagePreview(product.imageUrl || null);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "画像ファイルを選択してください", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "ファイルサイズは10MB以下にしてください", variant: "destructive" });
+      return;
+    }
+
+    setIsEditUploading(true);
+    try {
+      const response = await fetch("/api/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get upload URL");
+
+      const { uploadURL, objectPath } = await response.json();
+
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload file");
+
+      setEditForm(prev => ({ ...prev, imageUrl: objectPath }));
+      setEditImagePreview(URL.createObjectURL(file));
+      toast({ title: "画像をアップロードしました" });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ title: "画像のアップロードに失敗しました", variant: "destructive" });
+    } finally {
+      setIsEditUploading(false);
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    if (!editForm.name) {
+      toast({ title: "商品名を入力してください", variant: "destructive" });
+      return;
+    }
+    if (!editForm.price || parseInt(editForm.price) <= 0) {
+      toast({ title: "価格を入力してください", variant: "destructive" });
+      return;
+    }
+    updateProductMutation.mutate({
+      id: editingProduct.id,
+      name: editForm.name,
+      description: editForm.description,
+      price: parseInt(editForm.price),
+      imageUrl: editForm.imageUrl,
+      productType: editForm.productType,
+      isAvailable: editForm.isAvailable,
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name) {
@@ -245,15 +377,26 @@ export default function CreatorShop() {
                     </span>
                   </div>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => deleteProductMutation.mutate(product.id)}
-                  data-testid={`button-delete-${product.id}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => openEditDialog(product)}
+                    data-testid={`button-edit-${product.id}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => deleteProductMutation.mutate(product.id)}
+                    data-testid={`button-delete-${product.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -398,6 +541,145 @@ export default function CreatorShop() {
                 data-testid="button-submit"
               >
                 {createProductMutation.isPending ? "登録中..." : "登録する"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>商品を編集</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">商品名 *</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                placeholder="商品名"
+                data-testid="edit-input-name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">説明</Label>
+              <Textarea
+                id="edit-description"
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                placeholder="商品の説明"
+                rows={3}
+                data-testid="edit-input-description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-price">価格（ポイント）*</Label>
+              <div className="relative">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="edit-price"
+                  type="number"
+                  value={editForm.price}
+                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                  placeholder="1000"
+                  className="pl-10"
+                  data-testid="edit-input-price"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>商品画像</Label>
+              <input
+                ref={editFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleEditImageUpload}
+              />
+              {editImagePreview || editForm.imageUrl ? (
+                <div className="relative mt-2">
+                  <img 
+                    src={editImagePreview || editForm.imageUrl}
+                    alt="商品画像プレビュー"
+                    className="w-full h-40 object-cover rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={() => {
+                      setEditForm(prev => ({ ...prev, imageUrl: "" }));
+                      setEditImagePreview(null);
+                    }}
+                    data-testid="edit-button-clear-image"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => editFileInputRef.current?.click()}
+                  className="mt-2 border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 transition-colors"
+                  data-testid="edit-button-upload-image"
+                >
+                  {isEditUploading ? (
+                    <>
+                      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">クリックして画像をアップロード</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">10MB以下</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="edit-productType">商品タイプ</Label>
+              <Select
+                value={editForm.productType}
+                onValueChange={(value) => setEditForm({ ...editForm, productType: value as "digital" | "physical" })}
+              >
+                <SelectTrigger data-testid="edit-select-product-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="digital">デジタル商品</SelectItem>
+                  <SelectItem value="physical">物販商品</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="edit-available">販売する</Label>
+              <Switch
+                id="edit-available"
+                checked={editForm.isAvailable}
+                onCheckedChange={(checked) => setEditForm({ ...editForm, isAvailable: checked })}
+                data-testid="edit-switch-available"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={updateProductMutation.isPending || isEditUploading}
+                data-testid="edit-button-submit"
+              >
+                {updateProductMutation.isPending ? "更新中..." : "更新する"}
               </Button>
             </div>
           </form>
