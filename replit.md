@@ -93,6 +93,25 @@ The platform uses a points-based payment system:
 3. Admin confirms transfer at `/admin` → points are credited to user
 4. For card payment: Requires Stripe integration (not yet configured)
 
+## E-commerce System
+
+### Product Types
+- **Digital Products**: Include a `contentUrl` field for download links or external content access. Purchasers can view this URL from `/my-purchases` page.
+- **Physical Products**: Require shipping information during purchase. Stock management auto-decrements and hides sold-out items.
+
+### Purchase Flow
+- Digital: User purchases → instant access to `contentUrl` via my-purchases page
+- Physical: User enters shipping info → order created with "pending" status → creator manages shipping via `/creator-orders`
+
+### Order Management (Creators)
+- `/creator-orders`: View all orders with buyer shipping details
+- Status updates: pending → shipped → completed
+- Shipping info displayed: name, postal code, address, phone
+
+### Key Pages
+- `/my-purchases`: User's purchase history with digital content access
+- `/creator-orders`: Creator's order management for physical products
+
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
 - **Twilio**: SMS verification for creator applications (currently accepts demo codes)
