@@ -29,6 +29,7 @@ interface VideoPageProps {
   id: string;
   title: string;
   creatorName: string;
+  creatorId?: string;
   displayName?: string;
   creatorAvatar?: string;
   viewCount: number;
@@ -49,6 +50,7 @@ function VideoPage({
   id,
   title,
   creatorName,
+  creatorId,
   displayName,
   creatorAvatar,
   likeCount,
@@ -88,8 +90,10 @@ function VideoPage({
           return;
         }
 
-        if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+        if (creatorId === user?.id) {
           setLocation("/my-profile");
+        } else if (creatorId) {
+          setLocation(`/creator/${creatorId}`);
         } else {
           setLocation(`/creator/${creatorName}`);
         }
@@ -208,8 +212,10 @@ function VideoPage({
       return;
     }
     
-    if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+    if (creatorId === user?.id) {
       setLocation("/my-profile");
+    } else if (creatorId) {
+      setLocation(`/creator/${creatorId}`);
     } else {
       setLocation(`/creator/${creatorName}`);
     }
@@ -304,8 +310,14 @@ function VideoPage({
               </div>
               <Button
                 onClick={() => {
-                  if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+                  if (id.startsWith("demo-")) {
+                    setLocation(`/creator/${creatorName}`);
+                    return;
+                  }
+                  if (creatorId === user?.id) {
                     setLocation("/my-profile");
+                  } else if (creatorId) {
+                    setLocation(`/creator/${creatorId}`);
                   } else {
                     setLocation(`/creator/${creatorName}`);
                   }
@@ -452,8 +464,14 @@ function VideoPage({
         {/* Full content CTA */}
         <button
           onClick={() => {
-            if (creatorName === user?.claims?.sub || creatorName === user?.id) {
+            if (id.startsWith("demo-")) {
+              setLocation(`/creator/${creatorName}`);
+              return;
+            }
+            if (creatorId === user?.id) {
               setLocation("/my-profile");
+            } else if (creatorId) {
+              setLocation(`/creator/${creatorId}`);
             } else {
               setLocation(`/creator/${creatorName}`);
             }
@@ -660,12 +678,11 @@ export default function Home() {
     const isPremium = requiredTier > 0 || v.contentType === "premium";
     const hasAccess = requiredTier === 0 || hasAccessToCreator(v.creatorId, requiredTier);
     
-    const creatorId = v.creatorId;
-    
     return {
       id: v.id,
       title: v.title,
       creatorName: v.creatorDisplayName || "Creator",
+      creatorId: v.creatorId,
       displayName: v.creatorDisplayName,
       creatorAvatar: v.creatorAvatarUrl,
       viewCount: v.viewCount || 0,
