@@ -83,6 +83,11 @@ function VideoPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
+        if (id.startsWith("demo-")) {
+          setLocation(`/creator/${creatorName}`);
+          return;
+        }
+
         if (creatorName === user?.claims?.sub || creatorName === user?.id) {
           setLocation("/my-profile");
         } else {
@@ -198,6 +203,11 @@ function VideoPage({
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (id.startsWith("demo-")) {
+      setLocation(`/creator/${creatorName}`);
+      return;
+    }
+    
     if (creatorName === user?.claims?.sub || creatorName === user?.id) {
       setLocation("/my-profile");
     } else {
@@ -655,7 +665,7 @@ export default function Home() {
     return {
       id: v.id,
       title: v.title,
-      creatorName: creatorId || v.creatorId?.slice(0, 8) || "Creator",
+      creatorName: v.creatorDisplayName || "Creator",
       displayName: v.creatorDisplayName,
       creatorAvatar: v.creatorAvatarUrl,
       viewCount: v.viewCount || 0,
