@@ -87,7 +87,17 @@ export function useWebRTC({
     peerConnectionsRef.current.set(viewerId, pc);
 
     localStreamRef.current.getTracks().forEach((track) => {
-      pc.addTrack(track, localStreamRef.current!);
+      const sender = pc.addTrack(track, localStreamRef.current!);
+      
+      if (track.kind === 'video') {
+        const params = sender.getParameters();
+        if (!params.encodings) {
+          params.encodings = [{}];
+        }
+        params.encodings[0].maxBitrate = 2500000;
+        params.encodings[0].maxFramerate = 30;
+        sender.setParameters(params).catch(() => {});
+      }
     });
 
     const offer = await pc.createOffer();
