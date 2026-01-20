@@ -226,11 +226,12 @@ export default function Account() {
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold truncate">{displayName}</h2>
                 <Link href="/points-purchase">
-                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 hover-elevate cursor-pointer" data-testid="link-points-purchase">
-                    <span className="text-xs text-amber-600 dark:text-amber-400">所持ポイント</span>
-                    <span className="text-sm font-semibold text-amber-700 dark:text-amber-400" data-testid="text-user-points">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-100 dark:bg-pink-900/30 hover-elevate cursor-pointer" data-testid="link-points-purchase">
+                    <span className="text-xs text-pink-600 dark:text-pink-400">所持ポイント</span>
+                    <span className="text-sm font-semibold text-pink-700 dark:text-pink-400" data-testid="text-user-points">
                       {(profile?.points ?? 0).toLocaleString()}
                     </span>
+                    <span className="text-xs text-pink-500 dark:text-pink-400 ml-1">| 購入はこちら</span>
                   </div>
                 </Link>
               </div>
