@@ -19,10 +19,12 @@ const TAX_RATE = 0.10;
 const DEFAULT_PACKAGES = [
   { id: "1", points: 500, priceExcludingTax: 545, taxAmount: 55, priceIncludingTax: 600, bonusPoints: 0 },
   { id: "2", points: 1000, priceExcludingTax: 1091, taxAmount: 109, priceIncludingTax: 1200, bonusPoints: 0 },
-  { id: "3", points: 3000, priceExcludingTax: 3273, taxAmount: 327, priceIncludingTax: 3600, bonusPoints: 100 },
-  { id: "4", points: 5000, priceExcludingTax: 5455, taxAmount: 545, priceIncludingTax: 6000, bonusPoints: 250 },
-  { id: "5", points: 10000, priceExcludingTax: 10909, taxAmount: 1091, priceIncludingTax: 12000, bonusPoints: 700 },
-  { id: "6", points: 30000, priceExcludingTax: 32727, taxAmount: 3273, priceIncludingTax: 36000, bonusPoints: 3000 },
+  { id: "3", points: 3000, priceExcludingTax: 3273, taxAmount: 327, priceIncludingTax: 3600, bonusPoints: 0 },
+  { id: "4", points: 5000, priceExcludingTax: 5455, taxAmount: 545, priceIncludingTax: 6000, bonusPoints: 0 },
+  { id: "5", points: 10000, priceExcludingTax: 10909, taxAmount: 1091, priceIncludingTax: 12000, bonusPoints: 0 },
+  { id: "6", points: 30000, priceExcludingTax: 32727, taxAmount: 3273, priceIncludingTax: 36000, bonusPoints: 0 },
+  { id: "7", points: 50000, priceExcludingTax: 54545, taxAmount: 5455, priceIncludingTax: 60000, bonusPoints: 0 },
+  { id: "8", points: 100000, priceExcludingTax: 109091, taxAmount: 10909, priceIncludingTax: 120000, bonusPoints: 0 },
 ];
 
 const BANK_INFO = {
