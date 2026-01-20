@@ -676,9 +676,7 @@ export async function registerRoutes(
 
   app.post("/api/videos/:videoId/like", isAuthenticated, async (req: any, res) => {
     try {
-      const { videoId } = req.params;
-      const userId = req.user.claims.sub;
-
+      // (Removed own content check to allow self-liking)
       const [existingLike] = await db
         .select()
         .from(videoLikes)
