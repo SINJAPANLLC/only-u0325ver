@@ -154,6 +154,7 @@ export const products = pgTable("products", {
   description: text("description"),
   price: integer("price").notNull(),
   imageUrl: varchar("image_url"),
+  contentUrl: varchar("content_url"), // For digital products: download link or content URL
   productType: productTypeEnum("product_type").default("digital"),
   stock: integer("stock").default(0),
   isAvailable: boolean("is_available").default(true),
@@ -304,6 +305,11 @@ export const purchases = pgTable("purchases", {
   productId: varchar("product_id").notNull(),
   price: integer("price").notNull(),
   status: varchar("status").default("completed"),
+  // Shipping info for physical products
+  shippingName: varchar("shipping_name"),
+  shippingPostalCode: varchar("shipping_postal_code"),
+  shippingAddress: text("shipping_address"),
+  shippingPhone: varchar("shipping_phone"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

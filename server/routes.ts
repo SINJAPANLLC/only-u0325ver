@@ -505,7 +505,7 @@ export async function registerRoutes(
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
-      const { name, description, price, stock, imageUrl, productType, isAvailable } = req.body;
+      const { name, description, price, stock, imageUrl, contentUrl, productType, isAvailable } = req.body;
       
       const [product] = await db
         .select()
@@ -522,6 +522,7 @@ export async function registerRoutes(
       if (price !== undefined) updateData.price = price;
       if (stock !== undefined) updateData.stock = stock;
       if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+      if (contentUrl !== undefined) updateData.contentUrl = contentUrl;
       if (productType !== undefined) updateData.productType = productType;
       if (isAvailable !== undefined) updateData.isAvailable = isAvailable;
 

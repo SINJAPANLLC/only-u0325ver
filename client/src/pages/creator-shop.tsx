@@ -10,7 +10,8 @@ import {
   Upload,
   ImageIcon,
   Loader2,
-  Pencil
+  Pencil,
+  Link
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ export default function CreatorShop() {
     price: "",
     stock: "",
     imageUrl: "",
+    contentUrl: "",
     productType: "digital" as "digital" | "physical",
     isAvailable: true,
   });
@@ -64,6 +66,7 @@ export default function CreatorShop() {
     price: "",
     stock: "",
     imageUrl: "",
+    contentUrl: "",
     productType: "digital" as "digital" | "physical",
     isAvailable: true,
   });
@@ -149,6 +152,7 @@ export default function CreatorShop() {
         price: "",
         stock: "",
         imageUrl: "",
+        contentUrl: "",
         productType: "digital",
         isAvailable: true,
       });
@@ -187,6 +191,7 @@ export default function CreatorShop() {
       price: number;
       stock: number;
       imageUrl: string;
+      contentUrl: string;
       productType: "digital" | "physical";
       isAvailable: boolean;
     }) => {
@@ -196,6 +201,7 @@ export default function CreatorShop() {
         price: data.price,
         stock: data.stock,
         imageUrl: data.imageUrl,
+        contentUrl: data.contentUrl,
         productType: data.productType,
         isAvailable: data.isAvailable,
       });
@@ -221,6 +227,7 @@ export default function CreatorShop() {
       price: product.price.toString(),
       stock: (product.stock || 0).toString(),
       imageUrl: product.imageUrl || "",
+      contentUrl: product.contentUrl || "",
       productType: product.productType as "digital" | "physical",
       isAvailable: product.isAvailable !== false,
     });
@@ -295,6 +302,7 @@ export default function CreatorShop() {
       price: parseInt(editForm.price),
       stock: parseInt(editForm.stock) || 0,
       imageUrl: editForm.imageUrl,
+      contentUrl: editForm.contentUrl,
       productType: editForm.productType,
       isAvailable: editForm.isAvailable,
     });
@@ -472,6 +480,23 @@ export default function CreatorShop() {
               />
               <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
             </div>
+            {form.productType === "digital" && (
+              <div>
+                <Label htmlFor="contentUrl">コンテンツURL *</Label>
+                <div className="relative">
+                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="contentUrl"
+                    value={form.contentUrl}
+                    onChange={(e) => setForm({ ...form, contentUrl: e.target.value })}
+                    placeholder="https://example.com/download/content"
+                    className="pl-10"
+                    data-testid="input-content-url"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">購入者に表示されるダウンロードリンクまたはコンテンツURL</p>
+              </div>
+            )}
             <div>
               <Label>商品画像</Label>
               <input
@@ -621,6 +646,23 @@ export default function CreatorShop() {
               />
               <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
             </div>
+            {editForm.productType === "digital" && (
+              <div>
+                <Label htmlFor="edit-contentUrl">コンテンツURL *</Label>
+                <div className="relative">
+                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="edit-contentUrl"
+                    value={editForm.contentUrl}
+                    onChange={(e) => setEditForm({ ...editForm, contentUrl: e.target.value })}
+                    placeholder="https://example.com/download/content"
+                    className="pl-10"
+                    data-testid="edit-input-content-url"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">購入者に表示されるダウンロードリンクまたはコンテンツURL</p>
+              </div>
+            )}
             <div>
               <Label>商品画像</Label>
               <input
