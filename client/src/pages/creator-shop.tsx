@@ -11,7 +11,7 @@ import {
   ImageIcon,
   Loader2,
   Pencil,
-  Link
+  FileIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,12 @@ export default function CreatorShop() {
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const contentFileInputRef = useRef<HTMLInputElement>(null);
+  const editContentFileInputRef = useRef<HTMLInputElement>(null);
+  const [isContentUploading, setIsContentUploading] = useState(false);
+  const [isEditContentUploading, setIsEditContentUploading] = useState(false);
+  const [contentFileName, setContentFileName] = useState<string | null>(null);
+  const [editContentFileName, setEditContentFileName] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -129,6 +135,110 @@ export default function CreatorShop() {
     }
   };
 
+  const handleContentFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: "ファイルサイズは100MB以下にしてください", variant: "destructive" });
+      return;
+    }
+
+    setIsContentUploading(true);
+    try {
+      const response = await fetch("/api/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get upload URL");
+
+      const { uploadURL, objectPath } = await response.json();
+
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload file");
+
+      setForm(prev => ({ ...prev, contentUrl: objectPath }));
+      setContentFileName(file.name);
+      toast({ title: "ファイルをアップロードしました" });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ title: "ファイルのアップロードに失敗しました", variant: "destructive" });
+    } finally {
+      setIsContentUploading(false);
+    }
+  };
+
+  const clearContentFile = () => {
+    setForm(prev => ({ ...prev, contentUrl: "" }));
+    setContentFileName(null);
+    if (contentFileInputRef.current) {
+      contentFileInputRef.current.value = "";
+    }
+  };
+
+  const handleEditContentFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 100 * 1024 * 1024) {
+      toast({ title: "ファイルサイズは100MB以下にしてください", variant: "destructive" });
+      return;
+    }
+
+    setIsEditContentUploading(true);
+    try {
+      const response = await fetch("/api/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get upload URL");
+
+      const { uploadURL, objectPath } = await response.json();
+
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Failed to upload file");
+
+      setEditForm(prev => ({ ...prev, contentUrl: objectPath }));
+      setEditContentFileName(file.name);
+      toast({ title: "ファイルをアップロードしました" });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ title: "ファイルのアップロードに失敗しました", variant: "destructive" });
+    } finally {
+      setIsEditContentUploading(false);
+    }
+  };
+
+  const clearEditContentFile = () => {
+    setEditForm(prev => ({ ...prev, contentUrl: "" }));
+    setEditContentFileName(null);
+    if (editContentFileInputRef.current) {
+      editContentFileInputRef.current.value = "";
+    }
+  };
+
   const { data: myProducts, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/my-products"],
   });
@@ -157,8 +267,12 @@ export default function CreatorShop() {
         isAvailable: true,
       });
       setImagePreview(null);
+      setContentFileName(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
+      }
+      if (contentFileInputRef.current) {
+        contentFileInputRef.current.value = "";
       }
       toast({ title: "商品を登録しました" });
     },
@@ -481,19 +595,51 @@ export default function CreatorShop() {
             </div>
             {form.productType === "digital" && (
               <div>
-                <Label htmlFor="contentUrl">コンテンツURL *</Label>
-                <div className="relative">
-                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="contentUrl"
-                    value={form.contentUrl}
-                    onChange={(e) => setForm({ ...form, contentUrl: e.target.value })}
-                    placeholder="https://example.com/download/content"
-                    className="pl-10"
-                    data-testid="input-content-url"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">購入者に表示されるダウンロードリンクまたはコンテンツURL</p>
+                <Label>デジタルコンテンツ *</Label>
+                <input
+                  ref={contentFileInputRef}
+                  type="file"
+                  onChange={handleContentFileUpload}
+                  className="hidden"
+                  data-testid="input-content-file"
+                />
+                {form.contentUrl || contentFileName ? (
+                  <div className="mt-2 flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileIcon className="h-5 w-5 text-pink-500" />
+                      <span className="text-sm truncate max-w-48">{contentFileName || "アップロード済み"}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={clearContentFile}
+                      data-testid="button-clear-content"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => contentFileInputRef.current?.click()}
+                    className="mt-2 border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 transition-colors"
+                    data-testid="button-upload-content"
+                  >
+                    {isContentUploading ? (
+                      <>
+                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">クリックしてファイルをアップロード</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">100MB以下</p>
+                      </>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
               </div>
             )}
             <div>
@@ -647,19 +793,51 @@ export default function CreatorShop() {
             </div>
             {editForm.productType === "digital" && (
               <div>
-                <Label htmlFor="edit-contentUrl">コンテンツURL *</Label>
-                <div className="relative">
-                  <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="edit-contentUrl"
-                    value={editForm.contentUrl}
-                    onChange={(e) => setEditForm({ ...editForm, contentUrl: e.target.value })}
-                    placeholder="https://example.com/download/content"
-                    className="pl-10"
-                    data-testid="edit-input-content-url"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">購入者に表示されるダウンロードリンクまたはコンテンツURL</p>
+                <Label>デジタルコンテンツ *</Label>
+                <input
+                  ref={editContentFileInputRef}
+                  type="file"
+                  onChange={handleEditContentFileUpload}
+                  className="hidden"
+                  data-testid="edit-input-content-file"
+                />
+                {editForm.contentUrl || editContentFileName ? (
+                  <div className="mt-2 flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileIcon className="h-5 w-5 text-pink-500" />
+                      <span className="text-sm truncate max-w-48">{editContentFileName || "アップロード済み"}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={clearEditContentFile}
+                      data-testid="edit-button-clear-content"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => editContentFileInputRef.current?.click()}
+                    className="mt-2 border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 transition-colors"
+                    data-testid="edit-button-upload-content"
+                  >
+                    {isEditContentUploading ? (
+                      <>
+                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">クリックしてファイルをアップロード</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">100MB以下</p>
+                      </>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
               </div>
             )}
             <div>

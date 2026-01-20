@@ -1086,9 +1086,23 @@ export async function registerRoutes(
 
       // Send automatic purchase message from creator to buyer
       if (product.creatorId) {
-        const purchaseMessage = product.productType === "physical"
-          ? `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\n発送準備が整い次第、発送させていただきます。発送完了後に改めてご連絡いたします。\n\nしばらくお待ちください。`
-          : `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\nマイページの「購入履歴」からコンテンツにアクセスできます。\n\nお楽しみください！`;
+        let purchaseMessage: string;
+        
+        if (product.productType === "physical") {
+          purchaseMessage = `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\n発送準備が整い次第、発送させていただきます。発送完了後に改めてご連絡いたします。\n\nしばらくお待ちください。`;
+        } else {
+          // Digital product - send download link
+          const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN || '';
+          const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+          const baseUrl = host ? `${protocol}://${host}` : '';
+          const downloadUrl = product.contentUrl ? `${baseUrl}${product.contentUrl}` : null;
+          
+          if (downloadUrl) {
+            purchaseMessage = `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\n以下のリンクからコンテンツをダウンロードできます：\n${downloadUrl}\n\nお楽しみください！`;
+          } else {
+            purchaseMessage = `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\nマイページの「購入履歴」からコンテンツにアクセスできます。\n\nお楽しみください！`;
+          }
+        }
         
         await sendAutoMessage(product.creatorId, userId, purchaseMessage);
       }
