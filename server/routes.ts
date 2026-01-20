@@ -9,6 +9,7 @@ import {
   videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
   userProfiles, creatorApplications, phoneVerificationCodes,
+  videoLikes,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
