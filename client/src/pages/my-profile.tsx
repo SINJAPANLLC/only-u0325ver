@@ -739,13 +739,11 @@ export default function MyProfile() {
                     <Heart className="h-3 w-3" />
                     <span>{formatCount(video.likeCount || 0)}</span>
                   </div>
-                  {isPremium && (
-                    <div className="absolute top-1 right-1">
-                      <span className="px-1.5 py-0.5 rounded bg-pink-500 text-white text-[8px] font-bold truncate max-w-[60px]">
-                        {planName}
-                      </span>
-                    </div>
-                  )}
+                  <div className="absolute top-1 right-1">
+                    <span className={`px-1.5 py-0.5 rounded text-white text-[8px] font-bold truncate max-w-[60px] ${isPremium ? 'bg-pink-500' : 'bg-green-500'}`}>
+                      {isPremium ? planName : 'FREE'}
+                    </span>
+                  </div>
                 </div>
               );
             })}
