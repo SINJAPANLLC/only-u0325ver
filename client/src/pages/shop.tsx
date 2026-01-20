@@ -308,7 +308,7 @@ export default function Shop() {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       toast({
         title: "購入完了",
-        description: "商品を購入しました",
+        description: "商品を購入しました。メッセージに詳細が届きます。",
       });
     },
     onError: (error: any) => {
