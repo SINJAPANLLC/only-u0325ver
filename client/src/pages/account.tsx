@@ -226,8 +226,8 @@ export default function Account() {
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold truncate">{displayName}</h2>
                 <Link href="/points-purchase">
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 hover-elevate cursor-pointer" data-testid="link-points-purchase">
-                    <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 hover-elevate cursor-pointer" data-testid="link-points-purchase">
+                    <span className="text-xs text-amber-600 dark:text-amber-400">所持ポイント</span>
                     <span className="text-sm font-semibold text-amber-700 dark:text-amber-400" data-testid="text-user-points">
                       {(profile?.points ?? 0).toLocaleString()}
                     </span>
