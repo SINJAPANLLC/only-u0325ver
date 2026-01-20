@@ -55,6 +55,55 @@ async function isCreator(req: any, res: any, next: any) {
   }
 }
 
+// Helper function to send automatic message between creator and buyer
+async function sendAutoMessage(creatorId: string, buyerId: string, messageContent: string) {
+  try {
+    // Don't send message to self
+    if (creatorId === buyerId) return;
+    
+    // Find existing conversation
+    const [existingConversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(eq(conversations.participant1Id, creatorId), eq(conversations.participant2Id, buyerId)),
+          and(eq(conversations.participant1Id, buyerId), eq(conversations.participant2Id, creatorId))
+        )
+      );
+    
+    let conversationId: string;
+    
+    if (existingConversation) {
+      conversationId = existingConversation.id;
+    } else {
+      // Create new conversation
+      const [newConversation] = await db.insert(conversations).values({
+        participant1Id: creatorId,
+        participant2Id: buyerId,
+      }).returning();
+      conversationId = newConversation.id;
+    }
+    
+    // Send the message (from creator to buyer)
+    await db.insert(messages).values({
+      conversationId,
+      senderId: creatorId,
+      content: messageContent,
+    });
+    
+    // Update conversation lastMessageAt
+    await db
+      .update(conversations)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(conversations.id, conversationId));
+      
+    console.log(`Auto message sent from ${creatorId} to ${buyerId}`);
+  } catch (error) {
+    console.error("Error sending auto message:", error);
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -1038,6 +1087,15 @@ export async function registerRoutes(
         type: "purchase",
       });
 
+      // Send automatic purchase message from creator to buyer
+      if (product.creatorId) {
+        const purchaseMessage = product.productType === "physical"
+          ? `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\n発送準備が整い次第、発送させていただきます。発送完了後に改めてご連絡いたします。\n\nしばらくお待ちください。`
+          : `【ご購入ありがとうございます】\n\n「${product.name}」をご購入いただきありがとうございます！\n\nマイページの「購入履歴」からコンテンツにアクセスできます。\n\nお楽しみください！`;
+        
+        await sendAutoMessage(product.creatorId, userId, purchaseMessage);
+      }
+
       res.status(201).json(purchase);
     } catch (error) {
       console.error("Error purchasing product:", error);
@@ -1086,12 +1144,17 @@ export async function registerRoutes(
       const { id } = req.params;
       const { status } = req.body;
       
-      const [order] = await db
-        .select()
+      // Get order with product info
+      const [orderWithProduct] = await db
+        .select({
+          purchase: purchases,
+          product: products,
+        })
         .from(purchases)
+        .leftJoin(products, eq(purchases.productId, products.id))
         .where(and(eq(purchases.id, id), eq(purchases.creatorId, userId)));
       
-      if (!order) {
+      if (!orderWithProduct) {
         return res.status(404).json({ message: "Order not found" });
       }
       
@@ -1100,6 +1163,22 @@ export async function registerRoutes(
         .set({ status })
         .where(eq(purchases.id, id))
         .returning();
+      
+      // Send shipping notification message when status changes to "shipped"
+      if (status === "shipped" && orderWithProduct.purchase.creatorId && orderWithProduct.purchase.userId) {
+        const productName = orderWithProduct.product?.name || "商品";
+        const shippingMessage = `【発送完了のお知らせ】\n\n「${productName}」を発送いたしました！\n\n商品の到着まで今しばらくお待ちください。\n\nご購入ありがとうございました！`;
+        
+        await sendAutoMessage(orderWithProduct.purchase.creatorId, orderWithProduct.purchase.userId, shippingMessage);
+        
+        // Also create a notification
+        await db.insert(notifications).values({
+          userId: orderWithProduct.purchase.userId,
+          title: "発送完了",
+          body: `${productName}が発送されました`,
+          type: "shipping",
+        });
+      }
       
       res.json(updated);
     } catch (error) {
