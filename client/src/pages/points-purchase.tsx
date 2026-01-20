@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Building2, Star, Check, Info, Copy, Clock } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,18 +36,37 @@ const BANK_INFO = {
 };
 
 type PaymentMethod = "card" | "bank";
-type Step = "select" | "payment" | "bank_info" | "complete";
+type Step = "select" | "payment" | "bank_info" | "complete" | "card_success";
 type PackageType = { id: string; points: number; priceExcludingTax: number; taxAmount: number; priceIncludingTax: number; bonusPoints: number | null };
 
 export default function PointsPurchase() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   
   const [step, setStep] = useState<Step>("select");
   const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [pendingTransfer, setPendingTransfer] = useState<BankTransferRequest | null>(null);
+  const [purchasedPoints, setPurchasedPoints] = useState<number | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const success = params.get("success");
+    const points = params.get("points");
+    const canceled = params.get("canceled");
+
+    if (success === "true" && points) {
+      setPurchasedPoints(parseInt(points, 10));
+      setStep("card_success");
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      window.history.replaceState({}, document.title, "/points-purchase");
+    } else if (canceled === "true") {
+      toast({ title: "決済がキャンセルされました", variant: "destructive" });
+      window.history.replaceState({}, document.title, "/points-purchase");
+    }
+  }, [searchString, toast]);
 
   const { data: profile } = useQuery<UserProfile | null>({
     queryKey: ["/api/profile"],
@@ -77,6 +96,24 @@ export default function PointsPurchase() {
     },
   });
 
+  const createCheckoutSessionMutation = useMutation({
+    mutationFn: async (packageData: PackageType) => {
+      const response = await apiRequest("POST", "/api/stripe/checkout-session", {
+        points: packageData.points,
+        amount: packageData.priceIncludingTax,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (error: any) => {
+      toast({ title: "決済の開始に失敗しました", description: error.message, variant: "destructive" });
+    },
+  });
+
   const displayPackages = packages?.length ? packages : DEFAULT_PACKAGES;
 
   const handleSelectPackage = (pkg: PackageType) => {
@@ -88,7 +125,7 @@ export default function PointsPurchase() {
     if (!selectedPackage) return;
 
     if (paymentMethod === "card") {
-      toast({ title: "カード決済の設定が必要です", description: "管理者にStripe統合の設定を依頼してください" });
+      createCheckoutSessionMutation.mutate(selectedPackage);
     } else {
       createBankTransferMutation.mutate(selectedPackage);
     }
@@ -104,6 +141,62 @@ export default function PointsPurchase() {
     const d = new Date(date);
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日まで`;
   };
+
+  if (step === "card_success" && purchasedPoints) {
+    return (
+      <div className="pb-20 overflow-y-auto scrollbar-hide">
+        <div className="sticky top-0 z-10 bg-background border-b">
+          <div className="flex items-center gap-3 p-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation("/account")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-lg font-bold">購入完了</h1>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Card className="p-6 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <Check className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              <h2 className="text-xl font-bold mb-2">ポイント購入完了</h2>
+              <p className="text-muted-foreground mb-4">カード決済が正常に完了しました</p>
+              
+              <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 mb-4">
+                <p className="text-sm text-muted-foreground">購入ポイント</p>
+                <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">
+                  +{purchasedPoints.toLocaleString()} pt
+                </p>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                <p>ポイントは即座にアカウントに反映されました</p>
+              </div>
+            </Card>
+          </motion.div>
+
+          <Button 
+            className="w-full" 
+            onClick={() => setLocation("/account")}
+            data-testid="button-done"
+          >
+            完了
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "bank_info" && pendingTransfer) {
     return (
@@ -355,10 +448,10 @@ export default function PointsPurchase() {
             className="w-full bg-gradient-to-r from-pink-500 to-rose-500" 
             size="lg"
             onClick={handlePayment}
-            disabled={createBankTransferMutation.isPending}
+            disabled={createBankTransferMutation.isPending || createCheckoutSessionMutation.isPending}
             data-testid="button-confirm-payment"
           >
-            {createBankTransferMutation.isPending ? "処理中..." : 
+            {createBankTransferMutation.isPending || createCheckoutSessionMutation.isPending ? "処理中..." : 
               paymentMethod === "card" ? "カード決済に進む" : "振込情報を確認"
             }
           </Button>

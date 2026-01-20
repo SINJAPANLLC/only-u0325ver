@@ -5,6 +5,7 @@ import { registerEmailAuthRoutes } from "./emailAuth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { setupWebRTCSignaling } from "./webrtc";
 import { db } from "./db";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { 
   users, videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
@@ -2377,6 +2378,132 @@ export async function registerRoutes(
       res.status(500).json({ 
         message: error.message || "Failed to generate image" 
       });
+    }
+  });
+
+  // Stripe: Get publishable key
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("Error getting Stripe publishable key:", error);
+      res.status(500).json({ message: "Failed to get Stripe publishable key" });
+    }
+  });
+
+  // Stripe: Create checkout session for point purchase
+  app.post("/api/stripe/checkout-session", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { points, amount } = req.body;
+
+      if (!points || !amount || points < 100) {
+        return res.status(400).json({ message: "最低100ポイントから購入できます" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'jpy',
+              product_data: {
+                name: `${points.toLocaleString()} ポイント`,
+                description: 'Only-U ポイント購入',
+              },
+              unit_amount: amount,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${baseUrl}/points-purchase?success=true&points=${points}`,
+        cancel_url: `${baseUrl}/points-purchase?canceled=true`,
+        metadata: {
+          userId,
+          points: points.toString(),
+          type: 'point_purchase',
+        },
+      });
+
+      res.json({ sessionId: session.id, url: session.url });
+    } catch (error: any) {
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ message: error.message || "チェックアウトセッションの作成に失敗しました" });
+    }
+  });
+
+  // Stripe: Handle successful payment (called from frontend after redirect)
+  app.post("/api/stripe/confirm-payment", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { sessionId } = req.body;
+
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== 'paid') {
+        return res.status(400).json({ message: "支払いが完了していません" });
+      }
+
+      if (session.metadata?.userId !== userId) {
+        return res.status(403).json({ message: "不正なリクエストです" });
+      }
+
+      const points = parseInt(session.metadata?.points || '0', 10);
+      if (points <= 0) {
+        return res.status(400).json({ message: "Invalid points value" });
+      }
+
+      // Get user's current points
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      const currentPoints = profile?.points ?? 0;
+      const newBalance = currentPoints + points;
+
+      // Update user points
+      if (profile) {
+        await db
+          .update(userProfiles)
+          .set({ points: newBalance })
+          .where(eq(userProfiles.userId, userId));
+      } else {
+        await db.insert(userProfiles).values({
+          userId,
+          points: points,
+        });
+      }
+
+      // Record transaction
+      await db.insert(pointTransactions).values({
+        userId,
+        amount: points,
+        type: "purchase",
+        description: `カード決済によるポイント購入 (${points.toLocaleString()} pt)`,
+        balanceAfter: newBalance,
+      });
+
+      res.json({ 
+        success: true, 
+        points,
+        newBalance,
+      });
+    } catch (error: any) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: error.message || "支払い確認に失敗しました" });
     }
   });
 
