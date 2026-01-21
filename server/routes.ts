@@ -10,7 +10,7 @@ import {
   users, videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
   userProfiles, creatorApplications, phoneVerificationCodes,
-  videoLikes, liveViewingSessions,
+  videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
@@ -1585,6 +1585,214 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating order:", error);
       res.status(500).json({ message: "Failed to update order" });
+    }
+  });
+
+  // Creator sales management
+  app.get("/api/creator/sales", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Check if user is a creator
+      const [creatorProfile] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, userId));
+      
+      if (!creatorProfile) {
+        return res.status(403).json({ message: "Not a creator" });
+      }
+      
+      // Get earnings breakdown
+      const [liveEarnings] = await db
+        .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+        .from(pointTransactions)
+        .where(and(
+          eq(pointTransactions.userId, userId),
+          eq(pointTransactions.type, "bonus"),
+          sql`${pointTransactions.description} LIKE '%配信%'`
+        ));
+      
+      // Get product sales
+      const productSales = await db
+        .select({
+          id: purchases.id,
+          productId: purchases.productId,
+          productName: products.name,
+          amount: purchases.amount,
+          status: purchases.status,
+          createdAt: purchases.createdAt,
+          productType: products.productType,
+        })
+        .from(purchases)
+        .leftJoin(products, eq(purchases.productId, products.id))
+        .where(eq(purchases.creatorId, userId))
+        .orderBy(desc(purchases.createdAt))
+        .limit(50);
+      
+      // Get subscription earnings (from subscription payments)
+      const [subscriptionEarnings] = await db
+        .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+        .from(pointTransactions)
+        .where(and(
+          eq(pointTransactions.userId, userId),
+          eq(pointTransactions.type, "bonus"),
+          sql`${pointTransactions.description} LIKE '%サブスク%'`
+        ));
+      
+      // Calculate product total
+      const productTotal = productSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
+      
+      res.json({
+        profile: creatorProfile,
+        liveEarnings: liveEarnings?.total || 0,
+        productEarnings: productTotal,
+        subscriptionEarnings: subscriptionEarnings?.total || 0,
+        recentSales: productSales,
+      });
+    } catch (error) {
+      console.error("Error fetching creator sales:", error);
+      res.status(500).json({ message: "Failed to fetch sales data" });
+    }
+  });
+
+  // Get creator's bank info
+  app.get("/api/creator/bank-info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const [creatorProfile] = await db
+        .select({
+          bankName: creatorProfiles.bankName,
+          bankBranchName: creatorProfiles.bankBranchName,
+          bankAccountType: creatorProfiles.bankAccountType,
+          bankAccountNumber: creatorProfiles.bankAccountNumber,
+          bankAccountHolder: creatorProfiles.bankAccountHolder,
+          availableBalance: creatorProfiles.availableBalance,
+        })
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, userId));
+      
+      if (!creatorProfile) {
+        return res.status(403).json({ message: "Not a creator" });
+      }
+      
+      res.json(creatorProfile);
+    } catch (error) {
+      console.error("Error fetching bank info:", error);
+      res.status(500).json({ message: "Failed to fetch bank info" });
+    }
+  });
+
+  // Update creator's bank info
+  app.put("/api/creator/bank-info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { bankName, bankBranchName, bankAccountType, bankAccountNumber, bankAccountHolder } = req.body;
+      
+      const [updated] = await db
+        .update(creatorProfiles)
+        .set({
+          bankName,
+          bankBranchName,
+          bankAccountType,
+          bankAccountNumber,
+          bankAccountHolder,
+        })
+        .where(eq(creatorProfiles.userId, userId))
+        .returning();
+      
+      if (!updated) {
+        return res.status(403).json({ message: "Not a creator" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating bank info:", error);
+      res.status(500).json({ message: "Failed to update bank info" });
+    }
+  });
+
+  // Get withdrawal requests
+  app.get("/api/creator/withdrawals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const requests = await db
+        .select()
+        .from(withdrawalRequests)
+        .where(eq(withdrawalRequests.creatorId, userId))
+        .orderBy(desc(withdrawalRequests.createdAt));
+      
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching withdrawals:", error);
+      res.status(500).json({ message: "Failed to fetch withdrawals" });
+    }
+  });
+
+  // Create withdrawal request
+  app.post("/api/creator/withdrawals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { amount } = req.body;
+      
+      // Get creator profile
+      const [creatorProfile] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, userId));
+      
+      if (!creatorProfile) {
+        return res.status(403).json({ message: "Not a creator" });
+      }
+      
+      // Check if bank info is registered
+      if (!creatorProfile.bankName || !creatorProfile.bankAccountNumber) {
+        return res.status(400).json({ message: "Bank information not registered" });
+      }
+      
+      // Check available balance
+      if (creatorProfile.availableBalance < amount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+      
+      // Minimum withdrawal amount
+      const MIN_WITHDRAWAL = 3000;
+      if (amount < MIN_WITHDRAWAL) {
+        return res.status(400).json({ message: `Minimum withdrawal is ${MIN_WITHDRAWAL} points` });
+      }
+      
+      // Calculate fee (300 yen)
+      const fee = 300;
+      const netAmount = amount - fee;
+      
+      // Create withdrawal request
+      const [withdrawal] = await db.insert(withdrawalRequests).values({
+        creatorId: userId,
+        amount,
+        fee,
+        netAmount,
+        bankName: creatorProfile.bankName,
+        bankBranchName: creatorProfile.bankBranchName || "",
+        bankAccountType: creatorProfile.bankAccountType || "普通",
+        bankAccountNumber: creatorProfile.bankAccountNumber,
+        bankAccountHolder: creatorProfile.bankAccountHolder || "",
+      }).returning();
+      
+      // Update available balance (move to pending)
+      await db
+        .update(creatorProfiles)
+        .set({
+          availableBalance: sql`${creatorProfiles.availableBalance} - ${amount}`,
+          pendingBalance: sql`${creatorProfiles.pendingBalance} + ${amount}`,
+        })
+        .where(eq(creatorProfiles.userId, userId));
+      
+      res.json(withdrawal);
+    } catch (error) {
+      console.error("Error creating withdrawal:", error);
+      res.status(500).json({ message: "Failed to create withdrawal" });
     }
   });
 
