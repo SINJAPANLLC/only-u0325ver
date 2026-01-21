@@ -1944,15 +1944,18 @@ export async function registerRoutes(
         .limit(50);
       
       // Get plan prices for subscriptions with planId
-      const planIds = creatorSubscriptions.map(s => s.planId).filter(Boolean) as string[];
-      const planPrices = planIds.length > 0 ? await db
-        .select({
-          id: subscriptionPlans.id,
-          name: subscriptionPlans.name,
-          price: subscriptionPlans.price,
-        })
-        .from(subscriptionPlans)
-        .where(sql`${subscriptionPlans.id} IN (${sql.join(planIds.map(id => sql`${id}`), sql`, `)})`) : [];
+      const planIds = creatorSubscriptions.map(s => s.planId).filter((id): id is string => id !== null && id !== undefined);
+      let planPrices: { id: string; name: string; price: number }[] = [];
+      if (planIds.length > 0) {
+        planPrices = await db
+          .select({
+            id: subscriptionPlans.id,
+            name: subscriptionPlans.name,
+            price: subscriptionPlans.price,
+          })
+          .from(subscriptionPlans)
+          .where(inArray(subscriptionPlans.id, planIds));
+      }
       
       const planPriceMap = new Map(planPrices.map(p => [p.id, p]));
       
