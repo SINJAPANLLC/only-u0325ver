@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban, Truck } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban, Truck, Film } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -569,7 +569,7 @@ export default function CreatorProfile() {
       <div className="flex flex-col items-center px-4 pt-6">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className="h-28 w-28 ring-4 ring-pink-500 shadow-xl overflow-hidden">
+          <Avatar className={`h-28 w-28 shadow-xl overflow-hidden ${isRealCreator ? 'ring-4 ring-pink-500' : ''}`}>
             <AvatarImage 
               src={creator.avatar || logoImage} 
               className="object-cover w-full h-full"
@@ -833,7 +833,8 @@ export default function CreatorProfile() {
           
           <TabsContent value="videos" className="mt-0">
             {creator.videos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
+                <Film className="h-12 w-12" />
                 <p>コンテンツがありません</p>
               </div>
             ) : (
