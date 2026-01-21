@@ -594,17 +594,26 @@ export async function registerRoutes(
         .where(eq(liveStreams.id, streamId));
 
       if (stream) {
-        const [creatorProfile] = await db
+        const [creatorUserProfile] = await db
           .select()
           .from(userProfiles)
           .where(eq(userProfiles.userId, stream.creatorId));
 
-        if (creatorProfile) {
+        if (creatorUserProfile) {
           await db
             .update(userProfiles)
-            .set({ points: (creatorProfile.points || 0) + session.ratePerMinute })
+            .set({ points: (creatorUserProfile.points || 0) + session.ratePerMinute })
             .where(eq(userProfiles.userId, stream.creatorId));
         }
+        
+        // Also update creator's earnings in creatorProfiles
+        await db
+          .update(creatorProfiles)
+          .set({
+            totalEarnings: sql`${creatorProfiles.totalEarnings} + ${session.ratePerMinute}`,
+            availableBalance: sql`${creatorProfiles.availableBalance} + ${session.ratePerMinute}`,
+          })
+          .where(eq(creatorProfiles.userId, stream.creatorId));
       }
 
       // Update session totals
@@ -1614,15 +1623,12 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Not a creator" });
       }
       
-      // Get earnings breakdown
+      // Get live streaming earnings from viewing sessions
       const [liveEarnings] = await db
-        .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
-        .from(pointTransactions)
-        .where(and(
-          eq(pointTransactions.userId, userId),
-          eq(pointTransactions.type, "bonus"),
-          sql`${pointTransactions.description} LIKE '%配信%'`
-        ));
+        .select({ total: sql<number>`COALESCE(SUM(lvs.total_points_charged), 0)` })
+        .from(liveViewingSessions)
+        .innerJoin(liveStreams, eq(liveViewingSessions.liveStreamId, liveStreams.id))
+        .where(eq(liveStreams.creatorId, userId));
       
       // Get product sales
       const productSales = await db
