@@ -90,6 +90,40 @@ export const creatorProfiles = pgTable("creator_profiles", {
   followerCount: integer("follower_count").default(0),
   followingCount: integer("following_count").default(0),
   postCount: integer("post_count").default(0),
+  totalEarnings: integer("total_earnings").default(0).notNull(),
+  availableBalance: integer("available_balance").default(0).notNull(),
+  pendingBalance: integer("pending_balance").default(0).notNull(),
+  bankName: varchar("bank_name"),
+  bankBranchName: varchar("bank_branch_name"),
+  bankAccountType: varchar("bank_account_type"),
+  bankAccountNumber: varchar("bank_account_number"),
+  bankAccountHolder: varchar("bank_account_holder"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Withdrawal request status
+export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
+  "pending",
+  "processing",
+  "completed",
+  "rejected",
+]);
+
+// Withdrawal requests
+export const withdrawalRequests = pgTable("withdrawal_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  creatorId: varchar("creator_id").notNull(),
+  amount: integer("amount").notNull(),
+  fee: integer("fee").default(0).notNull(),
+  netAmount: integer("net_amount").notNull(),
+  status: withdrawalStatusEnum("status").default("pending"),
+  bankName: varchar("bank_name").notNull(),
+  bankBranchName: varchar("bank_branch_name").notNull(),
+  bankAccountType: varchar("bank_account_type").notNull(),
+  bankAccountNumber: varchar("bank_account_number").notNull(),
+  bankAccountHolder: varchar("bank_account_holder").notNull(),
+  adminNotes: text("admin_notes"),
+  processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -392,3 +426,13 @@ export type PointTransaction = typeof pointTransactions.$inferSelect;
 export type BankTransferRequest = typeof bankTransferRequests.$inferSelect;
 export type PointPackage = typeof pointPackages.$inferSelect;
 export type Purchase = typeof purchases.$inferSelect;
+export type WithdrawalRequest = typeof withdrawalRequests.$inferSelect;
+
+export const insertWithdrawalRequestSchema = createInsertSchema(withdrawalRequests).omit({
+  id: true,
+  status: true,
+  adminNotes: true,
+  processedAt: true,
+  createdAt: true,
+});
+export type InsertWithdrawalRequest = z.infer<typeof insertWithdrawalRequestSchema>;
