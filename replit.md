@@ -50,7 +50,17 @@ Users must apply to become creators and be approved by an admin:
 3. Approved users get a creatorProfile entry created automatically
 4. Only approved creators can access creator features (live streaming, content management)
 
-Admin check is currently email-based (contains "admin") - should be refined for production.
+### Admin System
+The platform has a separate admin authentication system:
+- **Admin Routes**: `/admin/login` (login page), `/admin/dashboard` (management interface)
+- **Authentication**: Session-based with bcrypt password hashing, separate from regular user auth
+- **Admin Credentials**: Seeded on startup (info@sinjapan.jp)
+- **Features**: 
+  - Dashboard with platform statistics
+  - Creator application review (approve/reject)
+  - Bank transfer confirmation (point crediting)
+  - User management with point adjustment
+- **Security**: Session regeneration on login, admin session isolated from user session
 
 ### Authentication Flow
 Uses Replit's OpenID Connect authentication. Sessions are stored in PostgreSQL with a 1-week TTL. The `isAuthenticated` middleware protects private routes. User data is upserted on login via the auth storage layer.

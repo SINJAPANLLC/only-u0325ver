@@ -43,21 +43,13 @@ export default function AdminLogin() {
     },
   });
 
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (authStatus?.authenticated) {
       setLocation("/admin/dashboard");
     }
   }, [authStatus?.authenticated, setLocation]);
 
-  if (authStatus?.authenticated) {
+  if (isCheckingAuth || authStatus?.authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
