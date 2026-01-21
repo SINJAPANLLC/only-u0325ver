@@ -4549,7 +4549,21 @@ export async function registerRoutes(
           .orderBy(desc(bankTransferRequests.createdAt));
       }
       
-      res.json(transfers);
+      // Add user display names
+      const transfersWithNames = await Promise.all(
+        transfers.map(async (transfer) => {
+          const [profile] = await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, transfer.userId));
+          return {
+            ...transfer,
+            userName: profile?.displayName || "不明なユーザー",
+          };
+        })
+      );
+      
+      res.json(transfersWithNames);
     } catch (error) {
       console.error("Get transfers error:", error);
       res.status(500).json({ message: "振込一覧の取得に失敗しました" });

@@ -18,6 +18,16 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   LayoutDashboard,
   Users,
   FileCheck,
@@ -228,6 +238,7 @@ export default function AdminDashboard() {
   const [userSearch, setUserSearch] = useState("");
   const [selectedApplication, setSelectedApplication] = useState<CreatorApplication | null>(null);
   const [selectedTransfer, setSelectedTransfer] = useState<BankTransferRequest | null>(null);
+  const [transferToConfirm, setTransferToConfirm] = useState<BankTransferRequest | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [rejectionNotes, setRejectionNotes] = useState("");
   const [pointAdjustment, setPointAdjustment] = useState(0);
@@ -765,7 +776,7 @@ export default function AdminDashboard() {
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium">{transfer.accountName || transfer.userId.slice(0, 8)}</span>
+                                <span className="font-medium">{(transfer as any).userName || transfer.accountName || "不明なユーザー"}</span>
                                 {getStatusBadge(transfer.status)}
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -782,7 +793,7 @@ export default function AdminDashboard() {
                                   className="bg-green-600 hover:bg-green-700"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    confirmTransfer.mutate(transfer.id);
+                                    setTransferToConfirm(transfer);
                                   }}
                                   disabled={confirmTransfer.isPending}
                                   data-testid={`confirm-${transfer.id}`}
@@ -1886,6 +1897,40 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Transfer Confirmation Dialog */}
+      <AlertDialog open={!!transferToConfirm} onOpenChange={(open) => !open && setTransferToConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>銀行振込の確認</AlertDialogTitle>
+            <AlertDialogDescription>
+              銀行振り込みを確認できましたか？
+              <br /><br />
+              <span className="font-medium">
+                ユーザー: {transferToConfirm && ((transferToConfirm as any).userName || transferToConfirm.accountName || "不明")}
+              </span>
+              <br />
+              <span className="font-medium">
+                金額: ¥{transferToConfirm && formatPoints(transferToConfirm.amount)} → {transferToConfirm && formatPoints(transferToConfirm.points)}pt
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (transferToConfirm) {
+                  confirmTransfer.mutate(transferToConfirm.id);
+                  setTransferToConfirm(null);
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              確認済み・承認する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
