@@ -16,6 +16,7 @@ import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
 import img4 from "@assets/generated_images/nude_shower_4.jpg";
 import img5 from "@assets/generated_images/bunny_girl_5.jpg";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
 const demoCreators: Record<string, { name: string; avatar: string }> = {
   "demo-1": { name: "れいな💋", avatar: img1 },
@@ -140,7 +141,7 @@ export default function ConversationPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <Avatar className="h-10 w-10">
-            <AvatarImage src={participantAvatar} className="object-cover" />
+            <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
               {participantName.charAt(0)}
             </AvatarFallback>
