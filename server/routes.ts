@@ -4870,14 +4870,14 @@ export async function registerRoutes(
         .from(bankTransferRequests)
         .where(eq(bankTransferRequests.status, "confirmed"));
       
-      // Stripe point purchases
+      // Card point purchases (Stripe)
       const stripePointPurchases = await db
         .select({ 
           total: sql<number>`COALESCE(SUM(amount), 0)`,
           count: sql<number>`COUNT(*)`
         })
         .from(pointTransactions)
-        .where(eq(pointTransactions.type, "purchase"));
+        .where(eq(pointTransactions.type, "purchase_card"));
       
       const bankTransferTotal = Number(pointPurchases[0]?.total || 0);
       const bankTransferCount = Number(pointPurchases[0]?.count || 0);
