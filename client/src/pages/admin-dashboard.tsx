@@ -2005,6 +2005,17 @@ export default function AdminDashboard() {
                               <td className="p-3 text-sm text-muted-foreground">{stream.startedAt ? formatDate(stream.startedAt) : "-"}</td>
                               <td className="p-3">
                                 <div className="flex gap-2">
+                                  {(stream.status === "live" || stream.status === "scheduled") && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => window.open(`/live/${stream.id}`, "_blank")}
+                                      data-testid={`view-stream-${stream.id}`}
+                                    >
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      視聴
+                                    </Button>
+                                  )}
                                   {stream.status === "live" && (
                                     <AlertDialog>
                                       <AlertDialogTrigger asChild>
