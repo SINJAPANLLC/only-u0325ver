@@ -3408,6 +3408,67 @@ export async function registerRoutes(
     }
   });
 
+  // Phone verification - send code
+  app.post("/api/verification/phone/send", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber } = req.body;
+      
+      // Store phone number in application
+      const [existing] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.userId, userId));
+
+      if (existing) {
+        await db
+          .update(creatorApplications)
+          .set({ phoneNumber })
+          .where(eq(creatorApplications.userId, userId));
+      } else {
+        await db.insert(creatorApplications).values({
+          userId,
+          phoneNumber,
+          status: "draft",
+        });
+      }
+      
+      // For demo: just return success (would send SMS in production)
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error sending phone verification:", error);
+      res.status(500).json({ message: "送信に失敗しました" });
+    }
+  });
+
+  // Phone verification - verify code
+  app.post("/api/verification/phone/verify", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber, code } = req.body;
+      
+      // Demo: accept code 123456
+      if (code !== "123456") {
+        return res.status(400).json({ message: "認証コードが正しくありません" });
+      }
+      
+      // Mark phone as verified
+      await db
+        .update(creatorApplications)
+        .set({ 
+          phoneNumber,
+          phoneVerified: true,
+          phoneVerifiedAt: new Date()
+        })
+        .where(eq(creatorApplications.userId, userId));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error verifying phone:", error);
+      res.status(500).json({ message: "認証に失敗しました" });
+    }
+  });
+
   // Email verification status
   app.get("/api/verification/email/status", isAuthenticated, async (req: any, res) => {
     try {
