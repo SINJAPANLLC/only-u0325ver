@@ -24,6 +24,7 @@ export const userProfiles = pgTable("user_profiles", {
   bio: text("bio"),
   location: varchar("location"),
   birthdate: timestamp("birthdate"),
+  phoneNumber: varchar("phone_number"),
   points: integer("points").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -2794,6 +2794,50 @@ export async function registerRoutes(
     }
   });
 
+  // Update phone number in profile
+  app.put("/api/profile/phone", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber } = req.body;
+
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "電話番号を入力してください" });
+      }
+
+      // Validate phone number format (Japanese format)
+      const cleanPhone = phoneNumber.replace(/[-\s]/g, "");
+      if (!/^0[0-9]{9,10}$/.test(cleanPhone)) {
+        return res.status(400).json({ message: "有効な電話番号を入力してください" });
+      }
+
+      const [updated] = await db
+        .update(userProfiles)
+        .set({ 
+          phoneNumber: cleanPhone,
+          updatedAt: new Date() 
+        })
+        .where(eq(userProfiles.userId, userId))
+        .returning();
+
+      if (!updated) {
+        // Create profile if doesn't exist
+        const [newProfile] = await db
+          .insert(userProfiles)
+          .values({
+            userId,
+            phoneNumber: cleanPhone,
+          })
+          .returning();
+        return res.json(newProfile);
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating phone:", error);
+      res.status(500).json({ message: "電話番号の登録に失敗しました" });
+    }
+  });
+
   // Creator Application endpoints
   app.get("/api/creator-applications/me", isAuthenticated, async (req: any, res) => {
     try {
