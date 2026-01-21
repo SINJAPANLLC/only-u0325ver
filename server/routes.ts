@@ -6,6 +6,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import { setupWebRTCSignaling } from "./webrtc";
 import { db } from "./db";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import nodemailer from "nodemailer";
 import { 
   users, videos, liveStreams, products, conversations, messages, 
   notifications, creatorProfiles, follows, subscriptions, subscriptionPlans,
@@ -3567,12 +3568,47 @@ export async function registerRoutes(
         return res.status(400).json({ message: "必須項目を入力してください" });
       }
       
-      // For now, just log and return success (would send email/store in DB in production)
-      console.log("Contact form submission:", { category, email, subject, message });
+      const categoryLabels: Record<string, string> = {
+        account: "アカウントについて",
+        payment: "決済・ポイントについて",
+        creator: "クリエイター機能について",
+        content: "コンテンツについて",
+        bug: "不具合・バグ報告",
+        other: "その他",
+      };
+      
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "465"),
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+      
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: "info@only-u.fun",
+        replyTo: email,
+        subject: `[Only-U お問い合わせ] ${categoryLabels[category] || category}${subject ? `: ${subject}` : ""}`,
+        text: `カテゴリ: ${categoryLabels[category] || category}\n送信者: ${email}\n件名: ${subject || "なし"}\n\n${message}`,
+        html: `
+          <h3>Only-U お問い合わせ</h3>
+          <p><strong>カテゴリ:</strong> ${categoryLabels[category] || category}</p>
+          <p><strong>送信者:</strong> ${email}</p>
+          <p><strong>件名:</strong> ${subject || "なし"}</p>
+          <hr />
+          <p>${message.replace(/\n/g, "<br />")}</p>
+        `,
+      };
+      
+      await transporter.sendMail(mailOptions);
+      console.log("Contact email sent successfully to info@only-u.fun");
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error submitting contact form:", error);
+      console.error("Error sending contact email:", error);
       res.status(500).json({ message: "送信に失敗しました" });
     }
   });

@@ -65,6 +65,7 @@ Uses Replit's OpenID Connect authentication. Sessions are stored in PostgreSQL w
 ### Third-Party Services
 - **Replit Auth**: OpenID Connect authentication provider
 - **PostgreSQL**: Primary database (provisioned via Replit)
+- **SMTP (Hostinger)**: Email sending for contact form submissions
 
 ### Key NPM Packages
 - `drizzle-orm` / `drizzle-kit`: Database ORM and migrations
@@ -79,12 +80,16 @@ Uses Replit's OpenID Connect authentication. Sessions are stored in PostgreSQL w
 - `SESSION_SECRET`: Secret for session encryption
 - `ISSUER_URL`: OpenID Connect issuer (defaults to Replit)
 - `REPL_ID`: Replit environment identifier
+- `SMTP_HOST`: SMTP server host (smtp.hostinger.com)
+- `SMTP_PORT`: SMTP server port (465)
+- `SMTP_USER`: SMTP username (email address)
+- `SMTP_PASS`: SMTP password
 
 ## Points System
 
 The platform uses a points-based payment system:
 - 1 point = 1 yen (tax excluded)
-- Points can be purchased via bank transfer (card payment pending Stripe setup)
+- Points can be purchased via bank transfer or card payment (Stripe)
 - Points are used for all platform services (subscriptions, purchases, tips)
 
 ### Point Purchase Flow
