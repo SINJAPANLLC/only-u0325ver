@@ -612,8 +612,8 @@ export async function registerRoutes(
         await db
           .update(creatorProfiles)
           .set({
-            totalEarnings: sql`${creatorProfiles.totalEarnings} + ${session.ratePerMinute}`,
-            availableBalance: sql`${creatorProfiles.availableBalance} + ${session.ratePerMinute}`,
+            totalEarnings: sql`COALESCE(${creatorProfiles.totalEarnings}, 0) + ${session.ratePerMinute}`,
+            availableBalance: sql`COALESCE(${creatorProfiles.availableBalance}, 0) + ${session.ratePerMinute}`,
           })
           .where(eq(creatorProfiles.userId, stream.creatorId));
       }
@@ -2657,6 +2657,23 @@ export async function registerRoutes(
         .update(userProfiles)
         .set({ points: (userProfile.points || 0) - price })
         .where(eq(userProfiles.userId, userId));
+
+      // Update creator's earnings
+      await db
+        .update(creatorProfiles)
+        .set({ 
+          totalEarnings: sql`COALESCE(${creatorProfiles.totalEarnings}, 0) + ${price}`,
+          availableBalance: sql`COALESCE(${creatorProfiles.availableBalance}, 0) + ${price}`,
+        })
+        .where(eq(creatorProfiles.userId, creatorId));
+
+      // Record subscription transaction for creator
+      await db.insert(pointTransactions).values({
+        userId: creatorId,
+        type: "bonus",
+        amount: price,
+        description: `サブスク収益: ${planName}`,
+      });
 
       const expiresAt = new Date();
       expiresAt.setMonth(expiresAt.getMonth() + 1); // 1 month subscription
