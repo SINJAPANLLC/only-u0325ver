@@ -3240,7 +3240,7 @@ export async function registerRoutes(
         amount: -PREMIUM_PLAN_PRICE,
         type: "premium_plan",
         description: "高画質プラン加入（1ヶ月）",
-        balanceAfter: newBalance,
+        balance: newBalance,
       });
 
       // Create or update premium plan subscription
