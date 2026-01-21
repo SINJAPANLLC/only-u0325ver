@@ -4796,6 +4796,24 @@ export async function registerRoutes(
     }
   });
 
+  // Delete a product (admin)
+  app.delete("/api/admin/products/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete related purchases first
+      await db.delete(purchases).where(eq(purchases.productId, id));
+      
+      // Delete the product
+      await db.delete(products).where(eq(products.id, id));
+      
+      res.json({ success: true, message: "商品を削除しました" });
+    } catch (error) {
+      console.error("Delete product error:", error);
+      res.status(500).json({ message: "商品の削除に失敗しました" });
+    }
+  });
+
   // Get all live streams for admin
   app.get("/api/admin/livestreams", isAdminSession, async (req, res) => {
     try {

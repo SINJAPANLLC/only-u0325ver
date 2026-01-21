@@ -501,6 +501,21 @@ export default function AdminDashboard() {
     },
   });
 
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/admin/products/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "商品を削除しました" });
+    },
+    onError: () => {
+      toast({ title: "商品の削除に失敗しました", variant: "destructive" });
+    },
+  });
+
   // Marketing users query
   const { data: marketingUsers, isLoading: isLoadingMarketingUsers } = useQuery<Array<{id: string; displayName: string | null; email: string | null; createdAt: Date | null}>>({
     queryKey: ["/api/admin/marketing/users"],
@@ -1959,6 +1974,7 @@ export default function AdminDashboard() {
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">価格</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">在庫</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1974,6 +1990,43 @@ export default function AdminDashboard() {
                                 <Badge variant="secondary">
                                   {product.productType === "digital" ? "デジタル" : "物理"}
                                 </Badge>
+                              </td>
+                              <td className="p-3">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => window.open(`/shop/${product.id}`, "_blank")}
+                                    data-testid={`view-product-${product.id}`}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    詳細
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" variant="destructive" data-testid={`delete-product-${product.id}`}>
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>商品を削除しますか？</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          「{product.name}」を削除します。この操作は取り消せません。
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteProduct.mutate(product.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          削除
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
                               </td>
                             </tr>
                           ))}
