@@ -347,6 +347,16 @@ export default function CreatorProfile() {
   };
 
   const confirmSubscribe = () => {
+    const price = getSubscriptionPrice();
+    if (userPoints < price) {
+      setShowSubscribeDialog(false);
+      toast({
+        title: "ポイント不足",
+        description: "ポイント購入ページに移動します",
+      });
+      setLocation("/points-purchase");
+      return;
+    }
     subscribeMutation.mutate(selectedPlanId || undefined);
   };
 
