@@ -1262,33 +1262,56 @@ export async function registerRoutes(
         .where(eq(creatorProfiles.userId, otherParticipantId))
         .limit(1);
       
-      // If not a creator, get from users table
+      // If not a creator, get from user_profiles then users table
       let participantInfo;
       if (creatorInfo) {
         participantInfo = {
           displayName: creatorInfo.displayName,
           avatarUrl: creatorInfo.avatarUrl,
+          isCreator: true,
         };
       } else {
-        const [userData] = await db
+        // Try user profiles first
+        const [profileInfo] = await db
           .select({
-            username: users.username,
-            avatarUrl: users.avatarUrl,
+            displayName: userProfiles.displayName,
+            avatarUrl: userProfiles.avatarUrl,
           })
-          .from(users)
-          .where(eq(users.id, otherParticipantId))
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, otherParticipantId))
           .limit(1);
         
-        participantInfo = {
-          displayName: userData?.username || "ユーザー",
-          avatarUrl: userData?.avatarUrl || null,
-        };
+        if (profileInfo && profileInfo.displayName) {
+          participantInfo = {
+            displayName: profileInfo.displayName,
+            avatarUrl: profileInfo.avatarUrl,
+            isCreator: false,
+          };
+        } else {
+          // Fall back to users table
+          const [userData] = await db
+            .select({
+              username: users.username,
+              avatarUrl: users.avatarUrl,
+            })
+            .from(users)
+            .where(eq(users.id, otherParticipantId))
+            .limit(1);
+          
+          participantInfo = {
+            displayName: userData?.username || "ユーザー",
+            avatarUrl: profileInfo?.avatarUrl || userData?.avatarUrl || null,
+            isCreator: false,
+          };
+        }
       }
       
       res.json({
         ...conv,
+        participantId: otherParticipantId,
         participantDisplayName: participantInfo.displayName,
         participantAvatarUrl: participantInfo.avatarUrl,
+        participantIsCreator: participantInfo.isCreator,
       });
     } catch (error) {
       console.error("Error fetching conversation:", error);

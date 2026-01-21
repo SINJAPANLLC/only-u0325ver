@@ -104,6 +104,17 @@ export default function ConversationPage() {
   const participantAvatar = isDemo 
     ? demoCreator?.avatar 
     : ((conversation as any)?.participantAvatarUrl || undefined);
+  const participantId = (conversation as any)?.participantId;
+  const participantIsCreator = (conversation as any)?.participantIsCreator;
+
+  const handleParticipantClick = () => {
+    if (isDemo) return;
+    if (participantIsCreator && participantId) {
+      setLocation(`/creator/${participantId}`);
+    } else if (participantId) {
+      setLocation(`/user/${participantId}`);
+    }
+  };
 
   const handleSend = () => {
     if (!messageText.trim()) return;
@@ -140,14 +151,20 @@ export default function ConversationPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
-              {participantName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <h1 className="font-semibold">{participantName}</h1>
+          <div 
+            className="flex items-center gap-3 flex-1 cursor-pointer hover-elevate rounded-lg p-1 -m-1"
+            onClick={handleParticipantClick}
+            data-testid="link-participant-profile"
+          >
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+                {participantName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <h1 className="font-semibold">{participantName}</h1>
+            </div>
           </div>
         </div>
       </header>
