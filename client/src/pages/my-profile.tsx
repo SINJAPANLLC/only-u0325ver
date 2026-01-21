@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 
-import logoImage from "@assets/Only-U_1768298755951.jpeg";
+import logoImage from "@assets/Only-U_4_1768300473065.jpeg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
@@ -694,6 +694,12 @@ export default function MyProfile() {
               </Button>
             </div>
           )}
+          {!hasVideos ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <Grid3X3 className="h-12 w-12 mb-4 opacity-50" />
+              <p>コンテンツがありません</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-3 gap-0.5">
             {displayVideos?.map((video) => {
               const requiredTier = (video as any).requiredTier || 0;
@@ -749,6 +755,7 @@ export default function MyProfile() {
               );
             })}
           </div>
+          )}
         </TabsContent>
         
         <TabsContent value="shop" className="mt-0">
