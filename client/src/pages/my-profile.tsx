@@ -417,7 +417,7 @@ export default function MyProfile() {
       <div className="flex flex-col items-center px-4 pt-6">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className="h-28 w-28 ring-4 ring-pink-500 shadow-xl overflow-hidden">
+          <Avatar className={`h-28 w-28 shadow-xl overflow-hidden ${creatorProfile ? 'ring-4 ring-pink-500' : ''}`}>
             <AvatarImage 
               src={currentAvatar} 
               className="object-cover w-full h-full"
