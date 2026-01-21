@@ -2431,7 +2431,7 @@ export async function registerRoutes(
       const { creatorId } = req.params;
       const now = new Date();
       
-      const [subscription] = await db
+      const userSubscriptions = await db
         .select()
         .from(subscriptions)
         .where(and(
@@ -2441,7 +2441,17 @@ export async function registerRoutes(
           gt(subscriptions.expiresAt, now)
         ));
       
-      res.json({ isSubscribed: !!subscription, subscription });
+      // Get the highest tier subscription for backward compatibility
+      const subscription = userSubscriptions.length > 0 
+        ? userSubscriptions.reduce((max, sub) => sub.tier > max.tier ? sub : max, userSubscriptions[0])
+        : null;
+      
+      res.json({ 
+        isSubscribed: userSubscriptions.length > 0, 
+        subscription,
+        subscriptions: userSubscriptions,
+        subscribedPlanIds: userSubscriptions.map(s => s.planId)
+      });
     } catch (error) {
       console.error("Error checking subscription:", error);
       res.status(500).json({ message: "Failed to check subscription" });
@@ -2491,17 +2501,21 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Creator not found" });
       }
 
-      const [existingSub] = await db
-        .select()
-        .from(subscriptions)
-        .where(and(
-          eq(subscriptions.userId, userId),
-          eq(subscriptions.creatorId, creatorId),
-          eq(subscriptions.status, "active")
-        ));
+      // Check if already subscribed to this specific plan
+      if (planId) {
+        const [existingSub] = await db
+          .select()
+          .from(subscriptions)
+          .where(and(
+            eq(subscriptions.userId, userId),
+            eq(subscriptions.creatorId, creatorId),
+            eq(subscriptions.planId, planId),
+            eq(subscriptions.status, "active")
+          ));
 
-      if (existingSub) {
-        return res.status(400).json({ message: "Already subscribed" });
+        if (existingSub) {
+          return res.status(400).json({ message: "このプランには既に加入しています" });
+        }
       }
 
       const [userProfile] = await db

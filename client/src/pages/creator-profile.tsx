@@ -157,7 +157,7 @@ export default function CreatorProfile() {
     enabled: Boolean(user && isRealCreator),
   });
 
-  const { data: subscriptionStatus } = useQuery<{ isSubscribed: boolean; subscription?: Subscription }>({
+  const { data: subscriptionStatus } = useQuery<{ isSubscribed: boolean; subscription?: Subscription; subscribedPlanIds?: (string | null)[] }>({
     queryKey: ["/api/subscription", creatorId],
     enabled: Boolean(user && creatorId),
   });
@@ -617,35 +617,46 @@ export default function CreatorProfile() {
             </DialogHeader>
             <div className="py-4 space-y-3">
               {subscriptionPlans && subscriptionPlans.length > 0 ? (
-                subscriptionPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => setSelectedPlanId(plan.id)}
-                    className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all border-2 ${
-                      selectedPlanId === plan.id
-                        ? "border-pink-500 bg-pink-500/10"
-                        : "border-muted bg-muted hover:border-pink-300"
-                    }`}
-                    data-testid={`plan-option-${plan.tier}`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{plan.name}</p>
-                        {plan.tier === 3 && (
-                          <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
-                        )}
-                        {plan.tier === 2 && (
-                          <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded">人気</span>
-                        )}
+                subscriptionPlans.map((plan) => {
+                  const isAlreadySubscribed = subscriptionStatus?.subscribedPlanIds?.includes(plan.id);
+                  return (
+                    <div
+                      key={plan.id}
+                      onClick={() => !isAlreadySubscribed && setSelectedPlanId(plan.id)}
+                      className={`flex items-center justify-between p-4 rounded-lg transition-all border-2 ${
+                        isAlreadySubscribed
+                          ? "border-green-500 bg-green-500/10 cursor-default"
+                          : selectedPlanId === plan.id
+                          ? "border-pink-500 bg-pink-500/10 cursor-pointer"
+                          : "border-muted bg-muted hover:border-pink-300 cursor-pointer"
+                      }`}
+                      data-testid={`plan-option-${plan.tier}`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{plan.name}</p>
+                          {isAlreadySubscribed && (
+                            <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                              <Check className="h-3 w-3" />
+                              加入中
+                            </span>
+                          )}
+                          {!isAlreadySubscribed && plan.tier === 3 && (
+                            <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
+                          )}
+                          {!isAlreadySubscribed && plan.tier === 2 && (
+                            <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded">人気</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{plan.description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                      <div className="text-right">
+                        <p className={`text-xl font-bold ${isAlreadySubscribed ? "text-green-500" : "text-pink-500"}`}>{plan.price.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">pt/月</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-pink-500">{plan.price.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">pt/月</p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <div>
