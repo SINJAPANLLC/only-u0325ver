@@ -700,7 +700,7 @@ export default function AdminDashboard() {
                   ) : transfers && transfers.length > 0 ? (
                     <div className="space-y-3">
                       {transfers.map((transfer) => (
-                        <div key={transfer.id} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onClick={() => setSelectedTransfer(transfer)}>
+                        <div key={transfer.id} className="p-4 border rounded-lg cursor-pointer hover-elevate" onClick={() => setSelectedTransfer(transfer)} data-testid={`card-transfer-${transfer.id}`}>
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
@@ -780,7 +780,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                           {allWithdrawals.map((withdrawal) => (
-                            <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-withdrawal-${withdrawal.id}`}>
                               <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
                               <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
                               <td className="p-3 text-sm">{withdrawal.bankName}</td>
@@ -813,30 +813,30 @@ export default function AdminDashboard() {
               ) : salesData ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card>
+                    <Card data-testid="card-subscription-revenue">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">サブスクリプション収益</p>
-                        <p className="text-2xl font-bold">¥{salesData.subscriptionRevenue.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-subscription-revenue">¥{salesData.subscriptionRevenue.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-product-sales">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">商品売上</p>
-                        <p className="text-2xl font-bold">¥{salesData.productSalesTotal.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-product-sales">¥{salesData.productSalesTotal.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{salesData.productSalesCount}件</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-point-purchases">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">ポイント購入（振込）</p>
-                        <p className="text-2xl font-bold">¥{salesData.pointPurchasesTotal.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-point-purchases">¥{salesData.pointPurchasesTotal.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{salesData.pointPurchasesCount}件</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-total-sales">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">合計売上</p>
-                        <p className="text-2xl font-bold text-pink-600">
+                        <p className="text-2xl font-bold text-pink-600" data-testid="text-total-sales">
                           ¥{(salesData.subscriptionRevenue + salesData.productSalesTotal + salesData.pointPurchasesTotal).toLocaleString()}
                         </p>
                       </CardContent>
@@ -861,15 +861,15 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody>
                               {salesData.recentTransactions.map((tx) => (
-                                <tr key={tx.id} className="border-b border-slate-100 dark:border-slate-800">
-                                  <td className="p-3 text-sm">{tx.userName}</td>
+                                <tr key={tx.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-transaction-${tx.id}`}>
+                                  <td className="p-3 text-sm" data-testid={`text-transaction-user-${tx.id}`}>{tx.userName}</td>
                                   <td className="p-3">
-                                    <Badge variant={tx.type === "purchase" ? "default" : "secondary"}>
+                                    <Badge variant={tx.type === "purchase" ? "default" : "secondary"} data-testid={`badge-transaction-type-${tx.id}`}>
                                       {tx.type === "purchase" ? "購入" : tx.type === "use" ? "使用" : tx.type}
                                     </Badge>
                                   </td>
                                   <td className="p-3 text-sm font-medium">
-                                    <span className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                    <span className={tx.amount > 0 ? "text-green-600" : "text-red-600"} data-testid={`text-transaction-amount-${tx.id}`}>
                                       {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()} pt
                                     </span>
                                   </td>
@@ -902,40 +902,40 @@ export default function AdminDashboard() {
               ) : marketingData ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <Card>
+                    <Card data-testid="card-total-users">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">総ユーザー数</p>
-                        <p className="text-2xl font-bold">{marketingData.totalUsers.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-users">{marketingData.totalUsers.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-new-users">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">今月の新規登録</p>
-                        <p className="text-2xl font-bold text-green-600">{marketingData.newUsersThisMonth.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-green-600" data-testid="text-new-users">{marketingData.newUsersThisMonth.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-total-follows">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">フォロー総数</p>
-                        <p className="text-2xl font-bold">{marketingData.totalFollows.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-follows">{marketingData.totalFollows.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-active-subscriptions">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">アクティブサブスクリプション</p>
-                        <p className="text-2xl font-bold text-pink-600">{marketingData.activeSubscriptions.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-pink-600" data-testid="text-active-subscriptions">{marketingData.activeSubscriptions.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-video-views">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">動画総再生数</p>
-                        <p className="text-2xl font-bold">{marketingData.totalVideoViews.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-video-views">{marketingData.totalVideoViews.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-video-likes">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">動画総いいね数</p>
-                        <p className="text-2xl font-bold">{marketingData.totalVideoLikes.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-video-likes">{marketingData.totalVideoLikes.toLocaleString()}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -956,16 +956,16 @@ export default function AdminDashboard() {
               ) : messagesData ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
+                    <Card data-testid="card-total-messages">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">総メッセージ数</p>
-                        <p className="text-2xl font-bold">{messagesData.totalMessages.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-messages">{messagesData.totalMessages.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-total-conversations">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">総会話数</p>
-                        <p className="text-2xl font-bold">{messagesData.totalConversations.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-conversations">{messagesData.totalConversations.toLocaleString()}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -977,9 +977,9 @@ export default function AdminDashboard() {
                       {messagesData.recentMessages.length > 0 ? (
                         <div className="space-y-3">
                           {messagesData.recentMessages.slice(0, 20).map((msg) => (
-                            <div key={msg.id} className="p-3 border rounded-lg">
+                            <div key={msg.id} className="p-3 border rounded-lg" data-testid={`card-message-${msg.id}`}>
                               <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className="font-medium text-sm">{msg.senderName}</span>
+                                <span className="font-medium text-sm" data-testid={`text-sender-${msg.id}`}>{msg.senderName}</span>
                                 <span className="text-xs text-muted-foreground">{formatDate(msg.createdAt)}</span>
                               </div>
                               <p className="text-sm text-muted-foreground line-clamp-2">{msg.content}</p>
@@ -1025,12 +1025,12 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                           {inquiriesData.map((inquiry) => (
-                            <tr key={inquiry.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                              <td className="p-3 text-sm font-medium">{inquiry.name}</td>
+                            <tr key={inquiry.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-inquiry-${inquiry.id}`}>
+                              <td className="p-3 text-sm font-medium" data-testid={`text-inquiry-name-${inquiry.id}`}>{inquiry.name}</td>
                               <td className="p-3 text-sm">{inquiry.email}</td>
                               <td className="p-3 text-sm">{inquiry.subject}</td>
                               <td className="p-3">
-                                <Badge variant={inquiry.status === "new" ? "destructive" : inquiry.status === "responded" ? "default" : "secondary"}>
+                                <Badge variant={inquiry.status === "new" ? "destructive" : inquiry.status === "responded" ? "default" : "secondary"} data-testid={`badge-inquiry-status-${inquiry.id}`}>
                                   {inquiry.status === "new" ? "未対応" : inquiry.status === "responded" ? "対応済" : "処理中"}
                                 </Badge>
                               </td>
@@ -1062,16 +1062,16 @@ export default function AdminDashboard() {
               ) : notificationsData ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
+                    <Card data-testid="card-total-notifications">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">総通知数</p>
-                        <p className="text-2xl font-bold">{notificationsData.totalNotifications.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-notifications">{notificationsData.totalNotifications.toLocaleString()}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card data-testid="card-unread-notifications">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">未読通知</p>
-                        <p className="text-2xl font-bold text-pink-600">{notificationsData.unreadNotifications.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-pink-600" data-testid="text-unread-notifications">{notificationsData.unreadNotifications.toLocaleString()}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -1083,11 +1083,11 @@ export default function AdminDashboard() {
                       {notificationsData.recentNotifications.length > 0 ? (
                         <div className="space-y-3">
                           {notificationsData.recentNotifications.slice(0, 20).map((notif) => (
-                            <div key={notif.id} className="p-3 border rounded-lg">
+                            <div key={notif.id} className="p-3 border rounded-lg" data-testid={`card-notification-${notif.id}`}>
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium text-sm">{notif.title}</span>
-                                  <Badge variant={notif.isRead ? "secondary" : "destructive"} className="text-xs">
+                                  <span className="font-medium text-sm" data-testid={`text-notification-title-${notif.id}`}>{notif.title}</span>
+                                  <Badge variant={notif.isRead ? "secondary" : "destructive"} className="text-xs" data-testid={`badge-notification-status-${notif.id}`}>
                                     {notif.isRead ? "既読" : "未読"}
                                   </Badge>
                                 </div>
@@ -1141,7 +1141,7 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {filteredUsers.map((user) => (
-                        <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-user-${user.id}`}>
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center">
@@ -1212,7 +1212,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                           {allVideos.map((video) => (
-                            <tr key={video.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <tr key={video.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-video-${video.id}`}>
                               <td className="p-3">
                                 <p className="font-medium text-sm truncate max-w-[200px]">{video.title}</p>
                               </td>
@@ -1264,7 +1264,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                           {allProducts.map((product) => (
-                            <tr key={product.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <tr key={product.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-product-${product.id}`}>
                               <td className="p-3">
                                 <p className="font-medium text-sm truncate max-w-[200px]">{product.name}</p>
                               </td>
@@ -1316,7 +1316,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody>
                           {allLiveStreams.map((stream) => (
-                            <tr key={stream.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <tr key={stream.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-stream-${stream.id}`}>
                               <td className="p-3">
                                 <p className="font-medium text-sm truncate max-w-[200px]">{stream.title}</p>
                               </td>
