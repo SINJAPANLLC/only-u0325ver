@@ -4785,11 +4785,16 @@ export async function registerRoutes(
   // Get sales statistics for admin
   app.get("/api/admin/sales", isAdminSession, async (req, res) => {
     try {
-      // Get subscription revenue
+      // Get subscription revenue from point transactions (spend type with subscription description)
       const subscriptionRevenue = await db
-        .select({ total: sql<number>`COALESCE(SUM(price), 0)` })
-        .from(subscriptions)
-        .where(eq(subscriptions.status, "active"));
+        .select({ total: sql<number>`COALESCE(SUM(ABS(amount)), 0)` })
+        .from(pointTransactions)
+        .where(
+          and(
+            eq(pointTransactions.type, "spend"),
+            sql`description LIKE '%サブスク%' OR description LIKE '%プラン%'`
+          )
+        );
       
       // Get product sales
       const productSales = await db
