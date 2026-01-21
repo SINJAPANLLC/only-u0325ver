@@ -1111,7 +1111,7 @@ export async function registerRoutes(
         .orderBy(desc(conversations.lastMessageAt))
         .limit(50);
       
-      // Get unread counts and last messages for each conversation
+      // Get unread counts, last messages, and participant info for each conversation
       const conversationsWithDetails = await Promise.all(
         userConversations.map(async (conv) => {
           // Get unread count
@@ -1134,10 +1134,64 @@ export async function registerRoutes(
             .orderBy(desc(messages.createdAt))
             .limit(1);
           
+          // Get the other participant's info
+          const otherParticipantId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+          
+          // Try to get from creator profiles first
+          const [creatorInfo] = await db
+            .select({
+              displayName: creatorProfiles.displayName,
+              avatarUrl: userProfiles.avatarUrl,
+            })
+            .from(creatorProfiles)
+            .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
+            .where(eq(creatorProfiles.userId, otherParticipantId))
+            .limit(1);
+          
+          let participantName = "ユーザー";
+          let participantAvatar: string | null = null;
+          
+          if (creatorInfo) {
+            participantName = creatorInfo.displayName || "ユーザー";
+            participantAvatar = creatorInfo.avatarUrl;
+          } else {
+            // Not a creator, try user profile then users table
+            const [profileInfo] = await db
+              .select({
+                displayName: userProfiles.displayName,
+                avatarUrl: userProfiles.avatarUrl,
+              })
+              .from(userProfiles)
+              .where(eq(userProfiles.userId, otherParticipantId))
+              .limit(1);
+            
+            if (profileInfo) {
+              participantName = profileInfo.displayName || "ユーザー";
+              participantAvatar = profileInfo.avatarUrl;
+            } else {
+              // Fall back to users table
+              const [userInfo] = await db
+                .select({
+                  username: users.username,
+                  avatarUrl: users.avatarUrl,
+                })
+                .from(users)
+                .where(eq(users.id, otherParticipantId))
+                .limit(1);
+              
+              if (userInfo) {
+                participantName = userInfo.username || "ユーザー";
+                participantAvatar = userInfo.avatarUrl;
+              }
+            }
+          }
+          
           return {
             ...conv,
             unreadCount: Number(unreadResult?.count || 0),
             lastMessageContent: lastMessage?.content || "",
+            participantName,
+            participantAvatar,
           };
         })
       );

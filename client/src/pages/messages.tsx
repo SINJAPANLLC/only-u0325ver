@@ -14,6 +14,8 @@ import type { Conversation, CreatorProfile } from "@shared/schema";
 interface ConversationWithUnread extends Conversation {
   unreadCount: number;
   lastMessageContent: string;
+  participantName: string;
+  participantAvatar: string | null;
 }
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -116,14 +118,14 @@ export default function Messages() {
     const participantId = conv.participant1Id === user?.id 
       ? conv.participant2Id 
       : conv.participant1Id;
-    const participant = creators?.find(c => c.userId === participantId);
+    const creatorInfo = creators?.find(c => c.userId === participantId);
     
     return {
       id: conv.id,
       participantId,
-      participantName: participant?.displayName || "ユーザー",
-      participantAvatar: participant?.avatarUrl || undefined,
-      isVerified: participant?.isVerified || false,
+      participantName: conv.participantName || creatorInfo?.displayName || "ユーザー",
+      participantAvatar: conv.participantAvatar || creatorInfo?.avatarUrl || undefined,
+      isVerified: creatorInfo?.isVerified || false,
       lastMessage: conv.lastMessageContent || "",
       lastMessageAt: new Date(conv.lastMessageAt || conv.createdAt || Date.now()),
       unreadCount: conv.unreadCount || 0,
