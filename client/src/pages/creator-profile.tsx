@@ -584,19 +584,14 @@ export default function CreatorProfile() {
           </div>
           
           <Button 
-            variant={isSubscribed ? "secondary" : "default"}
-            className="w-full"
+            variant="default"
+            className="w-full bg-pink-500 hover:bg-pink-600"
             onClick={handleSubscribe}
-            disabled={isSubscribed || isSubscribeLoading}
+            disabled={isSubscribeLoading}
             data-testid="button-subscribe"
           >
             {isSubscribeLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isSubscribed ? (
-              <>
-                <Crown className="h-4 w-4 mr-2" />
-                プレミアム会員（{getPlanNameByTier(subscriptionStatus?.subscription?.tier || 1)}）
-              </>
             ) : (
               <>
                 <Crown className="h-4 w-4 mr-2" />
