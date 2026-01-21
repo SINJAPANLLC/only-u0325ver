@@ -44,8 +44,9 @@ export default function CreatorSales() {
     queryKey: ["/api/creator/sales"],
   });
 
-  const formatPoints = (points: number) => {
-    return points.toLocaleString();
+  const formatPoints = (points: number | string) => {
+    const num = typeof points === 'string' ? parseInt(points, 10) : points;
+    return isNaN(num) ? '0' : num.toLocaleString();
   };
 
   const getStatusBadge = (status: string) => {
