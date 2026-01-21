@@ -825,7 +825,7 @@ export default function CreatorProfile() {
                     <div className="absolute top-1 right-1">
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                         (video.requiredTier || 0) === 0 
-                          ? "bg-green-500 text-white" 
+                          ? "bg-pink-300 text-white" 
                           : "bg-pink-500 text-white"
                       }`}>
                         {(video.requiredTier || 0) === 0 ? "FREE" : getPlanNameByTier(video.requiredTier || 1)}
