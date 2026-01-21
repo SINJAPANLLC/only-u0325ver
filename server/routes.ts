@@ -18,7 +18,7 @@ import {
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
 } from "@shared/schema";
-import { eq, desc, and, or, sql, gt, isNull, inArray, ne } from "drizzle-orm";
+import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
 
 // Admin check middleware
@@ -1029,6 +1029,72 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to delete stream" });
     }
   });
+
+  // Heartbeat endpoint for live broadcasters
+  app.post("/api/live/:id/heartbeat", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(and(eq(liveStreams.id, id), eq(liveStreams.creatorId, userId)));
+      
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      await db.update(liveStreams)
+        .set({ lastHeartbeat: new Date() })
+        .where(eq(liveStreams.id, id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating heartbeat:", error);
+      res.status(500).json({ message: "Failed to update heartbeat" });
+    }
+  });
+
+  // Cleanup stale live streams (called periodically or on demand)
+  const cleanupStaleLiveStreams = async () => {
+    try {
+      const staleThreshold = new Date(Date.now() - 30 * 1000); // 30 seconds without heartbeat
+      
+      const staleStreams = await db
+        .select()
+        .from(liveStreams)
+        .where(
+          and(
+            eq(liveStreams.status, "live"),
+            or(
+              lt(liveStreams.lastHeartbeat, staleThreshold),
+              sql`${liveStreams.lastHeartbeat} IS NULL AND ${liveStreams.startedAt} < ${staleThreshold}`
+            )
+          )
+        );
+      
+      if (staleStreams.length > 0) {
+        await db.update(liveStreams)
+          .set({ status: "ended", endedAt: new Date() })
+          .where(
+            and(
+              eq(liveStreams.status, "live"),
+              or(
+                lt(liveStreams.lastHeartbeat, staleThreshold),
+                sql`${liveStreams.lastHeartbeat} IS NULL AND ${liveStreams.startedAt} < ${staleThreshold}`
+              )
+            )
+          );
+        console.log(`Cleaned up ${staleStreams.length} stale live streams`);
+      }
+    } catch (error) {
+      console.error("Error cleaning up stale streams:", error);
+    }
+  };
+
+  // Run cleanup every 15 seconds
+  setInterval(cleanupStaleLiveStreams, 15000);
 
   app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
     try {

@@ -413,6 +413,27 @@ export default function CreatorLive() {
     }
   }, [currentStreamId, viewMode, localStream]);
 
+  // Send heartbeat every 10 seconds while streaming
+  useEffect(() => {
+    if (!currentStreamId || viewMode !== "streaming") return;
+    
+    const sendHeartbeat = async () => {
+      try {
+        await apiRequest("POST", `/api/live/${currentStreamId}/heartbeat`);
+      } catch (error) {
+        console.error("Heartbeat failed:", error);
+      }
+    };
+    
+    // Send initial heartbeat
+    sendHeartbeat();
+    
+    // Send heartbeat every 10 seconds
+    const interval = setInterval(sendHeartbeat, 10000);
+    
+    return () => clearInterval(interval);
+  }, [currentStreamId, viewMode]);
+
   const startLiveMutation = useMutation({
     mutationFn: async (title: string) => {
       const response = await apiRequest("POST", "/api/live", {

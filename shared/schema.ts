@@ -179,6 +179,7 @@ export const liveStreams = pgTable("live_streams", {
   scheduledAt: timestamp("scheduled_at"),
   startedAt: timestamp("started_at"),
   endedAt: timestamp("ended_at"),
+  lastHeartbeat: timestamp("last_heartbeat"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
