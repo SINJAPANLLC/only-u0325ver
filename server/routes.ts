@@ -1692,20 +1692,39 @@ export async function registerRoutes(
         productType: "live" as const,
       }));
       
-      // Combine and sort by date
-      const allRecentSales = [...recentProductSales, ...recentLiveSales]
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 20);
-      
-      // Get subscription earnings (from subscription payments)
-      const [subscriptionEarnings] = await db
-        .select({ total: sql<number>`COALESCE(SUM(amount), 0)` })
+      // Get subscription transactions for recent sales
+      const subscriptionTransactions = await db
+        .select({
+          id: pointTransactions.id,
+          amount: pointTransactions.amount,
+          description: pointTransactions.description,
+          createdAt: pointTransactions.createdAt,
+        })
         .from(pointTransactions)
         .where(and(
           eq(pointTransactions.userId, userId),
           eq(pointTransactions.type, "bonus"),
           sql`${pointTransactions.description} LIKE '%サブスク%'`
-        ));
+        ))
+        .orderBy(desc(pointTransactions.createdAt))
+        .limit(50);
+      
+      const recentSubscriptionSales = subscriptionTransactions.map(tx => ({
+        id: tx.id,
+        productName: tx.description || "サブスクリプション",
+        amount: tx.amount || 0,
+        status: "completed",
+        createdAt: tx.createdAt,
+        productType: "subscription" as const,
+      }));
+      
+      // Combine and sort by date
+      const allRecentSales = [...recentProductSales, ...recentLiveSales, ...recentSubscriptionSales]
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 20);
+      
+      // Get subscription earnings (from subscription payments)
+      const subscriptionTotal = subscriptionTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
       
       // Calculate product total
       const productTotal = productSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
@@ -1714,7 +1733,7 @@ export async function registerRoutes(
         profile: creatorProfile,
         liveEarnings: liveEarnings?.total || 0,
         productEarnings: productTotal,
-        subscriptionEarnings: subscriptionEarnings?.total || 0,
+        subscriptionEarnings: subscriptionTotal,
         recentSales: allRecentSales,
       });
     } catch (error) {
