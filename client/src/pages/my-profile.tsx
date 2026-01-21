@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 
-import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
+import logoImage from "@assets/Only-U_1768298755951.jpeg";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
@@ -113,8 +113,8 @@ export default function MyProfile() {
 
   const displayName = profile?.displayName || creatorProfile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
   const username = profile?.username || user?.email?.split("@")[0] || "user";
-  const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
-  const bio = profile?.bio || creatorProfile?.bio || "Only-Uでプロフィールを編集してください";
+  const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || logoImage;
+  const bio = profile?.bio || creatorProfile?.bio || "プロフィールを編集してください";
   const websiteUrl = creatorProfile?.externalLink || profile?.location || "";
 
   const [editName, setEditName] = useState(displayName);
@@ -389,8 +389,8 @@ export default function MyProfile() {
   const following = creatorProfile?.followingCount || 0;
   const likes = 0; // Like count for creator is usually sum of all video likes
 
-  const hasVideos = (myVideos && myVideos.length > 0) || (demoVideos && demoVideos.length > 0);
-  const displayVideos = myVideos && myVideos.length > 0 ? myVideos : demoVideos;
+  const hasVideos = myVideos && myVideos.length > 0;
+  const displayVideos = myVideos || [];
   
   return (
     <motion.div 
