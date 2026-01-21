@@ -2067,6 +2067,57 @@ export default function AdminDashboard() {
                 </div>
               )}
 
+              {/* eKYC Documents */}
+              {(selectedApplication.idDocumentFrontUrl || selectedApplication.idDocumentBackUrl || selectedApplication.selfieUrl) && (
+                <div className="space-y-3">
+                  <Separator />
+                  <div>
+                    <p className="text-sm font-medium mb-2">本人確認書類（eKYC）</p>
+                    {selectedApplication.idDocumentType && (
+                      <p className="text-xs text-muted-foreground mb-2">書類種別: {selectedApplication.idDocumentType}</p>
+                    )}
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedApplication.idDocumentFrontUrl && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">表面</p>
+                          <a href={selectedApplication.idDocumentFrontUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={selectedApplication.idDocumentFrontUrl}
+                              alt="ID Front"
+                              className="w-full h-20 object-cover rounded border hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                          </a>
+                        </div>
+                      )}
+                      {selectedApplication.idDocumentBackUrl && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">裏面</p>
+                          <a href={selectedApplication.idDocumentBackUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={selectedApplication.idDocumentBackUrl}
+                              alt="ID Back"
+                              className="w-full h-20 object-cover rounded border hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                          </a>
+                        </div>
+                      )}
+                      {selectedApplication.selfieUrl && (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">顔写真</p>
+                          <a href={selectedApplication.selfieUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={selectedApplication.selfieUrl}
+                              alt="Selfie"
+                              className="w-full h-20 object-cover rounded border hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {selectedApplication.status === "pending" && (
                 <>
                   <Separator />
