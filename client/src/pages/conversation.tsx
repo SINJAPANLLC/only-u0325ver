@@ -109,10 +109,8 @@ export default function ConversationPage() {
 
   const handleParticipantClick = () => {
     if (isDemo) return;
-    if (participantIsCreator && participantId) {
+    if (participantId) {
       setLocation(`/creator/${participantId}`);
-    } else if (participantId) {
-      setLocation(`/user/${participantId}`);
     }
   };
 
