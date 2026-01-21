@@ -182,6 +182,19 @@ export default function CreatorProfile() {
     enabled: Boolean(isRealCreator),
   });
 
+  const { data: likedVideos } = useQuery<{
+    id: string;
+    title: string;
+    thumbnailUrl: string | null;
+    videoUrl: string;
+    viewCount: number;
+    likeCount: number;
+    creatorDisplayName: string | null;
+  }[]>({
+    queryKey: ["/api/creators", creatorId, "likes"],
+    enabled: Boolean(isRealCreator),
+  });
+
   const { data: userData } = useQuery<{ points: number }>({
     queryKey: ["/api/user/points"],
     enabled: !!user,
@@ -850,10 +863,43 @@ export default function CreatorProfile() {
           </TabsContent>
           
           <TabsContent value="liked" className="mt-0">
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Heart className="h-12 w-12 mb-3 opacity-50" />
-              <p className="text-sm">いいねした動画はありません</p>
-            </div>
+            {likedVideos && likedVideos.length > 0 ? (
+              <div className="grid grid-cols-3 gap-0.5">
+                {likedVideos.map((video) => (
+                  <div 
+                    key={video.id}
+                    className="aspect-[9/16] relative overflow-hidden group cursor-pointer"
+                    onClick={() => setSelectedVideo({ id: video.id, videoUrl: video.videoUrl, thumbnail: video.thumbnailUrl || "" })}
+                    data-testid={`liked-video-${video.id}`}
+                  >
+                    <img 
+                      src={video.thumbnailUrl || ""} 
+                      alt="いいねした動画"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white text-xs mb-1">{video.creatorDisplayName || "クリエイター"}</p>
+                      <div className="flex items-center gap-3 text-white/90 text-[10px]">
+                        <span className="flex items-center gap-1">
+                          <PlaySquare className="h-3 w-3" />
+                          {video.viewCount >= 10000 ? `${(video.viewCount / 10000).toFixed(1)}万` : video.viewCount.toLocaleString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3 fill-current text-pink-400" />
+                          {video.likeCount >= 10000 ? `${(video.likeCount / 10000).toFixed(1)}万` : video.likeCount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Heart className="h-12 w-12 mb-3 opacity-50" />
+                <p className="text-sm">いいねした動画はありません</p>
+              </div>
+            )}
           </TabsContent>
           
         <TabsContent value="shop" className="mt-0">

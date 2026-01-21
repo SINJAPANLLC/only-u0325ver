@@ -2175,6 +2175,32 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/creators/:id/likes", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const likedVideos = await db
+        .select({
+          id: videos.id,
+          title: videos.title,
+          thumbnailUrl: videos.thumbnailUrl,
+          videoUrl: videos.videoUrl,
+          viewCount: videos.viewCount,
+          likeCount: videos.likeCount,
+          creatorDisplayName: creatorProfiles.displayName,
+        })
+        .from(videoLikes)
+        .innerJoin(videos, eq(videoLikes.videoId, videos.id))
+        .leftJoin(creatorProfiles, eq(videos.creatorId, creatorProfiles.userId))
+        .where(eq(videoLikes.userId, id))
+        .orderBy(desc(videoLikes.createdAt))
+        .limit(30);
+      res.json(likedVideos);
+    } catch (error) {
+      console.error("Error fetching creator liked videos:", error);
+      res.status(500).json({ message: "Failed to fetch liked videos" });
+    }
+  });
+
   app.get("/api/follow/:creatorId", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
