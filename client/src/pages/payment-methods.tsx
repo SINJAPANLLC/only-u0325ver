@@ -227,7 +227,7 @@ export default function PaymentMethods() {
               <Badge variant="outline">American Express</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              カード情報は安全に暗号化され、Stripeにより保護されています。
+              カード情報は安全に暗号化され保護されています。
             </p>
           </Card>
         </motion.div>
