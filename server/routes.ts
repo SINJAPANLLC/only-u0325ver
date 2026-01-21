@@ -4373,7 +4373,7 @@ export async function registerRoutes(
       const allUsers = await db
         .select({
           id: users.id,
-          username: users.username,
+          username: userProfiles.username,
           email: users.email,
           createdAt: users.createdAt,
           points: userProfiles.points,
