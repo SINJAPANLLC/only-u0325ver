@@ -685,7 +685,7 @@ export default function CreatorProfile() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 p-0 h-auto"
+                                  className="text-pink-500 hover:text-pink-600 hover:bg-pink-50 p-0 h-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (confirm("このプランの自動更新を停止しますか？期限まで視聴できます。")) {
@@ -724,10 +724,7 @@ export default function CreatorProfile() {
                 </div>
               )}
               <div className="mt-4 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2">
-                  <Coins className="h-4 w-4" />
-                  ポイントが即座に消費されます
-                </p>
+                <p>ポイントが即座に消費されます</p>
               </div>
             </div>
             <DialogFooter>
