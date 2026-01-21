@@ -116,7 +116,7 @@ export default function ConversationPage() {
     : (participant?.displayName || participantUser?.username || "ユーザー");
   const participantAvatar = isDemo 
     ? demoCreator?.avatar 
-    : (participantUser?.avatarUrl || undefined);
+    : ((participant as any)?.avatarUrl || participantUser?.avatarUrl || undefined);
 
   const handleSend = () => {
     if (!messageText.trim()) return;
