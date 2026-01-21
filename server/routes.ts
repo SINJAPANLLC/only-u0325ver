@@ -4795,7 +4795,7 @@ export async function registerRoutes(
           const [application] = await db
             .select({
               id: creatorApplications.id,
-              realName: creatorApplications.realName,
+              fullName: creatorApplications.fullName,
               phoneNumber: creatorApplications.phoneNumber,
               portfolioUrl: creatorApplications.portfolioUrl,
             })

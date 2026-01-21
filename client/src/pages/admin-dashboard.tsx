@@ -867,7 +867,7 @@ export default function AdminDashboard() {
                                 <div className="font-medium">{withdrawal.userName}</div>
                                 {withdrawal.creatorApplication && (
                                   <div className="text-xs text-muted-foreground mt-1">
-                                    <div>本名: {withdrawal.creatorApplication.realName}</div>
+                                    <div>本名: {withdrawal.creatorApplication.fullName}</div>
                                     <div>電話: {withdrawal.creatorApplication.phoneNumber}</div>
                                     {withdrawal.creatorApplication.portfolioUrl && (
                                       <a href={withdrawal.creatorApplication.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
