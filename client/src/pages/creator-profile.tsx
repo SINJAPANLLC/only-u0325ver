@@ -962,7 +962,7 @@ export default function CreatorProfile() {
 
       {/* Product Detail Modal with Purchase */}
       <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           {selectedProduct && (
             <>
               <DialogHeader>
