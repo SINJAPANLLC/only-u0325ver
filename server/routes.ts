@@ -1083,6 +1083,30 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/users/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const [userData] = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+      
+      if (!userData) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(userData);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;

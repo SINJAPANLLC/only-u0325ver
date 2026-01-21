@@ -9,7 +9,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import type { Message, Conversation, CreatorProfile } from "@shared/schema";
+import type { Message, Conversation, CreatorProfile, User } from "@shared/schema";
 
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
@@ -79,6 +79,16 @@ export default function ConversationPage() {
     enabled: !isDemo,
   });
 
+  const userId = user?.id;
+  const participantId = conversation
+    ? (conversation.participant1Id === userId ? conversation.participant2Id : conversation.participant1Id)
+    : null;
+
+  const { data: participantUser } = useQuery<{ id: string; username: string; avatarUrl: string | null }>({
+    queryKey: ["/api/users", participantId],
+    enabled: !!participantId && !isDemo,
+  });
+
   const sendMutation = useMutation({
     mutationFn: async (content: string) => {
       await apiRequest("POST", `/api/conversations/${params.id}/messages`, { content });
@@ -100,14 +110,13 @@ export default function ConversationPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, localDemoMessages]);
 
-  const userId = user?.id;
-  const participantId = conversation
-    ? (conversation.participant1Id === userId ? conversation.participant2Id : conversation.participant1Id)
-    : null;
-
   const participant = creators?.find(c => c.userId === participantId);
-  const participantName = isDemo ? (demoCreator?.name || "クリエイター") : (participant?.displayName || "ユーザー");
-  const participantAvatar = isDemo ? demoCreator?.avatar : undefined;
+  const participantName = isDemo 
+    ? (demoCreator?.name || "クリエイター") 
+    : (participant?.displayName || participantUser?.username || "ユーザー");
+  const participantAvatar = isDemo 
+    ? demoCreator?.avatar 
+    : (participantUser?.avatarUrl || undefined);
 
   const handleSend = () => {
     if (!messageText.trim()) return;
