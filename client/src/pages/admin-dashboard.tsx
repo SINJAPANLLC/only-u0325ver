@@ -42,11 +42,17 @@ import {
   Trash2,
   Eye,
   Ban,
+  TrendingUp,
+  Megaphone,
+  MessageSquare,
+  HelpCircle,
+  Bell,
+  Play,
 } from "lucide-react";
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "applications" | "transfers" | "users" | "videos" | "products" | "livestreams" | "withdrawals" | "settings";
+type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "inquiries" | "notifications" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -147,7 +153,7 @@ export default function AdminDashboard() {
       const res = await fetch(`/api/admin/applications${params}`);
       return res.json();
     },
-    enabled: authStatus?.authenticated && activeTab === "applications",
+    enabled: authStatus?.authenticated && activeTab === "creators",
   });
 
   const { data: transfers, isLoading: isLoadingTransfers } = useQuery<BankTransferRequest[]>({
@@ -167,12 +173,12 @@ export default function AdminDashboard() {
 
   const { data: allVideos, isLoading: isLoadingVideos } = useQuery<VideoData[]>({
     queryKey: ["/api/admin/videos"],
-    enabled: authStatus?.authenticated && activeTab === "videos",
+    enabled: authStatus?.authenticated && activeTab === "content",
   });
 
   const { data: allProducts, isLoading: isLoadingProducts } = useQuery<ProductData[]>({
     queryKey: ["/api/admin/products"],
-    enabled: authStatus?.authenticated && activeTab === "products",
+    enabled: authStatus?.authenticated && activeTab === "shop",
   });
 
   const { data: allLiveStreams, isLoading: isLoadingLiveStreams } = useQuery<LiveStreamData[]>({
@@ -182,7 +188,7 @@ export default function AdminDashboard() {
 
   const { data: allWithdrawals, isLoading: isLoadingWithdrawals } = useQuery<WithdrawalData[]>({
     queryKey: ["/api/admin/withdrawals"],
-    enabled: authStatus?.authenticated && activeTab === "withdrawals",
+    enabled: authStatus?.authenticated && activeTab === "transfers",
   });
 
   const logoutMutation = useMutation({
@@ -309,13 +315,17 @@ export default function AdminDashboard() {
 
   const navItems = [
     { id: "dashboard" as Tab, label: "ダッシュボード", icon: LayoutDashboard },
-    { id: "applications" as Tab, label: "クリエイター申請", icon: FileCheck, badge: stats?.pendingApplications },
-    { id: "transfers" as Tab, label: "振込申請", icon: Wallet, badge: stats?.pendingTransfers },
-    { id: "withdrawals" as Tab, label: "出金申請", icon: CreditCard, badge: stats?.pendingWithdrawals },
+    { id: "sales" as Tab, label: "売上管理", icon: TrendingUp },
+    { id: "marketing" as Tab, label: "マーケティング管理", icon: Megaphone },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
-    { id: "videos" as Tab, label: "動画管理", icon: Video },
-    { id: "products" as Tab, label: "商品管理", icon: ShoppingBag },
-    { id: "livestreams" as Tab, label: "ライブ配信", icon: Radio, badge: stats?.activeLiveStreams },
+    { id: "creators" as Tab, label: "クリエイター申請・管理", icon: FileCheck, badge: stats?.pendingApplications },
+    { id: "livestreams" as Tab, label: "ライブ管理", icon: Radio, badge: stats?.activeLiveStreams },
+    { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
+    { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
+    { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
+    { id: "transfers" as Tab, label: "振込申請・管理", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "inquiries" as Tab, label: "お問い合わせ管理", icon: HelpCircle },
+    { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -482,7 +492,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Applications */}
-          {activeTab === "applications" && (
+          {activeTab === "creators" && (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {(["pending", "approved", "rejected", "all"] as const).map((status) => (
@@ -570,88 +580,216 @@ export default function AdminDashboard() {
 
           {/* Transfers */}
           {activeTab === "transfers" && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {(["pending", "confirmed", "rejected", "all"] as const).map((status) => (
-                  <Button
-                    key={status}
-                    variant={transferFilter === status ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setTransferFilter(status)}
-                    data-testid={`filter-transfer-${status}`}
-                  >
-                    {status === "pending" && "審査中"}
-                    {status === "confirmed" && "承認済み"}
-                    {status === "rejected" && "却下"}
-                    {status === "all" && "すべて"}
-                  </Button>
-                ))}
-              </div>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">ポイント購入申請（振込）</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {(["pending", "confirmed", "rejected", "all"] as const).map((status) => (
+                      <Button
+                        key={status}
+                        variant={transferFilter === status ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setTransferFilter(status)}
+                        data-testid={`filter-transfer-${status}`}
+                      >
+                        {status === "pending" && "審査中"}
+                        {status === "confirmed" && "承認済み"}
+                        {status === "rejected" && "却下"}
+                        {status === "all" && "すべて"}
+                      </Button>
+                    ))}
+                  </div>
 
-              {isLoadingTransfers ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : transfers && transfers.length > 0 ? (
-                <div className="space-y-3">
-                  {transfers.map((transfer) => (
-                    <Card key={transfer.id} className="cursor-pointer hover-elevate" onClick={() => setSelectedTransfer(transfer)}>
-                      <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium">{transfer.transferName}</span>
-                              {getStatusBadge(transfer.status)}
+                  {isLoadingTransfers ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : transfers && transfers.length > 0 ? (
+                    <div className="space-y-3">
+                      {transfers.map((transfer) => (
+                        <div key={transfer.id} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer" onClick={() => setSelectedTransfer(transfer)}>
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium">{transfer.accountName || transfer.userId.slice(0, 8)}</span>
+                                {getStatusBadge(transfer.status)}
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {formatPoints(transfer.points)} ポイント ({formatPoints(transfer.amount)}円)
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                申請日: {formatDate(transfer.createdAt)} | 期限: {formatDate(transfer.transferDeadline)}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {formatPoints(transfer.points)} ポイント ({formatPoints(transfer.amount)}円)
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              申請日: {formatDate(transfer.createdAt)} | 期限: {formatDate(transfer.expiresAt)}
-                            </p>
+                            {transfer.status === "pending" && (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    confirmTransfer.mutate(transfer.id);
+                                  }}
+                                  disabled={confirmTransfer.isPending}
+                                  data-testid={`confirm-${transfer.id}`}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  承認
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 border-red-300"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTransfer(transfer);
+                                  }}
+                                  disabled={rejectTransfer.isPending}
+                                  data-testid={`reject-transfer-${transfer.id}`}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  却下
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                          {transfer.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  confirmTransfer.mutate(transfer.id);
-                                }}
-                                disabled={confirmTransfer.isPending}
-                                data-testid={`confirm-${transfer.id}`}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                承認
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 border-red-300"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedTransfer(transfer);
-                                }}
-                                disabled={rejectTransfer.isPending}
-                                data-testid={`reject-transfer-${transfer.id}`}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                却下
-                              </Button>
-                            </div>
-                          )}
-                          <ChevronRight className="h-5 w-5 text-muted-foreground hidden md:block" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  振込申請がありません
-                </div>
-              )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      振込申請がありません
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">出金申請</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingWithdrawals ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allWithdrawals && allWithdrawals.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請日</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allWithdrawals.map((withdrawal) => (
+                            <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
+                              <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
+                              <td className="p-3 text-sm">{withdrawal.bankName}</td>
+                              <td className="p-3">
+                                <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
+                                  {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">出金申請がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Sales */}
+          {activeTab === "sales" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">売上管理</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-muted-foreground">
+                    売上データは準備中です
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Marketing */}
+          {activeTab === "marketing" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">マーケティング管理</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-muted-foreground">
+                    マーケティング機能は準備中です
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Messages */}
+          {activeTab === "messages" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">メッセージ管理</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-muted-foreground">
+                    メッセージ管理機能は準備中です
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Inquiries */}
+          {activeTab === "inquiries" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">お問い合わせ管理</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-muted-foreground">
+                    お問い合わせ管理機能は準備中です
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Notifications */}
+          {activeTab === "notifications" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">通知管理</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-muted-foreground">
+                    通知管理機能は準備中です
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -732,7 +870,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Videos */}
-          {activeTab === "videos" && (
+          {activeTab === "content" && (
             <div className="space-y-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
@@ -784,7 +922,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Products */}
-          {activeTab === "products" && (
+          {activeTab === "shop" && (
             <div className="space-y-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
@@ -881,58 +1019,6 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">ライブ配信がありません</div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Withdrawals */}
-          {activeTab === "withdrawals" && (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                  <CardTitle className="text-lg">出金申請一覧</CardTitle>
-                  <Badge variant="secondary">{allWithdrawals?.length || 0}件</Badge>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingWithdrawals ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    </div>
-                  ) : allWithdrawals && allWithdrawals.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">口座番号</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請日</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {allWithdrawals.map((withdrawal) => (
-                            <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                              <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
-                              <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
-                              <td className="p-3 text-sm">{withdrawal.bankName}</td>
-                              <td className="p-3 text-sm">{withdrawal.accountNumber}</td>
-                              <td className="p-3">
-                                <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
-                                  {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
-                                </Badge>
-                              </td>
-                              <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">出金申請がありません</div>
                   )}
                 </CardContent>
               </Card>
@@ -1099,7 +1185,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">振込名義</p>
-                  <p className="font-medium">{selectedTransfer.transferName}</p>
+                  <p className="font-medium">{selectedTransfer.accountName || "-"}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">ステータス</p>
@@ -1119,7 +1205,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">期限</p>
-                  <p className="font-medium">{formatDate(selectedTransfer.expiresAt)}</p>
+                  <p className="font-medium">{formatDate(selectedTransfer.transferDeadline)}</p>
                 </div>
               </div>
 
