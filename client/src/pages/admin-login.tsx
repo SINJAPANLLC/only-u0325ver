@@ -64,23 +64,23 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      <Card className="w-full max-w-md bg-card/95 backdrop-blur shadow-2xl border-card-border">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50 p-4">
+      <Card className="w-full max-w-md bg-white shadow-xl border border-pink-100">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg">
+            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg">
               <img src={logoImage} alt="Only-U" className="h-16 w-16 object-contain" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">管理者ログイン</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Only-U 管理パネル</p>
+            <CardTitle className="text-2xl font-bold text-gray-800">管理者ログイン</CardTitle>
+            <p className="text-sm text-pink-500 mt-1">Only-U 管理パネル</p>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">メールアドレス</Label>
+              <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
               <Input
                 id="email"
                 type="email"
@@ -92,7 +92,7 @@ export default function AdminLogin() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">パスワード</Label>
+              <Label htmlFor="password" className="text-gray-700">パスワード</Label>
               <div className="relative">
                 <Input
                   id="password"
