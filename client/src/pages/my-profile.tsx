@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 
-import logoImage from "@assets/Only-U_4_1768300473065.jpeg";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
