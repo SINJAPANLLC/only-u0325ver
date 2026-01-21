@@ -34,11 +34,19 @@ import {
   Search,
   Plus,
   Minus,
+  Video,
+  ShoppingBag,
+  Radio,
+  CreditCard,
+  Settings,
+  Trash2,
+  Eye,
+  Ban,
 } from "lucide-react";
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "applications" | "transfers" | "users";
+type Tab = "dashboard" | "applications" | "transfers" | "users" | "videos" | "products" | "livestreams" | "withdrawals" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -47,6 +55,51 @@ interface DashboardStats {
   pendingTransfers: number;
   totalVideos: number;
   totalProducts: number;
+  pendingWithdrawals: number;
+  activeLiveStreams: number;
+}
+
+interface VideoData {
+  id: string;
+  title: string;
+  creatorId: string;
+  creatorName: string;
+  viewCount: number;
+  likeCount: number;
+  isPremium: boolean;
+  createdAt: string;
+}
+
+interface ProductData {
+  id: string;
+  name: string;
+  price: number;
+  creatorId: string;
+  creatorName: string;
+  stock: number | null;
+  productType: string;
+  createdAt: string;
+}
+
+interface LiveStreamData {
+  id: string;
+  title: string;
+  creatorId: string;
+  creatorName: string;
+  status: string;
+  viewerCount: number;
+  startedAt: string | null;
+}
+
+interface WithdrawalData {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  bankName: string;
+  accountNumber: string;
+  status: string;
+  createdAt: string;
 }
 
 interface UserData {
@@ -110,6 +163,26 @@ export default function AdminDashboard() {
   const { data: allUsers, isLoading: isLoadingUsers } = useQuery<UserData[]>({
     queryKey: ["/api/admin/users"],
     enabled: authStatus?.authenticated && activeTab === "users",
+  });
+
+  const { data: allVideos, isLoading: isLoadingVideos } = useQuery<VideoData[]>({
+    queryKey: ["/api/admin/videos"],
+    enabled: authStatus?.authenticated && activeTab === "videos",
+  });
+
+  const { data: allProducts, isLoading: isLoadingProducts } = useQuery<ProductData[]>({
+    queryKey: ["/api/admin/products"],
+    enabled: authStatus?.authenticated && activeTab === "products",
+  });
+
+  const { data: allLiveStreams, isLoading: isLoadingLiveStreams } = useQuery<LiveStreamData[]>({
+    queryKey: ["/api/admin/livestreams"],
+    enabled: authStatus?.authenticated && activeTab === "livestreams",
+  });
+
+  const { data: allWithdrawals, isLoading: isLoadingWithdrawals } = useQuery<WithdrawalData[]>({
+    queryKey: ["/api/admin/withdrawals"],
+    enabled: authStatus?.authenticated && activeTab === "withdrawals",
   });
 
   const logoutMutation = useMutation({
@@ -238,7 +311,12 @@ export default function AdminDashboard() {
     { id: "dashboard" as Tab, label: "ダッシュボード", icon: LayoutDashboard },
     { id: "applications" as Tab, label: "クリエイター申請", icon: FileCheck, badge: stats?.pendingApplications },
     { id: "transfers" as Tab, label: "振込申請", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "withdrawals" as Tab, label: "出金申請", icon: CreditCard, badge: stats?.pendingWithdrawals },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
+    { id: "videos" as Tab, label: "動画管理", icon: Video },
+    { id: "products" as Tab, label: "商品管理", icon: ShoppingBag },
+    { id: "livestreams" as Tab, label: "ライブ配信", icon: Radio, badge: stats?.activeLiveStreams },
+    { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
   return (
@@ -650,6 +728,277 @@ export default function AdminDashboard() {
                   ユーザーが見つかりません
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Videos */}
+          {activeTab === "videos" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg">動画一覧</CardTitle>
+                  <Badge variant="secondary">{allVideos?.length || 0}件</Badge>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingVideos ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allVideos && allVideos.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイトル</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">視聴数</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">投稿日</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allVideos.map((video) => (
+                            <tr key={video.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3">
+                                <p className="font-medium text-sm truncate max-w-[200px]">{video.title}</p>
+                              </td>
+                              <td className="p-3 text-sm">{video.creatorName}</td>
+                              <td className="p-3 text-sm">{video.viewCount.toLocaleString()}</td>
+                              <td className="p-3">
+                                <Badge variant={video.isPremium ? "default" : "secondary"}>
+                                  {video.isPremium ? "プレミアム" : "無料"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(video.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">動画がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Products */}
+          {activeTab === "products" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg">商品一覧</CardTitle>
+                  <Badge variant="secondary">{allProducts?.length || 0}件</Badge>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingProducts ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allProducts && allProducts.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">商品名</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">価格</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">在庫</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allProducts.map((product) => (
+                            <tr key={product.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3">
+                                <p className="font-medium text-sm truncate max-w-[200px]">{product.name}</p>
+                              </td>
+                              <td className="p-3 text-sm">{product.creatorName}</td>
+                              <td className="p-3 text-sm font-medium">{product.price.toLocaleString()}pt</td>
+                              <td className="p-3 text-sm">{product.stock !== null ? product.stock : "∞"}</td>
+                              <td className="p-3">
+                                <Badge variant="secondary">
+                                  {product.productType === "digital" ? "デジタル" : "物理"}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">商品がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Live Streams */}
+          {activeTab === "livestreams" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg">ライブ配信一覧</CardTitle>
+                  <Badge variant="secondary">{allLiveStreams?.length || 0}件</Badge>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingLiveStreams ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allLiveStreams && allLiveStreams.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイトル</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">視聴者</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">開始日時</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allLiveStreams.map((stream) => (
+                            <tr key={stream.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3">
+                                <p className="font-medium text-sm truncate max-w-[200px]">{stream.title}</p>
+                              </td>
+                              <td className="p-3 text-sm">{stream.creatorName}</td>
+                              <td className="p-3">
+                                <Badge variant={stream.status === "live" ? "default" : "secondary"} className={stream.status === "live" ? "bg-red-500" : ""}>
+                                  {stream.status === "live" ? "配信中" : stream.status === "scheduled" ? "予定" : "終了"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm">{stream.viewerCount.toLocaleString()}</td>
+                              <td className="p-3 text-sm text-muted-foreground">{stream.startedAt ? formatDate(stream.startedAt) : "-"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">ライブ配信がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Withdrawals */}
+          {activeTab === "withdrawals" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg">出金申請一覧</CardTitle>
+                  <Badge variant="secondary">{allWithdrawals?.length || 0}件</Badge>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingWithdrawals ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allWithdrawals && allWithdrawals.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">口座番号</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請日</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allWithdrawals.map((withdrawal) => (
+                            <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
+                              <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
+                              <td className="p-3 text-sm">{withdrawal.bankName}</td>
+                              <td className="p-3 text-sm">{withdrawal.accountNumber}</td>
+                              <td className="p-3">
+                                <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
+                                  {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">出金申請がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Settings */}
+          {activeTab === "settings" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">プラットフォーム設定</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <p className="font-medium">メンテナンスモード</p>
+                      <p className="text-sm text-muted-foreground">サイトをメンテナンスモードにします</p>
+                    </div>
+                    <Badge variant="secondary">オフ</Badge>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <p className="font-medium">新規登録</p>
+                      <p className="text-sm text-muted-foreground">新規ユーザー登録を許可します</p>
+                    </div>
+                    <Badge variant="default" className="bg-green-500">有効</Badge>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <p className="font-medium">クリエイター申請</p>
+                      <p className="text-sm text-muted-foreground">新規クリエイター申請を許可します</p>
+                    </div>
+                    <Badge variant="default" className="bg-green-500">有効</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">手数料設定</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <p className="font-medium">プラットフォーム手数料</p>
+                      <p className="text-sm text-muted-foreground">売上からのプラットフォーム手数料率</p>
+                    </div>
+                    <Badge variant="secondary">20%</Badge>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <p className="font-medium">出金手数料</p>
+                      <p className="text-sm text-muted-foreground">出金時の手数料</p>
+                    </div>
+                    <Badge variant="secondary">¥300</Badge>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="font-medium">最低出金額</p>
+                      <p className="text-sm text-muted-foreground">出金可能な最低金額</p>
+                    </div>
+                    <Badge variant="secondary">¥5,000</Badge>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

@@ -4342,6 +4342,8 @@ export async function registerRoutes(
       const [pendingTransfers] = await db.select({ count: sql<number>`count(*)` }).from(bankTransferRequests).where(eq(bankTransferRequests.status, "pending"));
       const [videoCount] = await db.select({ count: sql<number>`count(*)` }).from(videos);
       const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
+      const [pendingWithdrawals] = await db.select({ count: sql<number>`count(*)` }).from(withdrawalRequests).where(eq(withdrawalRequests.status, "pending"));
+      const [activeLiveStreams] = await db.select({ count: sql<number>`count(*)` }).from(liveStreams).where(eq(liveStreams.status, "live"));
       
       res.json({
         totalUsers: Number(userCount?.count || 0),
@@ -4350,6 +4352,8 @@ export async function registerRoutes(
         pendingTransfers: Number(pendingTransfers?.count || 0),
         totalVideos: Number(videoCount?.count || 0),
         totalProducts: Number(productCount?.count || 0),
+        pendingWithdrawals: Number(pendingWithdrawals?.count || 0),
+        activeLiveStreams: Number(activeLiveStreams?.count || 0),
       });
     } catch (error) {
       console.error("Dashboard stats error:", error);
@@ -4628,6 +4632,153 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Reject transfer error:", error);
       res.status(500).json({ message: "処理に失敗しました" });
+    }
+  });
+
+  // Get all videos for admin
+  app.get("/api/admin/videos", isAdminSession, async (req, res) => {
+    try {
+      const allVideos = await db
+        .select({
+          id: videos.id,
+          title: videos.title,
+          creatorId: videos.creatorId,
+          viewCount: videos.viewCount,
+          likeCount: videos.likeCount,
+          isPremium: videos.isPremium,
+          createdAt: videos.createdAt,
+        })
+        .from(videos)
+        .orderBy(desc(videos.createdAt));
+      
+      // Get creator names
+      const videosWithCreatorNames = await Promise.all(
+        allVideos.map(async (video) => {
+          const [creator] = await db
+            .select({ displayName: creatorProfiles.displayName })
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, video.creatorId));
+          return {
+            ...video,
+            creatorName: creator?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json(videosWithCreatorNames);
+    } catch (error) {
+      console.error("Get videos error:", error);
+      res.status(500).json({ message: "動画一覧の取得に失敗しました" });
+    }
+  });
+
+  // Get all products for admin
+  app.get("/api/admin/products", isAdminSession, async (req, res) => {
+    try {
+      const allProducts = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          creatorId: products.creatorId,
+          stock: products.stock,
+          productType: products.productType,
+          createdAt: products.createdAt,
+        })
+        .from(products)
+        .orderBy(desc(products.createdAt));
+      
+      // Get creator names
+      const productsWithCreatorNames = await Promise.all(
+        allProducts.map(async (product) => {
+          const [creator] = await db
+            .select({ displayName: creatorProfiles.displayName })
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, product.creatorId));
+          return {
+            ...product,
+            creatorName: creator?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json(productsWithCreatorNames);
+    } catch (error) {
+      console.error("Get products error:", error);
+      res.status(500).json({ message: "商品一覧の取得に失敗しました" });
+    }
+  });
+
+  // Get all live streams for admin
+  app.get("/api/admin/livestreams", isAdminSession, async (req, res) => {
+    try {
+      const allLiveStreams = await db
+        .select({
+          id: liveStreams.id,
+          title: liveStreams.title,
+          creatorId: liveStreams.creatorId,
+          status: liveStreams.status,
+          viewerCount: liveStreams.viewerCount,
+          startedAt: liveStreams.startedAt,
+        })
+        .from(liveStreams)
+        .orderBy(desc(liveStreams.createdAt));
+      
+      // Get creator names
+      const streamsWithCreatorNames = await Promise.all(
+        allLiveStreams.map(async (stream) => {
+          const [creator] = await db
+            .select({ displayName: creatorProfiles.displayName })
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, stream.creatorId));
+          return {
+            ...stream,
+            creatorName: creator?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json(streamsWithCreatorNames);
+    } catch (error) {
+      console.error("Get livestreams error:", error);
+      res.status(500).json({ message: "ライブ配信一覧の取得に失敗しました" });
+    }
+  });
+
+  // Get all withdrawal requests for admin
+  app.get("/api/admin/withdrawals", isAdminSession, async (req, res) => {
+    try {
+      const allWithdrawals = await db
+        .select({
+          id: withdrawalRequests.id,
+          userId: withdrawalRequests.userId,
+          amount: withdrawalRequests.amount,
+          bankName: withdrawalRequests.bankName,
+          accountNumber: withdrawalRequests.accountNumber,
+          status: withdrawalRequests.status,
+          createdAt: withdrawalRequests.createdAt,
+        })
+        .from(withdrawalRequests)
+        .orderBy(desc(withdrawalRequests.createdAt));
+      
+      // Get user names
+      const withdrawalsWithUserNames = await Promise.all(
+        allWithdrawals.map(async (withdrawal) => {
+          const [profile] = await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, withdrawal.userId));
+          return {
+            ...withdrawal,
+            userName: profile?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json(withdrawalsWithUserNames);
+    } catch (error) {
+      console.error("Get withdrawals error:", error);
+      res.status(500).json({ message: "出金申請一覧の取得に失敗しました" });
     }
   });
   
