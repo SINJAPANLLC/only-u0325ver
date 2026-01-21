@@ -304,6 +304,7 @@ export const pointTransactionTypeEnum = pgEnum("point_transaction_type", [
   "refund",           // 返金
   "bonus",            // ボーナス付与
   "admin_adjust",     // 管理者調整
+  "premium_plan",     // 高画質プラン加入
 ]);
 
 // Bank transfer status
