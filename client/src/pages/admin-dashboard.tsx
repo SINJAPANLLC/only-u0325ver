@@ -887,10 +887,14 @@ export default function AdminDashboard() {
                                 <div className="text-xs text-muted-foreground">{withdrawal.bankAccountHolder}</div>
                               </td>
                               <td className="p-3">
-                                <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
-                                  {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
-                                </Badge>
-                                {withdrawal.isEarly && <Badge variant="outline" className="ml-1 text-xs">早期</Badge>}
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
+                                    {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
+                                  </Badge>
+                                  <Badge variant={withdrawal.isEarly ? "destructive" : "outline"} className="text-xs">
+                                    {withdrawal.isEarly ? "早払い" : "通常"}
+                                  </Badge>
+                                </div>
                               </td>
                               <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
                               <td className="p-3 text-sm text-muted-foreground">{withdrawal.processedAt ? formatDate(withdrawal.processedAt) : "-"}</td>
