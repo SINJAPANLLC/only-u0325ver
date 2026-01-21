@@ -580,10 +580,7 @@ export default function CreatorProfile() {
             ) : (
               <>
                 <Crown className="h-4 w-4 mr-2" />
-                {subscriptionPlans && subscriptionPlans.length > 0 
-                  ? `登録する（${subscriptionPlans[0].price.toLocaleString()}pt〜/月）`
-                  : `登録する（${DEFAULT_SUBSCRIPTION_PRICE}pt/月）`
-                }
+                サブスクプランを見る
               </>
             )}
           </Button>
