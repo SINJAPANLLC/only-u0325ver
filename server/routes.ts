@@ -4752,11 +4752,17 @@ export async function registerRoutes(
       const allWithdrawals = await db
         .select({
           id: withdrawalRequests.id,
-          userId: withdrawalRequests.userId,
+          creatorId: withdrawalRequests.creatorId,
           amount: withdrawalRequests.amount,
+          fee: withdrawalRequests.fee,
+          netAmount: withdrawalRequests.netAmount,
           bankName: withdrawalRequests.bankName,
-          accountNumber: withdrawalRequests.accountNumber,
+          bankBranchName: withdrawalRequests.bankBranchName,
+          bankAccountType: withdrawalRequests.bankAccountType,
+          bankAccountNumber: withdrawalRequests.bankAccountNumber,
+          bankAccountHolder: withdrawalRequests.bankAccountHolder,
           status: withdrawalRequests.status,
+          isEarly: withdrawalRequests.isEarly,
           createdAt: withdrawalRequests.createdAt,
         })
         .from(withdrawalRequests)
@@ -4768,7 +4774,7 @@ export async function registerRoutes(
           const [profile] = await db
             .select({ displayName: userProfiles.displayName })
             .from(userProfiles)
-            .where(eq(userProfiles.userId, withdrawal.userId));
+            .where(eq(userProfiles.userId, withdrawal.creatorId));
           return {
             ...withdrawal,
             userName: profile?.displayName || "Unknown",
@@ -4780,6 +4786,84 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Get withdrawals error:", error);
       res.status(500).json({ message: "出金申請一覧の取得に失敗しました" });
+    }
+  });
+
+  // Approve withdrawal request
+  app.post("/api/admin/withdrawals/:id/approve", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [withdrawal] = await db
+        .select()
+        .from(withdrawalRequests)
+        .where(eq(withdrawalRequests.id, id));
+      
+      if (!withdrawal) {
+        return res.status(404).json({ message: "出金申請が見つかりません" });
+      }
+      
+      if (withdrawal.status !== "pending") {
+        return res.status(400).json({ message: "この申請は既に処理されています" });
+      }
+      
+      await db.update(withdrawalRequests)
+        .set({
+          status: "completed",
+          processedAt: new Date(),
+        })
+        .where(eq(withdrawalRequests.id, id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Approve withdrawal error:", error);
+      res.status(500).json({ message: "処理に失敗しました" });
+    }
+  });
+
+  // Reject withdrawal request
+  app.post("/api/admin/withdrawals/:id/reject", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      const [withdrawal] = await db
+        .select()
+        .from(withdrawalRequests)
+        .where(eq(withdrawalRequests.id, id));
+      
+      if (!withdrawal) {
+        return res.status(404).json({ message: "出金申請が見つかりません" });
+      }
+      
+      if (withdrawal.status !== "pending") {
+        return res.status(400).json({ message: "この申請は既に処理されています" });
+      }
+      
+      // Return points to creator's balance
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, withdrawal.creatorId));
+      
+      if (profile) {
+        const newPoints = (profile.points || 0) + withdrawal.amount;
+        await db.update(userProfiles)
+          .set({ points: newPoints })
+          .where(eq(userProfiles.userId, withdrawal.creatorId));
+      }
+      
+      await db.update(withdrawalRequests)
+        .set({
+          status: "rejected",
+          adminNotes: reason || "却下されました",
+        })
+        .where(eq(withdrawalRequests.id, id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Reject withdrawal error:", error);
+      res.status(500).json({ message: "処理に失敗しました" });
     }
   });
 

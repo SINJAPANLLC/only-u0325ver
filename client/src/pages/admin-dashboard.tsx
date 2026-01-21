@@ -54,7 +54,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "inquiries" | "notifications" | "settings";
+type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -101,12 +101,18 @@ interface LiveStreamData {
 
 interface WithdrawalData {
   id: string;
-  userId: string;
+  creatorId: string;
   userName: string;
   amount: number;
+  fee: number;
+  netAmount: number;
   bankName: string;
-  accountNumber: string;
+  bankBranchName: string;
+  bankAccountType: string;
+  bankAccountNumber: string;
+  bankAccountHolder: string;
   status: string;
+  isEarly: boolean;
   createdAt: string;
 }
 
@@ -282,7 +288,7 @@ export default function AdminDashboard() {
 
   const { data: allWithdrawals, isLoading: isLoadingWithdrawals } = useQuery<WithdrawalData[]>({
     queryKey: ["/api/admin/withdrawals"],
-    enabled: authStatus?.authenticated && activeTab === "transfers",
+    enabled: authStatus?.authenticated && activeTab === "withdrawals",
   });
 
   const { data: salesData, isLoading: isLoadingSales } = useQuery<SalesData>({
@@ -358,6 +364,30 @@ export default function AdminDashboard() {
       setSelectedTransfer(null);
       setRejectionNotes("");
       toast({ title: "振込を却下しました" });
+    },
+  });
+
+  const approveWithdrawal = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("POST", `/api/admin/withdrawals/${id}/approve`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "出金を承認しました" });
+    },
+  });
+
+  const rejectWithdrawal = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("POST", `/api/admin/withdrawals/${id}/reject`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "出金を却下しました" });
     },
   });
 
@@ -442,7 +472,8 @@ export default function AdminDashboard() {
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
     { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
-    { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "transfers" as Tab, label: "ポイント購入管理", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "withdrawals" as Tab, label: "出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
     { id: "inquiries" as Tab, label: "お問い合わせ管理", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "settings" as Tab, label: "設定", icon: Settings },
@@ -786,7 +817,12 @@ export default function AdminDashboard() {
                   )}
                 </CardContent>
               </Card>
+            </div>
+          )}
 
+          {/* Withdrawals */}
+          {activeTab === "withdrawals" && (
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">クリエイター出金申請</CardTitle>
@@ -802,11 +838,14 @@ export default function AdminDashboard() {
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
-                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請金額</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">手数料</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">振込金額</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行情報</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請日</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -814,13 +853,46 @@ export default function AdminDashboard() {
                             <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-withdrawal-${withdrawal.id}`}>
                               <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
                               <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
-                              <td className="p-3 text-sm">{withdrawal.bankName}</td>
+                              <td className="p-3 text-sm text-muted-foreground">¥{withdrawal.fee.toLocaleString()}</td>
+                              <td className="p-3 text-sm font-medium text-green-600">¥{withdrawal.netAmount.toLocaleString()}</td>
+                              <td className="p-3 text-sm">
+                                <div>{withdrawal.bankName}</div>
+                                <div className="text-xs text-muted-foreground">{withdrawal.bankBranchName}</div>
+                                <div className="text-xs text-muted-foreground">{withdrawal.bankAccountType} {withdrawal.bankAccountNumber}</div>
+                              </td>
                               <td className="p-3">
                                 <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
                                   {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
                                 </Badge>
                               </td>
                               <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
+                              <td className="p-3">
+                                {withdrawal.status === "pending" && (
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => approveWithdrawal.mutate(withdrawal.id)}
+                                      disabled={approveWithdrawal.isPending}
+                                      data-testid={`approve-withdrawal-${withdrawal.id}`}
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      承認
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-red-600 border-red-300"
+                                      onClick={() => rejectWithdrawal.mutate(withdrawal.id)}
+                                      disabled={rejectWithdrawal.isPending}
+                                      data-testid={`reject-withdrawal-${withdrawal.id}`}
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      却下
+                                    </Button>
+                                  </div>
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
