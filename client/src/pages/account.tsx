@@ -227,7 +227,7 @@ export default function Account() {
       onClick: () => setIsPremiumDialogOpen(true) 
     },
     { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理", badge: userSubscriptions && userSubscriptions.length > 0 ? `${userSubscriptions.length}件` : undefined, onClick: () => setIsSubscriptionsDialogOpen(true) },
-    { icon: CreditCard, label: "お支払い方法", description: "カードを管理" },
+    { icon: CreditCard, label: "お支払い方法", description: "カードを管理", href: "/payment-methods" },
     { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認", href: "/my-purchases" },
   ];
 

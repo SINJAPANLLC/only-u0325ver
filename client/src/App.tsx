@@ -51,6 +51,7 @@ import MyPurchases from "@/pages/my-purchases";
 import CreatorOrders from "@/pages/creator-orders";
 import CreatorSales from "@/pages/creator-sales";
 import CreatorWithdrawal from "@/pages/creator-withdrawal";
+import PaymentMethods from "@/pages/payment-methods";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -174,6 +175,11 @@ function AuthenticatedApp() {
         <Route path="/creator-withdrawal">
           <div className="h-[100svh] flex flex-col overflow-y-auto">
             <CreatorWithdrawal />
+          </div>
+        </Route>
+        <Route path="/payment-methods">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <PaymentMethods />
           </div>
         </Route>
         <Route path="/terms">

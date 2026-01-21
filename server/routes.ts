@@ -3157,6 +3157,49 @@ export async function registerRoutes(
     }
   });
 
+  // Payment Methods routes
+  app.get("/api/payment-methods", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stripe = await getUncachableStripeClient();
+      
+      // Get or create Stripe customer
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+
+      // For now, return empty array - full implementation would require storing Stripe customer IDs
+      // This is a placeholder for the payment methods page
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  app.delete("/api/payment-methods/:methodId", isAuthenticated, async (req: any, res) => {
+    try {
+      const { methodId } = req.params;
+      // Placeholder - would detach payment method from Stripe customer
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+      res.status(500).json({ message: "Failed to delete payment method" });
+    }
+  });
+
+  app.post("/api/payment-methods/:methodId/default", isAuthenticated, async (req: any, res) => {
+    try {
+      const { methodId } = req.params;
+      // Placeholder - would set default payment method for Stripe customer
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting default payment method:", error);
+      res.status(500).json({ message: "Failed to set default payment method" });
+    }
+  });
+
   // Premium Plan (高画質プラン) routes
   const PREMIUM_PLAN_PRICE = 980;
 
