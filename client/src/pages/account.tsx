@@ -40,6 +40,13 @@ import type { UserProfile, CreatorApplication, Subscription } from "@shared/sche
 
 import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
 
+interface SubscriptionWithDetails extends Subscription {
+  creatorDisplayName: string | null;
+  creatorAvatarUrl: string | null;
+  planName: string | null;
+  planPrice: number | null;
+}
+
 interface MenuItemProps {
   icon: React.ElementType;
   label: string;
@@ -88,7 +95,7 @@ export default function Account() {
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
   const [isSubscriptionsDialogOpen, setIsSubscriptionsDialogOpen] = useState(false);
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const [subscriptionToCancel, setSubscriptionToCancel] = useState<Subscription | null>(null);
+  const [subscriptionToCancel, setSubscriptionToCancel] = useState<SubscriptionWithDetails | null>(null);
   
   const [profileForm, setProfileForm] = useState({
     displayName: "",
@@ -110,7 +117,7 @@ export default function Account() {
     queryKey: ["/api/creator-applications/me"],
   });
 
-  const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useQuery<Subscription[]>({
+  const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useQuery<SubscriptionWithDetails[]>({
     queryKey: ["/api/subscriptions"],
     enabled: !!user,
   });
@@ -172,6 +179,19 @@ export default function Account() {
     },
     onError: () => {
       toast({ title: "解約に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const toggleAutoRenewMutation = useMutation({
+    mutationFn: async ({ creatorId, planId }: { creatorId: string; planId: string }) => {
+      await apiRequest("DELETE", `/api/subscription/${creatorId}/${planId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      toast({ title: "自動更新を停止しました" });
+    },
+    onError: () => {
+      toast({ title: "更新に失敗しました", variant: "destructive" });
     },
   });
 
@@ -427,35 +447,91 @@ export default function Account() {
               userSubscriptions.map((subscription) => (
                 <div 
                   key={subscription.id} 
-                  className="flex items-center justify-between p-4 rounded-lg bg-muted"
+                  className="p-4 rounded-lg bg-muted space-y-3"
                   data-testid={`subscription-item-${subscription.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
-                      <Crown className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium">@{subscription.creatorId}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Tier {subscription.tier}</span>
-                        <span>•</span>
-                        <span>
-                          {subscription.expiresAt 
-                            ? `有効期限: ${new Date(subscription.expiresAt).toLocaleDateString("ja-JP")}`
-                            : "アクティブ"
-                          }
+                    <Link 
+                      href={`/creator/${subscription.creatorId}`}
+                      onClick={() => setIsSubscriptionsDialogOpen(false)}
+                      data-testid={`link-creator-profile-${subscription.id}`}
+                    >
+                      <Avatar className="h-12 w-12 border-2 border-pink-500 cursor-pointer">
+                        <AvatarImage src={subscription.creatorAvatarUrl || demoAvatar} alt={subscription.creatorDisplayName || "Creator"} />
+                        <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
+                          <Crown className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link 
+                        href={`/creator/${subscription.creatorId}`}
+                        onClick={() => setIsSubscriptionsDialogOpen(false)}
+                        className="hover:underline"
+                        data-testid={`link-creator-name-${subscription.id}`}
+                      >
+                        <p className="font-medium truncate">
+                          {subscription.creatorDisplayName || `@${subscription.creatorId.slice(0, 8)}...`}
+                        </p>
+                      </Link>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Badge variant="secondary" className="bg-pink-500 text-white text-xs">
+                          {subscription.planName || `Tier ${subscription.tier}`}
+                        </Badge>
+                        <span className="text-pink-500 font-medium">
+                          {subscription.planPrice ? `${subscription.planPrice.toLocaleString()}pt/月` : ""}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => setSubscriptionToCancel(subscription)}
-                    data-testid={`button-cancel-subscription-${subscription.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
+                    <div className="space-y-1">
+                      <p>
+                        有効期限: {subscription.expiresAt 
+                          ? new Date(subscription.expiresAt).toLocaleDateString("ja-JP")
+                          : "アクティブ"
+                        }
+                      </p>
+                      {subscription.autoRenew ? (
+                        <p className="text-green-600 dark:text-green-400">自動更新: ON</p>
+                      ) : (
+                        <p className="text-orange-500">自動更新停止中</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {subscription.autoRenew && subscription.planId && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleAutoRenewMutation.mutate({ 
+                            creatorId: subscription.creatorId, 
+                            planId: subscription.planId! 
+                          })}
+                          disabled={toggleAutoRenewMutation.isPending}
+                          data-testid={`button-stop-auto-renew-${subscription.id}`}
+                        >
+                          {toggleAutoRenewMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "自動更新停止"
+                          )}
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        data-testid={`button-view-creator-${subscription.id}`}
+                      >
+                        <Link 
+                          href={`/creator/${subscription.creatorId}`}
+                          onClick={() => setIsSubscriptionsDialogOpen(false)}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               ))
             ) : (
@@ -476,7 +552,7 @@ export default function Account() {
           <AlertDialogHeader>
             <AlertDialogTitle>サブスクリプションを解約しますか？</AlertDialogTitle>
             <AlertDialogDescription>
-              @{subscriptionToCancel?.creatorId} のサブスクリプションを解約します。
+              「{subscriptionToCancel?.creatorDisplayName || subscriptionToCancel?.creatorId}」の「{subscriptionToCancel?.planName || `Tier ${subscriptionToCancel?.tier}`}」プランを解約します。
               解約すると、プレミアムコンテンツにアクセスできなくなります。
               残りの期間分のポイントは返金されません。
             </AlertDialogDescription>

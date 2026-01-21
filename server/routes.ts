@@ -2436,8 +2436,26 @@ export async function registerRoutes(
       const userId = req.user.claims.sub;
       const now = new Date();
       const userSubscriptions = await db
-        .select()
+        .select({
+          id: subscriptions.id,
+          userId: subscriptions.userId,
+          creatorId: subscriptions.creatorId,
+          planId: subscriptions.planId,
+          planType: subscriptions.planType,
+          tier: subscriptions.tier,
+          status: subscriptions.status,
+          autoRenew: subscriptions.autoRenew,
+          startedAt: subscriptions.startedAt,
+          expiresAt: subscriptions.expiresAt,
+          creatorDisplayName: creatorProfiles.displayName,
+          creatorAvatarUrl: userProfiles.avatarUrl,
+          planName: subscriptionPlans.name,
+          planPrice: subscriptionPlans.price,
+        })
         .from(subscriptions)
+        .leftJoin(creatorProfiles, eq(subscriptions.creatorId, creatorProfiles.userId))
+        .leftJoin(userProfiles, eq(subscriptions.creatorId, userProfiles.userId))
+        .leftJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
         .where(and(
           eq(subscriptions.userId, userId),
           eq(subscriptions.status, "active"),
