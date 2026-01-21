@@ -178,9 +178,9 @@ export default function CreatorSales() {
               transition={{ delay: 0.1 }}
             >
               <Card className="p-4 text-center">
-                <Radio className="h-6 w-6 mx-auto mb-2 text-red-400" />
-                <p className="text-xs text-muted-foreground mb-1">ライブ配信</p>
-                <p className="text-lg font-bold">{formatPoints(salesData?.liveEarnings || 0)}</p>
+                <Users className="h-6 w-6 mx-auto mb-2 text-purple-400" />
+                <p className="text-xs text-muted-foreground mb-1">サブスクプラン</p>
+                <p className="text-lg font-bold">{formatPoints(salesData?.subscriptionEarnings || 0)}</p>
                 <p className="text-xs text-muted-foreground">pt</p>
               </Card>
             </motion.div>
@@ -190,9 +190,9 @@ export default function CreatorSales() {
               transition={{ delay: 0.2 }}
             >
               <Card className="p-4 text-center">
-                <ShoppingBag className="h-6 w-6 mx-auto mb-2 text-blue-400" />
-                <p className="text-xs text-muted-foreground mb-1">商品販売</p>
-                <p className="text-lg font-bold">{formatPoints(salesData?.productEarnings || 0)}</p>
+                <Radio className="h-6 w-6 mx-auto mb-2 text-red-400" />
+                <p className="text-xs text-muted-foreground mb-1">ライブ配信</p>
+                <p className="text-lg font-bold">{formatPoints(salesData?.liveEarnings || 0)}</p>
                 <p className="text-xs text-muted-foreground">pt</p>
               </Card>
             </motion.div>
@@ -202,9 +202,9 @@ export default function CreatorSales() {
               transition={{ delay: 0.3 }}
             >
               <Card className="p-4 text-center">
-                <Users className="h-6 w-6 mx-auto mb-2 text-purple-400" />
-                <p className="text-xs text-muted-foreground mb-1">サブスク</p>
-                <p className="text-lg font-bold">{formatPoints(salesData?.subscriptionEarnings || 0)}</p>
+                <ShoppingBag className="h-6 w-6 mx-auto mb-2 text-blue-400" />
+                <p className="text-xs text-muted-foreground mb-1">SHOP</p>
+                <p className="text-lg font-bold">{formatPoints(salesData?.productEarnings || 0)}</p>
                 <p className="text-xs text-muted-foreground">pt</p>
               </Card>
             </motion.div>
