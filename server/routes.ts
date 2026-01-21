@@ -1883,15 +1883,18 @@ export async function registerRoutes(
         .limit(50);
       
       // Get product details for sales
-      const productIds = productSales.map(s => s.productId).filter(Boolean);
-      const productDetails = productIds.length > 0 ? await db
-        .select({
-          id: products.id,
-          name: products.name,
-          productType: products.productType,
-        })
-        .from(products)
-        .where(sql`${products.id} IN (${sql.join(productIds.map(id => sql`${id}`), sql`, `)})`) : [];
+      const productIds = productSales.map(s => s.productId).filter((id): id is string => id !== null && id !== undefined);
+      let productDetails: { id: string; name: string; productType: string }[] = [];
+      if (productIds.length > 0) {
+        productDetails = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            productType: products.productType,
+          })
+          .from(products)
+          .where(inArray(products.id, productIds));
+      }
       
       const productMap = new Map(productDetails.map(p => [p.id, p]));
       
