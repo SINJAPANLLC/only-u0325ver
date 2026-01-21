@@ -240,7 +240,7 @@ export default function CreatorSales() {
                             {sale.createdAt ? format(new Date(sale.createdAt), "yyyy/MM/dd HH:mm", { locale: ja }) : "-"}
                           </span>
                           <Badge variant="outline" className="text-xs">
-                            {sale.productType === "digital" ? "デジタル" : "物販"}
+                            {sale.productType === "live" ? "ライブ配信" : sale.productType === "shop" ? "SHOP" : sale.productType === "digital" ? "デジタル" : "物販"}
                           </Badge>
                         </div>
                       </div>

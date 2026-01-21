@@ -1657,11 +1657,45 @@ export async function registerRoutes(
       
       const productMap = new Map(productDetails.map(p => [p.id, p]));
       
-      const recentSales = productSales.map(sale => ({
-        ...sale,
+      const recentProductSales = productSales.map(sale => ({
+        id: sale.id,
         productName: productMap.get(sale.productId)?.name || "商品",
-        productType: productMap.get(sale.productId)?.productType || "digital",
+        amount: sale.amount,
+        status: sale.status,
+        createdAt: sale.createdAt,
+        productType: "shop" as const,
       }));
+      
+      // Get live streaming sessions for recent sales
+      const liveSessions = await db
+        .select({
+          id: liveViewingSessions.id,
+          totalPointsCharged: liveViewingSessions.totalPointsCharged,
+          createdAt: liveViewingSessions.createdAt,
+          streamTitle: liveStreams.title,
+        })
+        .from(liveViewingSessions)
+        .innerJoin(liveStreams, eq(liveViewingSessions.liveStreamId, liveStreams.id))
+        .where(and(
+          eq(liveStreams.creatorId, userId),
+          sql`${liveViewingSessions.totalPointsCharged} > 0`
+        ))
+        .orderBy(desc(liveViewingSessions.createdAt))
+        .limit(50);
+      
+      const recentLiveSales = liveSessions.map(session => ({
+        id: session.id,
+        productName: session.streamTitle || "ライブ配信",
+        amount: session.totalPointsCharged || 0,
+        status: "completed",
+        createdAt: session.createdAt,
+        productType: "live" as const,
+      }));
+      
+      // Combine and sort by date
+      const allRecentSales = [...recentProductSales, ...recentLiveSales]
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 20);
       
       // Get subscription earnings (from subscription payments)
       const [subscriptionEarnings] = await db
@@ -1681,7 +1715,7 @@ export async function registerRoutes(
         liveEarnings: liveEarnings?.total || 0,
         productEarnings: productTotal,
         subscriptionEarnings: subscriptionEarnings?.total || 0,
-        recentSales: recentSales,
+        recentSales: allRecentSales,
       });
     } catch (error) {
       console.error("Error fetching creator sales:", error);
