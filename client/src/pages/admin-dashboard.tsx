@@ -271,6 +271,17 @@ export default function AdminDashboard() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  
+  // Notification management state
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifMessage, setNotifMessage] = useState("");
+  const [notifType, setNotifType] = useState("system");
+  const [notifSendEmail, setNotifSendEmail] = useState(false);
+  const [notifEmailSubject, setNotifEmailSubject] = useState("");
+  const [notifEmailBody, setNotifEmailBody] = useState("");
+  const [notifTarget, setNotifTarget] = useState<"all" | "specific">("all");
+  const [notifUserSearch, setNotifUserSearch] = useState("");
+  const [notifSelectedUsers, setNotifSelectedUsers] = useState<string[]>([]);
 
   const { data: authStatus, isLoading: isCheckingAuth } = useQuery({
     queryKey: ["/api/admin/auth/me"],
@@ -568,6 +579,31 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ title: "メール送信に失敗しました", variant: "destructive" });
+    },
+  });
+
+  // Broadcast notification mutation
+  const broadcastNotification = useMutation({
+    mutationFn: async (data: { title: string; message: string; type: string; userIds?: string[]; sendEmail?: boolean; emailSubject?: string; emailBody?: string }) => {
+      const res = await apiRequest("POST", "/api/admin/notifications/send", data);
+      return res.json();
+    },
+    onSuccess: (data: { success: boolean; notificationCount: number; emailCount?: number }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/notifications"] });
+      toast({ 
+        title: "送信完了", 
+        description: `通知: ${data.notificationCount}件${data.emailCount ? `、メール: ${data.emailCount}件` : ""}送信しました` 
+      });
+      setNotifTitle("");
+      setNotifMessage("");
+      setNotifSendEmail(false);
+      setNotifEmailSubject("");
+      setNotifEmailBody("");
+      setNotifSelectedUsers([]);
+      setNotifUserSearch("");
+    },
+    onError: () => {
+      toast({ title: "送信に失敗しました", variant: "destructive" });
     },
   });
 
@@ -1782,28 +1818,228 @@ export default function AdminDashboard() {
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
-              ) : notificationsData ? (
+              ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Card data-testid="card-total-notifications">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">総通知数</p>
-                        <p className="text-2xl font-bold" data-testid="text-total-notifications">{notificationsData.totalNotifications.toLocaleString()}</p>
+                        <p className="text-2xl font-bold" data-testid="text-total-notifications">{notificationsData?.totalNotifications.toLocaleString() || 0}</p>
                       </CardContent>
                     </Card>
                     <Card data-testid="card-unread-notifications">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">未読通知</p>
-                        <p className="text-2xl font-bold text-pink-600" data-testid="text-unread-notifications">{notificationsData.unreadNotifications.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-pink-600" data-testid="text-unread-notifications">{notificationsData?.unreadNotifications.toLocaleString() || 0}</p>
                       </CardContent>
                     </Card>
                   </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Send className="h-5 w-5" />
+                        通知・メール送信
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>送信先</Label>
+                          <Select value={notifTarget} onValueChange={(v: "all" | "specific") => setNotifTarget(v)}>
+                            <SelectTrigger data-testid="select-notif-target">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">全ユーザー</SelectItem>
+                              <SelectItem value="specific">特定ユーザー</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>通知タイプ</Label>
+                          <Select value={notifType} onValueChange={setNotifType}>
+                            <SelectTrigger data-testid="select-notif-type">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="system">システム</SelectItem>
+                              <SelectItem value="announcement">お知らせ</SelectItem>
+                              <SelectItem value="promotion">プロモーション</SelectItem>
+                              <SelectItem value="maintenance">メンテナンス</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {notifTarget === "specific" && (
+                        <div className="space-y-2">
+                          <Label>ユーザー選択</Label>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="ユーザーを検索..."
+                              value={notifUserSearch}
+                              onChange={(e) => setNotifUserSearch(e.target.value)}
+                              className="pl-10"
+                              data-testid="input-notif-user-search"
+                            />
+                          </div>
+                          {notifSelectedUsers.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {notifSelectedUsers.map((userId) => {
+                                const user = allUsers?.find(u => u.id === userId);
+                                return (
+                                  <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                                    {user?.displayName || user?.username || userId.slice(0, 8)}
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer" 
+                                      onClick={() => setNotifSelectedUsers(prev => prev.filter(id => id !== userId))}
+                                    />
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {notifUserSearch && allUsers && (
+                            <div className="border rounded-md max-h-40 overflow-y-auto">
+                              {allUsers
+                                .filter(u => 
+                                  (u.displayName?.toLowerCase().includes(notifUserSearch.toLowerCase()) ||
+                                   u.username?.toLowerCase().includes(notifUserSearch.toLowerCase()) ||
+                                   u.email?.toLowerCase().includes(notifUserSearch.toLowerCase())) &&
+                                  !notifSelectedUsers.includes(u.id)
+                                )
+                                .slice(0, 10)
+                                .map(user => (
+                                  <div 
+                                    key={user.id}
+                                    className="p-2 hover:bg-muted cursor-pointer flex items-center justify-between"
+                                    onClick={() => {
+                                      setNotifSelectedUsers(prev => [...prev, user.id]);
+                                      setNotifUserSearch("");
+                                    }}
+                                    data-testid={`option-user-${user.id}`}
+                                  >
+                                    <span className="text-sm">{user.displayName || user.username}</span>
+                                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <Separator />
+
+                      <div className="space-y-2">
+                        <Label htmlFor="notif-title">通知タイトル</Label>
+                        <Input
+                          id="notif-title"
+                          placeholder="通知のタイトルを入力"
+                          value={notifTitle}
+                          onChange={(e) => setNotifTitle(e.target.value)}
+                          data-testid="input-notif-title"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="notif-message">通知メッセージ</Label>
+                        <Textarea
+                          id="notif-message"
+                          placeholder="通知の内容を入力"
+                          value={notifMessage}
+                          onChange={(e) => setNotifMessage(e.target.value)}
+                          rows={3}
+                          data-testid="textarea-notif-message"
+                        />
+                      </div>
+
+                      <Separator />
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="send-email"
+                          checked={notifSendEmail}
+                          onCheckedChange={(checked) => setNotifSendEmail(checked === true)}
+                          data-testid="checkbox-send-email"
+                        />
+                        <Label htmlFor="send-email" className="flex items-center gap-2 cursor-pointer">
+                          <Mail className="h-4 w-4" />
+                          メールも同時に送信する
+                        </Label>
+                      </div>
+
+                      {notifSendEmail && (
+                        <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                          <div className="space-y-2">
+                            <Label htmlFor="email-subject">メール件名</Label>
+                            <Input
+                              id="email-subject"
+                              placeholder="メールの件名を入力"
+                              value={notifEmailSubject}
+                              onChange={(e) => setNotifEmailSubject(e.target.value)}
+                              data-testid="input-email-subject"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="email-body">メール本文</Label>
+                            <Textarea
+                              id="email-body"
+                              placeholder="メールの本文を入力"
+                              value={notifEmailBody}
+                              onChange={(e) => setNotifEmailBody(e.target.value)}
+                              rows={5}
+                              data-testid="textarea-email-body"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={() => {
+                          if (!notifTitle || !notifMessage) {
+                            toast({ title: "タイトルとメッセージを入力してください", variant: "destructive" });
+                            return;
+                          }
+                          if (notifTarget === "specific" && notifSelectedUsers.length === 0) {
+                            toast({ title: "送信先ユーザーを選択してください", variant: "destructive" });
+                            return;
+                          }
+                          if (notifSendEmail && (!notifEmailSubject || !notifEmailBody)) {
+                            toast({ title: "メールの件名と本文を入力してください", variant: "destructive" });
+                            return;
+                          }
+                          broadcastNotification.mutate({
+                            title: notifTitle,
+                            message: notifMessage,
+                            type: notifType,
+                            userIds: notifTarget === "specific" ? notifSelectedUsers : undefined,
+                            sendEmail: notifSendEmail,
+                            emailSubject: notifEmailSubject || undefined,
+                            emailBody: notifEmailBody || undefined,
+                          });
+                        }}
+                        disabled={broadcastNotification.isPending}
+                        className="w-full"
+                        data-testid="button-send-notification"
+                      >
+                        {broadcastNotification.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-2" />
+                        )}
+                        {notifTarget === "all" ? "全ユーザーに送信" : `${notifSelectedUsers.length}人に送信`}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">最近の通知</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {notificationsData.recentNotifications.length > 0 ? (
+                      {notificationsData && notificationsData.recentNotifications.length > 0 ? (
                         <div className="space-y-3">
                           {notificationsData.recentNotifications.slice(0, 20).map((notif) => (
                             <div key={notif.id} className="p-3 border rounded-lg" data-testid={`card-notification-${notif.id}`}>
@@ -1826,8 +2062,6 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
               )}
             </div>
           )}
