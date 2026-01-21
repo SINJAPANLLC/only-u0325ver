@@ -4710,6 +4710,7 @@ export async function registerRoutes(
         .select({
           id: videos.id,
           title: videos.title,
+          thumbnailUrl: videos.thumbnailUrl,
           creatorId: videos.creatorId,
           viewCount: videos.viewCount,
           likeCount: videos.likeCount,
@@ -4766,6 +4767,7 @@ export async function registerRoutes(
         .select({
           id: products.id,
           name: products.name,
+          imageUrl: products.imageUrl,
           price: products.price,
           creatorId: products.creatorId,
           stock: products.stock,
