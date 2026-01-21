@@ -882,10 +882,6 @@ export default function CreatorProfile() {
                       <p className="text-white text-xs mb-1">{video.creatorDisplayName || "クリエイター"}</p>
                       <div className="flex items-center gap-3 text-white/90 text-[10px]">
                         <span className="flex items-center gap-1">
-                          <PlaySquare className="h-3 w-3" />
-                          {video.viewCount >= 10000 ? `${(video.viewCount / 10000).toFixed(1)}万` : video.viewCount.toLocaleString()}
-                        </span>
-                        <span className="flex items-center gap-1">
                           <Heart className="h-3 w-3 fill-current text-pink-400" />
                           {video.likeCount >= 10000 ? `${(video.likeCount / 10000).toFixed(1)}万` : video.likeCount.toLocaleString()}
                         </span>
