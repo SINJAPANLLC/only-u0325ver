@@ -1466,6 +1466,17 @@ export async function registerRoutes(
       
       const [purchase] = await db.insert(purchases).values(purchaseData).returning();
 
+      // Update creator's earnings
+      if (product.creatorId) {
+        await db
+          .update(creatorProfiles)
+          .set({
+            totalEarnings: sql`${creatorProfiles.totalEarnings} + ${product.price}`,
+            availableBalance: sql`${creatorProfiles.availableBalance} + ${product.price}`,
+          })
+          .where(eq(creatorProfiles.userId, product.creatorId));
+      }
+
       // Create notification
       await db.insert(notifications).values({
         userId,
