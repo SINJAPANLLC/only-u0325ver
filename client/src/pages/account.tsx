@@ -289,7 +289,7 @@ export default function Account() {
           className="rounded-2xl bg-white p-6"
         >
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2 ring-offset-background">
+            <Avatar className={`h-16 w-16 ${isApprovedCreator ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-background' : ''}`}>
               <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || demoAvatar} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                 {displayName.charAt(0)}
