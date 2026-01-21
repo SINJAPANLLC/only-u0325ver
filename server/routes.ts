@@ -1618,17 +1618,33 @@ export async function registerRoutes(
         .select({
           id: purchases.id,
           productId: purchases.productId,
-          productName: products.name,
-          amount: purchases.amount,
+          amount: purchases.price,
           status: purchases.status,
           createdAt: purchases.createdAt,
-          productType: products.productType,
         })
         .from(purchases)
-        .leftJoin(products, eq(purchases.productId, products.id))
         .where(eq(purchases.creatorId, userId))
         .orderBy(desc(purchases.createdAt))
         .limit(50);
+      
+      // Get product details for sales
+      const productIds = productSales.map(s => s.productId).filter(Boolean);
+      const productDetails = productIds.length > 0 ? await db
+        .select({
+          id: products.id,
+          name: products.name,
+          productType: products.productType,
+        })
+        .from(products)
+        .where(sql`${products.id} IN (${sql.join(productIds.map(id => sql`${id}`), sql`, `)})`) : [];
+      
+      const productMap = new Map(productDetails.map(p => [p.id, p]));
+      
+      const recentSales = productSales.map(sale => ({
+        ...sale,
+        productName: productMap.get(sale.productId)?.name || "商品",
+        productType: productMap.get(sale.productId)?.productType || "digital",
+      }));
       
       // Get subscription earnings (from subscription payments)
       const [subscriptionEarnings] = await db
@@ -1648,7 +1664,7 @@ export async function registerRoutes(
         liveEarnings: liveEarnings?.total || 0,
         productEarnings: productTotal,
         subscriptionEarnings: subscriptionEarnings?.total || 0,
-        recentSales: productSales,
+        recentSales: recentSales,
       });
     } catch (error) {
       console.error("Error fetching creator sales:", error);
