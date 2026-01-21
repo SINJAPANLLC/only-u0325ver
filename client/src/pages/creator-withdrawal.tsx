@@ -325,14 +325,20 @@ export default function CreatorWithdrawal() {
           </Card>
         </motion.div>
 
-        {hasBankInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="p-4">
-              <h3 className="font-bold mb-3">振込申請</h3>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="p-4">
+            <h3 className="font-bold mb-3">振込申請</h3>
+            {!hasBankInfo && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                  振込申請には口座登録が必要です
+                </p>
+              </div>
+            )}
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="amount">振込金額 (pt)</Label>
@@ -403,7 +409,7 @@ export default function CreatorWithdrawal() {
                 
                 <Button 
                   className="w-full bg-pink-500"
-                  disabled={withdrawAmountNum < 10000 || withdrawAmountNum > availableBalance || createWithdrawalMutation.isPending}
+                  disabled={!hasBankInfo || withdrawAmountNum < 10000 || withdrawAmountNum > availableBalance || createWithdrawalMutation.isPending}
                   onClick={() => setIsWithdrawDialogOpen(true)}
                   data-testid="button-submit-withdrawal"
                 >
@@ -414,9 +420,8 @@ export default function CreatorWithdrawal() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
-            </Card>
-          </motion.div>
-        )}
+          </Card>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
