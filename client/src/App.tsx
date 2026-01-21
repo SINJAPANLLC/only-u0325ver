@@ -49,6 +49,8 @@ import Conversation from "@/pages/conversation";
 import Notifications from "@/pages/notifications";
 import MyPurchases from "@/pages/my-purchases";
 import CreatorOrders from "@/pages/creator-orders";
+import CreatorSales from "@/pages/creator-sales";
+import CreatorWithdrawal from "@/pages/creator-withdrawal";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -162,6 +164,16 @@ function AuthenticatedApp() {
         <Route path="/creator-orders">
           <div className="h-[100svh] flex flex-col overflow-hidden">
             <CreatorOrders />
+          </div>
+        </Route>
+        <Route path="/creator-sales">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <CreatorSales />
+          </div>
+        </Route>
+        <Route path="/creator-withdrawal">
+          <div className="h-[100svh] flex flex-col overflow-hidden">
+            <CreatorWithdrawal />
           </div>
         </Route>
         <Route path="/terms">

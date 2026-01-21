@@ -183,8 +183,8 @@ export default function Account() {
     { icon: Package, label: "コンテンツ管理", description: "動画・商品を管理", href: "/creator-content" },
     { icon: ShoppingBag, label: "ショップ管理", description: "商品を管理", href: "/creator-shop" },
     { icon: Package, label: "注文管理", description: "物販注文を管理", href: "/creator-orders" },
-    { icon: BarChart3, label: "売上管理", description: "収益を確認" },
-    { icon: Wallet, label: "振込申請", description: "口座登録・出金" },
+    { icon: BarChart3, label: "売上管理", description: "収益を確認", href: "/creator-sales" },
+    { icon: Wallet, label: "振込申請", description: "口座登録・出金", href: "/creator-withdrawal" },
   ];
 
   const settingsMenuItems: MenuItemProps[] = [
