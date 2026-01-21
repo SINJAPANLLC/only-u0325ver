@@ -4379,9 +4379,13 @@ export async function registerRoutes(
           points: userProfiles.points,
           displayName: userProfiles.displayName,
           avatarUrl: userProfiles.avatarUrl,
+          isCreator: creatorProfiles.id,
+          creatorEarnings: creatorProfiles.totalEarnings,
+          creatorBalance: creatorProfiles.availableBalance,
         })
         .from(users)
         .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+        .leftJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
         .orderBy(desc(users.createdAt));
       
       res.json(allUsers);

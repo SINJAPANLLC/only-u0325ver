@@ -146,6 +146,9 @@ interface UserData {
   points: number | null;
   displayName: string | null;
   avatarUrl: string | null;
+  isCreator: string | null;
+  creatorEarnings: number | null;
+  creatorBalance: number | null;
 }
 
 interface SalesData {
@@ -1702,6 +1705,7 @@ export default function AdminDashboard() {
                         <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
                         <th className="text-left p-3 text-sm font-medium text-muted-foreground">メール</th>
                         <th className="text-left p-3 text-sm font-medium text-muted-foreground">ポイント</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター獲得</th>
                         <th className="text-left p-3 text-sm font-medium text-muted-foreground">登録日</th>
                         <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                       </tr>
@@ -1720,14 +1724,26 @@ export default function AdminDashboard() {
                                   </span>
                                 )}
                               </div>
-                              <div>
-                                <p className="font-medium text-sm">{user.displayName || user.username || "Unknown"}</p>
-                                <p className="text-xs text-muted-foreground">@{user.username || user.id.slice(0, 8)}</p>
+                              <div className="flex items-center gap-2">
+                                <div>
+                                  <p className="font-medium text-sm">{user.displayName || user.username || "Unknown"}</p>
+                                  <p className="text-xs text-muted-foreground">@{user.username || user.id.slice(0, 8)}</p>
+                                </div>
+                                {user.isCreator && (
+                                  <Badge variant="secondary" className="text-xs">クリエイター</Badge>
+                                )}
                               </div>
                             </div>
                           </td>
                           <td className="p-3 text-sm">{user.email || "-"}</td>
                           <td className="p-3 text-sm font-medium">{formatPoints(user.points)}</td>
+                          <td className="p-3 text-sm font-medium">
+                            {user.isCreator ? (
+                              <span className="text-green-600">{formatPoints(user.creatorEarnings)}</span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
                           <td className="p-3 text-sm text-muted-foreground">{formatDate(user.createdAt)}</td>
                           <td className="p-3">
                             <div className="flex gap-2">
