@@ -4509,7 +4509,21 @@ export async function registerRoutes(
           .orderBy(desc(creatorApplications.submittedAt));
       }
       
-      res.json(applications);
+      // Add username from userProfiles
+      const applicationsWithUsername = await Promise.all(
+        applications.map(async (app) => {
+          const [profile] = await db
+            .select({ username: userProfiles.username, displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, app.userId));
+          return {
+            ...app,
+            username: profile?.username || profile?.displayName || null,
+          };
+        })
+      );
+      
+      res.json(applicationsWithUsername);
     } catch (error) {
       console.error("Get applications error:", error);
       res.status(500).json({ message: "申請一覧の取得に失敗しました" });

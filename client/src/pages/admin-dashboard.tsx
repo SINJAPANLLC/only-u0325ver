@@ -281,7 +281,7 @@ export default function AdminDashboard() {
     enabled: authStatus?.authenticated,
   });
 
-  const { data: applications, isLoading: isLoadingApps } = useQuery<CreatorApplication[]>({
+  const { data: applications, isLoading: isLoadingApps } = useQuery<(CreatorApplication & { username?: string | null })[]>({
     queryKey: ["/api/admin/applications", applicationFilter],
     queryFn: async () => {
       const params = applicationFilter !== "all" ? `?status=${applicationFilter}` : "";
@@ -796,6 +796,9 @@ export default function AdminDashboard() {
                               <span className="font-medium">{app.fullName || app.userId}</span>
                               {getStatusBadge(app.status)}
                             </div>
+                            {app.username && (
+                              <p className="text-sm text-muted-foreground mt-1">@{app.username}</p>
+                            )}
                             <p className="text-sm text-muted-foreground mt-1">
                               申請日: {formatDate(app.submittedAt)}
                             </p>
