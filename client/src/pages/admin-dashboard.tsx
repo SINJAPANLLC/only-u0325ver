@@ -26,6 +26,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   LayoutDashboard,
@@ -433,6 +434,22 @@ export default function AdminDashboard() {
       setPointAdjustment(0);
       setPointReason("");
       toast({ title: "ポイントを更新しました" });
+    },
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/admin/users/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      setSelectedUser(null);
+      toast({ title: "ユーザーを削除しました" });
+    },
+    onError: () => {
+      toast({ title: "削除に失敗しました", variant: "destructive" });
     },
   });
 
@@ -1713,14 +1730,44 @@ export default function AdminDashboard() {
                           <td className="p-3 text-sm font-medium">{formatPoints(user.points)}</td>
                           <td className="p-3 text-sm text-muted-foreground">{formatDate(user.createdAt)}</td>
                           <td className="p-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedUser(user)}
-                              data-testid={`manage-user-${user.id}`}
-                            >
-                              管理
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setSelectedUser(user)}
+                                data-testid={`manage-user-${user.id}`}
+                              >
+                                管理
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    data-testid={`delete-user-${user.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>ユーザーを削除しますか？</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      「{user.displayName || user.username || user.email}」を削除します。この操作は取り消せません。関連するすべてのデータ（投稿、購入履歴、ポイントなど）も削除されます。
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteUser.mutate(user.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      削除する
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </td>
                         </tr>
                       ))}

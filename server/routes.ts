@@ -4456,6 +4456,35 @@ export async function registerRoutes(
       res.status(500).json({ message: "ポイント更新に失敗しました" });
     }
   });
+
+  // Delete user (admin)
+  app.delete("/api/admin/users/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete related data in order
+      await db.delete(pointTransactions).where(eq(pointTransactions.userId, id));
+      await db.delete(notifications).where(eq(notifications.userId, id));
+      await db.delete(messages).where(eq(messages.senderId, id));
+      await db.delete(follows).where(or(eq(follows.followerId, id), eq(follows.followingId, id)));
+      await db.delete(subscriptions).where(eq(subscriptions.userId, id));
+      await db.delete(purchases).where(eq(purchases.userId, id));
+      await db.delete(videoLikes).where(eq(videoLikes.userId, id));
+      await db.delete(comments).where(eq(comments.userId, id));
+      await db.delete(liveViewingSessions).where(eq(liveViewingSessions.userId, id));
+      await db.delete(bankTransferRequests).where(eq(bankTransferRequests.userId, id));
+      await db.delete(withdrawalRequests).where(eq(withdrawalRequests.creatorId, id));
+      await db.delete(creatorApplications).where(eq(creatorApplications.userId, id));
+      await db.delete(creatorProfiles).where(eq(creatorProfiles.userId, id));
+      await db.delete(userProfiles).where(eq(userProfiles.userId, id));
+      await db.delete(users).where(eq(users.id, id));
+      
+      res.json({ success: true, message: "ユーザーを削除しました" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "ユーザー削除に失敗しました" });
+    }
+  });
   
   // Creator applications (admin session)
   app.get("/api/admin/applications", isAdminSession, async (req, res) => {
