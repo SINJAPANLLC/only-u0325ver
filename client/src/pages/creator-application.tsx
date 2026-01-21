@@ -642,7 +642,7 @@ export default function CreatorApplication() {
                 審査には通常1〜3営業日かかります。
               </p>
               <p className="text-sm text-muted-foreground">
-                審査が完了次第、メールでお知らせします。
+                審査が完了次第、通知でお知らせします。
               </p>
             </CardContent>
           </Card>
