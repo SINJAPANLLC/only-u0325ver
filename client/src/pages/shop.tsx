@@ -162,6 +162,7 @@ interface DemoProduct {
   isLimited?: boolean;
   salesCount?: number;
   imageUrl: string;
+  isDemo?: boolean;
 }
 
 const demoProducts: DemoProduct[] = [
@@ -178,6 +179,7 @@ const demoProducts: DemoProduct[] = [
     isLimited: true,
     salesCount: 234,
     imageUrl: img1,
+    isDemo: true,
   },
   {
     id: "prod-2",
@@ -190,6 +192,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: true,
     salesCount: 189,
     imageUrl: img2,
+    isDemo: true,
   },
   {
     id: "prod-3",
@@ -202,6 +205,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: false,
     salesCount: 456,
     imageUrl: img3,
+    isDemo: true,
   },
   {
     id: "prod-4",
@@ -215,6 +219,7 @@ const demoProducts: DemoProduct[] = [
     isLimited: true,
     salesCount: 87,
     imageUrl: img4,
+    isDemo: true,
   },
   {
     id: "prod-5",
@@ -227,6 +232,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: false,
     salesCount: 156,
     imageUrl: img5,
+    isDemo: true,
   },
   {
     id: "prod-6",
@@ -239,6 +245,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: true,
     salesCount: 312,
     imageUrl: img6,
+    isDemo: true,
   },
   {
     id: "prod-7",
@@ -251,6 +258,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: true,
     salesCount: 523,
     imageUrl: img7,
+    isDemo: true,
   },
   {
     id: "prod-8",
@@ -263,6 +271,7 @@ const demoProducts: DemoProduct[] = [
     isPremium: false,
     salesCount: 78,
     imageUrl: img8,
+    isDemo: true,
   },
 ];
 
@@ -364,6 +373,7 @@ export default function Shop() {
         creatorName: "Creator",
         productType: p.productType as "digital" | "physical",
         isAvailable: p.isAvailable ?? true,
+        isDemo: false,
       }))
     : demoProducts;
 
@@ -435,7 +445,7 @@ export default function Shop() {
       <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
         <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle>購入確認</DialogTitle>
+            <DialogTitle>{selectedProduct?.isDemo ? "デモ商品" : "購入確認"}</DialogTitle>
           </DialogHeader>
           {selectedProduct && (
             <div className="space-y-4">
@@ -453,26 +463,39 @@ export default function Shop() {
                 </div>
               </div>
 
-              <div className="bg-muted rounded-lg p-3 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">現在の保有ポイント</span>
-                  <span className="font-medium">{userPoints.toLocaleString()}pt</span>
+              {selectedProduct.isDemo ? (
+                <div className="bg-muted rounded-lg p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    これはサンプル表示用のデモ商品です。
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    実際の商品はクリエイターが出品した際に購入できます。
+                  </p>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">購入後の残高</span>
-                  <span className={`font-medium ${userPoints < selectedProduct.price ? "text-destructive" : ""}`}>
-                    {(userPoints - selectedProduct.price).toLocaleString()}pt
-                  </span>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="bg-muted rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">現在の保有ポイント</span>
+                      <span className="font-medium">{userPoints.toLocaleString()}pt</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">購入後の残高</span>
+                      <span className={`font-medium ${userPoints < selectedProduct.price ? "text-destructive" : ""}`}>
+                        {(userPoints - selectedProduct.price).toLocaleString()}pt
+                      </span>
+                    </div>
+                  </div>
 
-              {userPoints < selectedProduct.price && (
-                <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
-                  ポイントが不足しています。ポイントをチャージしてください。
-                </div>
+                  {userPoints < selectedProduct.price && (
+                    <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
+                      ポイントが不足しています。ポイントをチャージしてください。
+                    </div>
+                  )}
+                </>
               )}
 
-              {selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
+              {!selectedProduct.isDemo && selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <Truck className="h-4 w-4" />
@@ -530,25 +553,27 @@ export default function Shop() {
           )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedProduct(null)}>
-              キャンセル
+              {selectedProduct?.isDemo ? "閉じる" : "キャンセル"}
             </Button>
-            {userPoints < (selectedProduct?.price || 0) ? (
-              <Button onClick={() => setLocation("/points-purchase")}>
-                ポイントチャージ
-              </Button>
-            ) : (
-              <Button 
-                onClick={confirmPurchase}
-                disabled={purchaseMutation.isPending}
-                className="bg-pink-500 hover:bg-pink-600"
-              >
-                {purchaseMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Check className="h-4 w-4 mr-2" />
-                )}
-                購入する
-              </Button>
+            {!selectedProduct?.isDemo && (
+              userPoints < (selectedProduct?.price || 0) ? (
+                <Button onClick={() => setLocation("/points-purchase")}>
+                  ポイントチャージ
+                </Button>
+              ) : (
+                <Button 
+                  onClick={confirmPurchase}
+                  disabled={purchaseMutation.isPending}
+                  className="bg-pink-500 hover:bg-pink-600"
+                >
+                  {purchaseMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Check className="h-4 w-4 mr-2" />
+                  )}
+                  購入する
+                </Button>
+              )
             )}
           </DialogFooter>
         </DialogContent>
