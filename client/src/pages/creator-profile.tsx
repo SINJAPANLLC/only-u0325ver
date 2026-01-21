@@ -319,9 +319,13 @@ export default function CreatorProfile() {
   
   const demoCreator = demoCreatorData[creatorId] || defaultDemoCreator;
   
+  const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  
   const creator = isRealCreator && creatorProfile ? {
-    name: (creatorProfile as any).username || creatorProfile.userId,
-    displayName: creatorProfile.displayName || "クリエイター",
+    name: (creatorProfile as any).username && !isUUID((creatorProfile as any).username) 
+      ? (creatorProfile as any).username 
+      : (creatorProfile.displayName || "ユーザー"),
+    displayName: creatorProfile.displayName || (creatorProfile as any).username || "ユーザー",
     avatar: (creatorProfile as any).avatarUrl || logoImage,
     cover: creatorProfile.coverImageUrl || demoCreator.cover,
     bio: creatorProfile.bio || "",
