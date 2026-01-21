@@ -194,7 +194,7 @@ function LiveStreamPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
-        setLocation("/my-profile");
+        setLocation(`/creator/${creatorId}`);
       }, 250);
     } else {
       animate(x, 0, { duration: 0.2 });
@@ -426,7 +426,7 @@ function LiveStreamPage({
       </Dialog>
 
       <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
-        <div className="mb-1 cursor-pointer" onClick={() => setLocation("/my-profile")} data-testid="button-avatar-profile">
+        <div className="mb-1 cursor-pointer" onClick={() => setLocation(`/creator/${creatorId}`)} data-testid="button-avatar-profile">
           <Avatar className="h-11 w-11 ring-2 ring-pink-500 shadow-lg">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 text-white font-bold">
