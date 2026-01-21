@@ -465,6 +465,8 @@ export default function AdminDashboard() {
   const navItems = [
     { id: "dashboard" as Tab, label: "ダッシュボード", icon: LayoutDashboard },
     { id: "sales" as Tab, label: "売上管理", icon: TrendingUp },
+    { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "withdrawals" as Tab, label: "クリエイター出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
     { id: "marketing" as Tab, label: "マーケティング管理", icon: Megaphone },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
     { id: "creators" as Tab, label: "クリエイター申請・管理", icon: FileCheck, badge: stats?.pendingApplications },
@@ -472,8 +474,6 @@ export default function AdminDashboard() {
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
     { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
-    { id: "transfers" as Tab, label: "ポイント購入管理", icon: Wallet, badge: stats?.pendingTransfers },
-    { id: "withdrawals" as Tab, label: "出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
     { id: "inquiries" as Tab, label: "お問い合わせ管理", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "settings" as Tab, label: "設定", icon: Settings },
