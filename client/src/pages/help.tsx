@@ -57,7 +57,7 @@ import { useAuth } from "@/hooks/use-auth";
 const faqItems = [
   {
     question: "ポイントの購入方法を教えてください",
-    answer: "アカウント画面の「所持ポイント」をタップし、「ポイント購入」ページから購入できます。銀行振込またはカード決済（準備中）に対応しています。",
+    answer: "アカウント画面の「所持ポイント」をタップし、「ポイント購入」ページから購入できます。銀行振込またはカード決済に対応しています。",
   },
   {
     question: "サブスクリプションの解約方法は？",
@@ -317,8 +317,8 @@ export default function HelpPage() {
               上記フォームで解決しない場合は、メールでもお問い合わせいただけます。
             </p>
             <p className="text-sm mt-2">
-              <a href="mailto:support@only-u.jp" className="text-primary hover:underline" data-testid="link-email">
-                support@only-u.jp
+              <a href="mailto:info@only-u.fun" className="text-primary hover:underline" data-testid="link-email">
+                info@only-u.fun
               </a>
             </p>
           </Card>
