@@ -822,6 +822,15 @@ export default function CreatorProfile() {
                       alt="" 
                       className={`absolute inset-0 w-full h-full object-cover ${!canAccess ? 'blur-lg' : ''}`}
                     />
+                    <div className="absolute top-1 right-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        (video.requiredTier || 0) === 0 
+                          ? "bg-green-500 text-white" 
+                          : "bg-pink-500 text-white"
+                      }`}>
+                        {(video.requiredTier || 0) === 0 ? "FREE" : getPlanNameByTier(video.requiredTier || 1)}
+                      </span>
+                    </div>
                     {!canAccess && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                         <div className="flex flex-col items-center text-white">
