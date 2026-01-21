@@ -1671,7 +1671,7 @@ export async function registerRoutes(
         .select({
           id: liveViewingSessions.id,
           totalPointsCharged: liveViewingSessions.totalPointsCharged,
-          createdAt: liveViewingSessions.createdAt,
+          startedAt: liveViewingSessions.startedAt,
           streamTitle: liveStreams.title,
         })
         .from(liveViewingSessions)
@@ -1680,7 +1680,7 @@ export async function registerRoutes(
           eq(liveStreams.creatorId, userId),
           sql`${liveViewingSessions.totalPointsCharged} > 0`
         ))
-        .orderBy(desc(liveViewingSessions.createdAt))
+        .orderBy(desc(liveViewingSessions.startedAt))
         .limit(50);
       
       const recentLiveSales = liveSessions.map(session => ({
@@ -1688,7 +1688,7 @@ export async function registerRoutes(
         productName: session.streamTitle || "ライブ配信",
         amount: session.totalPointsCharged || 0,
         status: "completed",
-        createdAt: session.createdAt,
+        createdAt: session.startedAt,
         productType: "live" as const,
       }));
       
