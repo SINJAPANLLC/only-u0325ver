@@ -58,6 +58,7 @@ import EmailVerification from "@/pages/email-verification";
 import LanguageSettings from "@/pages/language-settings";
 import NotificationSettings from "@/pages/notification-settings";
 import PrivacySettings from "@/pages/privacy-settings";
+import Help from "@/pages/help";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -229,6 +230,11 @@ function AuthenticatedApp() {
         </Route>
         <Route path="/guidelines">
           <LegalPage title="コンテンツガイドライン" type="guidelines" />
+        </Route>
+        <Route path="/help">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <Help />
+          </div>
         </Route>
         <Route component={NotFound} />
       </Switch>

@@ -254,7 +254,7 @@ export default function Account() {
     { icon: Shield, label: "プライバシーポリシー", href: "/privacy" },
     { icon: FileText, label: "特定商取引法に基づく表記", href: "/legal" },
     { icon: FileText, label: "掲載ガイドライン", href: "/guidelines" },
-    { icon: HelpCircle, label: "ヘルプ・お問い合わせ" },
+    { icon: HelpCircle, label: "ヘルプ・お問い合わせ", href: "/help" },
   ];
 
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";

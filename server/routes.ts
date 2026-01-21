@@ -3558,5 +3558,66 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // Contact form submission
+  app.post("/api/contact", isAuthenticated, async (req: any, res) => {
+    try {
+      const { category, email, subject, message } = req.body;
+      
+      if (!category || !email || !message) {
+        return res.status(400).json({ message: "必須項目を入力してください" });
+      }
+      
+      // For now, just log and return success (would send email/store in DB in production)
+      console.log("Contact form submission:", { category, email, subject, message });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      res.status(500).json({ message: "送信に失敗しました" });
+    }
+  });
+
+  // Account deletion
+  app.delete("/api/account", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Delete user data from various tables in order of dependencies
+      // Using individual try-catch to ensure partial cleanup doesn't fail the whole operation
+      const deletions = [
+        () => db.delete(premiumPlans).where(eq(premiumPlans.userId, userId)),
+        () => db.delete(notifications).where(eq(notifications.userId, userId)),
+        () => db.delete(subscriptions).where(eq(subscriptions.userId, userId)),
+        () => db.delete(follows).where(or(eq(follows.followerId, userId), eq(follows.followingId, userId))),
+        () => db.delete(creatorApplications).where(eq(creatorApplications.userId, userId)),
+        () => db.delete(creatorProfiles).where(eq(creatorProfiles.userId, userId)),
+        () => db.delete(userProfiles).where(eq(userProfiles.userId, userId)),
+      ];
+      
+      for (const deletion of deletions) {
+        try {
+          await deletion();
+        } catch (e) {
+          console.warn("Deletion step failed (continuing):", e);
+        }
+      }
+      
+      // Finally delete the user
+      await db.delete(users).where(eq(users.id, userId));
+      
+      // Destroy session
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) console.error("Session destroy error:", err);
+        });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ message: "アカウント削除に失敗しました" });
+    }
+  });
+
   return httpServer;
 }
