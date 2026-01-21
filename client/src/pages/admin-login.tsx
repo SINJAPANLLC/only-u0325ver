@@ -36,7 +36,8 @@ export default function AdminLogin() {
     },
     onSuccess: () => {
       toast({ title: "ログイン成功" });
-      setLocation("/admin/dashboard");
+      // Use full page navigation to ensure session cookie is recognized
+      window.location.href = "/admin/dashboard";
     },
     onError: (error: Error) => {
       toast({ title: error.message, variant: "destructive" });
