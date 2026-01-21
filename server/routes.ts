@@ -1821,7 +1821,7 @@ export async function registerRoutes(
   app.post("/api/creator/withdrawals", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { amount } = req.body;
+      const { amount, type = "normal" } = req.body;
       
       // Get creator profile
       const [creatorProfile] = await db
@@ -1844,20 +1844,26 @@ export async function registerRoutes(
       }
       
       // Minimum withdrawal amount
-      const MIN_WITHDRAWAL = 3000;
+      const MIN_WITHDRAWAL = 10000;
       if (amount < MIN_WITHDRAWAL) {
         return res.status(400).json({ message: `Minimum withdrawal is ${MIN_WITHDRAWAL} points` });
       }
       
-      // Calculate fee (300 yen)
-      const fee = 300;
-      const netAmount = amount - fee;
+      // Calculate fees
+      const transferFee = 330; // 振込手数料 330pt（税込）
+      const systemFeeRate = 0.165; // システム利用料 16.5%（税込）
+      const expressFeeRate = 0.088; // 早払い手数料 8.8%（税込）
+      
+      const systemFee = Math.floor(amount * systemFeeRate);
+      const expressFee = type === "express" ? Math.floor(amount * expressFeeRate) : 0;
+      const totalFee = systemFee + transferFee + expressFee;
+      const netAmount = amount - totalFee;
       
       // Create withdrawal request
       const [withdrawal] = await db.insert(withdrawalRequests).values({
         creatorId: userId,
         amount,
-        fee,
+        fee: totalFee,
         netAmount,
         bankName: creatorProfile.bankName,
         bankBranchName: creatorProfile.bankBranchName || "",

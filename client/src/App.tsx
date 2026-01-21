@@ -172,7 +172,7 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/creator-withdrawal">
-          <div className="h-[100svh] flex flex-col overflow-hidden">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
             <CreatorWithdrawal />
           </div>
         </Route>
