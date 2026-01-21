@@ -853,21 +853,12 @@ export default function Live() {
         data-testid="live-feed-container"
       >
         {baseStreams.length === 0 && feedType === "following" ? (
-          <div className="h-[100svh] flex items-center justify-center bg-gradient-to-b from-rose-900 to-black">
-            <div className="text-center text-white p-8">
-              <Users className="h-16 w-16 mx-auto mb-4 text-pink-400" />
-              <h2 className="text-xl font-bold mb-2">フォロー中の配信がありません</h2>
-              <p className="text-white/70 text-sm mb-4">
-                クリエイターをフォローすると、ここに配信が表示されます
-              </p>
-              <Button
-                onClick={() => handleFeedTypeChange("recommend")}
-                className="bg-pink-500 hover:bg-pink-600"
-                data-testid="button-switch-to-recommend"
-              >
-                おすすめを見る
-              </Button>
-            </div>
+          <div className="h-[100svh] flex flex-col items-center justify-center text-white px-8">
+            <div className="text-6xl mb-4">👀</div>
+            <h2 className="text-xl font-bold mb-2">フォロー中の配信がありません</h2>
+            <p className="text-white/70 text-center">
+              クリエイターをフォローすると、ここに配信が表示されます
+            </p>
           </div>
         ) : baseStreams.map((stream, index) => (
           <LiveStreamPage
