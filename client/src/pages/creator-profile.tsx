@@ -330,12 +330,22 @@ export default function CreatorProfile() {
   const isSubscribeLoading = subscribeMutation.isPending;
   const isLive = false;
 
-  const handleMessage = () => {
+  const handleMessage = async () => {
     if (!user) {
       setLocation("/auth");
       return;
     }
-    setLocation("/messages");
+    try {
+      const res = await apiRequest("POST", "/api/conversations", { participantId: creatorId });
+      const conversation = await res.json();
+      setLocation(`/conversation/${conversation.id}`);
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "メッセージを開始できませんでした",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubscribe = () => {
