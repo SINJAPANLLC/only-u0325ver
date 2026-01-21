@@ -1930,39 +1930,60 @@ export async function registerRoutes(
         productType: "live" as const,
       }));
       
-      // Get subscription transactions for recent sales
-      const subscriptionTransactions = await db
+      // Get subscriptions directly from subscriptions table with plan prices
+      const creatorSubscriptions = await db
         .select({
-          id: pointTransactions.id,
-          amount: pointTransactions.amount,
-          description: pointTransactions.description,
-          createdAt: pointTransactions.createdAt,
+          id: subscriptions.id,
+          planType: subscriptions.planType,
+          planId: subscriptions.planId,
+          createdAt: subscriptions.createdAt,
         })
-        .from(pointTransactions)
-        .where(and(
-          eq(pointTransactions.userId, userId),
-          eq(pointTransactions.type, "bonus"),
-          sql`${pointTransactions.description} LIKE '%サブスク%'`
-        ))
-        .orderBy(desc(pointTransactions.createdAt))
+        .from(subscriptions)
+        .where(eq(subscriptions.creatorId, userId))
+        .orderBy(desc(subscriptions.createdAt))
         .limit(50);
       
-      const recentSubscriptionSales = subscriptionTransactions.map(tx => ({
-        id: tx.id,
-        productName: tx.description || "サブスクリプション",
-        amount: tx.amount || 0,
-        status: "completed",
-        createdAt: tx.createdAt,
-        productType: "subscription" as const,
-      }));
+      // Get plan prices for subscriptions with planId
+      const planIds = creatorSubscriptions.map(s => s.planId).filter(Boolean) as string[];
+      const planPrices = planIds.length > 0 ? await db
+        .select({
+          id: subscriptionPlans.id,
+          name: subscriptionPlans.name,
+          price: subscriptionPlans.price,
+        })
+        .from(subscriptionPlans)
+        .where(sql`${subscriptionPlans.id} IN (${sql.join(planIds.map(id => sql`${id}`), sql`, `)})`) : [];
+      
+      const planPriceMap = new Map(planPrices.map(p => [p.id, p]));
+      
+      // Default prices for legacy subscriptions
+      const LEGACY_PRICES: Record<string, number> = {
+        monthly: 500,
+        yearly: 5000,
+      };
+      
+      const recentSubscriptionSales = creatorSubscriptions.map(sub => {
+        const plan = sub.planId ? planPriceMap.get(sub.planId) : null;
+        const price = plan?.price || LEGACY_PRICES[sub.planType || 'monthly'] || 500;
+        const planName = plan?.name || sub.planType || 'サブスクリプション';
+        
+        return {
+          id: sub.id,
+          productName: planName,
+          amount: price,
+          status: "completed",
+          createdAt: sub.createdAt,
+          productType: "subscription" as const,
+        };
+      });
       
       // Combine and sort by date
       const allRecentSales = [...recentProductSales, ...recentLiveSales, ...recentSubscriptionSales]
         .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
         .slice(0, 20);
       
-      // Get subscription earnings (from subscription payments)
-      const subscriptionTotal = subscriptionTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+      // Get subscription earnings total
+      const subscriptionTotal = recentSubscriptionSales.reduce((sum, sub) => sum + sub.amount, 0);
       
       // Calculate product total
       const productTotal = productSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
