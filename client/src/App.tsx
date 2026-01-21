@@ -167,7 +167,7 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/creator-sales">
-          <div className="h-[100svh] flex flex-col overflow-hidden">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
             <CreatorSales />
           </div>
         </Route>
