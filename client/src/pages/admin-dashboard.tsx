@@ -486,6 +486,21 @@ export default function AdminDashboard() {
     },
   });
 
+  const deleteVideo = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/admin/videos/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/videos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "動画を削除しました" });
+    },
+    onError: () => {
+      toast({ title: "動画の削除に失敗しました", variant: "destructive" });
+    },
+  });
+
   // Marketing users query
   const { data: marketingUsers, isLoading: isLoadingMarketingUsers } = useQuery<Array<{id: string; displayName: string | null; email: string | null; createdAt: Date | null}>>({
     queryKey: ["/api/admin/marketing/users"],
@@ -1854,6 +1869,7 @@ export default function AdminDashboard() {
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">視聴数</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">投稿日</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1870,6 +1886,43 @@ export default function AdminDashboard() {
                                 </Badge>
                               </td>
                               <td className="p-3 text-sm text-muted-foreground">{formatDate(video.createdAt)}</td>
+                              <td className="p-3">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => window.open(`/video/${video.id}`, "_blank")}
+                                    data-testid={`view-video-${video.id}`}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    視聴
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" variant="destructive" data-testid={`delete-video-${video.id}`}>
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>動画を削除しますか？</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          「{video.title}」を削除します。この操作は取り消せません。
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteVideo.mutate(video.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          削除
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </td>
                             </tr>
                           ))}
                         </tbody>

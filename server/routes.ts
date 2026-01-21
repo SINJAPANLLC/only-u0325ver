@@ -4741,6 +4741,24 @@ export async function registerRoutes(
     }
   });
 
+  // Delete a video (admin)
+  app.delete("/api/admin/videos/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete related comments first
+      await db.delete(comments).where(eq(comments.videoId, id));
+      
+      // Delete the video
+      await db.delete(videos).where(eq(videos.id, id));
+      
+      res.json({ success: true, message: "動画を削除しました" });
+    } catch (error) {
+      console.error("Delete video error:", error);
+      res.status(500).json({ message: "動画の削除に失敗しました" });
+    }
+  });
+
   // Get all products for admin
   app.get("/api/admin/products", isAdminSession, async (req, res) => {
     try {
