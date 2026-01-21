@@ -2693,13 +2693,15 @@ export async function registerRoutes(
           .returning();
       }
 
-      // If user is a creator, update creatorProfile displayName and bio only
-      if (displayName || bio !== undefined) {
+      // If user is a creator, update creatorProfile displayName, bio, and externalLink
+      const { externalLink } = req.body;
+      if (displayName || bio !== undefined || externalLink !== undefined) {
         await db
           .update(creatorProfiles)
           .set({
             displayName: displayName || undefined,
             bio: bio || undefined,
+            externalLink: externalLink !== undefined ? externalLink : undefined,
           })
           .where(eq(creatorProfiles.userId, userId));
       }

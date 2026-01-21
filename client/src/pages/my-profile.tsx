@@ -115,7 +115,7 @@ export default function MyProfile() {
   const username = profile?.username || user?.email?.split("@")[0] || "user";
   const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || demoAvatar;
   const bio = profile?.bio || creatorProfile?.bio || "Only-Uでプロフィールを編集してください";
-  const websiteUrl = profile?.location || "";
+  const websiteUrl = creatorProfile?.externalLink || profile?.location || "";
 
   const [editName, setEditName] = useState(displayName);
   const [editUsername, setEditUsername] = useState(username);
@@ -313,7 +313,7 @@ export default function MyProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { displayName: string; username?: string; bio: string; location?: string; avatarUrl?: string }) => {
+    mutationFn: async (data: { displayName: string; username?: string; bio: string; location?: string; externalLink?: string; avatarUrl?: string }) => {
       const res = await apiRequest("PATCH", "/api/profile", data);
       return res.json();
     },
@@ -520,6 +520,7 @@ export default function MyProfile() {
                       username: editUsername,
                       bio: editBio, 
                       location: editUrl,
+                      externalLink: editUrl,
                       ...(avatarChanged && { avatarUrl: editAvatar })
                     });
                   }}

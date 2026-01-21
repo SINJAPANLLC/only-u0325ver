@@ -38,6 +38,7 @@ const demoCreatorData: Record<string, {
   avatar: string;
   cover: string;
   bio: string;
+  externalLink?: string;
   followers: number;
   following: number;
   likes: number;
@@ -114,6 +115,7 @@ const defaultDemoCreator = {
   avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
   cover: img1,
   bio: "Only-Uクリエイター",
+  externalLink: "",
   followers: 10000,
   following: 50,
   likes: 100000,
@@ -292,6 +294,7 @@ export default function CreatorProfile() {
     avatar: (creatorProfile as any).avatarUrl || demoCreator.avatar,
     cover: creatorProfile.coverImageUrl || demoCreator.cover,
     bio: creatorProfile.bio || "",
+    externalLink: (creatorProfile as any).externalLink || "",
     followers: creatorProfile.followerCount || 0,
     following: creatorProfile.followingCount || 0,
     likes: 0,
@@ -576,6 +579,18 @@ export default function CreatorProfile() {
         {/* Bio Section */}
         <div className="w-full mt-4 text-center">
           <p className="text-sm font-medium whitespace-pre-line">{creator.bio}</p>
+          {creator.externalLink && (
+            <a 
+              href={creator.externalLink.startsWith('http') ? creator.externalLink : `https://${creator.externalLink}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-pink-500 hover:underline mt-1 inline-flex items-center gap-1"
+              data-testid="link-external"
+            >
+              <LinkIcon className="h-3 w-3" />
+              {creator.externalLink.replace(/^https?:\/\//, '')}
+            </a>
+          )}
         </div>
 
         {/* Action Buttons */}

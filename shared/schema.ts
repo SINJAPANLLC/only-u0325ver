@@ -85,6 +85,7 @@ export const creatorProfiles = pgTable("creator_profiles", {
   userId: varchar("user_id").notNull(),
   displayName: varchar("display_name").notNull(),
   bio: text("bio"),
+  externalLink: varchar("external_link"),
   coverImageUrl: varchar("cover_image_url"),
   isVerified: boolean("is_verified").default(false),
   followerCount: integer("follower_count").default(0),
