@@ -244,6 +244,31 @@ export default function CreatorProfile() {
     },
   });
 
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      const res = await apiRequest("DELETE", `/api/subscription/${creatorId}/${planId}`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription", creatorId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscriptions"] });
+      const expiresAt = data.expiresAt ? new Date(data.expiresAt).toLocaleDateString('ja-JP') : null;
+      toast({
+        title: "自動更新を停止しました",
+        description: expiresAt 
+          ? `${expiresAt}まで視聴できます。期限後は更新されません。` 
+          : "期限まで視聴できます。期限後は更新されません。",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "エラー",
+        description: error.message || "自動更新の停止に失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
+
   const [localIsFollowing, setLocalIsFollowing] = useState(false);
   const [localIsSubscribed, setLocalIsSubscribed] = useState(false);
 
@@ -644,6 +669,40 @@ export default function CreatorProfile() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">{plan.description}</p>
+                        {isAlreadySubscribed && (() => {
+                          const details = subscriptionStatus?.subscriptionDetails?.find((d: any) => d.planId === plan.id);
+                          const autoRenew = details?.autoRenew !== false;
+                          const expiresAt = details?.expiresAt ? new Date(details.expiresAt) : null;
+                          
+                          return (
+                            <div className="mt-2">
+                              {expiresAt && (
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {autoRenew ? "次回更新日" : "期限"}: {expiresAt.toLocaleDateString('ja-JP')}
+                                </p>
+                              )}
+                              {autoRenew ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 p-0 h-auto"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm("このプランの自動更新を停止しますか？期限まで視聴できます。")) {
+                                      cancelSubscriptionMutation.mutate(plan.id);
+                                    }
+                                  }}
+                                  disabled={cancelSubscriptionMutation.isPending}
+                                  data-testid={`button-cancel-subscription-${plan.tier}`}
+                                >
+                                  {cancelSubscriptionMutation.isPending ? "処理中..." : "自動更新を停止"}
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-orange-500">自動更新停止中</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div className="text-right">
                         <p className={`text-xl font-bold ${isAlreadySubscribed ? "text-green-500" : "text-pink-500"}`}>{plan.price.toLocaleString()}</p>

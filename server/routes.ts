@@ -2450,7 +2450,12 @@ export async function registerRoutes(
         isSubscribed: userSubscriptions.length > 0, 
         subscription,
         subscriptions: userSubscriptions,
-        subscribedPlanIds: userSubscriptions.map(s => s.planId)
+        subscribedPlanIds: userSubscriptions.map(s => s.planId),
+        subscriptionDetails: userSubscriptions.map(s => ({
+          planId: s.planId,
+          autoRenew: s.autoRenew,
+          expiresAt: s.expiresAt
+        }))
       });
     } catch (error) {
       console.error("Error checking subscription:", error);
@@ -2572,6 +2577,37 @@ export async function registerRoutes(
       }
 
       res.json({ message: "Subscription cancelled" });
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ message: "Failed to cancel subscription" });
+    }
+  });
+
+  // Cancel specific plan subscription (disables auto-renew)
+  app.delete("/api/subscription/:creatorId/:planId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { creatorId, planId } = req.params;
+
+      const [updatedSub] = await db
+        .update(subscriptions)
+        .set({ autoRenew: false })
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, creatorId),
+          eq(subscriptions.planId, planId),
+          eq(subscriptions.status, "active")
+        ))
+        .returning();
+
+      if (!updatedSub) {
+        return res.status(404).json({ message: "Subscription not found" });
+      }
+
+      res.json({ 
+        message: "Auto-renewal disabled", 
+        expiresAt: updatedSub.expiresAt 
+      });
     } catch (error) {
       console.error("Error cancelling subscription:", error);
       res.status(500).json({ message: "Failed to cancel subscription" });
@@ -3827,6 +3863,86 @@ export async function registerRoutes(
       res.status(500).json({ message: "アカウント削除に失敗しました" });
     }
   });
+
+  // Auto-renewal processing for subscriptions
+  async function processSubscriptionRenewals() {
+    try {
+      const now = new Date();
+      
+      // Find expired subscriptions with autoRenew enabled (only non-null expiresAt)
+      const expiredSubscriptions = await db
+        .select({
+          subscription: subscriptions,
+          plan: subscriptionPlans,
+        })
+        .from(subscriptions)
+        .leftJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
+        .where(and(
+          eq(subscriptions.status, "active"),
+          eq(subscriptions.autoRenew, true),
+          sql`${subscriptions.expiresAt} IS NOT NULL`,
+          lt(subscriptions.expiresAt, now)
+        ));
+
+      for (const { subscription, plan } of expiredSubscriptions) {
+        const price = plan?.price || 500;
+        
+        // Get user's point balance
+        const [user] = await db.select().from(users).where(eq(users.id, subscription.userId));
+        if (!user) continue;
+
+        const userPoints = user.points || 0;
+
+        if (userPoints >= price) {
+          // Deduct points and renew subscription
+          await db.update(users)
+            .set({ points: userPoints - price })
+            .where(eq(users.id, subscription.userId));
+
+          // Record transaction
+          await db.insert(pointTransactions).values({
+            userId: subscription.userId,
+            amount: -price,
+            type: "spend",
+            description: `サブスク自動更新: ${plan?.name || "月額プラン"}`,
+            relatedId: subscription.id,
+          });
+
+          // Extend subscription by 30 days
+          const newExpiresAt = new Date();
+          newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+
+          await db.update(subscriptions)
+            .set({ expiresAt: newExpiresAt })
+            .where(eq(subscriptions.id, subscription.id));
+
+          console.log(`Auto-renewed subscription ${subscription.id} for user ${subscription.userId}`);
+        } else {
+          // Not enough points - mark as expired
+          await db.update(subscriptions)
+            .set({ status: "expired" })
+            .where(eq(subscriptions.id, subscription.id));
+
+          // Create notification
+          await db.insert(notifications).values({
+            userId: subscription.userId,
+            type: "subscription",
+            title: "サブスク更新失敗",
+            message: `ポイント不足のため「${plan?.name || "月額プラン"}」の自動更新ができませんでした。`,
+          });
+
+          console.log(`Subscription ${subscription.id} expired due to insufficient points`);
+        }
+      }
+    } catch (error) {
+      console.error("Error processing subscription renewals:", error);
+    }
+  }
+
+  // Run renewal check every hour
+  setInterval(processSubscriptionRenewals, 60 * 60 * 1000);
+  // Also run once on startup after a short delay
+  setTimeout(processSubscriptionRenewals, 30 * 1000);
 
   return httpServer;
 }

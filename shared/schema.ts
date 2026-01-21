@@ -293,6 +293,7 @@ export const subscriptions = pgTable("subscriptions", {
   planType: varchar("plan_type").notNull(),
   tier: integer("tier").default(1), // 購読しているプランのtier
   status: varchar("status").default("active"),
+  autoRenew: boolean("auto_renew").default(true), // 自動更新フラグ
   startedAt: timestamp("started_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
 });
