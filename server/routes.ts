@@ -4778,25 +4778,39 @@ export async function registerRoutes(
           status: withdrawalRequests.status,
           isEarly: withdrawalRequests.isEarly,
           createdAt: withdrawalRequests.createdAt,
+          processedAt: withdrawalRequests.processedAt,
         })
         .from(withdrawalRequests)
         .orderBy(desc(withdrawalRequests.createdAt));
       
-      // Get user names
-      const withdrawalsWithUserNames = await Promise.all(
+      // Get user names and creator application info
+      const withdrawalsWithUserInfo = await Promise.all(
         allWithdrawals.map(async (withdrawal) => {
           const [profile] = await db
             .select({ displayName: userProfiles.displayName })
             .from(userProfiles)
             .where(eq(userProfiles.userId, withdrawal.creatorId));
+          
+          // Get creator application info
+          const [application] = await db
+            .select({
+              id: creatorApplications.id,
+              realName: creatorApplications.realName,
+              phoneNumber: creatorApplications.phoneNumber,
+              portfolioUrl: creatorApplications.portfolioUrl,
+            })
+            .from(creatorApplications)
+            .where(eq(creatorApplications.userId, withdrawal.creatorId));
+          
           return {
             ...withdrawal,
             userName: profile?.displayName || "Unknown",
+            creatorApplication: application || null,
           };
         })
       );
       
-      res.json(withdrawalsWithUserNames);
+      res.json(withdrawalsWithUserInfo);
     } catch (error) {
       console.error("Get withdrawals error:", error);
       res.status(500).json({ message: "出金申請一覧の取得に失敗しました" });

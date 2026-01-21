@@ -856,13 +856,27 @@ export default function AdminDashboard() {
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">銀行情報</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">申請日</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">振込日</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {allWithdrawals.map((withdrawal) => (
+                          {allWithdrawals.map((withdrawal: any) => (
                             <tr key={withdrawal.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-withdrawal-${withdrawal.id}`}>
-                              <td className="p-3 text-sm font-medium">{withdrawal.userName}</td>
+                              <td className="p-3 text-sm">
+                                <div className="font-medium">{withdrawal.userName}</div>
+                                {withdrawal.creatorApplication && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    <div>本名: {withdrawal.creatorApplication.realName}</div>
+                                    <div>電話: {withdrawal.creatorApplication.phoneNumber}</div>
+                                    {withdrawal.creatorApplication.portfolioUrl && (
+                                      <a href={withdrawal.creatorApplication.portfolioUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                                        ポートフォリオ
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
                               <td className="p-3 text-sm font-medium">¥{withdrawal.amount.toLocaleString()}</td>
                               <td className="p-3 text-sm text-muted-foreground">¥{withdrawal.fee.toLocaleString()}</td>
                               <td className="p-3 text-sm font-medium text-green-600">¥{withdrawal.netAmount.toLocaleString()}</td>
@@ -870,13 +884,16 @@ export default function AdminDashboard() {
                                 <div>{withdrawal.bankName}</div>
                                 <div className="text-xs text-muted-foreground">{withdrawal.bankBranchName}</div>
                                 <div className="text-xs text-muted-foreground">{withdrawal.bankAccountType} {withdrawal.bankAccountNumber}</div>
+                                <div className="text-xs text-muted-foreground">{withdrawal.bankAccountHolder}</div>
                               </td>
                               <td className="p-3">
                                 <Badge variant={withdrawal.status === "pending" ? "secondary" : withdrawal.status === "completed" ? "default" : "destructive"}>
                                   {withdrawal.status === "pending" ? "保留中" : withdrawal.status === "completed" ? "完了" : "却下"}
                                 </Badge>
+                                {withdrawal.isEarly && <Badge variant="outline" className="ml-1 text-xs">早期</Badge>}
                               </td>
                               <td className="p-3 text-sm text-muted-foreground">{formatDate(withdrawal.createdAt)}</td>
+                              <td className="p-3 text-sm text-muted-foreground">{withdrawal.processedAt ? formatDate(withdrawal.processedAt) : "-"}</td>
                               <td className="p-3">
                                 {withdrawal.status === "pending" && (
                                   <div className="flex gap-2">
