@@ -48,6 +48,8 @@ import {
   HelpCircle,
   Bell,
   Play,
+  DollarSign,
+  BarChart3,
 } from "lucide-react";
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
@@ -119,11 +121,38 @@ interface UserData {
 }
 
 interface SalesData {
-  subscriptionRevenue: number;
-  productSalesTotal: number;
-  productSalesCount: number;
-  pointPurchasesTotal: number;
-  pointPurchasesCount: number;
+  creatorRevenue: {
+    subscription: number;
+    live: number;
+    shop: number;
+    shopCount: number;
+    total: number;
+  };
+  creatorPaymentExpenses: {
+    feeBaseAmount: number;
+    systemFee: number;
+    systemFeeTax: number;
+    earlyPaymentAmount: number;
+    earlyPaymentCount: number;
+    earlyPaymentFee: number;
+    earlyPaymentFeeTax: number;
+    transferFee: number;
+    transferCount: number;
+    total: number;
+  };
+  pointPurchase: {
+    bankTransfer: number;
+    bankTransferCount: number;
+    stripe: number;
+    stripeCount: number;
+    total: number;
+    totalCount: number;
+    fee: number;
+    feeTax: number;
+    revenue: number;
+  };
+  netProfit: number;
+  totalPlatformRevenue: number;
   recentTransactions: {
     id: string;
     userId: string;
@@ -805,43 +834,181 @@ export default function AdminDashboard() {
 
           {/* Sales */}
           {activeTab === "sales" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {isLoadingSales ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               ) : salesData ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card data-testid="card-subscription-revenue">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">サブスクリプション収益</p>
-                        <p className="text-2xl font-bold" data-testid="text-subscription-revenue">¥{salesData.subscriptionRevenue.toLocaleString()}</p>
+                  {/* 純利益サマリー */}
+                  <Card className="border-2 border-pink-500" data-testid="card-net-profit">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">プラットフォーム純利益</p>
+                          <p className="text-4xl font-bold text-pink-600" data-testid="text-net-profit">
+                            ¥{salesData.netProfit.toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">プラットフォーム総収益</p>
+                          <p className="text-2xl font-bold" data-testid="text-total-platform-revenue">
+                            ¥{salesData.totalPlatformRevenue.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* クリエイター売上内訳 */}
+                    <Card data-testid="card-creator-revenue">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          クリエイター売上内訳
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">サブスク売上</span>
+                          <span className="font-medium" data-testid="text-sub-revenue">¥{salesData.creatorRevenue.subscription.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">ライブ売上</span>
+                          <span className="font-medium" data-testid="text-live-revenue">¥{salesData.creatorRevenue.live.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">ショップ売上</span>
+                          <span className="font-medium" data-testid="text-shop-revenue">¥{salesData.creatorRevenue.shop.toLocaleString()}</span>
+                          <span className="text-xs text-muted-foreground ml-2">({salesData.creatorRevenue.shopCount}件)</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 bg-slate-100 dark:bg-slate-800 rounded px-2">
+                          <span className="font-bold">クリエイター総売上</span>
+                          <span className="font-bold text-lg" data-testid="text-creator-total-revenue">¥{salesData.creatorRevenue.total.toLocaleString()}</span>
+                        </div>
                       </CardContent>
                     </Card>
-                    <Card data-testid="card-product-sales">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">商品売上</p>
-                        <p className="text-2xl font-bold" data-testid="text-product-sales">¥{salesData.productSalesTotal.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{salesData.productSalesCount}件</p>
+
+                    {/* クリエイター支払い経費（プラットフォーム収入） */}
+                    <Card data-testid="card-creator-expenses">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5" />
+                          クリエイター支払い経費
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">（プラットフォーム収入）</p>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="text-xs text-muted-foreground mb-2 px-1">
+                          対象金額: ¥{salesData.creatorPaymentExpenses.feeBaseAmount.toLocaleString()}
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">システム利用料 (15%)</span>
+                          <span className="font-medium" data-testid="text-system-fee">¥{salesData.creatorPaymentExpenses.systemFee.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b pl-4">
+                          <span className="text-xs text-muted-foreground">└ 消費税 (10%)</span>
+                          <span className="text-sm" data-testid="text-system-fee-tax">¥{salesData.creatorPaymentExpenses.systemFeeTax.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <div>
+                            <span className="text-muted-foreground">早払い手数料 (8%)</span>
+                            {salesData.creatorPaymentExpenses.earlyPaymentCount > 0 && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                ({salesData.creatorPaymentExpenses.earlyPaymentCount}件 / ¥{salesData.creatorPaymentExpenses.earlyPaymentAmount.toLocaleString()})
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-medium" data-testid="text-early-fee">¥{salesData.creatorPaymentExpenses.earlyPaymentFee.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b pl-4">
+                          <span className="text-xs text-muted-foreground">└ 消費税 (10%)</span>
+                          <span className="text-sm" data-testid="text-early-fee-tax">¥{salesData.creatorPaymentExpenses.earlyPaymentFeeTax.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">振込手数料 (¥330/件)</span>
+                          <div>
+                            <span className="font-medium" data-testid="text-transfer-fee">¥{salesData.creatorPaymentExpenses.transferFee.toLocaleString()}</span>
+                            <span className="text-xs text-muted-foreground ml-2">({salesData.creatorPaymentExpenses.transferCount}件)</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-2 bg-green-100 dark:bg-green-900/30 rounded px-2 mt-2">
+                          <span className="font-bold text-green-700 dark:text-green-400">経費収入合計</span>
+                          <span className="font-bold text-lg text-green-700 dark:text-green-400" data-testid="text-expense-total">¥{salesData.creatorPaymentExpenses.total.toLocaleString()}</span>
+                        </div>
                       </CardContent>
                     </Card>
-                    <Card data-testid="card-point-purchases">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">ポイント購入（振込）</p>
-                        <p className="text-2xl font-bold" data-testid="text-point-purchases">¥{salesData.pointPurchasesTotal.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{salesData.pointPurchasesCount}件</p>
+
+                    {/* ポイント購入収益 */}
+                    <Card data-testid="card-point-purchase">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <DollarSign className="h-5 w-5" />
+                          ポイント購入
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">銀行振込</span>
+                          <span className="font-medium" data-testid="text-bank-transfer">¥{salesData.pointPurchase.bankTransfer.toLocaleString()}</span>
+                          <span className="text-xs text-muted-foreground ml-2">({salesData.pointPurchase.bankTransferCount}件)</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b">
+                          <span className="text-muted-foreground">カード決済 (Stripe)</span>
+                          <span className="font-medium" data-testid="text-stripe">¥{salesData.pointPurchase.stripe.toLocaleString()}</span>
+                          <span className="text-xs text-muted-foreground ml-2">({salesData.pointPurchase.stripeCount}件)</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 bg-slate-100 dark:bg-slate-800 rounded px-2">
+                          <span className="font-bold">ポイント購入総額</span>
+                          <span className="font-bold" data-testid="text-point-total">¥{salesData.pointPurchase.total.toLocaleString()}</span>
+                          <span className="text-xs text-muted-foreground ml-2">({salesData.pointPurchase.totalCount}件)</span>
+                        </div>
+                        <div className="mt-4 pt-2 border-t">
+                          <p className="text-sm font-medium mb-2">手数料収入</p>
+                          <div className="flex justify-between items-center py-1">
+                            <span className="text-muted-foreground">購入手数料 (10%)</span>
+                            <span className="font-medium" data-testid="text-point-fee">¥{salesData.pointPurchase.fee.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-1 pl-4">
+                            <span className="text-xs text-muted-foreground">└ 消費税 (10%)</span>
+                            <span className="text-sm" data-testid="text-point-fee-tax">¥{salesData.pointPurchase.feeTax.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-green-100 dark:bg-green-900/30 rounded px-2 mt-2">
+                            <span className="font-bold text-green-700 dark:text-green-400">手数料収入合計</span>
+                            <span className="font-bold text-lg text-green-700 dark:text-green-400" data-testid="text-point-revenue">¥{salesData.pointPurchase.revenue.toLocaleString()}</span>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
-                    <Card data-testid="card-total-sales">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">合計売上</p>
-                        <p className="text-2xl font-bold text-pink-600" data-testid="text-total-sales">
-                          ¥{(salesData.subscriptionRevenue + salesData.productSalesTotal + salesData.pointPurchasesTotal).toLocaleString()}
-                        </p>
+
+                    {/* 収益サマリー */}
+                    <Card data-testid="card-revenue-summary">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <BarChart3 className="h-5 w-5" />
+                          収益サマリー
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">クリエイター経費収入</span>
+                          <span className="font-medium text-green-600" data-testid="text-summary-expense">+¥{salesData.creatorPaymentExpenses.total.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">ポイント手数料収入</span>
+                          <span className="font-medium text-green-600" data-testid="text-summary-point">+¥{salesData.pointPurchase.revenue.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 bg-pink-100 dark:bg-pink-900/30 rounded px-3">
+                          <span className="font-bold text-pink-700 dark:text-pink-400">純利益</span>
+                          <span className="font-bold text-2xl text-pink-700 dark:text-pink-400" data-testid="text-summary-net-profit">¥{salesData.netProfit.toLocaleString()}</span>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
+
+                  {/* 取引履歴 */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">最近の取引履歴</CardTitle>

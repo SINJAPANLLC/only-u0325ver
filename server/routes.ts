@@ -4785,7 +4785,9 @@ export async function registerRoutes(
   // Get sales statistics for admin
   app.get("/api/admin/sales", isAdminSession, async (req, res) => {
     try {
-      // Get subscription revenue from point transactions (spend type with subscription description)
+      // ========== クリエイター売上内訳 ==========
+      
+      // サブスクリプション売上 (point transactions with subscription description)
       const subscriptionRevenue = await db
         .select({ total: sql<number>`COALESCE(SUM(ABS(amount)), 0)` })
         .from(pointTransactions)
@@ -4796,8 +4798,14 @@ export async function registerRoutes(
           )
         );
       
-      // Get product sales
-      const productSales = await db
+      // ライブ売上 (from live viewing sessions)
+      const liveRevenue = await db
+        .select({ total: sql<number>`COALESCE(SUM(total_points_charged), 0)` })
+        .from(liveViewingSessions)
+        .where(sql`total_points_charged > 0`);
+      
+      // ショップ売上 (from purchases)
+      const shopRevenue = await db
         .select({ 
           total: sql<number>`COALESCE(SUM(price), 0)`,
           count: sql<number>`COUNT(*)`
@@ -4805,7 +4813,55 @@ export async function registerRoutes(
         .from(purchases)
         .where(eq(purchases.status, "completed"));
       
-      // Get point purchases (confirmed transfers)
+      const subscriptionTotal = Number(subscriptionRevenue[0]?.total || 0);
+      const liveTotal = Number(liveRevenue[0]?.total || 0);
+      const shopTotal = Number(shopRevenue[0]?.total || 0);
+      const shopCount = Number(shopRevenue[0]?.count || 0);
+      
+      // クリエイター総売上
+      const creatorTotalRevenue = subscriptionTotal + liveTotal + shopTotal;
+      
+      // ========== クリエイター支払い経費 ==========
+      // 手数料はクリエイター総売上に基づいて計算（売上発生時点で発生する費用）
+      
+      // Get withdrawal statistics for transfer fees
+      const withdrawalStats = await db
+        .select({ 
+          count: sql<number>`COUNT(*)`,
+          earlyCount: sql<number>`COALESCE(SUM(CASE WHEN is_early = true THEN 1 ELSE 0 END), 0)`,
+          earlyAmount: sql<number>`COALESCE(SUM(CASE WHEN is_early = true THEN amount ELSE 0 END), 0)`,
+          totalAmount: sql<number>`COALESCE(SUM(amount), 0)`
+        })
+        .from(withdrawalRequests)
+        .where(eq(withdrawalRequests.status, "completed"));
+      
+      const completedWithdrawals = Number(withdrawalStats[0]?.count || 0);
+      const earlyPaymentCount = Number(withdrawalStats[0]?.earlyCount || 0);
+      const earlyAmount = Number(withdrawalStats[0]?.earlyAmount || 0);
+      
+      // 手数料計算の基準はクリエイター総売上
+      const feeBaseAmount = creatorTotalRevenue;
+      
+      // システム利用料 15% (全クリエイター売上に対して)
+      const systemFee = Math.floor(feeBaseAmount * 0.15);
+      // システム利用料の消費税 (手数料の10%)
+      const systemFeeTax = Math.floor(systemFee * 0.10);
+      
+      // 早払い手数料 8% (早払い申請分のみに対して)
+      const earlyPaymentFee = Math.floor(earlyAmount * 0.08);
+      // 早払い手数料の消費税 (手数料の10%)
+      const earlyPaymentFeeTax = Math.floor(earlyPaymentFee * 0.10);
+      
+      // 振込手数料 330円/件
+      const transferFeePerTransaction = 330;
+      const totalTransferFee = completedWithdrawals * transferFeePerTransaction;
+      
+      // クリエイター支払い経費合計（プラットフォーム収入）
+      const creatorPaymentExpenses = systemFee + systemFeeTax + earlyPaymentFee + earlyPaymentFeeTax + totalTransferFee;
+      
+      // ========== ポイント購入収益 ==========
+      
+      // ポイント購入 (confirmed bank transfers)
       const pointPurchases = await db
         .select({ 
           total: sql<number>`COALESCE(SUM(amount), 0)`,
@@ -4814,7 +4870,40 @@ export async function registerRoutes(
         .from(bankTransferRequests)
         .where(eq(bankTransferRequests.status, "confirmed"));
       
-      // Get recent transactions
+      // Stripe point purchases
+      const stripePointPurchases = await db
+        .select({ 
+          total: sql<number>`COALESCE(SUM(amount), 0)`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(pointTransactions)
+        .where(eq(pointTransactions.type, "purchase"));
+      
+      const bankTransferTotal = Number(pointPurchases[0]?.total || 0);
+      const bankTransferCount = Number(pointPurchases[0]?.count || 0);
+      const stripeTotal = Number(stripePointPurchases[0]?.total || 0);
+      const stripeCount = Number(stripePointPurchases[0]?.count || 0);
+      const totalPointPurchases = bankTransferTotal + stripeTotal;
+      const totalPointPurchaseCount = bankTransferCount + stripeCount;
+      
+      // ポイント購入手数料 10%
+      const pointPurchaseFee = Math.floor(totalPointPurchases * 0.10);
+      // ポイント購入手数料の消費税 10%
+      const pointPurchaseFeeTax = Math.floor(pointPurchaseFee * 0.10);
+      
+      // ポイント購入収益合計
+      const pointPurchaseRevenue = pointPurchaseFee + pointPurchaseFeeTax;
+      
+      // ========== 純利益計算 ==========
+      
+      // 総収益 = クリエイター支払い経費（プラットフォームの収入）+ ポイント購入収益
+      const totalPlatformRevenue = creatorPaymentExpenses + pointPurchaseRevenue;
+      
+      // 純利益
+      const netProfit = totalPlatformRevenue;
+      
+      // ========== 取引履歴 ==========
+      
       const recentTransactions = await db
         .select({
           id: pointTransactions.id,
@@ -4828,7 +4917,6 @@ export async function registerRoutes(
         .orderBy(desc(pointTransactions.createdAt))
         .limit(50);
       
-      // Get transaction with user names
       const transactionsWithNames = await Promise.all(
         recentTransactions.map(async (tx) => {
           const [profile] = await db
@@ -4843,11 +4931,43 @@ export async function registerRoutes(
       );
       
       res.json({
-        subscriptionRevenue: Number(subscriptionRevenue[0]?.total || 0),
-        productSalesTotal: Number(productSales[0]?.total || 0),
-        productSalesCount: Number(productSales[0]?.count || 0),
-        pointPurchasesTotal: Number(pointPurchases[0]?.total || 0),
-        pointPurchasesCount: Number(pointPurchases[0]?.count || 0),
+        // クリエイター売上内訳
+        creatorRevenue: {
+          subscription: subscriptionTotal,
+          live: liveTotal,
+          shop: shopTotal,
+          shopCount: shopCount,
+          total: creatorTotalRevenue,
+        },
+        // クリエイター支払い経費
+        creatorPaymentExpenses: {
+          feeBaseAmount: feeBaseAmount,
+          systemFee: systemFee,
+          systemFeeTax: systemFeeTax,
+          earlyPaymentAmount: earlyAmount,
+          earlyPaymentCount: earlyPaymentCount,
+          earlyPaymentFee: earlyPaymentFee,
+          earlyPaymentFeeTax: earlyPaymentFeeTax,
+          transferFee: totalTransferFee,
+          transferCount: completedWithdrawals,
+          total: creatorPaymentExpenses,
+        },
+        // ポイント購入
+        pointPurchase: {
+          bankTransfer: bankTransferTotal,
+          bankTransferCount: bankTransferCount,
+          stripe: stripeTotal,
+          stripeCount: stripeCount,
+          total: totalPointPurchases,
+          totalCount: totalPointPurchaseCount,
+          fee: pointPurchaseFee,
+          feeTax: pointPurchaseFeeTax,
+          revenue: pointPurchaseRevenue,
+        },
+        // 純利益
+        netProfit: netProfit,
+        totalPlatformRevenue: totalPlatformRevenue,
+        // 取引履歴
         recentTransactions: transactionsWithNames,
       });
     } catch (error) {

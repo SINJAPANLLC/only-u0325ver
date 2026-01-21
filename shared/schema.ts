@@ -119,6 +119,7 @@ export const withdrawalRequests = pgTable("withdrawal_requests", {
   fee: integer("fee").default(0).notNull(),
   netAmount: integer("net_amount").notNull(),
   status: withdrawalStatusEnum("status").default("pending"),
+  isEarly: boolean("is_early").default(false),
   bankName: varchar("bank_name").notNull(),
   bankBranchName: varchar("bank_branch_name").notNull(),
   bankAccountType: varchar("bank_account_type").notNull(),
