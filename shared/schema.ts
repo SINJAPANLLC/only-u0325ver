@@ -460,3 +460,24 @@ export const insertWithdrawalRequestSchema = createInsertSchema(withdrawalReques
   createdAt: true,
 });
 export type InsertWithdrawalRequest = z.infer<typeof insertWithdrawalRequestSchema>;
+
+// Admin users table for separate admin authentication
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull().unique(),
+  passwordHash: varchar("password_hash").notNull(),
+  name: varchar("name"),
+  isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type AdminUser = typeof adminUsers.$inferSelect;
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({
+  id: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;

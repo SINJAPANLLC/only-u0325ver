@@ -13,11 +13,12 @@ import {
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
-  premiumPlans,
+  premiumPlans, adminUsers,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
 } from "@shared/schema";
+import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
 
@@ -4229,6 +4230,413 @@ export async function registerRoutes(
   setInterval(processSubscriptionRenewals, 60 * 60 * 1000);
   // Also run once on startup after a short delay
   setTimeout(processSubscriptionRenewals, 30 * 1000);
+
+  // ==================== ADMIN AUTHENTICATION ====================
+  
+  // Admin login
+  app.post("/api/admin/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "メールアドレスとパスワードを入力してください" });
+      }
+      
+      const [admin] = await db
+        .select()
+        .from(adminUsers)
+        .where(eq(adminUsers.email, email));
+      
+      if (!admin) {
+        return res.status(401).json({ message: "メールアドレスまたはパスワードが正しくありません" });
+      }
+      
+      if (!admin.isActive) {
+        return res.status(403).json({ message: "このアカウントは無効です" });
+      }
+      
+      const isValid = await bcrypt.compare(password, admin.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ message: "メールアドレスまたはパスワードが正しくありません" });
+      }
+      
+      // Update last login
+      await db.update(adminUsers)
+        .set({ lastLoginAt: new Date() })
+        .where(eq(adminUsers.id, admin.id));
+      
+      // Set admin session
+      (req.session as any).adminId = admin.id;
+      (req.session as any).adminEmail = admin.email;
+      (req.session as any).isAdminAuthenticated = true;
+      
+      res.json({ 
+        success: true, 
+        admin: { 
+          id: admin.id, 
+          email: admin.email, 
+          name: admin.name 
+        } 
+      });
+    } catch (error) {
+      console.error("Admin login error:", error);
+      res.status(500).json({ message: "ログインに失敗しました" });
+    }
+  });
+  
+  // Admin logout
+  app.post("/api/admin/auth/logout", (req, res) => {
+    (req.session as any).adminId = null;
+    (req.session as any).adminEmail = null;
+    (req.session as any).isAdminAuthenticated = false;
+    res.json({ success: true });
+  });
+  
+  // Check admin session
+  app.get("/api/admin/auth/me", (req, res) => {
+    if ((req.session as any).isAdminAuthenticated) {
+      res.json({
+        authenticated: true,
+        admin: {
+          id: (req.session as any).adminId,
+          email: (req.session as any).adminEmail
+        }
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
+  
+  // Admin session middleware
+  function isAdminSession(req: any, res: any, next: any) {
+    if ((req.session as any).isAdminAuthenticated) {
+      next();
+    } else {
+      res.status(401).json({ message: "管理者ログインが必要です" });
+    }
+  }
+  
+  // Admin dashboard stats
+  app.get("/api/admin/dashboard/stats", isAdminSession, async (req, res) => {
+    try {
+      const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const [creatorCount] = await db.select({ count: sql<number>`count(*)` }).from(creatorProfiles);
+      const [pendingApps] = await db.select({ count: sql<number>`count(*)` }).from(creatorApplications).where(eq(creatorApplications.status, "pending"));
+      const [pendingTransfers] = await db.select({ count: sql<number>`count(*)` }).from(bankTransferRequests).where(eq(bankTransferRequests.status, "pending"));
+      const [videoCount] = await db.select({ count: sql<number>`count(*)` }).from(videos);
+      const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
+      
+      res.json({
+        totalUsers: Number(userCount?.count || 0),
+        totalCreators: Number(creatorCount?.count || 0),
+        pendingApplications: Number(pendingApps?.count || 0),
+        pendingTransfers: Number(pendingTransfers?.count || 0),
+        totalVideos: Number(videoCount?.count || 0),
+        totalProducts: Number(productCount?.count || 0),
+      });
+    } catch (error) {
+      console.error("Dashboard stats error:", error);
+      res.status(500).json({ message: "データの取得に失敗しました" });
+    }
+  });
+  
+  // Get all users for admin
+  app.get("/api/admin/users", isAdminSession, async (req, res) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          createdAt: users.createdAt,
+          points: userProfiles.points,
+          displayName: userProfiles.displayName,
+          avatarUrl: userProfiles.avatarUrl,
+        })
+        .from(users)
+        .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+        .orderBy(desc(users.createdAt));
+      
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "ユーザー一覧の取得に失敗しました" });
+    }
+  });
+  
+  // Get user details
+  app.get("/api/admin/users/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id));
+      
+      if (!user) {
+        return res.status(404).json({ message: "ユーザーが見つかりません" });
+      }
+      
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, id));
+      
+      const [creatorProfile] = await db
+        .select()
+        .from(creatorProfiles)
+        .where(eq(creatorProfiles.userId, id));
+      
+      res.json({ user, profile, creatorProfile });
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({ message: "ユーザー情報の取得に失敗しました" });
+    }
+  });
+  
+  // Update user points (admin)
+  app.post("/api/admin/users/:id/points", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { points, reason } = req.body;
+      
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, id));
+      
+      if (!profile) {
+        return res.status(404).json({ message: "ユーザーが見つかりません" });
+      }
+      
+      const newPoints = (profile.points || 0) + points;
+      await db.update(userProfiles)
+        .set({ points: newPoints })
+        .where(eq(userProfiles.userId, id));
+      
+      // Record transaction
+      await db.insert(pointTransactions).values({
+        userId: id,
+        amount: points,
+        type: points > 0 ? "purchase" : "use",
+        description: reason || "管理者による調整",
+      });
+      
+      res.json({ success: true, newPoints });
+    } catch (error) {
+      console.error("Update points error:", error);
+      res.status(500).json({ message: "ポイント更新に失敗しました" });
+    }
+  });
+  
+  // Creator applications (admin session)
+  app.get("/api/admin/applications", isAdminSession, async (req, res) => {
+    try {
+      const { status } = req.query;
+      let applications;
+      
+      if (status && ["pending", "approved", "rejected"].includes(status as string)) {
+        applications = await db
+          .select()
+          .from(creatorApplications)
+          .where(eq(creatorApplications.status, status as "pending" | "approved" | "rejected"))
+          .orderBy(desc(creatorApplications.submittedAt));
+      } else {
+        applications = await db
+          .select()
+          .from(creatorApplications)
+          .orderBy(desc(creatorApplications.submittedAt));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      console.error("Get applications error:", error);
+      res.status(500).json({ message: "申請一覧の取得に失敗しました" });
+    }
+  });
+  
+  // Approve/reject application (admin session)
+  app.patch("/api/admin/applications/:id/decision", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { decision, notes } = req.body;
+      const adminId = (req.session as any).adminId;
+      
+      const [application] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.id, id));
+      
+      if (!application) {
+        return res.status(404).json({ message: "申請が見つかりません" });
+      }
+      
+      await db.update(creatorApplications)
+        .set({
+          status: decision,
+          adminNotes: notes,
+          reviewedAt: new Date(),
+          reviewerId: adminId,
+        })
+        .where(eq(creatorApplications.id, id));
+      
+      // If approved, create creator profile
+      if (decision === "approved") {
+        const [existingProfile] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.userId, application.userId));
+        
+        if (!existingProfile) {
+          await db.insert(creatorProfiles).values({
+            userId: application.userId,
+            displayName: application.fullName || "クリエイター",
+            bio: "",
+          });
+        }
+        
+        // Update user role
+        await db.update(users)
+          .set({ role: "creator" })
+          .where(eq(users.id, application.userId));
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Application decision error:", error);
+      res.status(500).json({ message: "処理に失敗しました" });
+    }
+  });
+  
+  // Bank transfers (admin session)
+  app.get("/api/admin/transfers", isAdminSession, async (req, res) => {
+    try {
+      const { status } = req.query;
+      let transfers;
+      
+      if (status) {
+        transfers = await db
+          .select()
+          .from(bankTransferRequests)
+          .where(eq(bankTransferRequests.status, status as string))
+          .orderBy(desc(bankTransferRequests.createdAt));
+      } else {
+        transfers = await db
+          .select()
+          .from(bankTransferRequests)
+          .orderBy(desc(bankTransferRequests.createdAt));
+      }
+      
+      res.json(transfers);
+    } catch (error) {
+      console.error("Get transfers error:", error);
+      res.status(500).json({ message: "振込一覧の取得に失敗しました" });
+    }
+  });
+  
+  // Confirm bank transfer (admin session)
+  app.post("/api/admin/transfers/:id/confirm", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminId = (req.session as any).adminId;
+      
+      const [request] = await db
+        .select()
+        .from(bankTransferRequests)
+        .where(eq(bankTransferRequests.id, id));
+      
+      if (!request) {
+        return res.status(404).json({ message: "振込申請が見つかりません" });
+      }
+      
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "この申請は既に処理されています" });
+      }
+      
+      // Get user profile
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, request.userId));
+      
+      if (!profile) {
+        return res.status(404).json({ message: "ユーザーが見つかりません" });
+      }
+      
+      // Add points
+      const newPoints = (profile.points || 0) + request.points;
+      await db.update(userProfiles)
+        .set({ points: newPoints })
+        .where(eq(userProfiles.userId, request.userId));
+      
+      // Update request status
+      await db.update(bankTransferRequests)
+        .set({
+          status: "confirmed",
+          confirmedAt: new Date(),
+          confirmedBy: adminId,
+        })
+        .where(eq(bankTransferRequests.id, id));
+      
+      // Record transaction
+      await db.insert(pointTransactions).values({
+        userId: request.userId,
+        amount: request.points,
+        type: "purchase",
+        description: `銀行振込: ${request.transferName}`,
+      });
+      
+      res.json({ success: true, newPoints });
+    } catch (error) {
+      console.error("Confirm transfer error:", error);
+      res.status(500).json({ message: "処理に失敗しました" });
+    }
+  });
+  
+  // Reject bank transfer
+  app.post("/api/admin/transfers/:id/reject", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      await db.update(bankTransferRequests)
+        .set({
+          status: "rejected",
+          rejectionReason: reason,
+        })
+        .where(eq(bankTransferRequests.id, id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Reject transfer error:", error);
+      res.status(500).json({ message: "処理に失敗しました" });
+    }
+  });
+  
+  // Seed admin account on startup
+  (async () => {
+    try {
+      const adminEmail = "info@sinjapan.jp";
+      const [existingAdmin] = await db
+        .select()
+        .from(adminUsers)
+        .where(eq(adminUsers.email, adminEmail));
+      
+      if (!existingAdmin) {
+        const passwordHash = await bcrypt.hash("Kazuya8008", 10);
+        await db.insert(adminUsers).values({
+          email: adminEmail,
+          passwordHash,
+          name: "System Admin",
+          isActive: true,
+        });
+        console.log("Admin account created: info@sinjapan.jp");
+      }
+    } catch (error) {
+      console.error("Failed to seed admin account:", error);
+    }
+  })();
 
   return httpServer;
 }
