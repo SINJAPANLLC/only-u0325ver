@@ -3358,5 +3358,144 @@ export async function registerRoutes(
     }
   });
 
+  // ============ Settings API Endpoints ============
+
+  // Personal info update
+  app.patch("/api/creator-applications/personal-info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { fullName, birthDate, gender, postalCode, prefecture, city, address, building } = req.body;
+
+      const [existing] = await db
+        .select()
+        .from(creatorApplications)
+        .where(eq(creatorApplications.userId, userId));
+
+      if (!existing) {
+        // Create new application if none exists
+        await db.insert(creatorApplications).values({
+          userId,
+          fullName,
+          birthDate,
+          gender,
+          postalCode,
+          prefecture,
+          city,
+          address,
+          building,
+          status: "draft",
+        });
+      } else {
+        await db
+          .update(creatorApplications)
+          .set({ 
+            fullName, 
+            birthDate, 
+            gender, 
+            postalCode, 
+            prefecture, 
+            city, 
+            address, 
+            building
+          })
+          .where(eq(creatorApplications.userId, userId));
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating personal info:", error);
+      res.status(500).json({ message: "更新に失敗しました" });
+    }
+  });
+
+  // Email verification status
+  app.get("/api/verification/email/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [user] = await db.select().from(users).where(eq(users.id, userId));
+      
+      // For now, consider email verified if user exists (registered with email)
+      res.json({ 
+        verified: true, // Email is verified since they registered
+        email: user?.email 
+      });
+    } catch (error) {
+      console.error("Error getting email status:", error);
+      res.status(500).json({ message: "エラーが発生しました" });
+    }
+  });
+
+  // Send email verification code
+  app.post("/api/verification/email/send", isAuthenticated, async (req: any, res) => {
+    try {
+      // For now, just return success (would send email in production)
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "送信に失敗しました" });
+    }
+  });
+
+  // Verify email code
+  app.post("/api/verification/email/verify", isAuthenticated, async (req: any, res) => {
+    try {
+      const { code } = req.body;
+      // Demo: accept any 6-digit code
+      if (code && code.length === 6) {
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ message: "無効なコード" });
+      }
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      res.status(500).json({ message: "認証に失敗しました" });
+    }
+  });
+
+  // Notification settings
+  app.get("/api/notification-settings", isAuthenticated, async (req: any, res) => {
+    // Return default settings (would be stored in DB in production)
+    res.json({
+      messages: true,
+      likes: true,
+      follows: true,
+      purchases: true,
+      liveStreams: true,
+      email: true,
+      push: true,
+    });
+  });
+
+  app.patch("/api/notification-settings", isAuthenticated, async (req: any, res) => {
+    // Would save to DB in production
+    res.json({ success: true });
+  });
+
+  // Privacy settings
+  app.get("/api/privacy-settings", isAuthenticated, async (req: any, res) => {
+    // Return default settings
+    res.json({
+      showOnlineStatus: true,
+      allowMessages: true,
+      showActivity: true,
+    });
+  });
+
+  app.patch("/api/privacy-settings", isAuthenticated, async (req: any, res) => {
+    // Would save to DB in production
+    res.json({ success: true });
+  });
+
+  // Blocked users
+  app.get("/api/blocked-users", isAuthenticated, async (req: any, res) => {
+    // Return empty list (would query DB in production)
+    res.json([]);
+  });
+
+  app.delete("/api/blocked-users/:userId", isAuthenticated, async (req: any, res) => {
+    // Would remove from DB in production
+    res.json({ success: true });
+  });
+
   return httpServer;
 }

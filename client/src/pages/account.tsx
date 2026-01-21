@@ -241,12 +241,12 @@ export default function Account() {
   ];
 
   const settingsMenuItems: MenuItemProps[] = [
-    { icon: User, label: "本人情報", description: "本人確認情報を編集" },
-    { icon: Phone, label: "電話番号認証", description: "電話番号を登録" },
-    { icon: Mail, label: "メールアドレス認証", description: "メールアドレスを確認" },
-    { icon: Globe, label: "言語設定", description: "日本語", badge: "JA" },
-    { icon: Bell, label: "通知設定", description: "通知をカスタマイズ" },
-    { icon: Shield, label: "プライバシー設定", description: "ブロックユーザーなど" },
+    { icon: User, label: "本人情報", description: "本人確認情報を編集", href: "/personal-info" },
+    { icon: Phone, label: "電話番号認証", description: "電話番号を登録", href: "/phone-verification" },
+    { icon: Mail, label: "メールアドレス認証", description: "メールアドレスを確認", href: "/email-verification" },
+    { icon: Globe, label: "言語設定", description: "日本語", badge: "JA", href: "/language-settings" },
+    { icon: Bell, label: "通知設定", description: "通知をカスタマイズ", href: "/notification-settings" },
+    { icon: Shield, label: "プライバシー設定", description: "ブロックユーザーなど", href: "/privacy-settings" },
   ];
 
   const legalMenuItems: MenuItemProps[] = [

@@ -52,6 +52,12 @@ import CreatorOrders from "@/pages/creator-orders";
 import CreatorSales from "@/pages/creator-sales";
 import CreatorWithdrawal from "@/pages/creator-withdrawal";
 import PaymentMethods from "@/pages/payment-methods";
+import PersonalInfo from "@/pages/personal-info";
+import PhoneVerification from "@/pages/phone-verification";
+import EmailVerification from "@/pages/email-verification";
+import LanguageSettings from "@/pages/language-settings";
+import NotificationSettings from "@/pages/notification-settings";
+import PrivacySettings from "@/pages/privacy-settings";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
@@ -180,6 +186,36 @@ function AuthenticatedApp() {
         <Route path="/payment-methods">
           <div className="h-[100svh] flex flex-col overflow-hidden">
             <PaymentMethods />
+          </div>
+        </Route>
+        <Route path="/personal-info">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <PersonalInfo />
+          </div>
+        </Route>
+        <Route path="/phone-verification">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <PhoneVerification />
+          </div>
+        </Route>
+        <Route path="/email-verification">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <EmailVerification />
+          </div>
+        </Route>
+        <Route path="/language-settings">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LanguageSettings />
+          </div>
+        </Route>
+        <Route path="/notification-settings">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <NotificationSettings />
+          </div>
+        </Route>
+        <Route path="/privacy-settings">
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <PrivacySettings />
           </div>
         </Route>
         <Route path="/terms">
