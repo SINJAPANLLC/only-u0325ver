@@ -4781,6 +4781,256 @@ export async function registerRoutes(
       res.status(500).json({ message: "出金申請一覧の取得に失敗しました" });
     }
   });
+
+  // Get sales statistics for admin
+  app.get("/api/admin/sales", isAdminSession, async (req, res) => {
+    try {
+      // Get subscription revenue
+      const subscriptionRevenue = await db
+        .select({ total: sql<number>`COALESCE(SUM(price), 0)` })
+        .from(subscriptions)
+        .where(eq(subscriptions.status, "active"));
+      
+      // Get product sales
+      const productSales = await db
+        .select({ 
+          total: sql<number>`COALESCE(SUM(total_amount), 0)`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(orders)
+        .where(eq(orders.status, "completed"));
+      
+      // Get point purchases (confirmed transfers)
+      const pointPurchases = await db
+        .select({ 
+          total: sql<number>`COALESCE(SUM(amount), 0)`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(bankTransferRequests)
+        .where(eq(bankTransferRequests.status, "confirmed"));
+      
+      // Get recent transactions
+      const recentTransactions = await db
+        .select({
+          id: pointTransactions.id,
+          userId: pointTransactions.userId,
+          amount: pointTransactions.amount,
+          type: pointTransactions.type,
+          description: pointTransactions.description,
+          createdAt: pointTransactions.createdAt,
+        })
+        .from(pointTransactions)
+        .orderBy(desc(pointTransactions.createdAt))
+        .limit(50);
+      
+      // Get transaction with user names
+      const transactionsWithNames = await Promise.all(
+        recentTransactions.map(async (tx) => {
+          const [profile] = await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, tx.userId));
+          return {
+            ...tx,
+            userName: profile?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json({
+        subscriptionRevenue: Number(subscriptionRevenue[0]?.total || 0),
+        productSalesTotal: Number(productSales[0]?.total || 0),
+        productSalesCount: Number(productSales[0]?.count || 0),
+        pointPurchasesTotal: Number(pointPurchases[0]?.total || 0),
+        pointPurchasesCount: Number(pointPurchases[0]?.count || 0),
+        recentTransactions: transactionsWithNames,
+      });
+    } catch (error) {
+      console.error("Get sales error:", error);
+      res.status(500).json({ message: "売上データの取得に失敗しました" });
+    }
+  });
+
+  // Get marketing statistics for admin
+  app.get("/api/admin/marketing", isAdminSession, async (req, res) => {
+    try {
+      // Get user registration stats by date (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const [totalUsers] = await db.select({ count: sql<number>`COUNT(*)` }).from(users);
+      const [newUsersThisMonth] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(users)
+        .where(sql`created_at >= ${thirtyDaysAgo}`);
+      
+      // Get follower/subscription stats
+      const [totalFollows] = await db.select({ count: sql<number>`COUNT(*)` }).from(follows);
+      const [activeSubscriptions] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(subscriptions)
+        .where(eq(subscriptions.status, "active"));
+      
+      // Get video engagement stats
+      const [totalViews] = await db
+        .select({ total: sql<number>`COALESCE(SUM(view_count), 0)` })
+        .from(videos);
+      const [totalLikes] = await db
+        .select({ total: sql<number>`COALESCE(SUM(like_count), 0)` })
+        .from(videos);
+      
+      res.json({
+        totalUsers: Number(totalUsers?.count || 0),
+        newUsersThisMonth: Number(newUsersThisMonth?.count || 0),
+        totalFollows: Number(totalFollows?.count || 0),
+        activeSubscriptions: Number(activeSubscriptions?.count || 0),
+        totalVideoViews: Number(totalViews?.total || 0),
+        totalVideoLikes: Number(totalLikes?.total || 0),
+      });
+    } catch (error) {
+      console.error("Get marketing error:", error);
+      res.status(500).json({ message: "マーケティングデータの取得に失敗しました" });
+    }
+  });
+
+  // Get messages statistics for admin
+  app.get("/api/admin/messages", isAdminSession, async (req, res) => {
+    try {
+      const [totalMessages] = await db.select({ count: sql<number>`COUNT(*)` }).from(messages);
+      const [totalConversations] = await db.select({ count: sql<number>`COUNT(*)` }).from(conversations);
+      
+      // Get recent messages
+      const recentMessages = await db
+        .select({
+          id: messages.id,
+          conversationId: messages.conversationId,
+          senderId: messages.senderId,
+          content: messages.content,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .orderBy(desc(messages.createdAt))
+        .limit(50);
+      
+      const messagesWithSenders = await Promise.all(
+        recentMessages.map(async (msg) => {
+          const [profile] = await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, msg.senderId));
+          return {
+            ...msg,
+            senderName: profile?.displayName || "Unknown",
+          };
+        })
+      );
+      
+      res.json({
+        totalMessages: Number(totalMessages?.count || 0),
+        totalConversations: Number(totalConversations?.count || 0),
+        recentMessages: messagesWithSenders,
+      });
+    } catch (error) {
+      console.error("Get messages error:", error);
+      res.status(500).json({ message: "メッセージデータの取得に失敗しました" });
+    }
+  });
+
+  // Get contact inquiries for admin
+  app.get("/api/admin/inquiries", isAdminSession, async (req, res) => {
+    try {
+      const allInquiries = await db
+        .select()
+        .from(contactInquiries)
+        .orderBy(desc(contactInquiries.createdAt));
+      
+      res.json(allInquiries);
+    } catch (error) {
+      console.error("Get inquiries error:", error);
+      res.status(500).json({ message: "お問い合わせデータの取得に失敗しました" });
+    }
+  });
+
+  // Update inquiry status
+  app.patch("/api/admin/inquiries/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminNotes } = req.body;
+      
+      await db.update(contactInquiries)
+        .set({ 
+          status,
+          adminNotes,
+          respondedAt: status === "responded" ? new Date() : undefined,
+        })
+        .where(eq(contactInquiries.id, id));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Update inquiry error:", error);
+      res.status(500).json({ message: "お問い合わせの更新に失敗しました" });
+    }
+  });
+
+  // Get notifications for admin
+  app.get("/api/admin/notifications", isAdminSession, async (req, res) => {
+    try {
+      const [totalNotifications] = await db.select({ count: sql<number>`COUNT(*)` }).from(notifications);
+      const [unreadNotifications] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(notifications)
+        .where(eq(notifications.isRead, false));
+      
+      // Get recent notifications
+      const recentNotifications = await db
+        .select({
+          id: notifications.id,
+          userId: notifications.userId,
+          type: notifications.type,
+          title: notifications.title,
+          message: notifications.message,
+          isRead: notifications.isRead,
+          createdAt: notifications.createdAt,
+        })
+        .from(notifications)
+        .orderBy(desc(notifications.createdAt))
+        .limit(100);
+      
+      res.json({
+        totalNotifications: Number(totalNotifications?.count || 0),
+        unreadNotifications: Number(unreadNotifications?.count || 0),
+        recentNotifications,
+      });
+    } catch (error) {
+      console.error("Get notifications error:", error);
+      res.status(500).json({ message: "通知データの取得に失敗しました" });
+    }
+  });
+
+  // Send notification to all users (admin)
+  app.post("/api/admin/notifications/broadcast", isAdminSession, async (req, res) => {
+    try {
+      const { title, message, type } = req.body;
+      
+      // Get all user IDs
+      const allUsers = await db.select({ id: users.id }).from(users);
+      
+      // Create notification for each user
+      for (const user of allUsers) {
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: type || "system",
+          title,
+          message,
+        });
+      }
+      
+      res.json({ success: true, count: allUsers.length });
+    } catch (error) {
+      console.error("Broadcast notification error:", error);
+      res.status(500).json({ message: "通知の送信に失敗しました" });
+    }
+  });
   
   // Seed admin account on startup
   (async () => {

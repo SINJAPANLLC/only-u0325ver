@@ -118,6 +118,71 @@ interface UserData {
   avatarUrl: string | null;
 }
 
+interface SalesData {
+  subscriptionRevenue: number;
+  productSalesTotal: number;
+  productSalesCount: number;
+  pointPurchasesTotal: number;
+  pointPurchasesCount: number;
+  recentTransactions: {
+    id: string;
+    userId: string;
+    userName: string;
+    amount: number;
+    type: string;
+    description: string | null;
+    createdAt: string;
+  }[];
+}
+
+interface MarketingData {
+  totalUsers: number;
+  newUsersThisMonth: number;
+  totalFollows: number;
+  activeSubscriptions: number;
+  totalVideoViews: number;
+  totalVideoLikes: number;
+}
+
+interface MessagesData {
+  totalMessages: number;
+  totalConversations: number;
+  recentMessages: {
+    id: string;
+    conversationId: string;
+    senderId: string;
+    senderName: string;
+    content: string;
+    createdAt: string;
+  }[];
+}
+
+interface InquiryData {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  adminNotes: string | null;
+  createdAt: string;
+  respondedAt: string | null;
+}
+
+interface NotificationsData {
+  totalNotifications: number;
+  unreadNotifications: number;
+  recentNotifications: {
+    id: string;
+    userId: string;
+    type: string;
+    title: string;
+    message: string;
+    isRead: boolean;
+    createdAt: string;
+  }[];
+}
+
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -189,6 +254,31 @@ export default function AdminDashboard() {
   const { data: allWithdrawals, isLoading: isLoadingWithdrawals } = useQuery<WithdrawalData[]>({
     queryKey: ["/api/admin/withdrawals"],
     enabled: authStatus?.authenticated && activeTab === "transfers",
+  });
+
+  const { data: salesData, isLoading: isLoadingSales } = useQuery<SalesData>({
+    queryKey: ["/api/admin/sales"],
+    enabled: authStatus?.authenticated && activeTab === "sales",
+  });
+
+  const { data: marketingData, isLoading: isLoadingMarketing } = useQuery<MarketingData>({
+    queryKey: ["/api/admin/marketing"],
+    enabled: authStatus?.authenticated && activeTab === "marketing",
+  });
+
+  const { data: messagesData, isLoading: isLoadingMessages } = useQuery<MessagesData>({
+    queryKey: ["/api/admin/messages"],
+    enabled: authStatus?.authenticated && activeTab === "messages",
+  });
+
+  const { data: inquiriesData, isLoading: isLoadingInquiries } = useQuery<InquiryData[]>({
+    queryKey: ["/api/admin/inquiries"],
+    enabled: authStatus?.authenticated && activeTab === "inquiries",
+  });
+
+  const { data: notificationsData, isLoading: isLoadingNotifications } = useQuery<NotificationsData>({
+    queryKey: ["/api/admin/notifications"],
+    enabled: authStatus?.authenticated && activeTab === "notifications",
   });
 
   const logoutMutation = useMutation({
@@ -716,80 +806,306 @@ export default function AdminDashboard() {
           {/* Sales */}
           {activeTab === "sales" && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">売上管理</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    売上データは準備中です
+              {isLoadingSales ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : salesData ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">サブスクリプション収益</p>
+                        <p className="text-2xl font-bold">¥{salesData.subscriptionRevenue.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">商品売上</p>
+                        <p className="text-2xl font-bold">¥{salesData.productSalesTotal.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{salesData.productSalesCount}件</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">ポイント購入（振込）</p>
+                        <p className="text-2xl font-bold">¥{salesData.pointPurchasesTotal.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{salesData.pointPurchasesCount}件</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">合計売上</p>
+                        <p className="text-2xl font-bold text-pink-600">
+                          ¥{(salesData.subscriptionRevenue + salesData.productSalesTotal + salesData.pointPurchasesTotal).toLocaleString()}
+                        </p>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">最近の取引履歴</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {salesData.recentTransactions.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-slate-200 dark:border-slate-700">
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">種類</th>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">説明</th>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">日時</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {salesData.recentTransactions.map((tx) => (
+                                <tr key={tx.id} className="border-b border-slate-100 dark:border-slate-800">
+                                  <td className="p-3 text-sm">{tx.userName}</td>
+                                  <td className="p-3">
+                                    <Badge variant={tx.type === "purchase" ? "default" : "secondary"}>
+                                      {tx.type === "purchase" ? "購入" : tx.type === "use" ? "使用" : tx.type}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 text-sm font-medium">
+                                    <span className={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                      {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()} pt
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-sm text-muted-foreground">{tx.description || "-"}</td>
+                                  <td className="p-3 text-sm text-muted-foreground">{formatDate(tx.createdAt)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">取引履歴がありません</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
+              )}
             </div>
           )}
 
           {/* Marketing */}
           {activeTab === "marketing" && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">マーケティング管理</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    マーケティング機能は準備中です
+              {isLoadingMarketing ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : marketingData ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">総ユーザー数</p>
+                        <p className="text-2xl font-bold">{marketingData.totalUsers.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">今月の新規登録</p>
+                        <p className="text-2xl font-bold text-green-600">{marketingData.newUsersThisMonth.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">フォロー総数</p>
+                        <p className="text-2xl font-bold">{marketingData.totalFollows.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">アクティブサブスクリプション</p>
+                        <p className="text-2xl font-bold text-pink-600">{marketingData.activeSubscriptions.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">動画総再生数</p>
+                        <p className="text-2xl font-bold">{marketingData.totalVideoViews.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">動画総いいね数</p>
+                        <p className="text-2xl font-bold">{marketingData.totalVideoLikes.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
+                </>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
+              )}
             </div>
           )}
 
           {/* Messages */}
           {activeTab === "messages" && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">メッセージ管理</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    メッセージ管理機能は準備中です
+              {isLoadingMessages ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : messagesData ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">総メッセージ数</p>
+                        <p className="text-2xl font-bold">{messagesData.totalMessages.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">総会話数</p>
+                        <p className="text-2xl font-bold">{messagesData.totalConversations.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">最近のメッセージ</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {messagesData.recentMessages.length > 0 ? (
+                        <div className="space-y-3">
+                          {messagesData.recentMessages.slice(0, 20).map((msg) => (
+                            <div key={msg.id} className="p-3 border rounded-lg">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <span className="font-medium text-sm">{msg.senderName}</span>
+                                <span className="text-xs text-muted-foreground">{formatDate(msg.createdAt)}</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{msg.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">メッセージがありません</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
+              )}
             </div>
           )}
 
           {/* Inquiries */}
           {activeTab === "inquiries" && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">お問い合わせ管理</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    お問い合わせ管理機能は準備中です
-                  </div>
-                </CardContent>
-              </Card>
+              {isLoadingInquiries ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : inquiriesData && inquiriesData.length > 0 ? (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                    <CardTitle className="text-lg">お問い合わせ一覧</CardTitle>
+                    <Badge variant="secondary">{inquiriesData.length}件</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">名前</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">メール</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">件名</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">受信日</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {inquiriesData.map((inquiry) => (
+                            <tr key={inquiry.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                              <td className="p-3 text-sm font-medium">{inquiry.name}</td>
+                              <td className="p-3 text-sm">{inquiry.email}</td>
+                              <td className="p-3 text-sm">{inquiry.subject}</td>
+                              <td className="p-3">
+                                <Badge variant={inquiry.status === "new" ? "destructive" : inquiry.status === "responded" ? "default" : "secondary"}>
+                                  {inquiry.status === "new" ? "未対応" : inquiry.status === "responded" ? "対応済" : "処理中"}
+                                </Badge>
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(inquiry.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="py-12">
+                    <div className="text-center text-muted-foreground">お問い合わせがありません</div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
           {/* Notifications */}
           {activeTab === "notifications" && (
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">通知管理</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    通知管理機能は準備中です
+              {isLoadingNotifications ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : notificationsData ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">総通知数</p>
+                        <p className="text-2xl font-bold">{notificationsData.totalNotifications.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-sm text-muted-foreground">未読通知</p>
+                        <p className="text-2xl font-bold text-pink-600">{notificationsData.unreadNotifications.toLocaleString()}</p>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">最近の通知</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {notificationsData.recentNotifications.length > 0 ? (
+                        <div className="space-y-3">
+                          {notificationsData.recentNotifications.slice(0, 20).map((notif) => (
+                            <div key={notif.id} className="p-3 border rounded-lg">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm">{notif.title}</span>
+                                  <Badge variant={notif.isRead ? "secondary" : "destructive"} className="text-xs">
+                                    {notif.isRead ? "既読" : "未読"}
+                                  </Badge>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{formatDate(notif.createdAt)}</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{notif.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">通知がありません</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
+              )}
             </div>
           )}
 
