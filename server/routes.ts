@@ -1625,7 +1625,7 @@ export async function registerRoutes(
       
       // Get live streaming earnings from viewing sessions
       const [liveEarnings] = await db
-        .select({ total: sql<number>`COALESCE(SUM(lvs.total_points_charged), 0)` })
+        .select({ total: sql<number>`COALESCE(SUM(${liveViewingSessions.totalPointsCharged}), 0)` })
         .from(liveViewingSessions)
         .innerJoin(liveStreams, eq(liveViewingSessions.liveStreamId, liveStreams.id))
         .where(eq(liveStreams.creatorId, userId));
