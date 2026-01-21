@@ -21,6 +21,12 @@ import {
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+});
 
 // Admin check middleware
 function isAdmin(req: any, res: any, next: any) {
@@ -5128,6 +5134,118 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Get marketing error:", error);
       res.status(500).json({ message: "マーケティングデータの取得に失敗しました" });
+    }
+  });
+
+  // Generate marketing email with AI
+  app.post("/api/admin/marketing/generate-email", isAdminSession, async (req, res) => {
+    try {
+      const { targetAudience, purpose, tone, additionalInfo } = req.body;
+      
+      const prompt = `
+あなたはプロのマーケティングコピーライターです。以下の条件で営業メールを作成してください。
+
+ターゲット: ${targetAudience || "一般ユーザー"}
+目的: ${purpose || "サービスの紹介"}
+トーン: ${tone || "フレンドリー"}
+${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
+
+プラットフォーム名: Only-U（クリエイター向けコンテンツ配信プラットフォーム）
+
+以下の形式でJSON形式で返してください:
+{
+  "subject": "メールの件名",
+  "body": "メール本文（改行は\\nで表現）"
+}
+`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      });
+
+      const content = response.choices[0]?.message?.content || "{}";
+      const emailData = JSON.parse(content);
+      
+      res.json(emailData);
+    } catch (error) {
+      console.error("Generate email error:", error);
+      res.status(500).json({ message: "メール生成に失敗しました" });
+    }
+  });
+
+  // Get users for marketing email
+  app.get("/api/admin/marketing/users", isAdminSession, async (req, res) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: userProfiles.userId,
+          displayName: userProfiles.displayName,
+          email: userProfiles.email,
+          createdAt: userProfiles.createdAt,
+        })
+        .from(userProfiles)
+        .orderBy(desc(userProfiles.createdAt));
+      
+      res.json(allUsers.filter(u => u.email));
+    } catch (error) {
+      console.error("Get marketing users error:", error);
+      res.status(500).json({ message: "ユーザー一覧の取得に失敗しました" });
+    }
+  });
+
+  // Send marketing email
+  app.post("/api/admin/marketing/send-email", isAdminSession, async (req, res) => {
+    try {
+      const { recipients, subject, body } = req.body;
+      
+      if (!recipients || recipients.length === 0) {
+        return res.status(400).json({ message: "送信先を選択してください" });
+      }
+      
+      if (!subject || !body) {
+        return res.status(400).json({ message: "件名と本文を入力してください" });
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "465"),
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const email of recipients) {
+        try {
+          await transporter.sendMail({
+            from: `"Only-U" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: subject,
+            text: body,
+            html: body.replace(/\n/g, "<br>"),
+          });
+          successCount++;
+        } catch (err) {
+          console.error(`Failed to send to ${email}:`, err);
+          failCount++;
+        }
+      }
+
+      res.json({
+        success: true,
+        sent: successCount,
+        failed: failCount,
+        message: `${successCount}件のメールを送信しました${failCount > 0 ? `（${failCount}件失敗）` : ""}`,
+      });
+    } catch (error) {
+      console.error("Send marketing email error:", error);
+      res.status(500).json({ message: "メール送信に失敗しました" });
     }
   });
 
