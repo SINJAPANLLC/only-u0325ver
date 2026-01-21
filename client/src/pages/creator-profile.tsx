@@ -152,10 +152,9 @@ export default function CreatorProfile() {
   const creatorId = params?.username || "";
   const isRealCreator = creatorId && !demoCreatorData[creatorId];
   
-  const { data: creatorProfile, isLoading: isLoadingCreator, isError: isCreatorError } = useQuery<CreatorProfileType>({
+  const { data: creatorProfile, isLoading: isLoadingCreator } = useQuery<CreatorProfileType>({
     queryKey: ["/api/creators", creatorId],
     enabled: Boolean(isRealCreator),
-    retry: false,
   });
 
   const { data: creatorVideos } = useQuery<Video[]>({
@@ -503,18 +502,6 @@ export default function CreatorProfile() {
     return (
       <div className="h-full bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Show "not a creator" message if the user is not a creator
-  if (isRealCreator && isCreatorError) {
-    return (
-      <div className="h-full bg-background flex flex-col items-center justify-center gap-4 p-4">
-        <p className="text-muted-foreground text-center">このユーザーはクリエイターではありません</p>
-        <Button variant="outline" onClick={() => setLocation(-1 as any)}>
-          戻る
-        </Button>
       </div>
     );
   }

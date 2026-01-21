@@ -2157,6 +2157,7 @@ export async function registerRoutes(
     try {
       const { id } = req.params;
       
+      // First try to find by creatorProfiles.id
       let result = await db
         .select({
           id: creatorProfiles.id,
@@ -2170,11 +2171,13 @@ export async function registerRoutes(
           postCount: creatorProfiles.postCount,
           avatarUrl: userProfiles.avatarUrl,
           username: userProfiles.username,
+          isCreator: sql<boolean>`true`.as("isCreator"),
         })
         .from(creatorProfiles)
         .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
         .where(eq(creatorProfiles.id, id));
       
+      // Then try by creatorProfiles.userId
       if (result.length === 0) {
         result = await db
           .select({
@@ -2189,14 +2192,69 @@ export async function registerRoutes(
             postCount: creatorProfiles.postCount,
             avatarUrl: userProfiles.avatarUrl,
             username: userProfiles.username,
+            isCreator: sql<boolean>`true`.as("isCreator"),
           })
           .from(creatorProfiles)
           .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
           .where(eq(creatorProfiles.userId, id));
       }
       
+      // If not a creator, try to get basic user profile
       if (result.length === 0) {
-        return res.status(404).json({ message: "Creator not found" });
+        const userResult = await db
+          .select({
+            id: userProfiles.id,
+            userId: userProfiles.userId,
+            displayName: userProfiles.displayName,
+            bio: userProfiles.bio,
+            avatarUrl: userProfiles.avatarUrl,
+            username: userProfiles.username,
+          })
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, id));
+        
+        if (userResult.length > 0) {
+          const userProfile = userResult[0];
+          return res.json({
+            id: userProfile.id,
+            userId: userProfile.userId,
+            displayName: userProfile.displayName || userProfile.username || "ユーザー",
+            bio: userProfile.bio || "",
+            coverImageUrl: null,
+            isVerified: false,
+            followerCount: 0,
+            followingCount: 0,
+            postCount: 0,
+            avatarUrl: userProfile.avatarUrl,
+            username: userProfile.username,
+            isCreator: false,
+          });
+        }
+        
+        // Last resort: try users table
+        const [userData] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, id));
+        
+        if (userData) {
+          return res.json({
+            id: userData.id,
+            userId: userData.id,
+            displayName: userData.username || "ユーザー",
+            bio: "",
+            coverImageUrl: null,
+            isVerified: false,
+            followerCount: 0,
+            followingCount: 0,
+            postCount: 0,
+            avatarUrl: userData.avatarUrl,
+            username: userData.username,
+            isCreator: false,
+          });
+        }
+        
+        return res.status(404).json({ message: "User not found" });
       }
       res.json(result[0]);
     } catch (error) {
