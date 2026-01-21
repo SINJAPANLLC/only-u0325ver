@@ -51,6 +51,7 @@ export default function MyPurchasesPage() {
 
   const digitalPurchases = purchases?.filter(p => p.product?.productType === "digital") || [];
   const physicalPurchases = purchases?.filter(p => p.product?.productType === "physical") || [];
+  const otherPurchases = purchases?.filter(p => !p.product || (p.product.productType !== "digital" && p.product.productType !== "physical")) || [];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -196,6 +197,50 @@ export default function MyPurchasesPage() {
                           <Badge variant="outline" className="shrink-0 h-fit">
                             物販
                           </Badge>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {otherPurchases.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  その他の購入
+                </h2>
+                <div className="space-y-3">
+                  {otherPurchases.map((purchase) => (
+                    <motion.div
+                      key={purchase.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="p-4">
+                        <div className="flex gap-4">
+                          <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                            <Package className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate" data-testid={`text-product-name-${purchase.id}`}>
+                              {purchase.product?.name || "削除された商品"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
+                            </p>
+                            <p className="text-sm font-medium mt-1">
+                              {purchase.price.toLocaleString()} pt
+                            </p>
+                            <div className="flex items-center gap-1 mt-2">
+                              <Clock className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                {purchase.status === "completed" ? "完了" : 
+                                 purchase.status === "shipped" ? "発送済み" : "処理中"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </Card>
                     </motion.div>

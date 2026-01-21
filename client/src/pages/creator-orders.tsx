@@ -76,6 +76,7 @@ export default function CreatorOrdersPage() {
 
   const physicalOrders = orders?.filter(o => o.product?.productType === "physical") || [];
   const digitalOrders = orders?.filter(o => o.product?.productType === "digital") || [];
+  const otherOrders = orders?.filter(o => !o.product || (o.product.productType !== "digital" && o.product.productType !== "physical")) || [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -237,6 +238,46 @@ export default function CreatorOrdersPage() {
                               <Badge variant="secondary" className="bg-green-100 text-green-800">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />完了
                               </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {format(new Date(order.createdAt), "yyyy年M月d日 HH:mm", { locale: ja })}
+                            </p>
+                            <p className="text-sm font-medium mt-1">
+                              {order.price.toLocaleString()} pt
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {otherOrders.length > 0 && (
+              <section>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  その他の注文 ({otherOrders.length})
+                </h2>
+                <div className="space-y-3">
+                  {otherOrders.map((order) => (
+                    <motion.div
+                      key={order.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="p-4">
+                        <div className="flex gap-4">
+                          <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="font-medium truncate">
+                                {order.product?.name || "削除された商品"}
+                              </h3>
+                              {getStatusBadge(order.status)}
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">
                               {format(new Date(order.createdAt), "yyyy年M月d日 HH:mm", { locale: ja })}
