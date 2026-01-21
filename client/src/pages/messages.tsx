@@ -23,6 +23,7 @@ import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
 import img4 from "@assets/generated_images/nude_shower_4.jpg";
 import img5 from "@assets/generated_images/bunny_girl_5.jpg";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
 interface ConversationWithDetails {
   id: string;
@@ -55,7 +56,7 @@ function ConversationPreview({
     >
       <div className="relative">
         <Avatar className="h-14 w-14">
-          <AvatarImage src={participantAvatar} className="object-cover" />
+          <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
           <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-lg">
             {participantName.charAt(0)}
           </AvatarFallback>
