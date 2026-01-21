@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { UserProfile, CreatorApplication, Subscription } from "@shared/schema";
 
-import demoAvatar from "@assets/generated_images/sexy_maid_7.jpg";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
 interface SubscriptionWithDetails extends Subscription {
   creatorDisplayName: string | null;
@@ -290,7 +290,7 @@ export default function Account() {
         >
           <div className="flex items-center gap-4">
             <Avatar className={`h-16 w-16 ${isApprovedCreator ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-background' : ''}`}>
-              <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || demoAvatar} />
+              <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || logoImage} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                 {displayName.charAt(0)}
               </AvatarFallback>
@@ -457,7 +457,7 @@ export default function Account() {
                       data-testid={`link-creator-profile-${subscription.id}`}
                     >
                       <Avatar className="h-12 w-12 border-2 border-pink-500 cursor-pointer">
-                        <AvatarImage src={subscription.creatorAvatarUrl || demoAvatar} alt={subscription.creatorDisplayName || "Creator"} />
+                        <AvatarImage src={subscription.creatorAvatarUrl || logoImage} alt={subscription.creatorDisplayName || "Creator"} />
                         <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
                           <Crown className="h-5 w-5" />
                         </AvatarFallback>
