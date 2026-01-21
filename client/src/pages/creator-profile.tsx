@@ -31,6 +31,7 @@ import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
 import img2 from "@assets/generated_images/nude_bath_2.jpg";
 import img3 from "@assets/generated_images/nude_shower_4.jpg";
 import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
 type DemoProduct = { id: string; name: string; price: number; imageUrl: string; productType: "digital" | "physical"; description?: string };
 
@@ -114,7 +115,7 @@ const demoCreatorData: Record<string, {
 const defaultDemoCreator = {
   name: "Creator",
   displayName: "クリエイター",
-  avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face",
+  avatar: "",
   cover: img1,
   bio: "Only-Uクリエイター",
   externalLink: "",
@@ -321,7 +322,7 @@ export default function CreatorProfile() {
   const creator = isRealCreator && creatorProfile ? {
     name: (creatorProfile as any).username || creatorProfile.userId,
     displayName: creatorProfile.displayName || "クリエイター",
-    avatar: (creatorProfile as any).avatarUrl || demoCreator.avatar,
+    avatar: (creatorProfile as any).avatarUrl || logoImage,
     cover: creatorProfile.coverImageUrl || demoCreator.cover,
     bio: creatorProfile.bio || "",
     externalLink: (creatorProfile as any).externalLink || "",
@@ -570,7 +571,7 @@ export default function CreatorProfile() {
         <div className="relative">
           <Avatar className="h-28 w-28 ring-4 ring-pink-500 shadow-xl overflow-hidden">
             <AvatarImage 
-              src={creator.avatar} 
+              src={creator.avatar || logoImage} 
               className="object-cover w-full h-full"
             />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-3xl font-bold">
@@ -662,22 +663,24 @@ export default function CreatorProfile() {
             </Button>
           </div>
           
-          <Button 
-            variant="default"
-            className="w-full bg-pink-500 hover:bg-pink-600"
-            onClick={handleSubscribe}
-            disabled={isSubscribeLoading}
-            data-testid="button-subscribe"
-          >
-            {isSubscribeLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <Crown className="h-4 w-4 mr-2" />
-                サブスクプランを見る
-              </>
-            )}
-          </Button>
+          {subscriptionPlans && subscriptionPlans.length > 0 && (
+            <Button 
+              variant="default"
+              className="w-full bg-pink-500 hover:bg-pink-600"
+              onClick={handleSubscribe}
+              disabled={isSubscribeLoading}
+              data-testid="button-subscribe"
+            >
+              {isSubscribeLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Crown className="h-4 w-4 mr-2" />
+                  サブスクプランを見る
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -829,6 +832,11 @@ export default function CreatorProfile() {
         </TabsList>
           
           <TabsContent value="videos" className="mt-0">
+            {creator.videos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <p>コンテンツがありません</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-3 gap-0.5">
               {creator.videos.map((video) => {
                 const canAccess = hasAccessToVideo(video.requiredTier || 0);
@@ -869,6 +877,7 @@ export default function CreatorProfile() {
                 );
               })}
             </div>
+            )}
           </TabsContent>
           
           <TabsContent value="liked" className="mt-0">
