@@ -5440,6 +5440,102 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
     }
   });
 
+  // Fetch emails from Hostinger IMAP
+  app.get("/api/admin/emails", isAdminSession, async (req, res) => {
+    const Imap = require("imap");
+    const { simpleParser } = require("mailparser");
+    
+    const imapConfig = {
+      user: process.env.SMTP_USER,
+      password: process.env.SMTP_PASS,
+      host: "imap.hostinger.com",
+      port: 993,
+      tls: true,
+      tlsOptions: { rejectUnauthorized: false },
+    };
+
+    if (!imapConfig.user || !imapConfig.password) {
+      return res.status(500).json({ message: "メール設定が見つかりません" });
+    }
+
+    const emails: any[] = [];
+    const imap = new Imap(imapConfig);
+
+    const fetchEmails = () => {
+      return new Promise((resolve, reject) => {
+        imap.once("ready", () => {
+          imap.openBox("INBOX", true, (err: any, box: any) => {
+            if (err) {
+              imap.end();
+              return reject(err);
+            }
+
+            // Get the last 50 emails
+            const totalMessages = box.messages.total;
+            const start = Math.max(1, totalMessages - 49);
+            const range = `${start}:${totalMessages}`;
+
+            if (totalMessages === 0) {
+              imap.end();
+              return resolve([]);
+            }
+
+            const fetch = imap.seq.fetch(range, {
+              bodies: "",
+              struct: true,
+            });
+
+            fetch.on("message", (msg: any, seqno: number) => {
+              msg.on("body", (stream: any) => {
+                simpleParser(stream, (err: any, parsed: any) => {
+                  if (!err && parsed) {
+                    emails.push({
+                      id: seqno,
+                      from: parsed.from?.text || "Unknown",
+                      subject: parsed.subject || "(件名なし)",
+                      date: parsed.date,
+                      text: parsed.text?.substring(0, 500) || "",
+                      html: parsed.html || "",
+                    });
+                  }
+                });
+              });
+            });
+
+            fetch.once("error", (err: any) => {
+              imap.end();
+              reject(err);
+            });
+
+            fetch.once("end", () => {
+              imap.end();
+            });
+          });
+        });
+
+        imap.once("error", (err: any) => {
+          reject(err);
+        });
+
+        imap.once("end", () => {
+          // Sort by date descending
+          emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          resolve(emails);
+        });
+
+        imap.connect();
+      });
+    };
+
+    try {
+      const result = await fetchEmails();
+      res.json(result);
+    } catch (error) {
+      console.error("Fetch emails error:", error);
+      res.status(500).json({ message: "メールの取得に失敗しました" });
+    }
+  });
+
   // Update inquiry status
   app.patch("/api/admin/inquiries/:id", isAdminSession, async (req, res) => {
     try {

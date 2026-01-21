@@ -258,6 +258,7 @@ export default function AdminDashboard() {
   const [selectedTransfer, setSelectedTransfer] = useState<BankTransferRequest | null>(null);
   const [transferToConfirm, setTransferToConfirm] = useState<BankTransferRequest | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<{ id: number; from: string; subject: string; date: string; text: string; html: string } | null>(null);
   const [rejectionNotes, setRejectionNotes] = useState("");
   const [pointAdjustment, setPointAdjustment] = useState(0);
   const [pointReason, setPointReason] = useState("");
@@ -346,6 +347,18 @@ export default function AdminDashboard() {
 
   const { data: inquiriesData, isLoading: isLoadingInquiries } = useQuery<InquiryData[]>({
     queryKey: ["/api/admin/inquiries"],
+    enabled: authStatus?.authenticated && activeTab === "inquiries",
+  });
+
+  const { data: emailsData, isLoading: isLoadingEmails } = useQuery<Array<{
+    id: number;
+    from: string;
+    subject: string;
+    date: string;
+    text: string;
+    html: string;
+  }>>({
+    queryKey: ["/api/admin/emails"],
     enabled: authStatus?.authenticated && activeTab === "inquiries",
   });
 
@@ -1634,17 +1647,97 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Inquiries */}
+          {/* Inquiries / Emails */}
           {activeTab === "inquiries" && (
             <div className="space-y-4">
-              {isLoadingInquiries ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : inquiriesData && inquiriesData.length > 0 ? (
+              {/* Hostinger Mailbox */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    メールボックス
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{emailsData?.length || 0}件</Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/admin/emails"] })}
+                      data-testid="button-refresh-emails"
+                    >
+                      更新
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingEmails ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : emailsData && emailsData.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">差出人</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">件名</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">受信日時</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {emailsData.map((email) => (
+                            <tr key={email.id} className="border-b border-slate-100 dark:border-slate-800 hover-elevate cursor-pointer" data-testid={`row-email-${email.id}`} onClick={() => setSelectedEmail(email)}>
+                              <td className="p-3 text-sm font-medium truncate max-w-[200px]">{email.from}</td>
+                              <td className="p-3 text-sm truncate max-w-[300px]">{email.subject}</td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(email.date)}</td>
+                              <td className="p-3">
+                                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedEmail(email); }}>
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  詳細
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">メールがありません</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Email Detail Dialog */}
+              <Dialog open={!!selectedEmail} onOpenChange={() => setSelectedEmail(null)}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{selectedEmail?.subject || "メール詳細"}</DialogTitle>
+                    <DialogDescription>
+                      差出人: {selectedEmail?.from}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      受信日時: {selectedEmail?.date ? formatDate(selectedEmail.date) : "-"}
+                    </div>
+                    <Separator />
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      {selectedEmail?.html ? (
+                        <div dangerouslySetInnerHTML={{ __html: selectedEmail.html }} />
+                      ) : (
+                        <pre className="whitespace-pre-wrap font-sans text-sm">{selectedEmail?.text}</pre>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* System Inquiries */}
+              {inquiriesData && inquiriesData.length > 0 && (
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                    <CardTitle className="text-lg">お問い合わせ一覧</CardTitle>
+                    <CardTitle className="text-lg">システムお問い合わせ</CardTitle>
                     <Badge variant="secondary">{inquiriesData.length}件</Badge>
                   </CardHeader>
                   <CardContent>
@@ -1676,12 +1769,6 @@ export default function AdminDashboard() {
                         </tbody>
                       </table>
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="py-12">
-                    <div className="text-center text-muted-foreground">お問い合わせがありません</div>
                   </CardContent>
                 </Card>
               )}
