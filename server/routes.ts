@@ -4713,7 +4713,7 @@ export async function registerRoutes(
           creatorId: videos.creatorId,
           viewCount: videos.viewCount,
           likeCount: videos.likeCount,
-          isPremium: videos.isPremium,
+          contentType: videos.contentType,
           createdAt: videos.createdAt,
         })
         .from(videos)
@@ -4728,6 +4728,7 @@ export async function registerRoutes(
             .where(eq(creatorProfiles.userId, video.creatorId));
           return {
             ...video,
+            isPremium: video.contentType !== "free",
             creatorName: creator?.displayName || "Unknown",
           };
         })
