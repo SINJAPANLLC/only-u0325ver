@@ -442,7 +442,7 @@ export default function AdminDashboard() {
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
     { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
-    { id: "transfers" as Tab, label: "振込申請・管理", icon: Wallet, badge: stats?.pendingTransfers },
+    { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
     { id: "inquiries" as Tab, label: "お問い合わせ管理", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "settings" as Tab, label: "設定", icon: Settings },
@@ -702,7 +702,8 @@ export default function AdminDashboard() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">ポイント購入申請（振込）</CardTitle>
+                  <CardTitle className="text-lg">ポイント購入（銀行振込）</CardTitle>
+                  <p className="text-sm text-muted-foreground">ユーザーがポイントを購入するための振込申請</p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2 mb-4">
@@ -788,7 +789,8 @@ export default function AdminDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">出金申請</CardTitle>
+                  <CardTitle className="text-lg">クリエイター出金申請</CardTitle>
+                  <p className="text-sm text-muted-foreground">クリエイターが売上を現金として引き出すための申請</p>
                 </CardHeader>
                 <CardContent>
                   {isLoadingWithdrawals ? (
