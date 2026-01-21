@@ -569,7 +569,7 @@ export default function CreatorProfile() {
       <div className="flex flex-col items-center px-4 pt-6">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className={`h-28 w-28 shadow-xl overflow-hidden ${isRealCreator ? 'ring-4 ring-pink-500' : ''}`}>
+          <Avatar className={`h-28 w-28 shadow-xl overflow-hidden ${(creatorProfile as any)?.isCreator ? 'ring-4 ring-pink-500' : ''}`}>
             <AvatarImage 
               src={creator.avatar || logoImage} 
               className="object-cover w-full h-full"
@@ -834,7 +834,7 @@ export default function CreatorProfile() {
           <TabsContent value="videos" className="mt-0">
             {creator.videos.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">
-                <Film className="h-12 w-12" />
+                <Grid3X3 className="h-12 w-12" />
                 <p>コンテンツがありません</p>
               </div>
             ) : (
