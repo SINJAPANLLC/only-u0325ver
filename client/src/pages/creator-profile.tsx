@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban, Truck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,6 +142,12 @@ export default function CreatorProfile() {
   const [selectedVideo, setSelectedVideo] = useState<{ id: string; videoUrl: string; thumbnail: string } | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productDetailOpen, setProductDetailOpen] = useState(false);
+  const [shippingInfo, setShippingInfo] = useState({
+    name: "",
+    postalCode: "",
+    address: "",
+    phone: "",
+  });
   
   const creatorId = params?.username || "";
   const isRealCreator = creatorId && !demoCreatorData[creatorId];
@@ -182,8 +190,16 @@ export default function CreatorProfile() {
   const userPoints = userData?.points ?? 0;
 
   const purchaseMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const res = await apiRequest("POST", `/api/products/${productId}/purchase`);
+    mutationFn: async ({ productId, shipping }: { 
+      productId: string; 
+      shipping?: { 
+        shippingName: string; 
+        shippingPostalCode: string; 
+        shippingAddress: string; 
+        shippingPhone: string; 
+      } 
+    }) => {
+      const res = await apiRequest("POST", `/api/products/${productId}/purchase`, shipping);
       return res.json();
     },
     onSuccess: () => {
@@ -191,6 +207,7 @@ export default function CreatorProfile() {
       queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
       setProductDetailOpen(false);
       setSelectedProduct(null);
+      setShippingInfo({ name: "", postalCode: "", address: "", phone: "" });
       toast({ title: "購入完了", description: "商品を購入しました！メッセージに詳細が届きます。" });
     },
     onError: (error: any) => {
@@ -969,23 +986,101 @@ export default function CreatorProfile() {
                   <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
                 )}
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-bold text-pink-500">{selectedProduct.price.toLocaleString()}pt</p>
-                    <p className="text-sm text-muted-foreground">所持ポイント: {userPoints.toLocaleString()}pt</p>
+                <div className="bg-muted rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">現在の保有ポイント</span>
+                    <span className="font-medium">{userPoints.toLocaleString()}pt</span>
                   </div>
-                  {userPoints < selectedProduct.price && (
-                    <p className="text-sm text-red-500">ポイントが不足しています</p>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">購入後の残高</span>
+                    <span className={`font-medium ${userPoints < selectedProduct.price ? "text-destructive" : ""}`}>
+                      {(userPoints - selectedProduct.price).toLocaleString()}pt
+                    </span>
+                  </div>
                 </div>
+                
+                {userPoints < selectedProduct.price && (
+                  <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
+                    ポイントが不足しています。ポイントをチャージしてください。
+                  </div>
+                )}
+
+                {selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <Truck className="h-4 w-4" />
+                      配送先情報
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="shipping-name-creator" className="text-xs">お名前 *</Label>
+                        <Input
+                          id="shipping-name-creator"
+                          value={shippingInfo.name}
+                          onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
+                          placeholder="山田 太郎"
+                          className="h-9"
+                          data-testid="input-shipping-name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-postal-creator" className="text-xs">郵便番号 *</Label>
+                        <Input
+                          id="shipping-postal-creator"
+                          value={shippingInfo.postalCode}
+                          onChange={(e) => setShippingInfo({ ...shippingInfo, postalCode: e.target.value })}
+                          placeholder="123-4567"
+                          className="h-9"
+                          data-testid="input-shipping-postal"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-address-creator" className="text-xs">住所 *</Label>
+                        <Input
+                          id="shipping-address-creator"
+                          value={shippingInfo.address}
+                          onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
+                          placeholder="東京都渋谷区..."
+                          className="h-9"
+                          data-testid="input-shipping-address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-phone-creator" className="text-xs">電話番号 *</Label>
+                        <Input
+                          id="shipping-phone-creator"
+                          value={shippingInfo.phone}
+                          onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
+                          placeholder="090-1234-5678"
+                          className="h-9"
+                          data-testid="input-shipping-phone"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 <DialogFooter className="flex-col gap-2 sm:flex-col">
                   {user ? (
                     <>
                       <Button
                         className="w-full bg-pink-500 hover:bg-pink-600"
-                        disabled={userPoints < selectedProduct.price || purchaseMutation.isPending}
-                        onClick={() => purchaseMutation.mutate(selectedProduct.id)}
+                        disabled={userPoints < selectedProduct.price || purchaseMutation.isPending || (selectedProduct.productType === "physical" && (!shippingInfo.name || !shippingInfo.postalCode || !shippingInfo.address || !shippingInfo.phone))}
+                        onClick={() => {
+                          if (selectedProduct.productType === "physical") {
+                            purchaseMutation.mutate({
+                              productId: selectedProduct.id,
+                              shipping: {
+                                shippingName: shippingInfo.name,
+                                shippingPostalCode: shippingInfo.postalCode,
+                                shippingAddress: shippingInfo.address,
+                                shippingPhone: shippingInfo.phone,
+                              },
+                            });
+                          } else {
+                            purchaseMutation.mutate({ productId: selectedProduct.id });
+                          }
+                        }}
                         data-testid="button-purchase"
                       >
                         {purchaseMutation.isPending ? (
