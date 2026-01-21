@@ -33,6 +33,8 @@ import Shop from "@/pages/shop";
 import Messages from "@/pages/messages";
 import Account from "@/pages/account";
 import Admin from "@/pages/admin";
+import AdminLogin from "@/pages/admin-login";
+import AdminDashboard from "@/pages/admin-dashboard";
 import CreatorProfile from "@/pages/creator-profile";
 import MyProfile from "@/pages/my-profile";
 import Auth from "@/pages/auth";
@@ -325,17 +327,37 @@ function AppContent() {
 }
 
 function App() {
+  const [location] = useLocation();
+  
+  // Admin routes use full-screen layout (PC-first design)
+  const isAdminRoute = location.startsWith("/admin");
+  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <I18nProvider>
           <TooltipProvider>
-            {/* Mobile-only container - fixed to smartphone dimensions */}
-            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-              <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
-                <AppContent />
+            {isAdminRoute ? (
+              // Admin pages - full screen, PC-first responsive design
+              <Switch>
+                <Route path="/admin/login">
+                  <AdminLogin />
+                </Route>
+                <Route path="/admin/dashboard">
+                  <AdminDashboard />
+                </Route>
+                <Route path="/admin">
+                  <AdminLogin />
+                </Route>
+              </Switch>
+            ) : (
+              // Mobile-only container - fixed to smartphone dimensions
+              <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+                <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
+                  <AppContent />
+                </div>
               </div>
-            </div>
+            )}
             <Toaster />
           </TooltipProvider>
         </I18nProvider>
