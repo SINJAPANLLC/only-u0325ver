@@ -4823,6 +4823,7 @@ export async function registerRoutes(
         .select({
           id: liveStreams.id,
           title: liveStreams.title,
+          thumbnailUrl: liveStreams.thumbnailUrl,
           creatorId: liveStreams.creatorId,
           status: liveStreams.status,
           viewerCount: liveStreams.viewerCount,

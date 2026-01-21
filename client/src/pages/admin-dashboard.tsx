@@ -92,6 +92,7 @@ interface DashboardStats {
 interface VideoData {
   id: string;
   title: string;
+  thumbnailUrl: string | null;
   creatorId: string;
   creatorName: string;
   viewCount: number;
@@ -103,6 +104,7 @@ interface VideoData {
 interface ProductData {
   id: string;
   name: string;
+  imageUrl: string | null;
   price: number;
   creatorId: string;
   creatorName: string;
@@ -114,6 +116,7 @@ interface ProductData {
 interface LiveStreamData {
   id: string;
   title: string;
+  thumbnailUrl: string | null;
   creatorId: string;
   creatorName: string;
   status: string;
@@ -1891,7 +1894,16 @@ export default function AdminDashboard() {
                           {allVideos.map((video) => (
                             <tr key={video.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-video-${video.id}`}>
                               <td className="p-3">
-                                <p className="font-medium text-sm truncate max-w-[200px]">{video.title}</p>
+                                <div className="flex items-center gap-3">
+                                  {video.thumbnailUrl ? (
+                                    <img src={video.thumbnailUrl} alt={video.title} className="w-16 h-10 object-cover rounded" />
+                                  ) : (
+                                    <div className="w-16 h-10 bg-muted rounded flex items-center justify-center">
+                                      <Video className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <p className="font-medium text-sm truncate max-w-[200px]">{video.title}</p>
+                                </div>
                               </td>
                               <td className="p-3 text-sm">{video.creatorName}</td>
                               <td className="p-3 text-sm">{video.viewCount.toLocaleString()}</td>
@@ -1981,7 +1993,16 @@ export default function AdminDashboard() {
                           {allProducts.map((product) => (
                             <tr key={product.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-product-${product.id}`}>
                               <td className="p-3">
-                                <p className="font-medium text-sm truncate max-w-[200px]">{product.name}</p>
+                                <div className="flex items-center gap-3">
+                                  {product.imageUrl ? (
+                                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                      <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <p className="font-medium text-sm truncate max-w-[200px]">{product.name}</p>
+                                </div>
                               </td>
                               <td className="p-3 text-sm">{product.creatorName}</td>
                               <td className="p-3 text-sm font-medium">{product.price.toLocaleString()}pt</td>
@@ -2099,7 +2120,16 @@ export default function AdminDashboard() {
                           {allLiveStreams.map((stream) => (
                             <tr key={stream.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-stream-${stream.id}`}>
                               <td className="p-3">
-                                <p className="font-medium text-sm truncate max-w-[200px]">{stream.title}</p>
+                                <div className="flex items-center gap-3">
+                                  {stream.thumbnailUrl ? (
+                                    <img src={stream.thumbnailUrl} alt={stream.title} className="w-16 h-10 object-cover rounded" />
+                                  ) : (
+                                    <div className="w-16 h-10 bg-muted rounded flex items-center justify-center">
+                                      <Radio className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <p className="font-medium text-sm truncate max-w-[200px]">{stream.title}</p>
+                                </div>
                               </td>
                               <td className="p-3 text-sm">{stream.creatorName}</td>
                               <td className="p-3">
