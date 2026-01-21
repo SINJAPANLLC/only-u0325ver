@@ -3102,6 +3102,50 @@ export async function registerRoutes(
     }
   });
 
+  // Save contact info (phone + email) without verification
+  app.post("/api/creator-application/contact-info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { phoneNumber, email } = req.body;
+
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "電話番号を入力してください" });
+      }
+      if (!email) {
+        return res.status(400).json({ message: "メールアドレスを入力してください" });
+      }
+
+      // Validate phone number format (Japanese format)
+      const cleanPhone = phoneNumber.replace(/[-\s]/g, "");
+      if (!/^0[0-9]{9,10}$/.test(cleanPhone)) {
+        return res.status(400).json({ message: "有効な電話番号を入力してください" });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "有効なメールアドレスを入力してください" });
+      }
+
+      // Update application with contact info
+      const [updated] = await db
+        .update(creatorApplications)
+        .set({
+          phoneNumber: cleanPhone,
+          email: email,
+          contactInfoSavedAt: new Date(),
+          currentStep: "document_submission",
+        })
+        .where(eq(creatorApplications.userId, userId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error saving contact info:", error);
+      res.status(500).json({ message: "保存に失敗しました" });
+    }
+  });
+
   // For document uploads, we'll use a simple approach for now
   // In production, you'd want to use proper file storage like S3
   app.post("/api/creator-application/documents", isAuthenticated, async (req: any, res) => {

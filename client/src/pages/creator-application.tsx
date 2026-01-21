@@ -35,7 +35,7 @@ interface Application {
 
 const STEPS = [
   { id: "personal_info", label: "本人情報", icon: User },
-  { id: "phone_verification", label: "電話番号認証", icon: Phone },
+  { id: "phone_verification", label: "連絡先登録", icon: Phone },
   { id: "document_submission", label: "書類提出", icon: FileText },
   { id: "under_review", label: "書類審査", icon: Clock },
 ];
@@ -75,7 +75,7 @@ export default function CreatorApplication() {
   
   const [phoneInfo, setPhoneInfo] = useState({
     phoneNumber: "",
-    verificationCode: "",
+    email: "",
   });
   
   const [documentInfo, setDocumentInfo] = useState({
@@ -85,7 +85,6 @@ export default function CreatorApplication() {
     selfie: null as File | null,
   });
 
-  const [codeSent, setCodeSent] = useState(false);
 
   // Fetch existing application
   const { data: application, isLoading } = useQuery<Application>({
@@ -107,7 +106,7 @@ export default function CreatorApplication() {
       });
       setPhoneInfo({
         phoneNumber: application.phoneNumber || "",
-        verificationCode: "",
+        email: (application as any).email || "",
       });
       setDocumentInfo({
         idDocumentType: application.idDocumentType || "",
@@ -132,26 +131,13 @@ export default function CreatorApplication() {
     },
   });
 
-  const sendVerificationCodeMutation = useMutation({
-    mutationFn: async (phoneNumber: string) => {
-      return apiRequest("POST", "/api/creator-application/send-verification", { phoneNumber });
-    },
-    onSuccess: () => {
-      setCodeSent(true);
-      toast({ title: "認証コードを送信しました" });
-    },
-    onError: (error: Error) => {
-      toast({ title: error.message, variant: "destructive" });
-    },
-  });
-
-  const verifyPhoneMutation = useMutation({
-    mutationFn: async (data: { phoneNumber: string; code: string }) => {
-      return apiRequest("POST", "/api/creator-application/verify-phone", data);
+  const saveContactInfoMutation = useMutation({
+    mutationFn: async (data: { phoneNumber: string; email: string }) => {
+      return apiRequest("POST", "/api/creator-application/contact-info", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/creator-application"] });
-      toast({ title: "電話番号を認証しました" });
+      toast({ title: "連絡先を登録しました" });
     },
     onError: (error: Error) => {
       toast({ title: error.message, variant: "destructive" });
@@ -193,23 +179,22 @@ export default function CreatorApplication() {
     savePersonalInfoMutation.mutate(personalInfo);
   };
 
-  const handleSendCode = () => {
+  const handleSaveContactInfo = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!phoneInfo.phoneNumber) {
       toast({ title: "電話番号を入力してください", variant: "destructive" });
       return;
     }
-    sendVerificationCodeMutation.mutate(phoneInfo.phoneNumber);
-  };
-
-  const handleVerifyPhone = () => {
-    if (!phoneInfo.verificationCode) {
-      toast({ title: "認証コードを入力してください", variant: "destructive" });
+    if (!phoneInfo.email) {
+      toast({ title: "メールアドレスを入力してください", variant: "destructive" });
       return;
     }
-    verifyPhoneMutation.mutate({
-      phoneNumber: phoneInfo.phoneNumber,
-      code: phoneInfo.verificationCode,
-    });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(phoneInfo.email)) {
+      toast({ title: "正しいメールアドレスを入力してください", variant: "destructive" });
+      return;
+    }
+    saveContactInfoMutation.mutate(phoneInfo);
   };
 
   const handleDocumentSubmit = (e: React.FormEvent) => {
@@ -463,70 +448,51 @@ export default function CreatorApplication() {
           </Card>
         )}
 
-        {/* Step 2: Phone Verification */}
+        {/* Step 2: Contact Info Registration */}
         {currentStep === "phone_verification" && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">電話番号認証</CardTitle>
+              <CardTitle className="text-lg">連絡先登録</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                本人確認のため、SMSで認証コードを送信します。
-              </p>
+            <CardContent>
+              <form onSubmit={handleSaveContactInfo} className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  連絡先として電話番号とメールアドレスを登録してください。
+                </p>
 
-              <div>
-                <Label htmlFor="phoneNumber">電話番号</Label>
-                <div className="flex gap-2">
+                <div>
+                  <Label htmlFor="phoneNumber">電話番号 <span className="text-red-500">*</span></Label>
                   <Input
                     id="phoneNumber"
                     type="tel"
                     placeholder="09012345678"
                     value={phoneInfo.phoneNumber}
                     onChange={(e) => setPhoneInfo({ ...phoneInfo, phoneNumber: e.target.value })}
-                    disabled={codeSent || application?.phoneVerified}
                     data-testid="input-phone"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleSendCode}
-                    disabled={sendVerificationCodeMutation.isPending || codeSent || application?.phoneVerified}
-                    data-testid="button-send-code"
-                  >
-                    {sendVerificationCodeMutation.isPending ? "送信中..." : codeSent ? "送信済" : "送信"}
-                  </Button>
                 </div>
-              </div>
 
-              {codeSent && !application?.phoneVerified && (
                 <div>
-                  <Label htmlFor="verificationCode">認証コード</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="verificationCode"
-                      placeholder="123456"
-                      value={phoneInfo.verificationCode}
-                      onChange={(e) => setPhoneInfo({ ...phoneInfo, verificationCode: e.target.value })}
-                      data-testid="input-verification-code"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleVerifyPhone}
-                      disabled={verifyPhoneMutation.isPending}
-                      data-testid="button-verify-code"
-                    >
-                      {verifyPhoneMutation.isPending ? "確認中..." : "確認"}
-                    </Button>
-                  </div>
+                  <Label htmlFor="email">メールアドレス <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="example@mail.com"
+                    value={phoneInfo.email}
+                    onChange={(e) => setPhoneInfo({ ...phoneInfo, email: e.target.value })}
+                    data-testid="input-email"
+                  />
                 </div>
-              )}
 
-              {application?.phoneVerified && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <Check className="h-5 w-5" />
-                  <span>電話番号認証済み</span>
-                </div>
-              )}
+                <Button
+                  type="submit"
+                  className="w-full bg-pink-500 hover:bg-pink-600"
+                  disabled={saveContactInfoMutation.isPending}
+                  data-testid="button-save-contact"
+                >
+                  {saveContactInfoMutation.isPending ? "保存中..." : "次へ進む"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         )}

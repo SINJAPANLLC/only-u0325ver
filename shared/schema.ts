@@ -55,10 +55,10 @@ export const creatorApplications = pgTable("creator_applications", {
   address: varchar("address"),
   building: varchar("building"),
   
-  // Phone verification (Step 2)
+  // Contact info (Step 2)
   phoneNumber: varchar("phone_number"),
-  phoneVerified: boolean("phone_verified").default(false),
-  phoneVerifiedAt: timestamp("phone_verified_at"),
+  email: varchar("email"),
+  contactInfoSavedAt: timestamp("contact_info_saved_at"),
   
   // Document submission (Step 3) - eKYC
   idDocumentType: varchar("id_document_type"),
