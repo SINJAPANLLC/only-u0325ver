@@ -12,6 +12,7 @@ import {
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
+  premiumPlans,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
@@ -3153,6 +3154,164 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error confirming payment:", error);
       res.status(500).json({ message: error.message || "支払い確認に失敗しました" });
+    }
+  });
+
+  // Premium Plan (高画質プラン) routes
+  const PREMIUM_PLAN_PRICE = 980;
+
+  app.get("/api/premium-plan", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const now = new Date();
+      
+      const [plan] = await db
+        .select()
+        .from(premiumPlans)
+        .where(and(
+          eq(premiumPlans.userId, userId),
+          eq(premiumPlans.isActive, true),
+          or(
+            isNull(premiumPlans.expiresAt),
+            gt(premiumPlans.expiresAt, now)
+          )
+        ));
+      
+      res.json({ 
+        hasPremium: !!plan, 
+        plan: plan || null,
+        price: PREMIUM_PLAN_PRICE 
+      });
+    } catch (error) {
+      console.error("Error fetching premium plan:", error);
+      res.status(500).json({ message: "Failed to fetch premium plan status" });
+    }
+  });
+
+  app.post("/api/premium-plan/subscribe", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const now = new Date();
+      
+      // Check if already subscribed
+      const [existingPlan] = await db
+        .select()
+        .from(premiumPlans)
+        .where(and(
+          eq(premiumPlans.userId, userId),
+          eq(premiumPlans.isActive, true),
+          or(
+            isNull(premiumPlans.expiresAt),
+            gt(premiumPlans.expiresAt, now)
+          )
+        ));
+      
+      if (existingPlan) {
+        return res.status(400).json({ message: "既に高画質プランに加入しています" });
+      }
+
+      // Check user points
+      const [profile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, userId));
+      
+      const currentPoints = profile?.points || 0;
+      if (currentPoints < PREMIUM_PLAN_PRICE) {
+        return res.status(400).json({ 
+          message: `ポイントが不足しています（必要: ${PREMIUM_PLAN_PRICE}pt、所持: ${currentPoints}pt）` 
+        });
+      }
+
+      // Calculate expiry date (1 month from now)
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+      // Deduct points
+      const newBalance = currentPoints - PREMIUM_PLAN_PRICE;
+      await db
+        .update(userProfiles)
+        .set({ points: newBalance })
+        .where(eq(userProfiles.userId, userId));
+
+      // Record point transaction
+      await db.insert(pointTransactions).values({
+        userId,
+        amount: -PREMIUM_PLAN_PRICE,
+        type: "premium_plan",
+        description: "高画質プラン加入（1ヶ月）",
+        balanceAfter: newBalance,
+      });
+
+      // Create or update premium plan subscription
+      const [existingInactive] = await db
+        .select()
+        .from(premiumPlans)
+        .where(eq(premiumPlans.userId, userId));
+
+      if (existingInactive) {
+        await db
+          .update(premiumPlans)
+          .set({
+            isActive: true,
+            startedAt: now,
+            expiresAt,
+            price: PREMIUM_PLAN_PRICE,
+          })
+          .where(eq(premiumPlans.userId, userId));
+      } else {
+        await db.insert(premiumPlans).values({
+          userId,
+          isActive: true,
+          price: PREMIUM_PLAN_PRICE,
+          startedAt: now,
+          expiresAt,
+          autoRenew: true,
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "高画質プランに加入しました",
+        expiresAt,
+        newBalance
+      });
+    } catch (error) {
+      console.error("Error subscribing to premium plan:", error);
+      res.status(500).json({ message: "加入処理に失敗しました" });
+    }
+  });
+
+  app.delete("/api/premium-plan", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const [plan] = await db
+        .select()
+        .from(premiumPlans)
+        .where(and(
+          eq(premiumPlans.userId, userId),
+          eq(premiumPlans.isActive, true)
+        ));
+      
+      if (!plan) {
+        return res.status(404).json({ message: "有効なプランが見つかりません" });
+      }
+
+      // Set auto-renew to false (plan remains active until expiry)
+      await db
+        .update(premiumPlans)
+        .set({ autoRenew: false })
+        .where(eq(premiumPlans.userId, userId));
+
+      res.json({ 
+        success: true, 
+        message: "自動更新を停止しました。現在の期間終了後に解約されます。",
+        expiresAt: plan.expiresAt
+      });
+    } catch (error) {
+      console.error("Error canceling premium plan:", error);
+      res.status(500).json({ message: "解約処理に失敗しました" });
     }
   });
 

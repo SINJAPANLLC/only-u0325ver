@@ -402,6 +402,25 @@ export const insertVideoLikeSchema = createInsertSchema(videoLikes).omit({
 export type VideoLike = typeof videoLikes.$inferSelect;
 export type InsertVideoLike = z.infer<typeof insertVideoLikeSchema>;
 
+// Premium plan subscriptions (高画質プラン)
+export const premiumPlans = pgTable("premium_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  isActive: boolean("is_active").default(true).notNull(),
+  price: integer("price").default(980).notNull(),
+  startedAt: timestamp("started_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  autoRenew: boolean("auto_renew").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPremiumPlanSchema = createInsertSchema(premiumPlans).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPremiumPlan = z.infer<typeof insertPremiumPlanSchema>;
+export type PremiumPlan = typeof premiumPlans.$inferSelect;
+
 // Types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
