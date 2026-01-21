@@ -645,7 +645,7 @@ export default function CreatorProfile() {
                       onClick={() => !isAlreadySubscribed && setSelectedPlanId(plan.id)}
                       className={`flex items-center justify-between p-4 rounded-lg transition-all border-2 ${
                         isAlreadySubscribed
-                          ? "border-green-500 bg-green-500/10 cursor-default"
+                          ? "border-pink-500 bg-pink-500/10 cursor-default"
                           : selectedPlanId === plan.id
                           ? "border-pink-500 bg-pink-500/10 cursor-pointer"
                           : "border-muted bg-muted hover:border-pink-300 cursor-pointer"
@@ -656,7 +656,7 @@ export default function CreatorProfile() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{plan.name}</p>
                           {isAlreadySubscribed && (
-                            <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                            <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
                               <Check className="h-3 w-3" />
                               加入中
                             </span>
@@ -705,7 +705,7 @@ export default function CreatorProfile() {
                         })()}
                       </div>
                       <div className="text-right">
-                        <p className={`text-xl font-bold ${isAlreadySubscribed ? "text-green-500" : "text-pink-500"}`}>{plan.price.toLocaleString()}</p>
+                        <p className="text-xl font-bold text-pink-500">{plan.price.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">pt/月</p>
                       </div>
                     </div>
