@@ -181,7 +181,7 @@ export default function ConversationPage() {
                       : "bg-muted rounded-bl-md"
                   }`}
                 >
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="text-sm break-all">{msg.content}</p>
                   <p className={`text-[10px] mt-1 ${isOwn ? "text-white/70" : "text-muted-foreground"}`}>
                     {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ja })}
                   </p>
