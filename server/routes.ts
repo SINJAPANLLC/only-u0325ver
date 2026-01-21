@@ -1107,6 +1107,75 @@ export async function registerRoutes(
     }
   });
 
+  // Get single conversation with participant info
+  app.get("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      
+      const [conv] = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.id, id))
+        .limit(1);
+      
+      if (!conv) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      
+      // Check if user is a participant
+      if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the other participant's info
+      const otherParticipantId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+      
+      // First try to get from creator profiles (with avatar from user_profiles)
+      const [creatorInfo] = await db
+        .select({
+          displayName: creatorProfiles.displayName,
+          avatarUrl: userProfiles.avatarUrl,
+        })
+        .from(creatorProfiles)
+        .leftJoin(userProfiles, eq(creatorProfiles.userId, userProfiles.userId))
+        .where(eq(creatorProfiles.userId, otherParticipantId))
+        .limit(1);
+      
+      // If not a creator, get from users table
+      let participantInfo;
+      if (creatorInfo) {
+        participantInfo = {
+          displayName: creatorInfo.displayName,
+          avatarUrl: creatorInfo.avatarUrl,
+        };
+      } else {
+        const [userData] = await db
+          .select({
+            username: users.username,
+            avatarUrl: users.avatarUrl,
+          })
+          .from(users)
+          .where(eq(users.id, otherParticipantId))
+          .limit(1);
+        
+        participantInfo = {
+          displayName: userData?.username || "ユーザー",
+          avatarUrl: userData?.avatarUrl || null,
+        };
+      }
+      
+      res.json({
+        ...conv,
+        participantDisplayName: participantInfo.displayName,
+        participantAvatarUrl: participantInfo.avatarUrl,
+      });
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
   app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
