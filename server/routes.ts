@@ -4799,11 +4799,11 @@ export async function registerRoutes(
       // Get product sales
       const productSales = await db
         .select({ 
-          total: sql<number>`COALESCE(SUM(total_amount), 0)`,
+          total: sql<number>`COALESCE(SUM(price), 0)`,
           count: sql<number>`COUNT(*)`
         })
-        .from(orders)
-        .where(eq(orders.status, "completed"));
+        .from(purchases)
+        .where(eq(purchases.status, "completed"));
       
       // Get point purchases (confirmed transfers)
       const pointPurchases = await db
