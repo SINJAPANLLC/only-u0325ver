@@ -183,58 +183,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/videos/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const [video] = await db
-        .select()
-        .from(videos)
-        .where(eq(videos.id, id));
-      
-      if (!video) {
-        return res.status(404).json({ message: "Video not found" });
-      }
-      res.json(video);
-    } catch (error) {
-      console.error("Error fetching video:", error);
-      res.status(500).json({ message: "Failed to fetch video" });
-    }
-  });
-
-  // Get current user's own videos
-  app.get("/api/my-videos", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const myVideos = await db
-        .select()
-        .from(videos)
-        .where(eq(videos.creatorId, userId))
-        .orderBy(desc(videos.createdAt));
-      res.json(myVideos);
-    } catch (error) {
-      console.error("Error fetching user videos:", error);
-      res.status(500).json({ message: "Failed to fetch videos" });
-    }
-  });
-
-  app.post("/api/videos", isAuthenticated, isCreator, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const validation = insertVideoSchema.safeParse({ ...req.body, creatorId: userId });
-      
-      if (!validation.success) {
-        return res.status(400).json({ message: "Invalid video data", errors: validation.error.flatten() });
-      }
-
-      const [video] = await db.insert(videos).values(validation.data).returning();
-      res.status(201).json(video);
-    } catch (error) {
-      console.error("Error creating video:", error);
-      res.status(500).json({ message: "Failed to create video" });
-    }
-  });
-
-  // Get videos from followed creators
+  // Get videos from followed creators - MUST be before /api/videos/:id to avoid matching "following" as an ID
   app.get("/api/videos/following", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -285,6 +234,57 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching following videos:", error);
       res.status(500).json({ message: "Failed to fetch videos" });
+    }
+  });
+
+  app.get("/api/videos/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(eq(videos.id, id));
+      
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      res.json(video);
+    } catch (error) {
+      console.error("Error fetching video:", error);
+      res.status(500).json({ message: "Failed to fetch video" });
+    }
+  });
+
+  // Get current user's own videos
+  app.get("/api/my-videos", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const myVideos = await db
+        .select()
+        .from(videos)
+        .where(eq(videos.creatorId, userId))
+        .orderBy(desc(videos.createdAt));
+      res.json(myVideos);
+    } catch (error) {
+      console.error("Error fetching user videos:", error);
+      res.status(500).json({ message: "Failed to fetch videos" });
+    }
+  });
+
+  app.post("/api/videos", isAuthenticated, isCreator, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validation = insertVideoSchema.safeParse({ ...req.body, creatorId: userId });
+      
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid video data", errors: validation.error.flatten() });
+      }
+
+      const [video] = await db.insert(videos).values(validation.data).returning();
+      res.status(201).json(video);
+    } catch (error) {
+      console.error("Error creating video:", error);
+      res.status(500).json({ message: "Failed to create video" });
     }
   });
 
