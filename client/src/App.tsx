@@ -32,7 +32,6 @@ import Live from "@/pages/live";
 import Shop from "@/pages/shop";
 import Messages from "@/pages/messages";
 import Account from "@/pages/account";
-import Admin from "@/pages/admin";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import CreatorProfile from "@/pages/creator-profile";
@@ -103,15 +102,6 @@ function AuthenticatedApp() {
             <Header />
             <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Account />
-            </main>
-            <BottomNavigation />
-          </div>
-        </Route>
-        <Route path="/admin">
-          <div className="h-[100svh] flex flex-col">
-            <Header />
-            <main className="flex-1 overflow-y-auto scrollbar-hide">
-              <Admin />
             </main>
             <BottomNavigation />
           </div>

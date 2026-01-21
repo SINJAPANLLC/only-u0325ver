@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -51,9 +51,18 @@ export default function AdminLogin() {
     );
   }
 
+  useEffect(() => {
+    if (authStatus?.authenticated) {
+      setLocation("/admin/dashboard");
+    }
+  }, [authStatus?.authenticated, setLocation]);
+
   if (authStatus?.authenticated) {
-    setLocation("/admin/dashboard");
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const handleSubmit = (e: React.FormEvent) => {

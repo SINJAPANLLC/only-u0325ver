@@ -4265,19 +4265,36 @@ export async function registerRoutes(
         .set({ lastLoginAt: new Date() })
         .where(eq(adminUsers.id, admin.id));
       
-      // Set admin session
-      (req.session as any).adminId = admin.id;
-      (req.session as any).adminEmail = admin.email;
-      (req.session as any).isAdminAuthenticated = true;
-      
-      res.json({ 
-        success: true, 
-        admin: { 
-          id: admin.id, 
-          email: admin.email, 
-          name: admin.name 
-        } 
+      // Regenerate session for security
+      const oldSession = req.session;
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regeneration error:", err);
+        }
+        // Restore any needed session data
+        (req.session as any).adminId = admin.id;
+        (req.session as any).adminEmail = admin.email;
+        (req.session as any).isAdminAuthenticated = true;
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).json({ message: "セッション保存に失敗しました" });
+          }
+          
+          res.json({ 
+            success: true, 
+            admin: { 
+              id: admin.id, 
+              email: admin.email, 
+              name: admin.name 
+            } 
+          });
+        });
       });
+      
+      return; // Early return since response is sent in callback
+      
     } catch (error) {
       console.error("Admin login error:", error);
       res.status(500).json({ message: "ログインに失敗しました" });
