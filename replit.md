@@ -98,6 +98,27 @@ The platform uses a points-based payment system:
 3. Admin confirms transfer at `/admin` → points are credited to user
 4. For card payment: Requires Stripe integration (not yet configured)
 
+## Subscription System
+
+### Multi-Plan Subscriptions
+Users can subscribe to multiple plans from the same creator simultaneously. Each plan has its own tier and pricing.
+
+### Auto-Renewal
+- Subscriptions auto-renew by default when they expire
+- System checks hourly for expired subscriptions with auto-renew enabled
+- If user has sufficient points, subscription is extended by 30 days automatically
+- If insufficient points, subscription is marked as expired and user is notified
+
+### Cancellation Flow
+- Users can disable auto-renewal from the creator profile page
+- Disabling auto-renewal does NOT immediately cancel - user can still view content until expiry
+- UI shows "自動更新停止中" badge and expiry date for cancelled subscriptions
+
+### API Endpoints
+- `GET /api/subscription/:creatorId` - Get subscription status including autoRenew and expiresAt
+- `POST /api/subscription/:creatorId` - Subscribe to a plan
+- `DELETE /api/subscription/:creatorId/:planId` - Disable auto-renewal for specific plan
+
 ## E-commerce System
 
 ### Product Types
