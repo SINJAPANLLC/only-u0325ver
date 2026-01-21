@@ -4604,7 +4604,8 @@ export async function registerRoutes(
       await db.insert(pointTransactions).values({
         userId: request.userId,
         amount: request.points,
-        type: "purchase",
+        balance: newPoints,
+        type: "purchase_bank",
         description: `銀行振込: ${request.transferName}`,
       });
       
