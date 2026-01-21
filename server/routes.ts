@@ -4799,6 +4799,52 @@ export async function registerRoutes(
     }
   });
 
+  // Stop a live stream (admin)
+  app.post("/api/admin/livestreams/:id/stop", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(eq(liveStreams.id, id));
+      
+      if (!stream) {
+        return res.status(404).json({ message: "配信が見つかりません" });
+      }
+      
+      await db.update(liveStreams)
+        .set({ 
+          status: "ended",
+          endedAt: new Date(),
+        })
+        .where(eq(liveStreams.id, id));
+      
+      res.json({ success: true, message: "配信を強制終了しました" });
+    } catch (error) {
+      console.error("Stop livestream error:", error);
+      res.status(500).json({ message: "配信の終了に失敗しました" });
+    }
+  });
+
+  // Delete a live stream (admin)
+  app.delete("/api/admin/livestreams/:id", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete related viewing sessions first
+      await db.delete(liveViewingSessions).where(eq(liveViewingSessions.liveStreamId, id));
+      
+      // Delete the stream
+      await db.delete(liveStreams).where(eq(liveStreams.id, id));
+      
+      res.json({ success: true, message: "配信を削除しました" });
+    } catch (error) {
+      console.error("Delete livestream error:", error);
+      res.status(500).json({ message: "配信の削除に失敗しました" });
+    }
+  });
+
   // Get all withdrawal requests for admin
   app.get("/api/admin/withdrawals", isAdminSession, async (req, res) => {
     try {

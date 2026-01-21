@@ -456,6 +456,36 @@ export default function AdminDashboard() {
     },
   });
 
+  const stopLiveStream = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("POST", `/api/admin/livestreams/${id}/stop`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/livestreams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "配信を強制終了しました" });
+    },
+    onError: () => {
+      toast({ title: "配信の終了に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const deleteLiveStream = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/admin/livestreams/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/livestreams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
+      toast({ title: "配信を削除しました" });
+    },
+    onError: () => {
+      toast({ title: "配信の削除に失敗しました", variant: "destructive" });
+    },
+  });
+
   // Marketing users query
   const { data: marketingUsers, isLoading: isLoadingMarketingUsers } = useQuery<Array<{id: string; displayName: string | null; email: string | null; createdAt: Date | null}>>({
     queryKey: ["/api/admin/marketing/users"],
@@ -1905,6 +1935,34 @@ export default function AdminDashboard() {
           {/* Live Streams */}
           {activeTab === "livestreams" && (
             <div className="space-y-4">
+              {/* Live streams summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">配信中</p>
+                    <p className="text-2xl font-bold text-red-500">
+                      {allLiveStreams?.filter(s => s.status === "live").length || 0}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">予定</p>
+                    <p className="text-2xl font-bold text-blue-500">
+                      {allLiveStreams?.filter(s => s.status === "scheduled").length || 0}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">総視聴者数</p>
+                    <p className="text-2xl font-bold">
+                      {allLiveStreams?.reduce((sum, s) => sum + (s.viewerCount || 0), 0).toLocaleString() || 0}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
                   <CardTitle className="text-lg">ライブ配信一覧</CardTitle>
@@ -1925,6 +1983,7 @@ export default function AdminDashboard() {
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">視聴者</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">開始日時</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1941,6 +2000,61 @@ export default function AdminDashboard() {
                               </td>
                               <td className="p-3 text-sm">{stream.viewerCount.toLocaleString()}</td>
                               <td className="p-3 text-sm text-muted-foreground">{stream.startedAt ? formatDate(stream.startedAt) : "-"}</td>
+                              <td className="p-3">
+                                <div className="flex gap-2">
+                                  {stream.status === "live" && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button size="sm" variant="outline" className="text-red-600 border-red-300" data-testid={`stop-stream-${stream.id}`}>
+                                          <Ban className="h-4 w-4 mr-1" />
+                                          強制終了
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>配信を強制終了しますか？</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            「{stream.title}」を強制終了します。視聴者は切断されます。
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => stopLiveStream.mutate(stream.id)}
+                                            className="bg-red-600 hover:bg-red-700"
+                                          >
+                                            強制終了
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="sm" variant="destructive" data-testid={`delete-stream-${stream.id}`}>
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>配信を削除しますか？</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          「{stream.title}」を削除します。この操作は取り消せません。
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => deleteLiveStream.mutate(stream.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          削除
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
