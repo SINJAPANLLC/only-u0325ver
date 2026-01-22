@@ -4450,7 +4450,7 @@ export async function registerRoutes(
       await db.insert(pointTransactions).values({
         userId: id,
         amount: points,
-        type: points > 0 ? "purchase" : "use",
+        type: points > 0 ? "bonus" : "spend",
         description: reason || "管理者による調整",
       });
       
