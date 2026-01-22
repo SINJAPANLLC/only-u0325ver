@@ -189,8 +189,11 @@ interface SalesData {
   totalPlatformRevenue: number;
   recentTransactions: {
     id: string;
+    category: string;
     userId: string;
     userName: string;
+    creatorId?: string | null;
+    creatorName?: string | null;
     amount: number;
     type: string;
     description: string | null;
@@ -1633,8 +1636,9 @@ export default function AdminDashboard() {
                           <table className="w-full">
                             <thead>
                               <tr className="border-b border-slate-200 dark:border-slate-700">
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">カテゴリ</th>
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">ユーザー</th>
-                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">種類</th>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">説明</th>
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">日時</th>
@@ -1643,15 +1647,28 @@ export default function AdminDashboard() {
                             <tbody>
                               {salesData.recentTransactions.map((tx) => (
                                 <tr key={tx.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-transaction-${tx.id}`}>
-                                  <td className="p-3 text-sm" data-testid={`text-transaction-user-${tx.id}`}>{tx.userName}</td>
                                   <td className="p-3">
-                                    <Badge variant={tx.type === "purchase" ? "default" : "secondary"} data-testid={`badge-transaction-type-${tx.id}`}>
-                                      {tx.type === "purchase" ? "購入" : tx.type === "use" ? "使用" : tx.type}
+                                    <Badge 
+                                      variant="secondary" 
+                                      className={
+                                        tx.category === "subscription" ? "bg-purple-500/10 text-purple-600" :
+                                        tx.category === "live" ? "bg-red-500/10 text-red-600" :
+                                        tx.category === "shop" ? "bg-blue-500/10 text-blue-600" :
+                                        "bg-green-500/10 text-green-600"
+                                      }
+                                      data-testid={`badge-transaction-category-${tx.id}`}
+                                    >
+                                      {tx.category === "subscription" ? "サブスク" :
+                                       tx.category === "live" ? "ライブ" :
+                                       tx.category === "shop" ? "ショップ" :
+                                       "ポイント"}
                                     </Badge>
                                   </td>
+                                  <td className="p-3 text-sm" data-testid={`text-transaction-user-${tx.id}`}>{tx.userName}</td>
+                                  <td className="p-3 text-sm" data-testid={`text-transaction-creator-${tx.id}`}>{tx.creatorName || "-"}</td>
                                   <td className="p-3 text-sm font-medium">
                                     <span className={tx.amount > 0 ? "text-green-600" : "text-red-600"} data-testid={`text-transaction-amount-${tx.id}`}>
-                                      {tx.amount > 0 ? "+" : ""}{tx.amount.toLocaleString()} pt
+                                      {tx.amount > 0 ? "+" : ""}{Math.abs(tx.amount).toLocaleString()} pt
                                     </span>
                                   </td>
                                   <td className="p-3 text-sm text-muted-foreground">{tx.description || "-"}</td>

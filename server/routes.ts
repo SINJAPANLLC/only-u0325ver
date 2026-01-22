@@ -5157,9 +5157,10 @@ export async function registerRoutes(
       // 純利益
       const netProfit = totalPlatformRevenue;
       
-      // ========== 取引履歴 ==========
+      // ========== 取引履歴（すべての売上を含む） ==========
       
-      const recentTransactions = await db
+      // ポイント取引
+      const recentPointTransactions = await db
         .select({
           id: pointTransactions.id,
           userId: pointTransactions.userId,
@@ -5170,17 +5171,162 @@ export async function registerRoutes(
         })
         .from(pointTransactions)
         .orderBy(desc(pointTransactions.createdAt))
-        .limit(50);
+        .limit(30);
       
+      // サブスクリプション取引
+      const recentSubscriptions = await db
+        .select({
+          id: subscriptions.id,
+          userId: subscriptions.userId,
+          creatorId: subscriptions.creatorId,
+          planType: subscriptions.planType,
+          tier: subscriptions.tier,
+          createdAt: subscriptions.startedAt,
+        })
+        .from(subscriptions)
+        .orderBy(desc(subscriptions.startedAt))
+        .limit(20);
+      
+      // ショップ購入
+      const recentPurchases = await db
+        .select({
+          id: purchases.id,
+          userId: purchases.userId,
+          productId: purchases.productId,
+          creatorId: purchases.creatorId,
+          price: purchases.price,
+          createdAt: purchases.createdAt,
+        })
+        .from(purchases)
+        .orderBy(desc(purchases.createdAt))
+        .limit(20);
+      
+      // ライブ視聴セッション
+      const recentLiveSessions = await db
+        .select({
+          id: liveViewingSessions.id,
+          userId: liveViewingSessions.userId,
+          liveStreamId: liveViewingSessions.liveStreamId,
+          mode: liveViewingSessions.mode,
+          totalPointsCharged: liveViewingSessions.totalPointsCharged,
+          createdAt: liveViewingSessions.startedAt,
+        })
+        .from(liveViewingSessions)
+        .where(sql`${liveViewingSessions.totalPointsCharged} > 0`)
+        .orderBy(desc(liveViewingSessions.startedAt))
+        .limit(20);
+      
+      // すべての取引を統合
+      const allTransactions: Array<{
+        id: string;
+        category: string;
+        userId: string;
+        creatorId?: string | null;
+        amount: number;
+        type: string;
+        description: string;
+        createdAt: Date | null;
+      }> = [];
+      
+      // ポイント取引を追加
+      for (const tx of recentPointTransactions) {
+        allTransactions.push({
+          id: tx.id,
+          category: "point",
+          userId: tx.userId,
+          creatorId: null,
+          amount: tx.amount,
+          type: tx.type,
+          description: tx.description || "",
+          createdAt: tx.createdAt,
+        });
+      }
+      
+      // サブスク取引を追加
+      for (const sub of recentSubscriptions) {
+        const [plan] = await db
+          .select({ price: subscriptionPlans.price, name: subscriptionPlans.name })
+          .from(subscriptionPlans)
+          .where(eq(subscriptionPlans.creatorId, sub.creatorId));
+        const price = plan?.price || 980;
+        allTransactions.push({
+          id: sub.id,
+          category: "subscription",
+          userId: sub.userId,
+          creatorId: sub.creatorId,
+          amount: -price,
+          type: "subscription",
+          description: `サブスクリプション: ${plan?.name || sub.planType}`,
+          createdAt: sub.createdAt,
+        });
+      }
+      
+      // ショップ購入を追加
+      for (const purchase of recentPurchases) {
+        const [product] = await db
+          .select({ name: products.name })
+          .from(products)
+          .where(eq(products.id, purchase.productId));
+        allTransactions.push({
+          id: purchase.id,
+          category: "shop",
+          userId: purchase.userId,
+          creatorId: purchase.creatorId,
+          amount: -purchase.price,
+          type: "shop_purchase",
+          description: `商品購入: ${product?.name || "商品"}`,
+          createdAt: purchase.createdAt,
+        });
+      }
+      
+      // ライブ視聴を追加
+      for (const session of recentLiveSessions) {
+        const [stream] = await db
+          .select({ creatorId: liveStreams.creatorId, title: liveStreams.title })
+          .from(liveStreams)
+          .where(eq(liveStreams.id, session.liveStreamId));
+        const modeLabel = session.mode === "party" ? "パーティー" : session.mode === "twoshot" ? "ツーショット" : session.mode;
+        allTransactions.push({
+          id: session.id,
+          category: "live",
+          userId: session.userId,
+          creatorId: stream?.creatorId || null,
+          amount: -(session.totalPointsCharged || 0),
+          type: "live_viewing",
+          description: `ライブ視聴(${modeLabel}): ${stream?.title || "配信"}`,
+          createdAt: session.createdAt,
+        });
+      }
+      
+      // 日付でソートして最新50件
+      allTransactions.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+      const sortedTransactions = allTransactions.slice(0, 50);
+      
+      // ユーザー名とクリエイター名を追加
       const transactionsWithNames = await Promise.all(
-        recentTransactions.map(async (tx) => {
-          const [profile] = await db
+        sortedTransactions.map(async (tx) => {
+          const [userProfile] = await db
             .select({ displayName: userProfiles.displayName })
             .from(userProfiles)
             .where(eq(userProfiles.userId, tx.userId));
+          
+          let creatorName = null;
+          if (tx.creatorId) {
+            const [creatorProfile] = await db
+              .select({ displayName: userProfiles.displayName })
+              .from(userProfiles)
+              .where(eq(userProfiles.userId, tx.creatorId));
+            creatorName = creatorProfile?.displayName || null;
+          }
+          
           return {
             ...tx,
-            userName: profile?.displayName || "Unknown",
+            userName: userProfile?.displayName || "Unknown",
+            creatorName,
           };
         })
       );
