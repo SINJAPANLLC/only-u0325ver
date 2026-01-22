@@ -575,12 +575,14 @@ export async function registerRoutes(
           eq(liveViewingSessions.isActive, true)
         ));
 
-      // Create new session
+      // Create new session with creator info for earnings tracking
       const [session] = await db
         .insert(liveViewingSessions)
         .values({
           liveStreamId: streamId,
           userId,
+          creatorId: stream.creatorId,
+          streamTitle: stream.title,
           mode,
           ratePerMinute: ratePerMinute || 50,
         })
@@ -1919,12 +1921,11 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Not a creator" });
       }
       
-      // Get live streaming earnings from viewing sessions
+      // Get live streaming earnings from viewing sessions (using creatorId stored in session)
       const [liveEarnings] = await db
         .select({ total: sql<number>`COALESCE(SUM(${liveViewingSessions.totalPointsCharged}), 0)` })
         .from(liveViewingSessions)
-        .innerJoin(liveStreams, eq(liveViewingSessions.liveStreamId, liveStreams.id))
-        .where(eq(liveStreams.creatorId, userId));
+        .where(eq(liveViewingSessions.creatorId, userId));
       
       // Get product sales
       const productSales = await db
@@ -1962,18 +1963,17 @@ export async function registerRoutes(
         productType: "shop" as const,
       }));
       
-      // Get live streaming sessions for recent sales
+      // Get live streaming sessions for recent sales (using creatorId stored in session)
       const liveSessions = await db
         .select({
           id: liveViewingSessions.id,
           totalPointsCharged: liveViewingSessions.totalPointsCharged,
           startedAt: liveViewingSessions.startedAt,
-          streamTitle: liveStreams.title,
+          streamTitle: liveViewingSessions.streamTitle,
         })
         .from(liveViewingSessions)
-        .innerJoin(liveStreams, eq(liveViewingSessions.liveStreamId, liveStreams.id))
         .where(and(
-          eq(liveStreams.creatorId, userId),
+          eq(liveViewingSessions.creatorId, userId),
           sql`${liveViewingSessions.totalPointsCharged} > 0`
         ))
         .orderBy(desc(liveViewingSessions.startedAt))
