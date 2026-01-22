@@ -5485,6 +5485,58 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
     }
   });
 
+  // Generate notification content with AI
+  app.post("/api/admin/notifications/generate", isAdminSession, async (req, res) => {
+    try {
+      const { prompt, type, includeEmail } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "プロンプトを入力してください" });
+      }
+
+      const typeLabels: Record<string, string> = {
+        system: "システム通知",
+        announcement: "お知らせ",
+        promotion: "プロモーション",
+        maintenance: "メンテナンス通知",
+      };
+
+      const systemPrompt = `あなたはOnly-Uというクリエイタープラットフォームの管理者です。
+ユーザーに送る通知${includeEmail ? "とメール" : ""}を作成してください。
+プラットフォームは日本語で運営されており、丁寧で親しみやすいトーンを心がけてください。
+
+通知タイプ: ${typeLabels[type] || type}
+
+以下のJSON形式で返してください：
+{
+  "title": "通知タイトル（20文字以内）",
+  "message": "通知メッセージ（100文字以内）"${includeEmail ? `,
+  "emailSubject": "メール件名",
+  "emailBody": "メール本文（改行も含めて読みやすく）"` : ""}
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        return res.status(500).json({ message: "AIからの応答がありませんでした" });
+      }
+
+      const result = JSON.parse(content);
+      res.json(result);
+    } catch (error) {
+      console.error("Generate notification error:", error);
+      res.status(500).json({ message: "通知の生成に失敗しました" });
+    }
+  });
+
   // Send notification and optional email to users (admin)
   app.post("/api/admin/notifications/send", isAdminSession, async (req, res) => {
     try {

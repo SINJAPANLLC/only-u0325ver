@@ -282,6 +282,7 @@ export default function AdminDashboard() {
   const [notifTarget, setNotifTarget] = useState<"all" | "specific">("all");
   const [notifUserSearch, setNotifUserSearch] = useState("");
   const [notifSelectedUsers, setNotifSelectedUsers] = useState<string[]>([]);
+  const [notifAiPrompt, setNotifAiPrompt] = useState("");
 
   const { data: authStatus, isLoading: isCheckingAuth } = useQuery({
     queryKey: ["/api/admin/auth/me"],
@@ -601,9 +602,28 @@ export default function AdminDashboard() {
       setNotifEmailBody("");
       setNotifSelectedUsers([]);
       setNotifUserSearch("");
+      setNotifAiPrompt("");
     },
     onError: () => {
       toast({ title: "送信に失敗しました", variant: "destructive" });
+    },
+  });
+
+  // Generate notification content with AI
+  const generateNotification = useMutation({
+    mutationFn: async (data: { prompt: string; type: string; includeEmail: boolean }) => {
+      const res = await apiRequest("POST", "/api/admin/notifications/generate", data);
+      return res.json();
+    },
+    onSuccess: (data: { title: string; message: string; emailSubject?: string; emailBody?: string }) => {
+      setNotifTitle(data.title || "");
+      setNotifMessage(data.message || "");
+      if (data.emailSubject) setNotifEmailSubject(data.emailSubject);
+      if (data.emailBody) setNotifEmailBody(data.emailBody);
+      toast({ title: "AIが文章を生成しました" });
+    },
+    onError: () => {
+      toast({ title: "生成に失敗しました", variant: "destructive" });
     },
   });
 
@@ -1929,6 +1949,48 @@ export default function AdminDashboard() {
                           )}
                         </div>
                       )}
+
+                      <Separator />
+
+                      <div className="space-y-3 p-4 border rounded-lg bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Sparkles className="h-4 w-4 text-pink-500" />
+                          AI文章生成
+                        </div>
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder="どんな通知を送りたいか説明してください（例: 新機能リリースのお知らせ、メンテナンス告知など）"
+                            value={notifAiPrompt}
+                            onChange={(e) => setNotifAiPrompt(e.target.value)}
+                            rows={2}
+                            data-testid="textarea-ai-prompt"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              if (!notifAiPrompt.trim()) {
+                                toast({ title: "生成したい内容を入力してください", variant: "destructive" });
+                                return;
+                              }
+                              generateNotification.mutate({
+                                prompt: notifAiPrompt,
+                                type: notifType,
+                                includeEmail: notifSendEmail,
+                              });
+                            }}
+                            disabled={generateNotification.isPending}
+                            className="w-full"
+                            data-testid="button-generate-ai"
+                          >
+                            {generateNotification.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Sparkles className="h-4 w-4 mr-2" />
+                            )}
+                            AIで文章を生成
+                          </Button>
+                        </div>
+                      </div>
 
                       <Separator />
 
