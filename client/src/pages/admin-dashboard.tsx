@@ -113,6 +113,27 @@ interface ProductData {
   stock: number | null;
   productType: string;
   createdAt: string;
+  totalEarnings: number;
+  salesCount: number;
+}
+
+interface OrderData {
+  id: string;
+  userId: string;
+  productId: string;
+  creatorId: string | null;
+  price: number;
+  status: string | null;
+  shippingName: string | null;
+  shippingPostalCode: string | null;
+  shippingAddress: string | null;
+  shippingPhone: string | null;
+  createdAt: string | null;
+  productName: string | null;
+  productType: string | null;
+  productImageUrl: string | null;
+  buyerName: string;
+  creatorName: string;
 }
 
 interface LiveStreamData {
@@ -361,6 +382,11 @@ export default function AdminDashboard() {
     enabled: authStatus?.authenticated && activeTab === "shop",
   });
 
+  const { data: allOrders, isLoading: isLoadingOrders } = useQuery<OrderData[]>({
+    queryKey: ["/api/admin/orders"],
+    enabled: authStatus?.authenticated && activeTab === "shop",
+  });
+
   const { data: allLiveStreams, isLoading: isLoadingLiveStreams } = useQuery<LiveStreamData[]>({
     queryKey: ["/api/admin/livestreams"],
     enabled: authStatus?.authenticated && activeTab === "livestreams",
@@ -571,6 +597,20 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ title: "配信の削除に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const updateOrderStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/orders/${id}/status`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      toast({ title: "ステータスを更新しました" });
+    },
+    onError: () => {
+      toast({ title: "ステータスの更新に失敗しました", variant: "destructive" });
     },
   });
 
@@ -2869,6 +2909,8 @@ export default function AdminDashboard() {
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">商品名</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">価格</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">販売数</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">獲得ポイント</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">在庫</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
                             <th className="text-left p-3 text-sm font-medium text-muted-foreground">操作</th>
@@ -2891,6 +2933,8 @@ export default function AdminDashboard() {
                               </td>
                               <td className="p-3 text-sm">{product.creatorName}</td>
                               <td className="p-3 text-sm font-medium">{product.price.toLocaleString()}pt</td>
+                              <td className="p-3 text-sm font-medium" data-testid={`text-sales-count-${product.id}`}>{product.salesCount}件</td>
+                              <td className="p-3 text-sm font-medium text-green-600" data-testid={`text-earnings-${product.id}`}>{product.totalEarnings.toLocaleString()}pt</td>
                               <td className="p-3 text-sm">{product.stock !== null ? product.stock : "∞"}</td>
                               <td className="p-3">
                                 <Badge variant="secondary">
@@ -2941,6 +2985,97 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">商品がありません</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                  <CardTitle className="text-lg">注文一覧</CardTitle>
+                  <Badge variant="secondary">{allOrders?.length || 0}件</Badge>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingOrders ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : allOrders && allOrders.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">商品</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">購入者</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">クリエイター</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">金額</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">タイプ</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">ステータス</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">配送先</th>
+                            <th className="text-left p-3 text-sm font-medium text-muted-foreground">購入日</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allOrders.map((order) => (
+                            <tr key={order.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-order-${order.id}`}>
+                              <td className="p-3">
+                                <div className="flex items-center gap-3">
+                                  {order.productImageUrl ? (
+                                    <img src={order.productImageUrl} alt={order.productName || ""} className="w-10 h-10 object-cover rounded" />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                                      <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <p className="font-medium text-sm truncate max-w-[150px]">{order.productName || "不明"}</p>
+                                </div>
+                              </td>
+                              <td className="p-3 text-sm">{order.buyerName}</td>
+                              <td className="p-3 text-sm">{order.creatorName}</td>
+                              <td className="p-3 text-sm font-medium">{order.price.toLocaleString()}pt</td>
+                              <td className="p-3">
+                                <Badge variant="outline">
+                                  {order.productType === "digital" ? "デジタル" : "物理"}
+                                </Badge>
+                              </td>
+                              <td className="p-3">
+                                {order.productType === "physical" ? (
+                                  <Select
+                                    value={order.status || "pending"}
+                                    onValueChange={(value) => updateOrderStatus.mutate({ id: order.id, status: value })}
+                                  >
+                                    <SelectTrigger className="w-28 h-8" data-testid={`select-status-${order.id}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="pending">未発送</SelectItem>
+                                      <SelectItem value="shipped">発送済</SelectItem>
+                                      <SelectItem value="completed">完了</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <Badge variant="default">提供済</Badge>
+                                )}
+                              </td>
+                              <td className="p-3 text-xs">
+                                {order.productType === "physical" && order.shippingName ? (
+                                  <div className="space-y-1">
+                                    <p>{order.shippingName}</p>
+                                    <p className="text-muted-foreground">〒{order.shippingPostalCode}</p>
+                                    <p className="text-muted-foreground truncate max-w-[150px]">{order.shippingAddress}</p>
+                                    {order.shippingPhone && <p className="text-muted-foreground">{order.shippingPhone}</p>}
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </td>
+                              <td className="p-3 text-sm text-muted-foreground">{formatDate(order.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">注文がありません</div>
                   )}
                 </CardContent>
               </Card>

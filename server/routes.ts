@@ -4829,21 +4829,33 @@ export async function registerRoutes(
         .from(products)
         .orderBy(desc(products.createdAt));
       
-      // Get creator names
-      const productsWithCreatorNames = await Promise.all(
+      // Get creator names and sales data
+      const productsWithDetails = await Promise.all(
         allProducts.map(async (product) => {
           const [creator] = await db
             .select({ displayName: creatorProfiles.displayName })
             .from(creatorProfiles)
             .where(eq(creatorProfiles.userId, product.creatorId));
+          
+          // Calculate total sales for this product
+          const [salesData] = await db
+            .select({ 
+              totalSales: sql<number>`COALESCE(SUM(${purchases.price}), 0)::int`,
+              salesCount: sql<number>`COUNT(*)::int`
+            })
+            .from(purchases)
+            .where(eq(purchases.productId, product.id));
+          
           return {
             ...product,
             creatorName: creator?.displayName || "Unknown",
+            totalEarnings: salesData?.totalSales || 0,
+            salesCount: salesData?.salesCount || 0,
           };
         })
       );
       
-      res.json(productsWithCreatorNames);
+      res.json(productsWithDetails);
     } catch (error) {
       console.error("Get products error:", error);
       res.status(500).json({ message: "商品一覧の取得に失敗しました" });
@@ -4865,6 +4877,78 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Delete product error:", error);
       res.status(500).json({ message: "商品の削除に失敗しました" });
+    }
+  });
+
+  // Get all orders for admin (shop management)
+  app.get("/api/admin/orders", isAdminSession, async (req, res) => {
+    try {
+      const allOrders = await db
+        .select({
+          id: purchases.id,
+          userId: purchases.userId,
+          productId: purchases.productId,
+          creatorId: purchases.creatorId,
+          price: purchases.price,
+          status: purchases.status,
+          shippingName: purchases.shippingName,
+          shippingPostalCode: purchases.shippingPostalCode,
+          shippingAddress: purchases.shippingAddress,
+          shippingPhone: purchases.shippingPhone,
+          createdAt: purchases.createdAt,
+          productName: products.name,
+          productType: products.productType,
+          productImageUrl: products.imageUrl,
+        })
+        .from(purchases)
+        .leftJoin(products, eq(purchases.productId, products.id))
+        .orderBy(desc(purchases.createdAt))
+        .limit(200);
+      
+      // Get buyer and creator names
+      const ordersWithNames = await Promise.all(
+        allOrders.map(async (order) => {
+          const [buyer] = await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, order.userId));
+          const [creator] = order.creatorId ? await db
+            .select({ displayName: creatorProfiles.displayName })
+            .from(creatorProfiles)
+            .where(eq(creatorProfiles.userId, order.creatorId)) : [null];
+          return {
+            ...order,
+            buyerName: buyer?.displayName || "不明",
+            creatorName: creator?.displayName || "不明",
+          };
+        })
+      );
+      
+      res.json(ordersWithNames);
+    } catch (error) {
+      console.error("Get orders error:", error);
+      res.status(500).json({ message: "注文一覧の取得に失敗しました" });
+    }
+  });
+
+  // Update order status (for physical products shipping)
+  app.patch("/api/admin/orders/:id/status", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!["pending", "shipped", "completed"].includes(status)) {
+        return res.status(400).json({ message: "無効なステータスです" });
+      }
+      
+      await db.update(purchases)
+        .set({ status })
+        .where(eq(purchases.id, id));
+      
+      res.json({ success: true, message: "ステータスを更新しました" });
+    } catch (error) {
+      console.error("Update order status error:", error);
+      res.status(500).json({ message: "ステータスの更新に失敗しました" });
     }
   });
 
