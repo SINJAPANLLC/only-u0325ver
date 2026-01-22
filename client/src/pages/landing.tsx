@@ -23,9 +23,9 @@ export default function Landing({ onRegisterClick }: LandingProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative scrollbar-hide">
+    <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative scrollbar-hide pt-safe pb-safe" style={{ overscrollBehavior: 'none' }}>
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-end gap-2 p-3 max-w-[430px] mx-auto">
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-end gap-2 p-3 pt-safe max-w-[430px] mx-auto">
         <Button 
           onClick={onRegisterClick}
           size="sm"
