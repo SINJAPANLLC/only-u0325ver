@@ -68,9 +68,7 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md bg-white shadow-xl border border-pink-100">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg">
-              <img src={logoImage} alt="Only-U" className="h-16 w-16 object-contain" />
-            </div>
+            <img src={logoImage} alt="Only-U" className="h-20 w-20 object-contain" />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-800">管理者ログイン</CardTitle>
