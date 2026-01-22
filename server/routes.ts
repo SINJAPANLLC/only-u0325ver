@@ -1988,29 +1988,28 @@ export async function registerRoutes(
         productType: "live" as const,
       }));
       
-      // Get subscription transactions for recent sales
-      const subscriptionTransactions = await db
+      // Get subscription sales directly from subscriptions table
+      const subscriptionSales = await db
         .select({
-          id: pointTransactions.id,
-          amount: pointTransactions.amount,
-          description: pointTransactions.description,
-          createdAt: pointTransactions.createdAt,
+          id: subscriptions.id,
+          planId: subscriptions.planId,
+          status: subscriptions.status,
+          createdAt: subscriptions.expiresAt, // Use expiresAt to determine payment date
+          planName: subscriptionPlans.name,
+          planPrice: subscriptionPlans.price,
         })
-        .from(pointTransactions)
-        .where(and(
-          eq(pointTransactions.userId, userId),
-          eq(pointTransactions.type, "bonus"),
-          sql`${pointTransactions.description} LIKE '%サブスク%'`
-        ))
-        .orderBy(desc(pointTransactions.createdAt))
+        .from(subscriptions)
+        .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
+        .where(eq(subscriptions.creatorId, userId))
+        .orderBy(desc(subscriptions.expiresAt))
         .limit(50);
       
-      const recentSubscriptionSales = subscriptionTransactions.map(tx => ({
-        id: tx.id,
-        productName: tx.description || "サブスクリプション",
-        amount: tx.amount || 0,
-        status: "completed",
-        createdAt: tx.createdAt,
+      const recentSubscriptionSales = subscriptionSales.map(sub => ({
+        id: sub.id,
+        productName: `サブスク: ${sub.planName || "プラン"}`,
+        amount: sub.planPrice || 0,
+        status: sub.status === "active" ? "completed" : sub.status,
+        createdAt: sub.createdAt,
         productType: "subscription" as const,
       }));
       
@@ -2019,8 +2018,8 @@ export async function registerRoutes(
         .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
         .slice(0, 20);
       
-      // Get subscription earnings (from subscription payments)
-      const subscriptionTotal = subscriptionTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+      // Get subscription earnings (from subscriptions table)
+      const subscriptionTotal = subscriptionSales.reduce((sum, sub) => sum + (sub.planPrice || 0), 0);
       
       // Calculate product total
       const productTotal = productSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
