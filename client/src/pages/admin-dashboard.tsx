@@ -1651,6 +1651,7 @@ export default function AdminDashboard() {
                                     <Badge 
                                       variant="secondary" 
                                       className={
+                                        tx.category === "platform_subscription" ? "bg-pink-500/10 text-pink-600" :
                                         tx.category === "subscription" ? "bg-purple-500/10 text-purple-600" :
                                         tx.category === "live" ? "bg-red-500/10 text-red-600" :
                                         tx.category === "shop" ? "bg-blue-500/10 text-blue-600" :
@@ -1658,7 +1659,8 @@ export default function AdminDashboard() {
                                       }
                                       data-testid={`badge-transaction-category-${tx.id}`}
                                     >
-                                      {tx.category === "subscription" ? "サブスク" :
+                                      {tx.category === "platform_subscription" ? "自社サブスク" :
+                                       tx.category === "subscription" ? "サブスク" :
                                        tx.category === "live" ? "ライブ" :
                                        tx.category === "shop" ? "ショップ" :
                                        "ポイント"}

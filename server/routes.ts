@@ -5230,9 +5230,11 @@ export async function registerRoutes(
       
       // ポイント取引を追加
       for (const tx of recentPointTransactions) {
+        // 高画質プランは自社サブスクとして分類
+        const category = tx.type === "premium_plan" ? "platform_subscription" : "point";
         allTransactions.push({
           id: tx.id,
-          category: "point",
+          category,
           userId: tx.userId,
           creatorId: null,
           amount: tx.amount,
