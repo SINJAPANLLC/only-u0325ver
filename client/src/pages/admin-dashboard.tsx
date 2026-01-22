@@ -835,62 +835,324 @@ export default function AdminDashboard() {
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <>
+                  {/* Alert Section - Pending Actions */}
+                  {((stats?.pendingApplications || 0) > 0 || (stats?.pendingTransfers || 0) > 0 || (stats?.pendingWithdrawals || 0) > 0) && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-3 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        対応が必要な項目
+                      </h3>
+                      <div className="flex flex-wrap gap-3">
+                        {(stats?.pendingApplications || 0) > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white dark:bg-background"
+                            onClick={() => setActiveTab("creators")}
+                            data-testid="quick-link-applications"
+                          >
+                            <FileCheck className="h-4 w-4 mr-2 text-amber-600" />
+                            クリエイター申請 {stats?.pendingApplications}件
+                          </Button>
+                        )}
+                        {(stats?.pendingTransfers || 0) > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white dark:bg-background"
+                            onClick={() => setActiveTab("transfers")}
+                            data-testid="quick-link-transfers"
+                          >
+                            <Wallet className="h-4 w-4 mr-2 text-amber-600" />
+                            振込確認待ち {stats?.pendingTransfers}件
+                          </Button>
+                        )}
+                        {(stats?.pendingWithdrawals || 0) > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white dark:bg-background"
+                            onClick={() => setActiveTab("withdrawals")}
+                            data-testid="quick-link-withdrawals"
+                          >
+                            <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
+                            出金申請 {stats?.pendingWithdrawals}件
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Main Stats Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("users")}
+                      data-testid="card-stat-users"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">ユーザー</CardTitle>
+                        <Users className="h-4 w-4 text-pink-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats?.totalUsers.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">登録ユーザー数</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("creators")}
+                      data-testid="card-stat-creators"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">クリエイター</CardTitle>
+                        <FileCheck className="h-4 w-4 text-purple-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats?.totalCreators.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">承認済みクリエイター</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("content")}
+                      data-testid="card-stat-videos"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">コンテンツ</CardTitle>
+                        <Video className="h-4 w-4 text-blue-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats?.totalVideos.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">動画コンテンツ数</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("shop")}
+                      data-testid="card-stat-products"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">ショップ</CardTitle>
+                        <ShoppingBag className="h-4 w-4 text-green-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats?.totalProducts.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mt-1">出品商品数</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("livestreams")}
+                      data-testid="card-stat-live"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">ライブ配信</CardTitle>
+                        <Radio className="h-4 w-4 text-red-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-red-600">{stats?.activeLiveStreams || 0}</div>
+                        <p className="text-xs text-muted-foreground mt-1">現在配信中</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("transfers")}
+                      data-testid="card-stat-transfers"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">ポイント振込</CardTitle>
+                        <CreditCard className="h-4 w-4 text-amber-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-amber-600">{stats?.pendingTransfers || 0}</div>
+                        <p className="text-xs text-muted-foreground mt-1">確認待ち</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("withdrawals")}
+                      data-testid="card-stat-withdrawals"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">出金申請</CardTitle>
+                        <DollarSign className="h-4 w-4 text-emerald-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-emerald-600">{stats?.pendingWithdrawals || 0}</div>
+                        <p className="text-xs text-muted-foreground mt-1">処理待ち</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover-elevate" 
+                      onClick={() => setActiveTab("creators")}
+                      data-testid="card-stat-applications"
+                    >
+                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">申請審査</CardTitle>
+                        <Clock className="h-4 w-4 text-orange-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-orange-600">{stats?.pendingApplications || 0}</div>
+                        <p className="text-xs text-muted-foreground mt-1">審査待ち</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Quick Actions */}
                   <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">総ユーザー数</CardTitle>
-                      <Users className="h-4 w-4 text-muted-foreground" />
+                    <CardHeader>
+                      <CardTitle className="text-lg">クイックアクション</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{stats?.totalUsers.toLocaleString()}</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <Button
+                          variant="outline"
+                          className="h-auto py-4 flex flex-col items-center gap-2"
+                          onClick={() => setActiveTab("notifications")}
+                          data-testid="quick-action-notification"
+                        >
+                          <Bell className="h-5 w-5 text-pink-500" />
+                          <span className="text-sm">通知を送信</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-auto py-4 flex flex-col items-center gap-2"
+                          onClick={() => setActiveTab("marketing")}
+                          data-testid="quick-action-marketing"
+                        >
+                          <Megaphone className="h-5 w-5 text-purple-500" />
+                          <span className="text-sm">マーケティング</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-auto py-4 flex flex-col items-center gap-2"
+                          onClick={() => setActiveTab("sales")}
+                          data-testid="quick-action-sales"
+                        >
+                          <BarChart3 className="h-5 w-5 text-blue-500" />
+                          <span className="text-sm">売上確認</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-auto py-4 flex flex-col items-center gap-2"
+                          onClick={() => setActiveTab("settings")}
+                          data-testid="quick-action-settings"
+                        >
+                          <Settings className="h-5 w-5 text-gray-500" />
+                          <span className="text-sm">設定</span>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">クリエイター数</CardTitle>
-                      <FileCheck className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats?.totalCreators.toLocaleString()}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">審査待ち申請</CardTitle>
-                      <Clock className="h-4 w-4 text-amber-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-amber-600">{stats?.pendingApplications}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">振込待ち</CardTitle>
-                      <Wallet className="h-4 w-4 text-amber-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-amber-600">{stats?.pendingTransfers}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">動画コンテンツ</CardTitle>
-                      <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats?.totalVideos.toLocaleString()}</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">商品数</CardTitle>
-                      <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats?.totalProducts.toLocaleString()}</div>
-                    </CardContent>
-                  </Card>
-                </div>
+
+                  {/* Management Sections Overview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between gap-2">
+                        <CardTitle className="text-lg">ユーザー管理</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("users")}>
+                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">総ユーザー</span>
+                          <span className="font-medium">{stats?.totalUsers.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">クリエイター</span>
+                          <span className="font-medium">{stats?.totalCreators.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">審査待ち申請</span>
+                          <Badge variant={stats?.pendingApplications ? "destructive" : "secondary"}>
+                            {stats?.pendingApplications || 0}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between gap-2">
+                        <CardTitle className="text-lg">コンテンツ管理</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("content")}>
+                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">動画コンテンツ</span>
+                          <span className="font-medium">{stats?.totalVideos.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">商品</span>
+                          <span className="font-medium">{stats?.totalProducts.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">ライブ配信中</span>
+                          <Badge variant={stats?.activeLiveStreams ? "destructive" : "secondary"} className={stats?.activeLiveStreams ? "animate-pulse" : ""}>
+                            {stats?.activeLiveStreams || 0}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between gap-2">
+                        <CardTitle className="text-lg">ポイント・出金</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("transfers")}>
+                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">振込確認待ち</span>
+                          <Badge variant={stats?.pendingTransfers ? "destructive" : "secondary"}>
+                            {stats?.pendingTransfers || 0}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">出金申請待ち</span>
+                          <Badge variant={stats?.pendingWithdrawals ? "destructive" : "secondary"}>
+                            {stats?.pendingWithdrawals || 0}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between gap-2">
+                        <CardTitle className="text-lg">コミュニケーション</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("notifications")}>
+                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">通知送信</span>
+                          <Button size="sm" variant="outline" onClick={() => setActiveTab("notifications")}>
+                            <Send className="h-3 w-3 mr-1" /> 送信
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">マーケティング</span>
+                          <Button size="sm" variant="outline" onClick={() => setActiveTab("marketing")}>
+                            <Mail className="h-3 w-3 mr-1" /> メール
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
               )}
             </div>
           )}
