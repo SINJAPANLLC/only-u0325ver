@@ -5039,17 +5039,11 @@ export async function registerRoutes(
     try {
       // ========== クリエイター売上内訳 ==========
       
-      // サブスクリプション売上 (クリエイターへのサブスク、高画質プランは除外)
+      // サブスクリプション売上 (subscriptionsテーブルからプラン価格を集計)
       const subscriptionRevenue = await db
-        .select({ total: sql<number>`COALESCE(SUM(ABS(amount)), 0)` })
-        .from(pointTransactions)
-        .where(
-          and(
-            eq(pointTransactions.type, "spend"),
-            sql`description LIKE '%サブスク%'`,
-            sql`description NOT LIKE '%高画質%'`
-          )
-        );
+        .select({ total: sql<number>`COALESCE(SUM(${subscriptionPlans.price}), 0)` })
+        .from(subscriptions)
+        .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id));
       
       // ライブ売上 (from live viewing sessions)
       const liveRevenue = await db
@@ -5247,11 +5241,16 @@ export async function registerRoutes(
       
       // サブスク取引を追加
       for (const sub of recentSubscriptions) {
-        const [plan] = await db
-          .select({ price: subscriptionPlans.price, name: subscriptionPlans.name })
-          .from(subscriptionPlans)
-          .where(eq(subscriptionPlans.creatorId, sub.creatorId));
-        const price = plan?.price || 980;
+        let price = 980;
+        let planName = sub.planType;
+        if (sub.planId) {
+          const [plan] = await db
+            .select({ price: subscriptionPlans.price, name: subscriptionPlans.name })
+            .from(subscriptionPlans)
+            .where(eq(subscriptionPlans.id, sub.planId));
+          price = plan?.price || 980;
+          planName = plan?.name || sub.planType;
+        }
         allTransactions.push({
           id: sub.id,
           category: "subscription",
@@ -5259,7 +5258,7 @@ export async function registerRoutes(
           creatorId: sub.creatorId,
           amount: -price,
           type: "subscription",
-          description: `サブスクリプション: ${plan?.name || sub.planType}`,
+          description: `サブスクリプション: ${planName}`,
           createdAt: sub.createdAt,
         });
       }
