@@ -5484,6 +5484,86 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
       res.status(500).json({ message: "通知の送信に失敗しました" });
     }
   });
+
+  // Send notification and optional email to users (admin)
+  app.post("/api/admin/notifications/send", isAdminSession, async (req, res) => {
+    try {
+      const { title, message, type, userIds, sendEmail, emailSubject, emailBody } = req.body;
+      
+      if (!title || !message) {
+        return res.status(400).json({ message: "タイトルとメッセージは必須です" });
+      }
+
+      // Get target users
+      let targetUsers: { id: string; email: string | null }[];
+      if (userIds && userIds.length > 0) {
+        targetUsers = await db
+          .select({ id: users.id, email: users.email })
+          .from(users)
+          .where(inArray(users.id, userIds));
+      } else {
+        targetUsers = await db.select({ id: users.id, email: users.email }).from(users);
+      }
+
+      // Create notifications for each user
+      let notificationCount = 0;
+      for (const user of targetUsers) {
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: type || "system",
+          title,
+          message,
+        });
+        notificationCount++;
+      }
+
+      // Send emails if requested
+      let emailCount = 0;
+      if (sendEmail && emailSubject && emailBody) {
+        const smtpHost = process.env.SMTP_HOST;
+        const smtpPort = process.env.SMTP_PORT;
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS;
+
+        if (smtpHost && smtpPort && smtpUser && smtpPass) {
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: parseInt(smtpPort),
+            secure: parseInt(smtpPort) === 465,
+            auth: { user: smtpUser, pass: smtpPass },
+          });
+
+          // Send emails in batches
+          const emailsToSend = targetUsers.filter(u => u.email);
+          for (const user of emailsToSend) {
+            try {
+              await transporter.sendMail({
+                from: `"Only-U" <${smtpUser}>`,
+                to: user.email!,
+                subject: emailSubject,
+                text: emailBody,
+                html: emailBody.replace(/\n/g, "<br>"),
+              });
+              emailCount++;
+            } catch (emailError) {
+              console.error(`Failed to send email to ${user.email}:`, emailError);
+            }
+          }
+        } else {
+          console.warn("SMTP not configured, skipping email sending");
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        notificationCount, 
+        emailCount: sendEmail ? emailCount : undefined 
+      });
+    } catch (error) {
+      console.error("Send notification error:", error);
+      res.status(500).json({ message: "通知の送信に失敗しました" });
+    }
+  });
   
   // Seed admin account on startup
   (async () => {

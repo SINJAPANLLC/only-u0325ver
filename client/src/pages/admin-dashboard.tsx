@@ -318,7 +318,7 @@ export default function AdminDashboard() {
 
   const { data: allUsers, isLoading: isLoadingUsers } = useQuery<UserData[]>({
     queryKey: ["/api/admin/users"],
-    enabled: authStatus?.authenticated && activeTab === "users",
+    enabled: authStatus?.authenticated && (activeTab === "users" || activeTab === "notifications"),
   });
 
   const { data: allVideos, isLoading: isLoadingVideos } = useQuery<VideoData[]>({
