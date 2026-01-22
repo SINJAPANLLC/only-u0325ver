@@ -350,10 +350,10 @@ export default function AdminDashboard() {
   });
 
   const { data: applications, isLoading: isLoadingApps } = useQuery<(CreatorApplication & { username?: string | null })[]>({
-    queryKey: ["/api/admin/applications", applicationFilter],
+    queryKey: ["/api/admin/creator-applications", applicationFilter],
     queryFn: async () => {
       const params = applicationFilter !== "all" ? `?status=${applicationFilter}` : "";
-      const res = await fetch(`/api/admin/applications${params}`);
+      const res = await fetch(`/api/admin/creator-applications${params}`);
       return res.json();
     },
     enabled: authStatus?.authenticated && activeTab === "creators",
@@ -463,11 +463,11 @@ export default function AdminDashboard() {
 
   const applicationDecision = useMutation({
     mutationFn: async ({ id, decision, notes }: { id: string; decision: "approved" | "rejected"; notes?: string }) => {
-      const res = await apiRequest("PATCH", `/api/admin/applications/${id}/decision`, { decision, notes });
+      const res = await apiRequest("PATCH", `/api/admin/creator-applications/${id}/decision`, { decision, notes });
       return res.json();
     },
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/creator-applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard/stats"] });
       setSelectedApplication(null);
       setRejectionNotes("");
