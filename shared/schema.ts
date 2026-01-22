@@ -318,6 +318,7 @@ export const bankTransferStatusEnum = pgEnum("bank_transfer_status", [
   "confirmed",        // 入金確認済み
   "cancelled",        // キャンセル
   "expired",          // 期限切れ
+  "rejected",         // 却下
 ]);
 
 // Point transactions (履歴)
