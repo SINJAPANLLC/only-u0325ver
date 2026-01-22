@@ -261,6 +261,8 @@ interface MessagesData {
     conversationId: string;
     senderId: string;
     senderName: string;
+    recipientId: string | null;
+    recipientName: string;
     content: string;
     createdAt: string;
   }[];
@@ -2106,7 +2108,11 @@ export default function AdminDashboard() {
                           {messagesData.recentMessages.slice(0, 20).map((msg) => (
                             <div key={msg.id} className="p-3 border rounded-lg" data-testid={`card-message-${msg.id}`}>
                               <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className="font-medium text-sm" data-testid={`text-sender-${msg.id}`}>{msg.senderName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm" data-testid={`text-sender-${msg.id}`}>{msg.senderName}</span>
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium text-sm text-pink-600" data-testid={`text-recipient-${msg.id}`}>{msg.recipientName}</span>
+                                </div>
                                 <span className="text-xs text-muted-foreground">{formatDate(msg.createdAt)}</span>
                               </div>
                               <p className="text-sm text-muted-foreground line-clamp-2">{msg.content}</p>

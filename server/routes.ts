@@ -5797,7 +5797,7 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
       const [totalMessages] = await db.select({ count: sql<number>`COUNT(*)` }).from(messages);
       const [totalConversations] = await db.select({ count: sql<number>`COUNT(*)` }).from(conversations);
       
-      // Get recent messages
+      // Get recent messages with conversation info
       const recentMessages = await db
         .select({
           id: messages.id,
@@ -5805,20 +5805,42 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
           senderId: messages.senderId,
           content: messages.content,
           createdAt: messages.createdAt,
+          participant1Id: conversations.participant1Id,
+          participant2Id: conversations.participant2Id,
         })
         .from(messages)
+        .leftJoin(conversations, eq(messages.conversationId, conversations.id))
         .orderBy(desc(messages.createdAt))
         .limit(50);
       
-      const messagesWithSenders = await Promise.all(
+      const messagesWithNames = await Promise.all(
         recentMessages.map(async (msg) => {
-          const [profile] = await db
+          // Get sender name
+          const [senderProfile] = await db
             .select({ displayName: userProfiles.displayName })
             .from(userProfiles)
             .where(eq(userProfiles.userId, msg.senderId));
+          
+          // Determine recipient (the other participant)
+          const recipientId = msg.participant1Id === msg.senderId 
+            ? msg.participant2Id 
+            : msg.participant1Id;
+          
+          // Get recipient name
+          const [recipientProfile] = recipientId ? await db
+            .select({ displayName: userProfiles.displayName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, recipientId)) : [null];
+          
           return {
-            ...msg,
-            senderName: profile?.displayName || "Unknown",
+            id: msg.id,
+            conversationId: msg.conversationId,
+            senderId: msg.senderId,
+            content: msg.content,
+            createdAt: msg.createdAt,
+            senderName: senderProfile?.displayName || "不明",
+            recipientId: recipientId || null,
+            recipientName: recipientProfile?.displayName || "不明",
           };
         })
       );
@@ -5826,7 +5848,7 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
       res.json({
         totalMessages: Number(totalMessages?.count || 0),
         totalConversations: Number(totalConversations?.count || 0),
-        recentMessages: messagesWithSenders,
+        recentMessages: messagesWithNames,
       });
     } catch (error) {
       console.error("Get messages error:", error);
