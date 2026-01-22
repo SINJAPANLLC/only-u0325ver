@@ -5045,6 +5045,15 @@ export async function registerRoutes(
         .from(subscriptions)
         .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id));
       
+      // 自社サブスク売上 (高画質プラン等のプラットフォームサブスク)
+      const platformSubscriptionRevenue = await db
+        .select({ 
+          total: sql<number>`COALESCE(SUM(ABS(amount)), 0)`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(pointTransactions)
+        .where(eq(pointTransactions.type, "premium_plan"));
+      
       // ライブ売上 (from live viewing sessions)
       const liveRevenue = await db
         .select({ total: sql<number>`COALESCE(SUM(total_points_charged), 0)` })
@@ -5064,6 +5073,8 @@ export async function registerRoutes(
       const liveTotal = Number(liveRevenue[0]?.total || 0);
       const shopTotal = Number(shopRevenue[0]?.total || 0);
       const shopCount = Number(shopRevenue[0]?.count || 0);
+      const platformSubscriptionTotal = Number(platformSubscriptionRevenue[0]?.total || 0);
+      const platformSubscriptionCount = Number(platformSubscriptionRevenue[0]?.count || 0);
       
       // クリエイター総売上
       const creatorTotalRevenue = subscriptionTotal + liveTotal + shopTotal;
@@ -5341,6 +5352,11 @@ export async function registerRoutes(
           shop: shopTotal,
           shopCount: shopCount,
           total: creatorTotalRevenue,
+        },
+        // 自社サブスク（プラットフォームサブスク）
+        platformSubscription: {
+          total: platformSubscriptionTotal,
+          count: platformSubscriptionCount,
         },
         // クリエイター支払い経費
         creatorPaymentExpenses: {

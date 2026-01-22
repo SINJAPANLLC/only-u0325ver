@@ -64,6 +64,7 @@ import {
   Mail,
   Sparkles,
   Send,
+  Crown,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -161,6 +162,10 @@ interface SalesData {
     shop: number;
     shopCount: number;
     total: number;
+  };
+  platformSubscription?: {
+    total: number;
+    count: number;
   };
   creatorPaymentExpenses: {
     feeBaseAmount: number;
@@ -1504,6 +1509,26 @@ export default function AdminDashboard() {
                         <div className="flex justify-between items-center py-2 bg-slate-100 dark:bg-slate-800 rounded px-2">
                           <span className="font-bold">クリエイター総売上</span>
                           <span className="font-bold text-lg" data-testid="text-creator-total-revenue">¥{salesData.creatorRevenue.total.toLocaleString()}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* 自社サブスク（プラットフォームサブスク） */}
+                    <Card data-testid="card-platform-subscription">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Crown className="h-5 w-5" />
+                          自社サブスク
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">（高画質プラン等）</p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <span className="text-muted-foreground">売上</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium" data-testid="text-platform-sub-revenue">¥{(salesData.platformSubscription?.total || 0).toLocaleString()}</span>
+                            <span className="text-xs text-muted-foreground">({salesData.platformSubscription?.count || 0}件)</span>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
