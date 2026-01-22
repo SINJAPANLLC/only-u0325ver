@@ -5143,8 +5143,8 @@ export async function registerRoutes(
       
       // ポイント購入手数料 10% (ポイント数に基づいて計算)
       const pointPurchaseFee = Math.floor(totalPointPurchasePoints * 0.10);
-      // ポイント購入手数料の消費税 10%
-      const pointPurchaseFeeTax = Math.floor(pointPurchaseFee * 0.10);
+      // 消費税 10% (ポイント数に基づいて計算)
+      const pointPurchaseFeeTax = Math.floor(totalPointPurchasePoints * 0.10);
       
       // ポイント購入収益合計
       const pointPurchaseRevenue = pointPurchaseFee + pointPurchaseFeeTax;
