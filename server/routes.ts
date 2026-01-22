@@ -5039,14 +5039,15 @@ export async function registerRoutes(
     try {
       // ========== クリエイター売上内訳 ==========
       
-      // サブスクリプション売上 (point transactions with subscription description)
+      // サブスクリプション売上 (クリエイターへのサブスク、高画質プランは除外)
       const subscriptionRevenue = await db
         .select({ total: sql<number>`COALESCE(SUM(ABS(amount)), 0)` })
         .from(pointTransactions)
         .where(
           and(
             eq(pointTransactions.type, "spend"),
-            sql`description LIKE '%サブスク%' OR description LIKE '%プラン%'`
+            sql`description LIKE '%サブスク%'`,
+            sql`description NOT LIKE '%高画質%'`
           )
         );
       
