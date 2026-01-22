@@ -65,6 +65,7 @@ import {
   Sparkles,
   Send,
   Crown,
+  ShieldAlert,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -77,7 +78,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "settings";
+type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -153,6 +154,22 @@ interface UserData {
   isCreator: string | null;
   creatorEarnings: number | null;
   creatorBalance: number | null;
+}
+
+interface ModerationAlert {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  contentType: string | null;
+  contentId: string | null;
+  creatorId: string | null;
+  severity: "low" | "medium" | "high" | null;
+  isRead: boolean | null;
+  actionTaken: string | null;
+  actionBy: string | null;
+  actionAt: string | null;
+  createdAt: string | null;
 }
 
 interface SalesData {
@@ -391,6 +408,16 @@ export default function AdminDashboard() {
     enabled: authStatus?.authenticated && activeTab === "notifications",
   });
 
+  const { data: moderationAlerts, isLoading: isLoadingModeration, refetch: refetchModeration } = useQuery<ModerationAlert[]>({
+    queryKey: ["/api/admin/moderation"],
+    enabled: authStatus?.authenticated && activeTab === "moderation",
+  });
+
+  const { data: moderationUnreadCount } = useQuery<{ count: number }>({
+    queryKey: ["/api/admin/moderation/unread-count"],
+    enabled: authStatus?.authenticated,
+  });
+
   const { data: siteSettingsData, isLoading: isLoadingSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
     enabled: authStatus?.authenticated && activeTab === "settings",
@@ -498,6 +525,22 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ title: "削除に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const moderationAction = useMutation({
+    mutationFn: async ({ id, action }: { id: string; action: "approved" | "rejected" | "deleted" }) => {
+      const res = await apiRequest("PATCH", `/api/admin/moderation/${id}/action`, { action });
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/moderation"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/moderation/unread-count"] });
+      const actionLabels = { approved: "承認", rejected: "非承認", deleted: "削除" };
+      toast({ title: `コンテンツを${actionLabels[vars.action]}しました` });
+    },
+    onError: () => {
+      toast({ title: "アクションに失敗しました", variant: "destructive" });
     },
   });
 
@@ -738,6 +781,7 @@ export default function AdminDashboard() {
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
+    { id: "moderation" as Tab, label: "AI審査", icon: ShieldAlert, badge: moderationUnreadCount?.count },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -2462,6 +2506,126 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </>
+              )}
+            </div>
+          )}
+
+          {/* AI Content Moderation */}
+          {activeTab === "moderation" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5" />
+                  AI審査アラート
+                </h2>
+                {moderationUnreadCount && moderationUnreadCount.count > 0 && (
+                  <Badge variant="destructive" data-testid="badge-moderation-unread">
+                    未対応 {moderationUnreadCount.count}件
+                  </Badge>
+                )}
+              </div>
+
+              {isLoadingModeration ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : moderationAlerts && moderationAlerts.length > 0 ? (
+                <div className="space-y-3">
+                  {moderationAlerts.map((alert) => (
+                    <Card 
+                      key={alert.id} 
+                      className={`${!alert.isRead ? "border-l-4 border-l-red-500" : ""}`}
+                      data-testid={`card-moderation-${alert.id}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge 
+                                variant={alert.severity === "high" ? "destructive" : alert.severity === "medium" ? "default" : "secondary"}
+                                data-testid={`badge-severity-${alert.id}`}
+                              >
+                                {alert.severity === "high" ? "高" : alert.severity === "medium" ? "中" : "低"}
+                              </Badge>
+                              <Badge variant="outline">
+                                {alert.contentType === "video" ? "動画" : alert.contentType === "live" ? "ライブ" : alert.contentType === "product" ? "商品" : "メッセージ"}
+                              </Badge>
+                              {alert.actionTaken && (
+                                <Badge variant={alert.actionTaken === "approved" ? "default" : alert.actionTaken === "deleted" ? "destructive" : "secondary"}>
+                                  {alert.actionTaken === "approved" ? "承認済" : alert.actionTaken === "rejected" ? "非承認" : "削除済"}
+                                </Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground">{formatDate(alert.createdAt)}</span>
+                            </div>
+                            <h3 className="font-medium text-sm mb-1" data-testid={`text-alert-title-${alert.id}`}>{alert.title}</h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{alert.message}</p>
+                          </div>
+                          {!alert.actionTaken && (
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => moderationAction.mutate({ id: alert.id, action: "approved" })}
+                                disabled={moderationAction.isPending}
+                                data-testid={`button-approve-${alert.id}`}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                承認
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => moderationAction.mutate({ id: alert.id, action: "rejected" })}
+                                disabled={moderationAction.isPending}
+                                data-testid={`button-reject-${alert.id}`}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                非承認
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={moderationAction.isPending}
+                                    data-testid={`button-delete-${alert.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    削除
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>コンテンツを削除しますか？</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      このコンテンツを完全に削除します。この操作は取り消せません。
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => moderationAction.mutate({ id: alert.id, action: "deleted" })}
+                                    >
+                                      削除する
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-12 text-center text-muted-foreground">
+                    <ShieldAlert className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>審査アラートはありません</p>
+                    <p className="text-sm mt-2">AIがコンテンツを自動審査し、違反の可能性があるものを検出します</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}

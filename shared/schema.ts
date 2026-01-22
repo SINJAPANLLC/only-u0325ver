@@ -495,3 +495,25 @@ export const siteSettings = pgTable("site_settings", {
 });
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Content moderation severity enum
+export const moderationSeverityEnum = pgEnum("moderation_severity", ["low", "medium", "high"]);
+
+// Admin notifications for content moderation and system alerts
+export const adminNotifications = pgTable("admin_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: varchar("type").notNull(), // content_moderation, system, etc.
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  contentType: varchar("content_type"), // video, live, product, message
+  contentId: varchar("content_id"),
+  creatorId: varchar("creator_id"),
+  severity: moderationSeverityEnum("severity").default("low"),
+  isRead: boolean("is_read").default(false),
+  actionTaken: varchar("action_taken"), // approved, rejected, deleted
+  actionBy: varchar("action_by"),
+  actionAt: timestamp("action_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type AdminNotification = typeof adminNotifications.$inferSelect;

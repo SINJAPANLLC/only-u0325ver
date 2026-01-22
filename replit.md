@@ -151,3 +151,41 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
 - **Twilio**: SMS verification for creator applications (currently accepts demo codes)
+
+## AI Content Moderation
+
+The platform uses AI-powered content moderation to detect potentially violating content automatically.
+
+### How It Works
+1. When a creator uploads a video or starts a live stream, the system analyzes the thumbnail asynchronously using OpenAI's Vision API (GPT-4o)
+2. The AI checks for violations including:
+   - Uncensored content (illegal in Japan)
+   - Child abuse/pornography
+   - Violence/gore
+   - Illegal drugs
+   - Personal information exposure
+3. If potential violations are detected, an admin notification is created with severity level (low/medium/high)
+4. Moderation runs asynchronously so it doesn't block the user's upload
+
+### Admin Interface
+- **Location**: Admin Dashboard → AI審査 tab
+- **Features**:
+  - View all moderation alerts with severity badges
+  - Unread alert count shown in sidebar
+  - Take action: Approve (mark as safe), Reject (mark as violation), or Delete (remove content)
+  - Filter shows only content_moderation type alerts
+
+### Database Tables
+- `adminNotifications`: Stores moderation alerts with type="content_moderation", contentType (video/live/product), contentId, creatorId, severity, actionTaken
+
+### API Endpoints
+- `GET /api/admin/moderation` - Get all moderation alerts (filtered by type=content_moderation)
+- `GET /api/admin/moderation/unread-count` - Get unread alert count
+- `PATCH /api/admin/moderation/:id/action` - Take action (approved/rejected/deleted)
+
+### Service Location
+- `server/services/content-moderation.ts` - Contains moderateImage(), moderateText(), and createModerationNotification() functions
+
+### Cost
+- Uses Replit AI Integrations (AI_INTEGRATIONS_OPENAI_API_KEY)
+- Charges are billed to the user's Replit credits

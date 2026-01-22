@@ -13,11 +13,12 @@ import {
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
-  premiumPlans, adminUsers, siteSettings,
+  premiumPlans, adminUsers, siteSettings, adminNotifications,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
 } from "@shared/schema";
+import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -288,6 +289,31 @@ export async function registerRoutes(
       }
 
       const [video] = await db.insert(videos).values(validation.data).returning();
+      
+      // AI content moderation (async, don't block response)
+      if (video.thumbnailUrl) {
+        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+          : "http://localhost:5000";
+        const imageUrl = video.thumbnailUrl.startsWith("http") 
+          ? video.thumbnailUrl 
+          : `${baseUrl}${video.thumbnailUrl}`;
+        
+        moderateImage(imageUrl).then(async (result) => {
+          if (result.flagged) {
+            const [profile] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.userId, userId));
+            await createModerationNotification(
+              "video",
+              video.id,
+              video.title || "無題",
+              userId,
+              profile?.displayName || "不明",
+              result
+            );
+          }
+        }).catch(err => console.error("Video moderation error:", err));
+      }
+      
       res.status(201).json(video);
     } catch (error) {
       console.error("Error creating video:", error);
@@ -453,6 +479,31 @@ export async function registerRoutes(
       }
 
       const [stream] = await db.insert(liveStreams).values(validation.data).returning();
+      
+      // AI content moderation for thumbnail (async, don't block response)
+      if (stream.thumbnailUrl) {
+        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+          : "http://localhost:5000";
+        const imageUrl = stream.thumbnailUrl.startsWith("http") 
+          ? stream.thumbnailUrl 
+          : `${baseUrl}${stream.thumbnailUrl}`;
+        
+        moderateImage(imageUrl).then(async (result) => {
+          if (result.flagged) {
+            const [profile] = await db.select().from(creatorProfiles).where(eq(creatorProfiles.userId, userId));
+            await createModerationNotification(
+              "live",
+              stream.id,
+              stream.title || "無題",
+              userId,
+              profile?.displayName || "不明",
+              result
+            );
+          }
+        }).catch(err => console.error("Live stream moderation error:", err));
+      }
+      
       res.status(201).json(stream);
     } catch (error) {
       console.error("Error creating live stream:", error);
@@ -4897,6 +4948,111 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Delete livestream error:", error);
       res.status(500).json({ message: "配信の削除に失敗しました" });
+    }
+  });
+
+  // Content moderation alerts API
+  app.get("/api/admin/moderation", isAdminSession, async (req, res) => {
+    try {
+      const allAlerts = await db
+        .select()
+        .from(adminNotifications)
+        .where(eq(adminNotifications.type, "content_moderation"))
+        .orderBy(desc(adminNotifications.createdAt))
+        .limit(100);
+      res.json(allAlerts);
+    } catch (error) {
+      console.error("Get moderation alerts error:", error);
+      res.status(500).json({ message: "審査アラートの取得に失敗しました" });
+    }
+  });
+
+  // Get unread moderation alert count
+  app.get("/api/admin/moderation/unread-count", isAdminSession, async (req, res) => {
+    try {
+      const [result] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(adminNotifications)
+        .where(and(
+          eq(adminNotifications.type, "content_moderation"),
+          eq(adminNotifications.isRead, false)
+        ));
+      res.json({ count: result?.count || 0 });
+    } catch (error) {
+      console.error("Get unread count error:", error);
+      res.status(500).json({ message: "審査アラート数の取得に失敗しました" });
+    }
+  });
+
+  // Mark moderation alert as read
+  app.patch("/api/admin/moderation/:id/read", isAdminSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await db.update(adminNotifications)
+        .set({ isRead: true })
+        .where(eq(adminNotifications.id, id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark alert read error:", error);
+      res.status(500).json({ message: "アラートの更新に失敗しました" });
+    }
+  });
+
+  // Mark all moderation alerts as read
+  app.patch("/api/admin/moderation/read-all", isAdminSession, async (req, res) => {
+    try {
+      await db.update(adminNotifications)
+        .set({ isRead: true })
+        .where(eq(adminNotifications.isRead, false));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark all read error:", error);
+      res.status(500).json({ message: "アラートの更新に失敗しました" });
+    }
+  });
+
+  // Take action on flagged content
+  app.patch("/api/admin/moderation/:id/action", isAdminSession, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { action } = req.body; // "approved", "rejected", "deleted"
+      const adminId = req.session?.adminId || "admin";
+      
+      const [notification] = await db
+        .select()
+        .from(adminNotifications)
+        .where(eq(adminNotifications.id, id));
+      
+      if (!notification) {
+        return res.status(404).json({ message: "通知が見つかりません" });
+      }
+
+      // Update the notification
+      await db.update(adminNotifications)
+        .set({ 
+          isRead: true,
+          actionTaken: action,
+          actionBy: adminId,
+          actionAt: new Date(),
+        })
+        .where(eq(adminNotifications.id, id));
+
+      // If deleting, actually delete the content
+      if (action === "deleted" && notification.contentId) {
+        if (notification.contentType === "video") {
+          await db.delete(videos).where(eq(videos.id, notification.contentId));
+        } else if (notification.contentType === "live") {
+          await db.delete(liveViewingSessions).where(eq(liveViewingSessions.liveStreamId, notification.contentId));
+          await db.delete(liveStreams).where(eq(liveStreams.id, notification.contentId));
+        } else if (notification.contentType === "product") {
+          await db.delete(products).where(eq(products.id, notification.contentId));
+        }
+      }
+
+      res.json({ success: true, message: `コンテンツを${action === "approved" ? "承認" : action === "rejected" ? "非承認" : "削除"}しました` });
+    } catch (error) {
+      console.error("Take action error:", error);
+      res.status(500).json({ message: "アクションの実行に失敗しました" });
     }
   });
 
