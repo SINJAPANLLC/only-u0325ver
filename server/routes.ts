@@ -5116,7 +5116,8 @@ export async function registerRoutes(
       // ポイント購入 (confirmed bank transfers)
       const pointPurchases = await db
         .select({ 
-          total: sql<number>`COALESCE(SUM(amount), 0)`,
+          totalAmount: sql<number>`COALESCE(SUM(amount), 0)`,
+          totalPoints: sql<number>`COALESCE(SUM(points), 0)`,
           count: sql<number>`COUNT(*)`
         })
         .from(bankTransferRequests)
@@ -5131,15 +5132,17 @@ export async function registerRoutes(
         .from(pointTransactions)
         .where(eq(pointTransactions.type, "purchase_card"));
       
-      const bankTransferTotal = Number(pointPurchases[0]?.total || 0);
+      const bankTransferAmount = Number(pointPurchases[0]?.totalAmount || 0);
+      const bankTransferPoints = Number(pointPurchases[0]?.totalPoints || 0);
       const bankTransferCount = Number(pointPurchases[0]?.count || 0);
       const stripeTotal = Number(stripePointPurchases[0]?.total || 0);
       const stripeCount = Number(stripePointPurchases[0]?.count || 0);
-      const totalPointPurchases = bankTransferTotal + stripeTotal;
+      const totalPointPurchaseAmount = bankTransferAmount + stripeTotal;
+      const totalPointPurchasePoints = bankTransferPoints + stripeTotal;
       const totalPointPurchaseCount = bankTransferCount + stripeCount;
       
-      // ポイント購入手数料 10%
-      const pointPurchaseFee = Math.floor(totalPointPurchases * 0.10);
+      // ポイント購入手数料 10% (ポイント数に基づいて計算)
+      const pointPurchaseFee = Math.floor(totalPointPurchasePoints * 0.10);
       // ポイント購入手数料の消費税 10%
       const pointPurchaseFeeTax = Math.floor(pointPurchaseFee * 0.10);
       
@@ -5206,12 +5209,13 @@ export async function registerRoutes(
         },
         // ポイント購入
         pointPurchase: {
-          bankTransfer: bankTransferTotal,
+          bankTransfer: bankTransferAmount,
           bankTransferCount: bankTransferCount,
           stripe: stripeTotal,
           stripeCount: stripeCount,
-          total: totalPointPurchases,
+          total: totalPointPurchaseAmount,
           totalCount: totalPointPurchaseCount,
+          totalPoints: totalPointPurchasePoints,
           fee: pointPurchaseFee,
           feeTax: pointPurchaseFeeTax,
           revenue: pointPurchaseRevenue,
