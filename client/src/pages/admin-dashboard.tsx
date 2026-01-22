@@ -720,15 +720,15 @@ export default function AdminDashboard() {
     { id: "dashboard" as Tab, label: "ダッシュボード", icon: LayoutDashboard },
     { id: "sales" as Tab, label: "売上管理", icon: TrendingUp },
     { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
-    { id: "withdrawals" as Tab, label: "クリエイター出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
-    { id: "marketing" as Tab, label: "マーケティング管理", icon: Megaphone },
+    { id: "withdrawals" as Tab, label: "出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
+    { id: "marketing" as Tab, label: "マーケティング", icon: Megaphone },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
-    { id: "creators" as Tab, label: "クリエイター申請・管理", icon: FileCheck, badge: stats?.pendingApplications },
+    { id: "creators" as Tab, label: "申請管理", icon: FileCheck, badge: stats?.pendingApplications },
     { id: "livestreams" as Tab, label: "ライブ管理", icon: Radio, badge: stats?.activeLiveStreams },
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
     { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
-    { id: "inquiries" as Tab, label: "お問い合わせ管理", icon: HelpCircle },
+    { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
@@ -745,7 +745,7 @@ export default function AdminDashboard() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
         transform transition-transform duration-200 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
