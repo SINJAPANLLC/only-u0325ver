@@ -13,7 +13,7 @@ import {
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
-  premiumPlans, adminUsers,
+  premiumPlans, adminUsers, siteSettings,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema
@@ -5617,7 +5617,53 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
     }
   });
   
-  // Seed admin account on startup
+  // Get site settings
+  app.get("/api/admin/settings", isAdminSession, async (req, res) => {
+    try {
+      const settings = await db.select().from(siteSettings);
+      const settingsMap: Record<string, string> = {};
+      settings.forEach(s => {
+        settingsMap[s.key] = s.value || "";
+      });
+      res.json(settingsMap);
+    } catch (error) {
+      console.error("Get settings error:", error);
+      res.status(500).json({ message: "設定の取得に失敗しました" });
+    }
+  });
+
+  // Update site settings
+  app.post("/api/admin/settings", isAdminSession, async (req, res) => {
+    try {
+      const settings = req.body;
+      
+      for (const [key, value] of Object.entries(settings)) {
+        const [existing] = await db
+          .select()
+          .from(siteSettings)
+          .where(eq(siteSettings.key, key));
+        
+        if (existing) {
+          await db
+            .update(siteSettings)
+            .set({ value: value as string, updatedAt: new Date() })
+            .where(eq(siteSettings.key, key));
+        } else {
+          await db.insert(siteSettings).values({
+            key,
+            value: value as string,
+          });
+        }
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Update settings error:", error);
+      res.status(500).json({ message: "設定の更新に失敗しました" });
+    }
+  });
+
+  // Seed admin account and default settings on startup
   (async () => {
     try {
       const adminEmail = "info@sinjapan.jp";
@@ -5636,8 +5682,38 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
         });
         console.log("Admin account created: info@sinjapan.jp");
       }
+
+      // Seed default site settings
+      const defaultSettings = [
+        { key: "site_name", value: "Only-U", description: "サイト名", category: "general" },
+        { key: "site_description", value: "クリエイターとファンをつなぐプラットフォーム", description: "サイト説明", category: "general" },
+        { key: "support_email", value: "support@only-u.fun", description: "サポートメール", category: "contact" },
+        { key: "twitter_url", value: "", description: "Twitter URL", category: "social" },
+        { key: "instagram_url", value: "", description: "Instagram URL", category: "social" },
+        { key: "maintenance_mode", value: "false", description: "メンテナンスモード", category: "system" },
+        { key: "allow_registration", value: "true", description: "新規登録許可", category: "system" },
+        { key: "allow_creator_application", value: "true", description: "クリエイター申請許可", category: "system" },
+        { key: "platform_fee_percent", value: "20", description: "プラットフォーム手数料(%)", category: "finance" },
+        { key: "withdrawal_fee", value: "330", description: "出金手数料(円)", category: "finance" },
+        { key: "min_withdrawal", value: "5000", description: "最低出金額(円)", category: "finance" },
+        { key: "early_payment_fee_percent", value: "8", description: "早期出金手数料(%)", category: "finance" },
+        { key: "terms_url", value: "/terms", description: "利用規約URL", category: "legal" },
+        { key: "privacy_url", value: "/privacy", description: "プライバシーポリシーURL", category: "legal" },
+      ];
+
+      for (const setting of defaultSettings) {
+        const [existing] = await db
+          .select()
+          .from(siteSettings)
+          .where(eq(siteSettings.key, setting.key));
+        
+        if (!existing) {
+          await db.insert(siteSettings).values(setting);
+        }
+      }
+      console.log("Default settings seeded");
     } catch (error) {
-      console.error("Failed to seed admin account:", error);
+      console.error("Failed to seed admin account or settings:", error);
     }
   })();
 

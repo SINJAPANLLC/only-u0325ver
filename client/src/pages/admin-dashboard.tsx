@@ -283,6 +283,10 @@ export default function AdminDashboard() {
   const [notifUserSearch, setNotifUserSearch] = useState("");
   const [notifSelectedUsers, setNotifSelectedUsers] = useState<string[]>([]);
   const [notifAiPrompt, setNotifAiPrompt] = useState("");
+  
+  // Settings form state
+  const [settingsForm, setSettingsForm] = useState<Record<string, string>>({});
+  const [settingsChanged, setSettingsChanged] = useState(false);
 
   const { data: authStatus, isLoading: isCheckingAuth } = useQuery({
     queryKey: ["/api/admin/auth/me"],
@@ -377,6 +381,11 @@ export default function AdminDashboard() {
   const { data: notificationsData, isLoading: isLoadingNotifications } = useQuery<NotificationsData>({
     queryKey: ["/api/admin/notifications"],
     enabled: authStatus?.authenticated && activeTab === "notifications",
+  });
+
+  const { data: siteSettingsData, isLoading: isLoadingSettings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/admin/settings"],
+    enabled: authStatus?.authenticated && activeTab === "settings",
   });
 
   const logoutMutation = useMutation({
@@ -626,6 +635,29 @@ export default function AdminDashboard() {
       toast({ title: "生成に失敗しました", variant: "destructive" });
     },
   });
+
+  // Save settings mutation
+  const saveSettings = useMutation({
+    mutationFn: async (data: Record<string, string>) => {
+      const res = await apiRequest("POST", "/api/admin/settings", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      setSettingsChanged(false);
+      toast({ title: "設定を保存しました" });
+    },
+    onError: () => {
+      toast({ title: "設定の保存に失敗しました", variant: "destructive" });
+    },
+  });
+
+  // Populate settings form when data loads
+  useEffect(() => {
+    if (siteSettingsData) {
+      setSettingsForm(siteSettingsData);
+    }
+  }, [siteSettingsData]);
 
   useEffect(() => {
     if (!isCheckingAuth && !authStatus?.authenticated) {
@@ -2604,63 +2636,293 @@ export default function AdminDashboard() {
           {/* Settings */}
           {activeTab === "settings" && (
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">プラットフォーム設定</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <p className="font-medium">メンテナンスモード</p>
-                      <p className="text-sm text-muted-foreground">サイトをメンテナンスモードにします</p>
+              {isLoadingSettings ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {settingsChanged && (
+                    <div className="sticky top-0 z-10 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center justify-between">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200">変更が保存されていません</p>
+                      <Button
+                        onClick={() => saveSettings.mutate(settingsForm)}
+                        disabled={saveSettings.isPending}
+                        data-testid="button-save-settings"
+                      >
+                        {saveSettings.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : null}
+                        保存する
+                      </Button>
                     </div>
-                    <Badge variant="secondary">オフ</Badge>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <p className="font-medium">新規登録</p>
-                      <p className="text-sm text-muted-foreground">新規ユーザー登録を許可します</p>
-                    </div>
-                    <Badge variant="default" className="bg-green-500">有効</Badge>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <p className="font-medium">クリエイター申請</p>
-                      <p className="text-sm text-muted-foreground">新規クリエイター申請を許可します</p>
-                    </div>
-                    <Badge variant="default" className="bg-green-500">有効</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">手数料設定</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <p className="font-medium">プラットフォーム手数料</p>
-                      <p className="text-sm text-muted-foreground">売上からのプラットフォーム手数料率</p>
-                    </div>
-                    <Badge variant="secondary">20%</Badge>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">サイト情報</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="site_name">サイト名</Label>
+                          <Input
+                            id="site_name"
+                            value={settingsForm.site_name || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, site_name: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-site-name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="support_email">サポートメール</Label>
+                          <Input
+                            id="support_email"
+                            type="email"
+                            value={settingsForm.support_email || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, support_email: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-support-email"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="site_description">サイト説明</Label>
+                        <Textarea
+                          id="site_description"
+                          value={settingsForm.site_description || ""}
+                          onChange={(e) => {
+                            setSettingsForm(prev => ({ ...prev, site_description: e.target.value }));
+                            setSettingsChanged(true);
+                          }}
+                          rows={3}
+                          data-testid="textarea-site-description"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">SNSリンク</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="twitter_url">Twitter/X URL</Label>
+                          <Input
+                            id="twitter_url"
+                            placeholder="https://twitter.com/..."
+                            value={settingsForm.twitter_url || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, twitter_url: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-twitter-url"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="instagram_url">Instagram URL</Label>
+                          <Input
+                            id="instagram_url"
+                            placeholder="https://instagram.com/..."
+                            value={settingsForm.instagram_url || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, instagram_url: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-instagram-url"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">システム設定</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between py-2 border-b">
+                        <div>
+                          <p className="font-medium">メンテナンスモード</p>
+                          <p className="text-sm text-muted-foreground">サイトをメンテナンスモードにします</p>
+                        </div>
+                        <Select
+                          value={settingsForm.maintenance_mode || "false"}
+                          onValueChange={(v) => {
+                            setSettingsForm(prev => ({ ...prev, maintenance_mode: v }));
+                            setSettingsChanged(true);
+                          }}
+                        >
+                          <SelectTrigger className="w-24" data-testid="select-maintenance-mode">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="false">オフ</SelectItem>
+                            <SelectItem value="true">オン</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between py-2 border-b">
+                        <div>
+                          <p className="font-medium">新規登録</p>
+                          <p className="text-sm text-muted-foreground">新規ユーザー登録を許可します</p>
+                        </div>
+                        <Select
+                          value={settingsForm.allow_registration || "true"}
+                          onValueChange={(v) => {
+                            setSettingsForm(prev => ({ ...prev, allow_registration: v }));
+                            setSettingsChanged(true);
+                          }}
+                        >
+                          <SelectTrigger className="w-24" data-testid="select-allow-registration">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="true">有効</SelectItem>
+                            <SelectItem value="false">無効</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="font-medium">クリエイター申請</p>
+                          <p className="text-sm text-muted-foreground">新規クリエイター申請を許可します</p>
+                        </div>
+                        <Select
+                          value={settingsForm.allow_creator_application || "true"}
+                          onValueChange={(v) => {
+                            setSettingsForm(prev => ({ ...prev, allow_creator_application: v }));
+                            setSettingsChanged(true);
+                          }}
+                        >
+                          <SelectTrigger className="w-24" data-testid="select-allow-creator-application">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="true">有効</SelectItem>
+                            <SelectItem value="false">無効</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">手数料設定</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="platform_fee_percent">プラットフォーム手数料 (%)</Label>
+                          <Input
+                            id="platform_fee_percent"
+                            type="number"
+                            value={settingsForm.platform_fee_percent || "20"}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, platform_fee_percent: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-platform-fee"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="early_payment_fee_percent">早期出金手数料 (%)</Label>
+                          <Input
+                            id="early_payment_fee_percent"
+                            type="number"
+                            value={settingsForm.early_payment_fee_percent || "8"}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, early_payment_fee_percent: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-early-payment-fee"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="withdrawal_fee">出金手数料 (円)</Label>
+                          <Input
+                            id="withdrawal_fee"
+                            type="number"
+                            value={settingsForm.withdrawal_fee || "330"}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, withdrawal_fee: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-withdrawal-fee"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="min_withdrawal">最低出金額 (円)</Label>
+                          <Input
+                            id="min_withdrawal"
+                            type="number"
+                            value={settingsForm.min_withdrawal || "5000"}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, min_withdrawal: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-min-withdrawal"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">法的情報</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="terms_url">利用規約 URL</Label>
+                          <Input
+                            id="terms_url"
+                            value={settingsForm.terms_url || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, terms_url: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-terms-url"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="privacy_url">プライバシーポリシー URL</Label>
+                          <Input
+                            id="privacy_url"
+                            value={settingsForm.privacy_url || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, privacy_url: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-privacy-url"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => saveSettings.mutate(settingsForm)}
+                      disabled={saveSettings.isPending || !settingsChanged}
+                      data-testid="button-save-settings-bottom"
+                    >
+                      {saveSettings.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
+                      設定を保存
+                    </Button>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <p className="font-medium">出金手数料</p>
-                      <p className="text-sm text-muted-foreground">出金時の手数料</p>
-                    </div>
-                    <Badge variant="secondary">¥300</Badge>
-                  </div>
-                  <div className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium">最低出金額</p>
-                      <p className="text-sm text-muted-foreground">出金可能な最低金額</p>
-                    </div>
-                    <Badge variant="secondary">¥5,000</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                </>
+              )}
             </div>
           )}
         </div>
