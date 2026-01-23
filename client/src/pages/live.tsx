@@ -24,7 +24,7 @@ import {
 
 type RoomMode = "waiting" | "party" | "twoshot";
 
-import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
+import img1 from "@assets/generated_images/live_mock_1.jpg";
 import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
 import img3 from "@assets/generated_images/bunny_girl_5.jpg";
 import img4 from "@assets/generated_images/nude_shower_4.jpg";
