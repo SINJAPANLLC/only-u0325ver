@@ -200,25 +200,25 @@
 
   /* iOS PWA standalone mode - extend background to safe areas */
   @media all and (display-mode: standalone) {
-    html, body, #root {
+    html {
       background-color: hsl(var(--background));
-    }
-    body {
-      /* Let body cover the entire screen including safe areas */
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    #root {
-      /* Add padding for safe areas on the content */
+      /* Extend background to cover notch and home indicator */
       padding-top: env(safe-area-inset-top, 0);
       padding-bottom: env(safe-area-inset-bottom, 0);
       padding-left: env(safe-area-inset-left, 0);
       padding-right: env(safe-area-inset-right, 0);
       box-sizing: border-box;
+    }
+    body {
+      background-color: hsl(var(--background));
+      top: env(safe-area-inset-top, 0);
+      bottom: env(safe-area-inset-bottom, 0);
+      left: env(safe-area-inset-left, 0);
+      right: env(safe-area-inset-right, 0);
+      height: auto;
+    }
+    #root {
+      background-color: hsl(var(--background));
     }
   }
 
