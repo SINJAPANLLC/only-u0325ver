@@ -99,7 +99,7 @@ function LiveStreamPage({
     enabled: isRealStream && isActive,
   });
 
-  const isSessionActive = streamStatus?.currentMode !== null;
+  const isSessionActive = streamStatus?.currentMode != null;
   const activeMode = streamStatus?.currentMode;
   const userInSession = currentMode !== "waiting";
   const canViewStream = !isSessionActive || userInSession;
