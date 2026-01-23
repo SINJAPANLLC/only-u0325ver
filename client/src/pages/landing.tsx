@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { LoadingScreen } from "@/components/loading-screen";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 const section1Image = "/lp-1.png";
@@ -36,20 +37,14 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       <AnimatePresence>
         {showSplash && (
           <motion.div
+            key="splash"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-white"
+            className="fixed inset-0 z-[100]"
             data-testid="splash-screen"
           >
-            <motion.img
-              src={logoImage}
-              alt="Only-U"
-              className="w-32 h-auto"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            />
+            <LoadingScreen />
           </motion.div>
         )}
       </AnimatePresence>
