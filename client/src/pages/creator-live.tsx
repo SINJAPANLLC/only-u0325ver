@@ -378,13 +378,7 @@ export default function CreatorLive() {
   useEffect(() => {
     if (viewMode === "streaming") {
       timerRef.current = setInterval(() => {
-        setStreamDuration(prev => {
-          const newDuration = prev + 1;
-          if (newDuration % 60 === 0) {
-            setEarnedPoints(current => current + (partyPointsPerMinute * Math.max(1, viewerCount)));
-          }
-          return newDuration;
-        });
+        setStreamDuration(prev => prev + 1);
       }, 1000);
     } else {
       if (timerRef.current) {
@@ -399,7 +393,25 @@ export default function CreatorLive() {
         clearInterval(timerRef.current);
       }
     };
-  }, [viewMode, partyPointsPerMinute, viewerCount]);
+  }, [viewMode]);
+
+  // Points are calculated based on actual active sessions, not time alone
+  // Points are added every minute only when there are viewers in paid modes
+  useEffect(() => {
+    if (viewMode !== "streaming") return;
+    
+    const pointsTimer = setInterval(() => {
+      // Only add points if there are active paid sessions
+      const activeCount = streamStatus?.activeSessionCount || 0;
+      if (activeCount > 0) {
+        // Calculate points based on mode - if twoshot exists, use twoshot rate, otherwise party rate
+        const ratePerViewer = streamStatus?.hasTwoshot ? twoshotPointsPerMinute : partyPointsPerMinute;
+        setEarnedPoints(current => current + (ratePerViewer * activeCount));
+      }
+    }, 60000); // Every minute
+    
+    return () => clearInterval(pointsTimer);
+  }, [viewMode, streamStatus?.activeSessionCount, streamStatus?.hasTwoshot, partyPointsPerMinute, twoshotPointsPerMinute]);
 
   useEffect(() => {
     return () => {
