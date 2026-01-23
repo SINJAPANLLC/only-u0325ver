@@ -70,7 +70,7 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
     <header 
       className="fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto bg-gradient-to-b from-black/40 to-transparent pointer-events-none pt-safe"
     >
-      <div className="flex h-20 items-center justify-between px-4 gap-2 pointer-events-auto pt-1">
+      <div className="flex h-16 items-center justify-between px-4 gap-2 pointer-events-auto">
         <div className="flex flex-col items-start">
           <motion.div 
             className="flex items-center"
