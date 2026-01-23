@@ -3101,7 +3101,7 @@ export async function registerRoutes(
   });
 
   // Admin: List all creator applications
-  app.get("/api/admin/creator-applications", isAuthenticated, isAdmin, async (req: any, res) => {
+  app.get("/api/admin/creator-applications", isAdminSession, async (req: any, res) => {
     try {
       const { status } = req.query;
       let applications;
@@ -3127,11 +3127,11 @@ export async function registerRoutes(
   });
 
   // Admin: Approve/Reject application
-  app.patch("/api/admin/creator-applications/:id/decision", isAuthenticated, isAdmin, async (req: any, res) => {
+  app.patch("/api/admin/creator-applications/:id/decision", isAdminSession, async (req: any, res) => {
     try {
       const { id } = req.params;
       const { decision, notes } = req.body;
-      const reviewerId = req.user.claims.sub;
+      const reviewerId = (req.session as any).adminId;
 
       if (!decision || !["approved", "rejected"].includes(decision)) {
         return res.status(400).json({ message: "Invalid decision. Must be 'approved' or 'rejected'" });
