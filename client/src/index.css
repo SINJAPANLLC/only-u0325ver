@@ -155,6 +155,7 @@
     scroll-behavior: smooth;
     background-color: hsl(var(--background));
     height: 100%;
+    overflow: hidden;
   }
 
   body {
@@ -165,19 +166,35 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    position: fixed;
+    width: 100%;
   }
 
   #root {
     height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    background-color: hsl(var(--background));
   }
 
   @supports (-webkit-touch-callout: none) {
-    html {
+    html, body {
       height: -webkit-fill-available;
     }
-    body {
-      min-height: -webkit-fill-available;
+    #root {
+      height: -webkit-fill-available;
+    }
+  }
+
+  @media all and (display-mode: standalone) {
+    html, body {
+      background-color: hsl(var(--background));
     }
   }
 
