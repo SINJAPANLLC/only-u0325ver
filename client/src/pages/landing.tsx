@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 const section1Image = "/lp-1.png";
@@ -15,16 +16,46 @@ interface LandingProps {
 
 export default function Landing({ onRegisterClick }: LandingProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
+    
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative scrollbar-hide pt-safe pb-safe" style={{ overscrollBehavior: 'none' }}>
-      {/* Fixed Header */}
+    <>
+      {/* Splash Screen */}
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-white"
+            data-testid="splash-screen"
+          >
+            <motion.img
+              src={logoImage}
+              alt="Only-U"
+              className="w-32 h-auto"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <div ref={containerRef} className="h-full overflow-y-auto overflow-x-hidden bg-white relative scrollbar-hide pt-safe pb-safe" style={{ overscrollBehavior: 'none' }}>
+        {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-end gap-2 p-3 pt-8 max-w-[430px] mx-auto">
         <Button 
           onClick={onRegisterClick}
@@ -153,6 +184,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         </div>
       </footer>
 
-    </div>
+      </div>
+    </>
   );
 }
