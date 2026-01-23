@@ -404,15 +404,6 @@
     padding-top: env(safe-area-inset-top, 0px);
   }
   
-  /* PWA standalone mode - minimal padding */
-  @media all and (display-mode: standalone) {
-    .pt-safe {
-      padding-top: 0 !important;
-    }
-    .pb-safe {
-      padding-bottom: 0 !important;
-    }
-  }
 
   /* Premium button glow on hover */
   .btn-glow:hover {
