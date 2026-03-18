@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/lib/i18n";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { LoadingScreen } from "@/components/loading-screen";
 import { AgeVerification } from "@/components/age-verification";
 import { useAuth } from "@/hooks/use-auth";
@@ -316,38 +317,50 @@ function AppContent() {
   return <AuthenticatedApp />;
 }
 
-function App() {
+function AppLayout() {
   const [location] = useLocation();
-  
-  // Admin routes use full-screen layout (PC-first design)
+  const { user } = useAuth();
   const isAdminRoute = location.startsWith("/admin");
-  
+
+  if (isAdminRoute) {
+    return (
+      <Switch>
+        <Route path="/admin/login"><AdminLogin /></Route>
+        <Route path="/admin/dashboard"><AdminDashboard /></Route>
+        <Route path="/admin"><AdminLogin /></Route>
+      </Switch>
+    );
+  }
+
+  if (user) {
+    return (
+      <>
+        <SidebarNavigation />
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center lg:bg-background lg:block lg:ml-64">
+          <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden lg:max-w-none lg:h-screen lg:max-h-screen lg:rounded-none lg:border-none">
+            <AppContent />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
+        <AppContent />
+      </div>
+    </div>
+  );
+}
+
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <I18nProvider>
           <TooltipProvider>
-            {isAdminRoute ? (
-              // Admin pages - full screen, PC-first responsive design
-              <Switch>
-                <Route path="/admin/login">
-                  <AdminLogin />
-                </Route>
-                <Route path="/admin/dashboard">
-                  <AdminDashboard />
-                </Route>
-                <Route path="/admin">
-                  <AdminLogin />
-                </Route>
-              </Switch>
-            ) : (
-              // Mobile-only container - fixed to smartphone dimensions
-              <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-                <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden">
-                  <AppContent />
-                </div>
-              </div>
-            )}
+            <AppLayout />
             <Toaster />
           </TooltipProvider>
         </I18nProvider>

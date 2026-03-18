@@ -2,7 +2,7 @@
 
 ## Overview
 
-Only-U is a Japanese creator platform similar to OnlyFans, combining social media feeds, live streaming, and e-commerce functionality. It's a mobile-first Progressive Web App (PWA) that enables creators to share content, go live, sell products, and interact with subscribers through messaging.
+Only-U is a Japanese creator platform similar to OnlyFans, combining social media feeds, live streaming, and e-commerce functionality. It's a Progressive Web App (PWA) that enables creators to share content, go live, sell products, and interact with subscribers through messaging. The app supports both mobile (phone frame UI) and desktop (sidebar navigation with full-width layout).
 
 The platform supports:
 - Video content sharing (free and premium tiers)

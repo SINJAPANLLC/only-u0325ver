@@ -384,8 +384,8 @@ export default function Shop() {
   const userPoints = profile?.points || 0;
 
   return (
-    <div className="pb-24 min-h-screen overflow-y-auto scrollbar-hide bg-background">
-      <div className="h-14" />
+    <div className="pb-24 lg:pb-6 min-h-screen overflow-y-auto scrollbar-hide bg-background">
+      <div className="h-14 lg:h-0" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-14 bg-transparent rounded-none !inline-flex !justify-start px-4 gap-4">
@@ -415,7 +415,7 @@ export default function Shop() {
 
         <TabsContent value={activeTab} className="mt-0 p-2">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <ProductCardSkeleton key={i} />
               ))}
@@ -423,7 +423,7 @@ export default function Shop() {
           ) : filteredProducts.length === 0 ? (
             <EmptyProductState />
           ) : (
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
               {filteredProducts.map((product, index) => (
                 <motion.div
                   key={product.id}

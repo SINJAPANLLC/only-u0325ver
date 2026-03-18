@@ -38,7 +38,7 @@ export function BottomNavigation() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-safe pointer-events-none"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-safe pointer-events-none"
     >
       <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto pl-2 pr-2 pointer-events-auto">
         {navItems.map((item) => {
