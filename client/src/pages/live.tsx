@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -119,6 +119,8 @@ function StreamCard({ stream, isActive }: StreamCardProps) {
 export default function Live() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartY = useRef(0);
+  const isScrolling = useRef(false);
 
   const { data: liveStreams, isLoading } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -127,19 +129,46 @@ export default function Live() {
 
   const streams = !isLoading && liveStreams && liveStreams.length > 0 ? liveStreams : demoStreams;
 
+  const scrollToIndex = useCallback((index: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(index, streams.length - 1));
+    el.scrollTo({ top: clamped * el.clientHeight, behavior: "smooth" });
+    setActiveIndex(clamped);
+  }, [streams.length]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isScrolling.current) return;
+    const diff = touchStartY.current - e.changedTouches[0].clientY;
+    if (Math.abs(diff) < 30) return;
+    isScrolling.current = true;
+    scrollToIndex(activeIndex + (diff > 0 ? 1 : -1));
+    setTimeout(() => { isScrolling.current = false; }, 600);
+  };
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (isScrolling.current) return;
+    isScrolling.current = true;
+    scrollToIndex(activeIndex + (e.deltaY > 0 ? 1 : -1));
+    setTimeout(() => { isScrolling.current = false; }, 600);
+  }, [activeIndex, scrollToIndex]);
+
   return (
     <div className="relative h-[100svh] bg-black overflow-hidden">
       <Header variant="overlay" />
 
       <div
         ref={containerRef}
-        className="h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth"
+        className="h-full overflow-hidden"
         style={{ scrollbarWidth: "none" }}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          const index = Math.round(el.scrollTop / el.clientHeight);
-          setActiveIndex(index);
-        }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onWheel={handleWheel}
       >
         {streams.map((stream, i) => (
           <StreamCard key={stream.id} stream={stream} isActive={i === activeIndex} />
