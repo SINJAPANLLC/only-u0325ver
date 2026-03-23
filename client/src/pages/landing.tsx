@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
@@ -17,12 +17,12 @@ interface LandingProps {
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-pink-100 last:border-0">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between py-6 text-left gap-4"
       >
-        <span className="font-medium text-gray-900 text-sm sm:text-base">{question}</span>
+        <span className="font-medium text-gray-800 text-sm sm:text-base">{question}</span>
         <ChevronDown className={`h-4 w-4 text-pink-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence initial={false}>
@@ -43,7 +43,6 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function Landing({ onRegisterClick }: LandingProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,8 +62,8 @@ export default function Landing({ onRegisterClick }: LandingProps) {
     { question: "登録は無料ですか？", answer: "はい、ユーザー登録は完全無料です。ポイントを購入してクリエイターのコンテンツにアクセスできます。一部の無料コンテンツは購入なしでも閲覧できます。" },
     { question: "ポイントの仕組みを教えてください", answer: "1ポイント＝1円（税抜）換算です。銀行振込またはカード決済でポイントを購入し、サブスクリプション・コンテンツ購入・投げ銭・ライブ配信などに使用できます。" },
     { question: "クリエイターになるにはどうすれば？", answer: "ユーザー登録後、クリエイター申請フォームから申請できます。審査通過後すぐにコンテンツ投稿・ライブ配信・ショップ開設が可能です。収益は月末締め翌月払いで振込されます。" },
-    { question: "プライバシーは保護されますか？", answer: "全コンテンツはアクセス制限付きで公開されます。個人情報は厳重に管理し、クリエイターの身元情報はファンには開示されません。AIによる不正コンテンツの自動審査も実施しています。" },
-    { question: "退会・解約はいつでもできますか？", answer: "サブスクリプションはいつでも次回更新停止が可能です。アカウント退会も設定から随時申請できます。ポイントの残高は退会時に失効しますのでご注意ください。" },
+    { question: "プライバシーは保護されますか？", answer: "全コンテンツはアクセス制限付きで公開されます。個人情報は厳重に管理し、AIによる不正コンテンツの自動審査も実施しています。" },
+    { question: "退会・解約はいつでもできますか？", answer: "サブスクリプションはいつでも次回更新停止が可能です。アカウント退会も設定から随時申請できます。" },
   ];
 
   return (
@@ -78,18 +77,18 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </AnimatePresence>
 
       {/* ── HEADER ── */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-gray-100" : "bg-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-pink-100" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <img src={logoImage} alt="Only-U" className="h-9 object-contain" />
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/auth?mode=login">
-              <button className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 transition-colors hidden sm:block" data-testid="button-header-login">
+              <button className="text-sm font-medium text-gray-500 hover:text-pink-500 px-3 py-2 transition-colors hidden sm:block" data-testid="button-header-login">
                 ログイン
               </button>
             </Link>
             <Button
               onClick={onRegisterClick}
-              className="rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white px-5 h-9 shadow-sm shadow-pink-200"
+              className="rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white px-5 h-9"
               data-testid="button-header-register"
             >
               無料登録
@@ -99,64 +98,57 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </header>
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-20 pb-16 overflow-hidden bg-white">
-        {/* bg blobs */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-24 pb-20 bg-white">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, rgba(252,231,243,0.6) 0%, rgba(253,242,248,0.3) 50%, transparent 70%)" }} />
-          <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-rose-100/40 blur-2xl" />
-          <div className="absolute top-20 left-0 w-48 h-48 rounded-full bg-pink-100/40 blur-2xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, rgba(252,231,243,0.7) 0%, rgba(255,255,255,0) 70%)" }} />
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.7, ease: "easeOut" }}
-          className="relative z-10 text-center max-w-4xl mx-auto"
+          transition={{ duration: 0.6, delay: 1.7 }}
+          className="relative z-10 text-center max-w-3xl mx-auto"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.9, duration: 0.4 }}
-            className="inline-flex items-center gap-2 bg-pink-50 border border-pink-100 text-pink-600 text-xs font-semibold px-4 py-2 rounded-full mb-8"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.9 }}
+            className="inline-flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-500 text-xs font-semibold px-4 py-2 rounded-full mb-8"
           >
             <Sparkles className="h-3.5 w-3.5" />
             日本発・クリエイター × ファン プラットフォーム
           </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-950 leading-[0.95] tracking-tight mb-6">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 leading-[0.95] tracking-tight mb-6">
             あなたの
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-400">
-              推しと、もっと。
-            </span>
+            <span className="block text-pink-500">推しと、もっと。</span>
           </h1>
 
-          <p className="text-gray-500 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-            Only-Uは、クリエイターとファンが深くつながる
-            <br className="hidden sm:block" />
-            日本唯一のプレミアム・ファンクラブプラットフォーム。
+          <p className="text-gray-400 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+            クリエイターとファンが深くつながる<br className="hidden sm:block" />
+            日本のプレミアム・ファンクラブプラットフォーム。
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-14">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
             <Button
               onClick={onRegisterClick}
               size="lg"
-              className="w-full sm:w-auto rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-8 h-13 text-sm sm:text-base shadow-lg shadow-pink-200 hover:shadow-pink-300 transition-all"
+              className="w-full sm:w-auto rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-8 h-12 shadow-lg shadow-pink-100"
               data-testid="button-hero-register"
             >
               無料で始める <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Link href="/auth?mode=login">
-              <button className="w-full sm:w-auto text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors flex items-center gap-1 justify-center" data-testid="button-hero-login">
+              <button className="text-sm font-medium text-gray-400 hover:text-pink-500 transition-colors flex items-center gap-1" data-testid="button-hero-login">
                 ログインはこちら <ChevronRight className="h-4 w-4" />
               </button>
             </Link>
           </div>
 
-          {/* trust indicators */}
           <div className="flex flex-wrap justify-center gap-6 text-xs text-gray-400">
             {["登録無料", "クレジットカード不要", "いつでも退会可能"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block" />
+                <span className="w-1.5 h-1.5 rounded-full bg-pink-300 inline-block" />
                 {t}
               </span>
             ))}
@@ -165,7 +157,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── STATS ── */}
-      <section className="bg-gray-950 py-14">
+      <section className="bg-pink-500 py-14">
         <div className="max-w-5xl mx-auto px-5">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {[
@@ -176,14 +168,14 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             ].map((s, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
                 className="text-center"
               >
                 <div className="text-3xl sm:text-4xl font-black text-white mb-1">{s.num}</div>
-                <div className="text-xs text-gray-400">{s.label}</div>
+                <div className="text-xs text-pink-100">{s.label}</div>
               </motion.div>
             ))}
           </div>
@@ -194,19 +186,15 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       <section className="py-24 sm:py-32 bg-white">
         <div className="max-w-6xl mx-auto px-5">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <p className="text-pink-500 text-xs font-bold tracking-widest mb-4 uppercase">For Fans</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950 leading-tight mb-6">
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              <p className="text-pink-400 text-xs font-bold tracking-widest mb-4 uppercase">For Fans</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-6">
                 推しの世界に、<br />もっと深く。
               </h2>
-              <p className="text-gray-500 text-sm sm:text-base leading-relaxed mb-8">
-                お気に入りのクリエイターだけの限定写真・動画、リアルタイムのライブ配信、そして2SHOTやパーティーでの特別な交流。あなたの「推し活」をOne-Stopで楽しめます。
+              <p className="text-gray-400 text-sm sm:text-base leading-relaxed mb-8">
+                限定写真・動画、リアルタイムのライブ配信、2SHOTやパーティーでの特別な交流。あなたの推し活をOne-Stopで。
               </p>
-              <Button
-                onClick={onRegisterClick}
-                className="rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-7 h-11"
-                data-testid="button-fan-register"
-              >
+              <Button onClick={onRegisterClick} className="rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-7 h-11" data-testid="button-fan-register">
                 ファンとして登録 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>
@@ -220,16 +208,16 @@ export default function Landing({ onRegisterClick }: LandingProps) {
               ].map((f, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-gray-50 rounded-2xl p-5 hover:bg-pink-50 transition-colors group"
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-pink-50 rounded-2xl p-5 hover:bg-pink-100 transition-colors group"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center text-pink-500 mb-3 group-hover:shadow-pink-100 transition-shadow">
+                  <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-pink-500 mb-3 shadow-sm">
                     {f.icon}
                   </div>
-                  <div className="font-bold text-gray-900 text-sm mb-1">{f.title}</div>
+                  <div className="font-bold text-gray-800 text-sm mb-1">{f.title}</div>
                   <div className="text-xs text-gray-500 leading-relaxed">{f.desc}</div>
                 </motion.div>
               ))}
@@ -239,7 +227,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── FOR CREATORS ── */}
-      <section className="py-24 sm:py-32 bg-gray-950">
+      <section className="py-24 sm:py-32 bg-pink-50">
         <div className="max-w-6xl mx-auto px-5">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="grid grid-cols-2 gap-4 order-2 lg:order-1">
@@ -251,35 +239,30 @@ export default function Landing({ onRegisterClick }: LandingProps) {
               ].map((f, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors group"
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-white rounded-2xl p-5 hover:shadow-md hover:shadow-pink-100 transition-all"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-pink-50 flex items-center justify-center text-pink-500 mb-3">
                     {f.icon}
                   </div>
-                  <div className="font-bold text-white text-sm mb-1">{f.title}</div>
-                  <div className="text-xs text-gray-400 leading-relaxed">{f.desc}</div>
+                  <div className="font-bold text-gray-800 text-sm mb-1">{f.title}</div>
+                  <div className="text-xs text-gray-500 leading-relaxed">{f.desc}</div>
                 </motion.div>
               ))}
             </div>
 
-            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 lg:order-2">
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 lg:order-2">
               <p className="text-pink-400 text-xs font-bold tracking-widest mb-4 uppercase">For Creators</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-6">
-                好きなことで、<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">本気で稼ぐ。</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-6">
+                好きなことで、<br />本気で稼ぐ。
               </h2>
               <p className="text-gray-400 text-sm sm:text-base leading-relaxed mb-8">
                 サブスクリプション・ライブ配信・グッズ販売の3本柱で安定した月収を実現。月収100万円以上のトップクリエイターも多数在籍。
               </p>
-              <Button
-                onClick={onRegisterClick}
-                className="rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-7 h-11"
-                data-testid="button-creator-register"
-              >
+              <Button onClick={onRegisterClick} className="rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-7 h-11" data-testid="button-creator-register">
                 クリエイターとして始める <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </motion.div>
@@ -290,12 +273,12 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       {/* ── HOW IT WORKS ── */}
       <section className="py-24 sm:py-32 bg-white">
         <div className="max-w-5xl mx-auto px-5">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-pink-500 text-xs font-bold tracking-widest mb-3 uppercase">How It Works</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950">30秒で始められる。</h2>
+          <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <p className="text-pink-400 text-xs font-bold tracking-widest mb-3 uppercase">How It Works</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">30秒で始められる。</h2>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { num: "01", title: "無料登録", desc: "メールアドレスで30秒で完了" },
               { num: "02", title: "クリエイターを探す", desc: "ジャンルやランキングから選ぶ" },
@@ -304,14 +287,13 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             ].map((s, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative"
+                transition={{ delay: i * 0.08 }}
               >
-                <div className="text-6xl font-black text-pink-100 leading-none mb-3">{s.num}</div>
-                <div className="font-bold text-gray-900 mb-2">{s.title}</div>
+                <div className="text-5xl font-black text-pink-100 leading-none mb-3">{s.num}</div>
+                <div className="font-bold text-gray-800 mb-2">{s.title}</div>
                 <div className="text-sm text-gray-500 leading-relaxed">{s.desc}</div>
               </motion.div>
             ))}
@@ -320,12 +302,12 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── PRICING ── */}
-      <section className="py-24 sm:py-32 bg-gray-50">
+      <section className="py-24 sm:py-32 bg-pink-50">
         <div className="max-w-5xl mx-auto px-5">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-pink-500 text-xs font-bold tracking-widest mb-3 uppercase">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-950">シンプルな料金設定。</h2>
-            <p className="text-gray-500 text-sm mt-3">1ポイント＝1円（税抜）。使いたい分だけ購入。</p>
+          <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <p className="text-pink-400 text-xs font-bold tracking-widest mb-3 uppercase">Pricing</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">シンプルな料金設定。</h2>
+            <p className="text-gray-400 text-sm mt-3">1ポイント＝1円（税抜）。使いたい分だけ購入。</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-3 gap-5">
@@ -335,7 +317,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
                 price: "¥3,000",
                 sub: "3,000pt購入",
                 features: ["コンテンツ視聴", "メッセージ送信", "通常ライブ参加", "グッズ購入"],
-                dark: false,
+                featured: false,
               },
               {
                 name: "プレミアムプラン",
@@ -343,43 +325,43 @@ export default function Landing({ onRegisterClick }: LandingProps) {
                 sub: "月額・クリエイター設定",
                 badge: "人気No.1",
                 features: ["全限定コンテンツ", "2SHOTライブ", "パーティーライブ", "優先メッセージ", "限定グッズ先行購入"],
-                dark: true,
+                featured: true,
               },
               {
                 name: "クリエイター",
                 price: "無料",
                 sub: "収益還元型",
                 features: ["無制限コンテンツ投稿", "ライブ配信", "ショップ開設", "収益分析ツール", "専属サポート"],
-                dark: false,
+                featured: false,
               },
             ].map((plan, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className={`rounded-3xl p-7 relative ${plan.dark ? "bg-gray-950 text-white" : "bg-white border border-gray-100"}`}
+                transition={{ delay: i * 0.08 }}
+                className={`rounded-3xl p-7 relative ${plan.featured ? "bg-pink-500 text-white" : "bg-white border border-pink-100"}`}
               >
                 {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-pink-500 text-[10px] font-bold px-3 py-1 rounded-full border border-pink-200">
                     {plan.badge}
                   </span>
                 )}
-                <div className={`text-xs font-bold mb-2 ${plan.dark ? "text-pink-400" : "text-pink-500"}`}>{plan.name}</div>
-                <div className={`text-3xl font-black mb-0.5 ${plan.dark ? "text-white" : "text-gray-950"}`}>{plan.price}</div>
-                <div className={`text-xs mb-7 ${plan.dark ? "text-gray-500" : "text-gray-400"}`}>{plan.sub}</div>
+                <div className={`text-xs font-bold mb-2 ${plan.featured ? "text-pink-100" : "text-pink-500"}`}>{plan.name}</div>
+                <div className={`text-3xl font-black mb-0.5 ${plan.featured ? "text-white" : "text-gray-900"}`}>{plan.price}</div>
+                <div className={`text-xs mb-7 ${plan.featured ? "text-pink-200" : "text-gray-400"}`}>{plan.sub}</div>
                 <ul className="space-y-3 mb-7">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-2.5 text-sm">
-                      <Check className={`h-3.5 w-3.5 shrink-0 ${plan.dark ? "text-pink-400" : "text-pink-500"}`} />
-                      <span className={plan.dark ? "text-gray-300" : "text-gray-600"}>{f}</span>
+                      <Check className={`h-3.5 w-3.5 shrink-0 ${plan.featured ? "text-white" : "text-pink-400"}`} />
+                      <span className={plan.featured ? "text-pink-50" : "text-gray-600"}>{f}</span>
                     </li>
                   ))}
                 </ul>
                 <Button
                   onClick={onRegisterClick}
-                  className={`w-full rounded-full font-bold h-10 text-sm ${plan.dark ? "bg-pink-500 hover:bg-pink-600 text-white" : "bg-gray-950 hover:bg-gray-800 text-white"}`}
+                  className={`w-full rounded-full font-bold h-10 text-sm ${plan.featured ? "bg-white text-pink-500 hover:bg-pink-50" : "bg-pink-500 hover:bg-pink-600 text-white"}`}
                   data-testid={`button-plan-${i}`}
                 >
                   始める
@@ -393,9 +375,9 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       {/* ── FAQ ── */}
       <section className="py-24 sm:py-32 bg-white">
         <div className="max-w-2xl mx-auto px-5">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <p className="text-pink-500 text-xs font-bold tracking-widest mb-3 uppercase">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-950">よくある質問</h2>
+          <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <p className="text-pink-400 text-xs font-bold tracking-widest mb-3 uppercase">FAQ</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">よくある質問</h2>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
             {faqs.map((faq, i) => (
@@ -406,21 +388,16 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="py-24 sm:py-32 bg-gray-950 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-pink-500/20 blur-3xl rounded-full" />
-        </div>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="relative z-10 max-w-3xl mx-auto px-5 text-center">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
-            あなたの物語を、
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">Only-Uで始めよう。</span>
+      <section className="py-24 sm:py-32 bg-pink-500">
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-3xl mx-auto px-5 text-center">
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
+            あなたの物語を、<br />Only-Uで始めよう。
           </h2>
-          <p className="text-gray-400 mb-10">今すぐ無料登録してクリエイターやファンと繋がろう。</p>
+          <p className="text-pink-100 mb-10 text-sm sm:text-base">今すぐ無料登録してクリエイターやファンと繋がろう。</p>
           <Button
             onClick={onRegisterClick}
             size="lg"
-            className="rounded-full bg-pink-500 hover:bg-pink-600 text-white font-black px-10 h-13 text-base shadow-xl shadow-pink-900/30"
+            className="rounded-full bg-white text-pink-500 hover:bg-pink-50 font-black px-10 h-12 text-base"
             data-testid="button-cta-register"
           >
             無料で始める <ArrowRight className="ml-2 h-5 w-5" />
@@ -429,12 +406,12 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-black text-white py-14">
+      <footer className="bg-white border-t border-pink-100 py-12">
         <div className="max-w-5xl mx-auto px-5">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-10 mb-10">
             <div>
-              <img src={logoImage} alt="Only-U" className="h-9 object-contain brightness-0 invert mb-3" />
-              <p className="text-gray-500 text-xs leading-relaxed max-w-xs">
+              <img src={logoImage} alt="Only-U" className="h-9 object-contain mb-3" />
+              <p className="text-gray-400 text-xs leading-relaxed max-w-xs">
                 クリエイターとファンをつなぐ<br />日本発のプレミアムSNSプラットフォーム。
               </p>
             </div>
@@ -449,7 +426,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
                     { label: "ガイドライン", href: "/guidelines" },
                   ].map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="text-xs text-gray-500 hover:text-pink-400 transition-colors">{l.label}</Link>
+                      <Link href={l.href} className="text-xs text-gray-400 hover:text-pink-500 transition-colors">{l.label}</Link>
                     </li>
                   ))}
                 </ul>
@@ -462,16 +439,16 @@ export default function Landing({ onRegisterClick }: LandingProps) {
                     { label: "クリエイター申請", href: "/creator-application" },
                   ].map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="text-xs text-gray-500 hover:text-pink-400 transition-colors">{l.label}</Link>
+                      <Link href={l.href} className="text-xs text-gray-400 hover:text-pink-500 transition-colors">{l.label}</Link>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
           </div>
-          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p className="text-gray-600 text-xs">&copy; {new Date().getFullYear()} Only-U. All rights reserved.</p>
-            <p className="text-gray-600 text-xs">運営：SIN JAPAN株式会社</p>
+          <div className="border-t border-pink-50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p className="text-gray-300 text-xs">&copy; {new Date().getFullYear()} Only-U. All rights reserved.</p>
+            <p className="text-gray-300 text-xs">運営：SIN JAPAN株式会社</p>
           </div>
         </div>
       </footer>
