@@ -478,7 +478,6 @@ export default function Landing({ onRegisterClick }: LandingProps) {
                 <ul className="space-y-2.5">
                   {[
                     { label: "ヘルプ", href: "/help" },
-                    { label: "クリエイター申請", href: "/creator-application" },
                   ].map((l) => (
                     <li key={l.href}>
                       <Link href={l.href} className="text-xs text-gray-400 hover:text-pink-500 transition-colors">{l.label}</Link>
