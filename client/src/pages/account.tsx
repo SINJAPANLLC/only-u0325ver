@@ -327,7 +327,6 @@ export default function Account() {
 
           <Link href="/points-purchase">
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-pink-500/10 border border-pink-500/30 cursor-pointer hover:bg-pink-500/20 transition-colors" data-testid="link-points-purchase">
-              <span className="text-xs font-medium text-pink-400">🪙</span>
               <span className="text-sm font-bold text-pink-400" data-testid="text-user-points">{(profile?.points ?? 0).toLocaleString()}</span>
               <span className="text-xs text-pink-400">pt</span>
             </div>
