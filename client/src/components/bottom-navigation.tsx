@@ -36,7 +36,7 @@ export function BottomNavigation() {
   const unreadCount = unreadMessages?.count || 0;
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-background/95 backdrop-blur-xl border-t border-border/40 pb-safe shadow-[0_-1px_0_rgba(0,0,0,0.04)]">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/40 pb-safe shadow-[0_-1px_0_rgba(0,0,0,0.04)]">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const isActive = location === item.path;

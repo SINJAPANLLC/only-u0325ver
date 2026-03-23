@@ -94,7 +94,7 @@ export function Header({
   return (
     <header
       className={cn(
-        "lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto pt-safe",
+        "lg:hidden fixed top-0 left-0 right-0 z-40 w-full pt-safe",
         isOverlay
           ? "bg-gradient-to-b from-black/40 via-black/15 to-transparent pointer-events-none"
           : "bg-background/95 backdrop-blur-xl border-b border-border/40"

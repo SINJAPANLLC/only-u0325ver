@@ -131,7 +131,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
       <div className="flex items-center px-5 pt-safe pt-6 pb-4">
         <Link href="/">
@@ -156,9 +156,9 @@ export default function Auth() {
 
         {/* Tab switcher */}
         <div className="w-full max-w-sm mb-8">
-          <div className="relative flex bg-gray-100 rounded-2xl p-1">
+          <div className="relative flex bg-muted rounded-2xl p-1">
             <motion.div
-              className="absolute inset-y-1 rounded-xl bg-white shadow-sm"
+              className="absolute inset-y-1 rounded-xl bg-background shadow-sm"
               animate={{ left: mode === "register" ? "4px" : "50%", right: mode === "register" ? "50%" : "4px" }}
               transition={{ type: "spring", stiffness: 400, damping: 35 }}
             />
@@ -197,7 +197,7 @@ export default function Auth() {
                   <Input
                     type="text"
                     placeholder="ニックネームを入力"
-                    className="h-13 pl-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                    className="h-13 pl-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                     style={{ height: "52px" }}
                     value={registerForm.name}
                     onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
@@ -212,7 +212,7 @@ export default function Auth() {
                   <Input
                     type="email"
                     placeholder="メールアドレスを入力"
-                    className="h-13 pl-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                    className="h-13 pl-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                     style={{ height: "52px" }}
                     value={registerForm.email}
                     onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
@@ -227,7 +227,7 @@ export default function Auth() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="パスワード（英数字8文字以上）"
-                    className="h-13 pl-11 pr-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                    className="h-13 pl-11 pr-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                     style={{ height: "52px" }}
                     value={registerForm.password}
                     onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
@@ -273,7 +273,7 @@ export default function Auth() {
                   <Input
                     type="email"
                     placeholder="メールアドレスを入力"
-                    className="h-13 pl-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                    className="h-13 pl-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                     style={{ height: "52px" }}
                     value={loginForm.email}
                     onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
@@ -288,7 +288,7 @@ export default function Auth() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="パスワードを入力"
-                    className="h-13 pl-11 pr-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                    className="h-13 pl-11 pr-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                     style={{ height: "52px" }}
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}

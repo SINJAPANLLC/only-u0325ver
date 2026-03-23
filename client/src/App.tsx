@@ -328,8 +328,8 @@ function AppLayout() {
     return (
       <>
         <SidebarNavigation />
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center lg:bg-background lg:block lg:ml-64">
-          <div className="w-full max-w-[430px] h-screen max-h-[100svh] md:max-h-[932px] relative bg-background md:rounded-[2.5rem] md:border md:border-gray-800 overflow-hidden lg:max-w-none lg:h-screen lg:max-h-screen lg:rounded-none lg:border-none">
+        <div className="min-h-screen bg-background lg:block lg:ml-64">
+          <div className="w-full h-screen relative bg-background overflow-hidden">
             <AppContent />
           </div>
         </div>
@@ -343,7 +343,7 @@ function AppLayout() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="only-u-theme-v2">
+      <ThemeProvider defaultTheme="light" storageKey="only-u-theme-v2">
         <I18nProvider>
           <TooltipProvider>
             <AppLayout />

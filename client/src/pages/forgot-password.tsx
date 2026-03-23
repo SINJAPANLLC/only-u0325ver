@@ -41,7 +41,7 @@ export default function ForgotPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -50,8 +50,8 @@ export default function ForgotPassword() {
           <div className="w-20 h-20 rounded-full bg-pink-50 flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="h-10 w-10 text-pink-500" />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-3">メールを送信しました</h2>
-          <p className="text-sm text-gray-400 leading-relaxed mb-8">
+          <h2 className="text-2xl font-black text-foreground mb-3">メールを送信しました</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">
             パスワードリセットのリンクを送信しました。<br />
             メールをご確認ください。
           </p>
@@ -66,7 +66,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <div className="flex items-center px-5 pt-safe pt-6 pb-4">
         <Link href="/auth?mode=login">
           <button className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors" data-testid="button-back">
@@ -95,8 +95,8 @@ export default function ForgotPassword() {
             <div className="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center mb-5">
               <Mail className="h-7 w-7 text-pink-500" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">パスワードをリセット</h2>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <h2 className="text-2xl font-black text-foreground mb-2">パスワードをリセット</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               登録したメールアドレスを入力してください。<br />
               パスワードリセットのリンクをお送りします。
             </p>
@@ -108,7 +108,7 @@ export default function ForgotPassword() {
               <Input
                 type="email"
                 placeholder="メールアドレスを入力"
-                className="pl-11 border-gray-200 rounded-2xl text-sm focus-visible:ring-pink-400 bg-gray-50"
+                className="pl-11 border-border rounded-2xl text-sm focus-visible:ring-pink-400 bg-muted/50"
                 style={{ height: "52px" }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
