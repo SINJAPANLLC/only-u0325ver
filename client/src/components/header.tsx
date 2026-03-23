@@ -1,6 +1,5 @@
 import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiDownloadSimpleDuotone } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,46 +95,43 @@ export function Header({
       className={cn(
         "lg:hidden fixed top-0 left-0 right-0 z-40 w-full pt-safe",
         isOverlay
-          ? "bg-gradient-to-b from-black/40 via-black/15 to-transparent pointer-events-none"
-          : "bg-background/95 backdrop-blur-xl border-b border-border/40"
+          ? "bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none"
+          : "bg-white/95 backdrop-blur-xl border-b border-pink-100"
       )}
     >
       {isOverlay ? (
-        /* Overlay layout: logo + icons on one row, feed tabs below */
         <div className="pointer-events-auto">
-          <div className="flex items-center justify-between px-3 h-20">
-            {/* Large logo */}
+          <div className="flex items-center justify-between px-3 h-16">
             <img
               src={logoImage}
               alt="Only-U"
-              className="h-16 object-contain brightness-0 invert"
+              className="h-12 object-contain brightness-0 invert"
               data-testid="img-logo"
             />
 
-            {/* Right icon buttons */}
-            <div className="flex items-center gap-0">
+            <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                    className="h-9 w-9 rounded-full text-white hover:bg-white/20"
                     data-testid="button-language"
                   >
-                    <PiGlobeHemisphereEastDuotone className="h-8 w-8 drop-shadow-md" />
+                    <PiGlobeHemisphereEastDuotone className="h-5 w-5 drop-shadow" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20"
+                  className="min-w-[130px] rounded-2xl bg-white border border-pink-100 shadow-lg p-1"
                 >
                   {languages.map((lang) => (
                     <DropdownMenuItem
                       key={lang.code}
                       onClick={() => setLanguage(lang.code as any)}
                       className={cn(
-                        "rounded-lg text-white hover:bg-white/20",
-                        language === lang.code && "bg-white/15"
+                        "rounded-xl text-gray-700 text-sm cursor-pointer",
+                        language === lang.code && "bg-pink-50 text-pink-600 font-semibold"
                       )}
                       data-testid={`menu-item-lang-${lang.code}`}
                     >
@@ -148,13 +144,13 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 rounded-full relative text-white hover:bg-white/20"
+                className="h-9 w-9 rounded-full relative text-white hover:bg-white/20"
                 onClick={() => setShowNotificationsModal(true)}
                 data-testid="button-notifications"
               >
-                <PiBellSimpleRingingDuotone className="h-8 w-8 drop-shadow-md" />
+                <PiBellSimpleRingingDuotone className="h-5 w-5 drop-shadow" />
                 {notificationCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
+                  <span className="absolute top-1 right-1 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-pink-500 text-white text-[8px] font-bold shadow">
                     {notificationCount > 9 ? "9+" : notificationCount}
                   </span>
                 )}
@@ -163,36 +159,33 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                className="h-9 w-9 rounded-full text-white hover:bg-white/20"
                 onClick={() => setShowSearchModal(true)}
                 data-testid="button-search"
               >
-                <PiMagnifyingGlassDuotone className="h-8 w-8 drop-shadow-md" />
+                <PiMagnifyingGlassDuotone className="h-5 w-5 drop-shadow" />
               </Button>
 
               {!isInstalled && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                  className="h-9 w-9 rounded-full text-white hover:bg-white/20"
                   onClick={handleInstallClick}
                   data-testid="button-install"
                 >
-                  <PiDownloadSimpleDuotone className="h-8 w-8 drop-shadow-md" />
+                  <PiDownloadSimpleDuotone className="h-5 w-5 drop-shadow" />
                 </Button>
               )}
-
-              <ThemeToggle variant="overlay" />
             </div>
           </div>
 
-          {/* Feed tabs row */}
           {showFeedTabs && (
             <div className="flex items-center gap-6 px-4 pb-2">
               <button
                 onClick={() => onFeedTypeChange?.("recommend")}
                 className={cn(
-                  "text-base font-bold whitespace-nowrap transition-all pb-0.5",
+                  "text-sm font-bold whitespace-nowrap transition-all pb-0.5",
                   feedType === "recommend"
                     ? "text-white border-b-2 border-white"
                     : "text-white/50"
@@ -204,7 +197,7 @@ export function Header({
               <button
                 onClick={() => onFeedTypeChange?.("following")}
                 className={cn(
-                  "text-base font-bold whitespace-nowrap transition-all pb-0.5",
+                  "text-sm font-bold whitespace-nowrap transition-all pb-0.5",
                   feedType === "following"
                     ? "text-white border-b-2 border-white"
                     : "text-white/50"
@@ -217,16 +210,15 @@ export function Header({
           )}
         </div>
       ) : (
-        /* Solid layout: page title or logo + action icons */
         <div className="flex h-14 items-center justify-between px-4 gap-2">
           <div className="min-w-0">
             {pageTitle ? (
-              <h1 className="text-lg font-bold text-foreground truncate">{pageTitle}</h1>
+              <h1 className="text-lg font-bold text-gray-900 truncate">{pageTitle}</h1>
             ) : (
               <img
                 src={logoImage}
                 alt="Only-U"
-                className="h-10 object-contain dark:invert"
+                className="h-9 object-contain"
                 data-testid="img-logo"
               />
             )}
@@ -238,20 +230,20 @@ export function Header({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+                  className="h-9 w-9 rounded-full text-gray-500 hover:text-gray-800 hover:bg-pink-50"
                   data-testid="button-language"
                 >
                   <PiGlobeHemisphereEastDuotone className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
+              <DropdownMenuContent align="end" className="min-w-[130px] rounded-2xl border border-pink-100 shadow-lg p-1">
                 {languages.map((lang) => (
                   <DropdownMenuItem
                     key={lang.code}
                     onClick={() => setLanguage(lang.code as any)}
                     className={cn(
-                      "rounded-lg",
-                      language === lang.code && "bg-pink-500/10 text-pink-600 dark:text-pink-400"
+                      "rounded-xl text-gray-700 text-sm cursor-pointer",
+                      language === lang.code && "bg-pink-50 text-pink-600 font-semibold"
                     )}
                     data-testid={`menu-item-lang-${lang.code}`}
                   >
@@ -264,13 +256,13 @@ export function Header({
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-full relative text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="h-9 w-9 rounded-full relative text-gray-500 hover:text-gray-800 hover:bg-pink-50"
               onClick={() => setShowNotificationsModal(true)}
               data-testid="button-notifications"
             >
               <PiBellSimpleRingingDuotone className="h-5 w-5" />
               {notificationCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
+                <span className="absolute top-1 right-1 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-pink-500 text-white text-[8px] font-bold shadow">
                   {notificationCount > 9 ? "9+" : notificationCount}
                 </span>
               )}
@@ -279,7 +271,7 @@ export function Header({
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="h-9 w-9 rounded-full text-gray-500 hover:text-gray-800 hover:bg-pink-50"
               onClick={() => setShowSearchModal(true)}
               data-testid="button-search"
             >
@@ -290,47 +282,45 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+                className="h-9 w-9 rounded-full text-gray-500 hover:text-gray-800 hover:bg-pink-50"
                 onClick={handleInstallClick}
                 data-testid="button-install"
               >
                 <PiDownloadSimpleDuotone className="h-5 w-5" />
               </Button>
             )}
-
-            <ThemeToggle variant="solid" />
           </div>
         </div>
       )}
 
       <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
-        <DialogContent className="max-w-sm rounded-2xl">
+        <DialogContent className="max-w-sm rounded-3xl border border-pink-100">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center">ホーム画面に追加</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-center text-gray-900">ホーム画面に追加</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {isIOS ? (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground text-center">iPhoneでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>画面下の<span className="font-bold">共有ボタン</span>をタップ</li>
-                  <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
-                  <li>右上の「<span className="font-bold">追加</span>」をタップ</li>
+                <p className="text-sm text-gray-500 text-center">iPhoneでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                  <li>画面下の<span className="font-bold text-gray-900">共有ボタン</span>をタップ</li>
+                  <li>「<span className="font-bold text-gray-900">ホーム画面に追加</span>」を選択</li>
+                  <li>右上の「<span className="font-bold text-gray-900">追加</span>」をタップ</li>
                 </ol>
               </div>
             ) : isAndroid ? (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground text-center">Androidでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>ブラウザの<span className="font-bold">メニュー（︙）</span>をタップ</li>
-                  <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
-                  <li>「<span className="font-bold">追加</span>」をタップ</li>
+                <p className="text-sm text-gray-500 text-center">Androidでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                  <li>ブラウザの<span className="font-bold text-gray-900">メニュー（︙）</span>をタップ</li>
+                  <li>「<span className="font-bold text-gray-900">ホーム画面に追加</span>」を選択</li>
+                  <li>「<span className="font-bold text-gray-900">追加</span>」をタップ</li>
                 </ol>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground text-center">アプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
+                <p className="text-sm text-gray-500 text-center">アプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
                   <li>ブラウザのメニューを開く</li>
                   <li>「ホーム画面に追加」または「アプリをインストール」を選択</li>
                 </ol>
@@ -338,7 +328,7 @@ export function Header({
             )}
             <Button
               onClick={() => setShowInstallDialog(false)}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl"
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-2xl h-11 font-semibold"
             >
               OK
             </Button>
