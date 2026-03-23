@@ -289,6 +289,9 @@ function AppContent() {
         <Route path="/guidelines">
           <LegalPage title="コンテンツガイドライン" type="guidelines" />
         </Route>
+        <Route path="/help">
+          <Help />
+        </Route>
         <Route path="/forgot-password">
           <ForgotPassword />
         </Route>

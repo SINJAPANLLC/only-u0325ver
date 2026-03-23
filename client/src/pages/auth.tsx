@@ -246,9 +246,9 @@ export default function Auth() {
                 </div>
 
                 <p className="text-[11px] text-center text-gray-400 leading-relaxed pt-1">
-                  <Link href="/legal/terms"><span className="text-pink-400 underline cursor-pointer">利用規約</span></Link>・
-                  <Link href="/legal/privacy"><span className="text-pink-400 underline cursor-pointer">プライバシーポリシー</span></Link>・
-                  <Link href="/legal/tokusho"><span className="text-pink-400 underline cursor-pointer">特商法</span></Link>に同意の上ご登録ください。
+                  <Link href="/terms"><span className="text-pink-400 underline cursor-pointer">利用規約</span></Link>・
+                  <Link href="/privacy"><span className="text-pink-400 underline cursor-pointer">プライバシーポリシー</span></Link>・
+                  <Link href="/legal"><span className="text-pink-400 underline cursor-pointer">特商法</span></Link>に同意の上ご登録ください。
                   <br />新規登録により18歳以上であることに同意したものとみなされます。
                 </p>
 
