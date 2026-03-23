@@ -343,7 +343,7 @@ function AppLayout() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="only-u-theme-v2">
         <I18nProvider>
           <TooltipProvider>
             <AppLayout />
