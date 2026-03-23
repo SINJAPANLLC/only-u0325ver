@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Volume2, VolumeX, Lock, Music } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Volume2, VolumeX, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -482,13 +482,6 @@ function VideoPage({
 
         {/* Music + CTA row */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Music info */}
-          {musicName && (
-            <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-md rounded-full px-2.5 py-1">
-              <Music className="h-3 w-3 text-white/80 flex-shrink-0" />
-              <span className="text-white/80 text-[11px] font-medium max-w-[120px] truncate">{musicName}</span>
-            </div>
-          )}
           {/* Premium CTA */}
           {isPremium && !hasAccess && (
             <button
