@@ -98,7 +98,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </header>
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-28 pb-20 bg-white">
+      <section className="relative flex flex-col items-center justify-center px-5 pt-28 pb-10 bg-white">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, rgba(252,231,243,0.7) 0%, rgba(255,255,255,0) 70%)" }} />
         </div>
@@ -140,7 +140,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       </section>
 
       {/* ── PORTRAIT SLIDER ── */}
-      <section className="bg-white py-8 overflow-hidden">
+      <section className="bg-white pb-10 overflow-hidden">
         <style>{`
           @keyframes marquee-ltr {
             0% { transform: translateX(0); }
