@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, Gift, Share2, Radio, Send, Users } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, Heart, Share2, Radio, Send, Users } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import Hls from "hls.js";
 
@@ -41,8 +41,6 @@ interface ChatMessage {
   id: number;
   user: string;
   text: string;
-  isGift?: boolean;
-  giftAmount?: number;
 }
 
 interface FloatingHeart {
@@ -149,18 +147,6 @@ export default function LiveRoom() {
     setInputText("");
   }, [inputText]);
 
-  const handleGift = useCallback(() => {
-    const amounts = [100, 300, 500, 1000, 3000];
-    const amount = amounts[Math.floor(Math.random() * amounts.length)];
-    const giftMsg: ChatMessage = {
-      id: ++msgIdRef.current,
-      user: "あなた",
-      text: `ギフト ${amount}pt を贈りました！`,
-      isGift: true,
-      giftAmount: amount,
-    };
-    setChatMessages(prev => [...prev.slice(-30), giftMsg]);
-  }, []);
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -218,10 +204,26 @@ export default function LiveRoom() {
         <p className="text-white/90 text-xs drop-shadow line-clamp-1">{title}</p>
       </div>
 
-      {/* Main area — right action buttons */}
-      <div className="relative z-10 flex-1 flex">
-        <div className="flex-1" />
-        <div className="flex flex-col items-center justify-end gap-5 pb-36 pr-3">
+      {/* Main area spacer */}
+      <div className="relative z-10 flex-1" />
+
+      {/* Bottom area: chat left + action buttons right */}
+      <div className="relative z-10 flex items-end gap-2 px-3 pb-2">
+        {/* Chat messages */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "30vh" }}>
+          {chatMessages.map(msg => (
+            <div key={msg.id} className="flex items-start gap-2">
+              <div className="flex items-baseline gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-3 py-1.5 max-w-full">
+                <span className="text-pink-300 text-xs font-bold whitespace-nowrap">{msg.user}</span>
+                <span className="text-white text-xs break-words">{msg.text}</span>
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Action buttons column */}
+        <div className="flex flex-col items-center gap-4 pb-1 flex-shrink-0">
           {/* Like */}
           <div className="flex flex-col items-center gap-1 relative">
             <AnimatePresence>
@@ -231,77 +233,41 @@ export default function LiveRoom() {
                   className="absolute bottom-12 pointer-events-none"
                   style={{ left: `calc(50% + ${h.x}px)` }}
                   initial={{ y: 0, opacity: 1, scale: 1 }}
-                  animate={{ y: -100, opacity: 0, scale: 1.4 }}
+                  animate={{ y: -80, opacity: 0, scale: 1.4 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
+                  transition={{ duration: 1.1, ease: "easeOut" }}
                 >
-                  <Heart className="h-6 w-6 text-pink-400 fill-pink-400" />
+                  <Heart className="h-5 w-5 text-pink-400 fill-pink-400" />
                 </motion.div>
               ))}
             </AnimatePresence>
             <motion.button
               whileTap={{ scale: 1.25 }}
               onClick={handleLike}
-              className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg"
+              className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
               data-testid="button-like-liveroom"
             >
               <Heart className={`h-6 w-6 transition-colors drop-shadow ${liked ? "text-pink-400 fill-pink-400" : "text-white"}`} />
             </motion.button>
-            <span className="text-white text-[11px] font-bold drop-shadow">{formatCount(likeCount)}</span>
-          </div>
-
-          {/* Gift */}
-          <div className="flex flex-col items-center gap-1">
-            <motion.button
-              whileTap={{ scale: 1.15 }}
-              onClick={handleGift}
-              className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg"
-              data-testid="button-gift-liveroom"
-            >
-              <Gift className="h-6 w-6 text-yellow-400" />
-            </motion.button>
-            <span className="text-white/70 text-[11px]">ギフト</span>
+            <span className="text-white text-[10px] font-bold drop-shadow">{formatCount(likeCount)}</span>
           </div>
 
           {/* Share */}
           <div className="flex flex-col items-center gap-1">
             <motion.button
               whileTap={{ scale: 1.15 }}
-              className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg"
+              className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
               data-testid="button-share-liveroom"
             >
-              <Share2 className="h-6 w-6 text-white/80" />
+              <Share2 className="h-5 w-5 text-white/80" />
             </motion.button>
-            <span className="text-white/70 text-[11px]">シェア</span>
+            <span className="text-white/60 text-[10px]">シェア</span>
           </div>
         </div>
       </div>
 
-      {/* Chat */}
-      <div className="relative z-10 px-3 pb-2" style={{ maxHeight: "35vh" }}>
-        <div className="overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "28vh" }}>
-          {chatMessages.map(msg => (
-            <div key={msg.id} className="flex items-start gap-2">
-              {msg.isGift ? (
-                <div className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/40 rounded-full px-3 py-1">
-                  <Gift className="h-3.5 w-3.5 text-yellow-400 flex-shrink-0" />
-                  <span className="text-yellow-300 text-xs font-bold">{msg.user}</span>
-                  <span className="text-yellow-200 text-xs">{msg.text}</span>
-                </div>
-              ) : (
-                <div className="flex items-baseline gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-3 py-1.5 max-w-[80%]">
-                  <span className="text-pink-300 text-xs font-bold whitespace-nowrap">{msg.user}</span>
-                  <span className="text-white text-xs break-words">{msg.text}</span>
-                </div>
-              )}
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-      </div>
-
       {/* Chat input */}
-      <div className="relative z-10 px-3 pb-safe pb-4 flex items-center gap-2">
+      <div className="relative z-10 px-3 pb-safe pb-5 flex items-center gap-2">
         <div className="flex-1 flex items-center bg-white/10 backdrop-blur-md rounded-full px-4 h-10 gap-2 border border-white/20">
           <input
             className="flex-1 bg-transparent text-white text-sm placeholder-white/40 outline-none"
