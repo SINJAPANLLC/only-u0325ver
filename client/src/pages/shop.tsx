@@ -72,7 +72,7 @@ function ProductCard({ product, onBuy }: ProductCardProps) {
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/85" />
 
       {/* Top badges */}
-      <div className="absolute top-16 left-4 flex gap-2 z-10">
+      <div className="absolute top-28 left-4 flex gap-2 z-10">
         <Badge className={`border-0 text-white text-xs px-2 py-0.5 ${product.productType === "digital" ? "bg-pink-500" : "bg-gray-600"}`}>
           {product.productType === "digital" ? <Download className="h-3 w-3 mr-1 inline" /> : <Package className="h-3 w-3 mr-1 inline" />}
           {product.productType === "digital" ? "デジタル" : "物販"}
