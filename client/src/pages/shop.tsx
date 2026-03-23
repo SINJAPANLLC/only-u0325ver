@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Download, Package, Lock, Loader2, Check, Truck, Heart } from "lucide-react";
+import { ShoppingBag, Loader2, Check, Truck, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import type { Product, UserProfile } from "@shared/schema";
 
@@ -69,28 +68,12 @@ function ProductCard({ product, onBuy }: ProductCardProps) {
   return (
     <div className="w-full h-full relative bg-black">
       <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/85" />
-
-      {/* Top badges */}
-      <div className="absolute top-28 left-4 flex gap-2 z-10">
-        <Badge className={`border-0 text-white text-xs px-2 py-0.5 ${product.productType === "digital" ? "bg-pink-500" : "bg-gray-600"}`}>
-          {product.productType === "digital" ? <Download className="h-3 w-3 mr-1 inline" /> : <Package className="h-3 w-3 mr-1 inline" />}
-          {product.productType === "digital" ? "デジタル" : "物販"}
-        </Badge>
-        {product.isLimited && <Badge className="border-0 bg-orange-500 text-white text-xs px-2 py-0.5">限定</Badge>}
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
       {/* Sold out overlay */}
       {!product.isAvailable && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
           <Badge variant="secondary" className="text-base px-6 py-3">SOLD OUT</Badge>
-        </div>
-      )}
-
-      {/* Premium lock */}
-      {product.isPremium && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-10 pointer-events-none">
-          <Lock className="h-12 w-12 text-white/60 drop-shadow-lg" />
         </div>
       )}
 
@@ -121,11 +104,10 @@ function ProductCard({ product, onBuy }: ProductCardProps) {
         </button>
       </div>
 
-      {/* Bottom info */}
+      {/* Bottom info — creator, title, price only */}
       <div className="absolute bottom-24 left-4 right-20 z-20">
-        <p className="text-white font-bold text-sm drop-shadow mb-0.5">@{product.creatorName}</p>
-        <p className="text-white font-bold text-base drop-shadow leading-snug mb-1 line-clamp-2">{product.name}</p>
-        <p className="text-white/80 text-xs drop-shadow mb-3 line-clamp-1">{product.description}</p>
+        <p className="text-white/80 font-semibold text-sm drop-shadow mb-1">@{product.creatorName}</p>
+        <p className="text-white font-bold text-base drop-shadow leading-snug mb-2 line-clamp-2">{product.name}</p>
         <div className="flex items-center gap-2">
           <span className="text-pink-400 font-bold text-lg drop-shadow">{product.price.toLocaleString()}pt</span>
           {product.originalPrice && (
@@ -238,22 +220,18 @@ export default function Shop() {
 
   return (
     <>
-      <Header variant="overlay" />
-
-      {/* Tab filter overlay */}
-      <div className="fixed top-14 left-0 right-0 z-30 flex justify-center">
-        <div className="flex gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1.5 mx-4">
-          {(["all", "digital", "physical"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1 rounded-full text-xs font-bold transition-colors ${activeTab === tab ? "bg-pink-500 text-white" : "text-white/70"}`}
-              data-testid={`tab-${tab}`}
-            >
-              {tab === "all" ? "すべて" : tab === "digital" ? "デジタル" : "物販"}
-            </button>
-          ))}
-        </div>
+      {/* Tab filter — top right corner */}
+      <div className="fixed top-4 right-3 z-40 flex gap-1 bg-black/50 backdrop-blur-md rounded-full px-2 py-1.5">
+        {(["all", "digital", "physical"] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${activeTab === tab ? "bg-pink-500 text-white" : "text-white/70"}`}
+            data-testid={`tab-${tab}`}
+          >
+            {tab === "all" ? "すべて" : tab === "digital" ? "デジタル" : "物販"}
+          </button>
+        ))}
       </div>
 
       <div
