@@ -242,7 +242,7 @@ export default function Shop() {
 
       <div
         id="shop-feed"
-        className="h-[100svh] overflow-hidden bg-black"
+        className="h-[100svh] overflow-hidden bg-black flex items-center justify-center"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -252,18 +252,21 @@ export default function Shop() {
             <p className="text-white/60">商品がありません</p>
           </div>
         ) : (
-          <div
-            style={{
-              transform: `translateY(calc(-${index} * 100svh))`,
-              transition: "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)",
-              willChange: "transform",
-            }}
-          >
-            {displayProducts.map((product) => (
-              <div key={product.id} style={{ height: "100svh", width: "100%", position: "relative" }} data-testid={`card-product-${product.id}`}>
-                <ProductCard product={product} onBuy={() => handleBuy(product)} />
-              </div>
-            ))}
+          <div className="w-full h-full lg:max-w-[420px] lg:mx-auto relative overflow-hidden">
+            <div
+              style={{
+                transform: `translateY(calc(-${index} * 100%))`,
+                transition: "transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)",
+                willChange: "transform",
+                height: "100%",
+              }}
+            >
+              {displayProducts.map((product) => (
+                <div key={product.id} style={{ height: "100%", width: "100%", position: "relative" }} data-testid={`card-product-${product.id}`}>
+                  <ProductCard product={product} onBuy={() => handleBuy(product)} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
