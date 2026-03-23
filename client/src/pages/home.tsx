@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Crown, Volume2, VolumeX, Lock } from "lucide-react";
+import { Play, Heart, MessageCircle, Share2, Volume2, VolumeX, Lock, Music } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -192,7 +192,10 @@ function VideoPage({
     const newProgress = Math.max(0, Math.min(100, clickPosition * 100));
     setProgress(newProgress);
     
-    videoRef.current.currentTime = (clickPosition * videoRef.current.duration);
+    const dur = videoRef.current.duration;
+    if (isFinite(dur) && dur > 0) {
+      videoRef.current.currentTime = clickPosition * dur;
+    }
   };
 
   const handleProgressDragStart = () => {
@@ -202,7 +205,10 @@ function VideoPage({
   const handleProgressDragEnd = () => {
     setIsDragging(false);
     if (videoRef.current) {
-      videoRef.current.currentTime = (progress / 100) * videoRef.current.duration;
+      const dur = videoRef.current.duration;
+      if (isFinite(dur) && dur > 0) {
+        videoRef.current.currentTime = (progress / 100) * dur;
+      }
     }
   };
 
@@ -304,7 +310,7 @@ function VideoPage({
         ) : null}
         
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent via-40% to-black/80" />
         
         {/* Play/Pause indicator */}
         <div className="absolute inset-0 flex items-center justify-center">
@@ -377,32 +383,33 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-32 z-10 flex flex-col items-center gap-4">
+      <div className="absolute right-3 bottom-[100px] z-10 flex flex-col items-center gap-5">
         {/* Creator avatar */}
         <button
           onClick={handleAvatarClick}
-          className="relative mb-1"
+          className="relative"
           data-testid={`button-avatar-${id}`}
         >
-          <Avatar className="h-14 w-14 ring-2 ring-white shadow-xl">
+          <Avatar className="h-12 w-12 ring-2 ring-white shadow-xl">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center shadow">
+            <span className="text-white text-[10px] font-bold">+</span>
+          </div>
         </button>
 
         {/* Like */}
         <button
           onClick={(e) => { e.stopPropagation(); handleLike(); }}
-          className="flex flex-col items-center gap-1.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-like-${id}`}
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className={`h-12 w-12 rounded-full flex items-center justify-center ${
-              isLiked ? "bg-pink-500/25" : "bg-black/30"
-            } backdrop-blur-md transition-colors shadow-lg`}
+            className="h-11 w-11 rounded-full flex items-center justify-center bg-black/30 backdrop-blur-md transition-colors shadow-lg"
           >
             <Heart
               className={`h-6 w-6 transition-colors drop-shadow ${
@@ -418,10 +425,10 @@ function VideoPage({
         {/* Comment */}
         <button
           onClick={handleComment}
-          className="flex flex-col items-center gap-1.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-comment-${id}`}
         >
-          <div className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
+          <div className="h-11 w-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
             <MessageCircle className="h-6 w-6 text-white drop-shadow" />
           </div>
           <span className="text-[11px] text-white font-bold drop-shadow">{formatCount(commentCount)}</span>
@@ -430,10 +437,10 @@ function VideoPage({
         {/* Share */}
         <button
           onClick={handleShare}
-          className="flex flex-col items-center gap-1.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
+          <div className="h-11 w-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
             <Share2 className="h-6 w-6 text-white drop-shadow" />
           </div>
           <span className="text-[11px] text-white font-bold drop-shadow">シェア</span>
@@ -442,64 +449,74 @@ function VideoPage({
         {/* Volume */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-          className="flex flex-col items-center gap-1.5"
+          className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className={`h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
+          <div className={`h-11 w-11 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
             isMuted ? "bg-black/30" : "bg-white/20"
           }`}>
             {isMuted ? (
-              <VolumeX className="h-6 w-6 text-white drop-shadow" />
+              <VolumeX className="h-5 w-5 text-white drop-shadow" />
             ) : (
-              <Volume2 className="h-6 w-6 text-white drop-shadow" />
+              <Volume2 className="h-5 w-5 text-white drop-shadow" />
             )}
           </div>
         </button>
       </div>
 
       {/* Bottom content info */}
-      <div className="absolute left-4 right-20 bottom-28 z-10 space-y-3">
-        {/* Creator name */}
-        <div className="flex flex-col">
-          <span className="text-white font-bold text-base" data-testid={`text-creator-${id}`}>
+      <div className="absolute left-4 right-[68px] bottom-[84px] z-10">
+        {/* Creator name row */}
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-white font-bold text-[15px] drop-shadow-sm" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
           </span>
-          <span className="text-white/70 text-sm">
-            @{creatorName}
-          </span>
+          <span className="text-white/60 text-xs">@{creatorName}</span>
         </div>
 
         {/* Title/description */}
-        <p className="text-white text-sm leading-relaxed line-clamp-2" data-testid={`text-title-${id}`}>
+        <p className="text-white/90 text-[13px] leading-snug line-clamp-2 mb-2.5 drop-shadow-sm" data-testid={`text-title-${id}`}>
           {title}
         </p>
 
-        {/* Full content CTA */}
-        <button
-          onClick={() => {
-            if (id.startsWith("demo-")) {
-              setLocation(`/creator/${creatorName}`);
-              return;
-            }
-            if (creatorId === user?.id) {
-              setLocation("/my-profile");
-            } else if (creatorId) {
-              setLocation(`/creator/${creatorId}`);
-            } else {
-              setLocation(`/creator/${creatorName}`);
-            }
-          }}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold shadow-lg shadow-pink-500/30 w-fit"
-          data-testid={`button-full-content-${id}`}
-        >
-          本編はこちら
-        </button>
+        {/* Music + CTA row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Music info */}
+          {musicName && (
+            <div className="flex items-center gap-1.5 bg-black/30 backdrop-blur-md rounded-full px-2.5 py-1">
+              <Music className="h-3 w-3 text-white/80 flex-shrink-0" />
+              <span className="text-white/80 text-[11px] font-medium max-w-[120px] truncate">{musicName}</span>
+            </div>
+          )}
+          {/* Premium CTA */}
+          {isPremium && !hasAccess && (
+            <button
+              onClick={() => {
+                if (id.startsWith("demo-")) {
+                  setLocation(`/creator/${creatorName}`);
+                  return;
+                }
+                if (creatorId === user?.id) {
+                  setLocation("/my-profile");
+                } else if (creatorId) {
+                  setLocation(`/creator/${creatorId}`);
+                } else {
+                  setLocation(`/creator/${creatorName}`);
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[11px] font-bold shadow-lg shadow-pink-500/30"
+              data-testid={`button-full-content-${id}`}
+            >
+              本編はこちら
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Progress bar */}
       <div
         ref={progressRef}
-        className="absolute bottom-24 left-0 right-0 h-2 bg-white/20 cursor-pointer touch-none"
+        className="absolute bottom-[68px] left-0 right-0 h-1 bg-white/20 cursor-pointer touch-none z-10"
         onClick={handleProgressBarClick}
         onMouseDown={handleProgressDragStart}
         onMouseUp={handleProgressDragEnd}
@@ -511,13 +528,12 @@ function VideoPage({
         data-testid={`progress-bar-${id}`}
       >
         <div
-          className="h-full bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 transition-none"
+          className="h-full bg-gradient-to-r from-pink-400 to-rose-400 transition-none"
           style={{ width: `${progress}%` }}
         />
-        {/* Drag handle */}
         <div 
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-pink-500 rounded-full shadow-lg ring-2 ring-white"
-          style={{ left: `calc(${progress}% - 6px)` }}
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-lg"
+          style={{ left: `calc(${progress}% - 5px)` }}
         />
       </div>
 
