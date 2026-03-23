@@ -52,31 +52,38 @@ interface MenuItemProps {
   label: string;
   description?: string;
   badge?: string;
+  badgeVariant?: "pink" | "default";
   onClick?: () => void;
   href?: string;
 }
 
-function MenuItem({ icon: Icon, label, description, badge, onClick, href }: MenuItemProps) {
+function MenuItem({ icon: Icon, label, description, badge, badgeVariant = "default", onClick, href }: MenuItemProps) {
   const content = (
-    <div 
-      className="flex items-center gap-4 p-4 rounded-xl hover-elevate cursor-pointer"
+    <div
+      className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer group active:bg-accent/80 transition-colors"
       onClick={onClick}
     >
-      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-        <Icon className="h-5 w-5 text-muted-foreground" />
+      <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 group-hover:bg-pink-50 dark:group-hover:bg-pink-950/20 transition-colors">
+        <Icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-pink-500 transition-colors" style={{ height: "18px", width: "18px" }} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{label}</span>
+          <span className="font-medium text-sm">{label}</span>
           {badge && (
-            <Badge variant="secondary" className="text-xs">{badge}</Badge>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+              badgeVariant === "pink"
+                ? "bg-pink-100 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400"
+                : "bg-muted text-muted-foreground"
+            }`}>
+              {badge}
+            </span>
           )}
         </div>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+      <ChevronRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
     </div>
   );
 
@@ -85,6 +92,17 @@ function MenuItem({ icon: Icon, label, description, badge, onClick, href }: Menu
   }
 
   return content;
+}
+
+function MenuSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2 px-1">{title}</p>
+      <div className="rounded-2xl bg-card border border-border/50 overflow-hidden divide-y divide-border/40">
+        {children}
+      </div>
+    </section>
+  );
 }
 
 export default function Account() {
@@ -148,10 +166,7 @@ export default function Account() {
       toast({ title: "高画質プランに加入しました" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: error.message || "加入に失敗しました", 
-        variant: "destructive" 
-      });
+      toast({ title: error.message || "加入に失敗しました", variant: "destructive" });
     },
   });
 
@@ -227,8 +242,8 @@ export default function Account() {
 
   if (isLoading) {
     return (
-      <div className="pb-20 flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -242,11 +257,18 @@ export default function Account() {
     { 
       icon: Eye, 
       label: "高画質プラン", 
-      description: premiumStatus?.hasPremium ? "4K画質で視聴中" : "4K画質で視聴", 
+      description: premiumStatus?.hasPremium ? "4K画質で視聴中" : "4K画質で視聴",
       badge: premiumStatus?.hasPremium ? "加入中" : "980pt/月",
-      onClick: () => setIsPremiumDialogOpen(true) 
+      badgeVariant: premiumStatus?.hasPremium ? "pink" : "default",
+      onClick: () => setIsPremiumDialogOpen(true),
     },
-    { icon: Star, label: "加入中のプラン", description: "サブスクリプション管理", badge: userSubscriptions && userSubscriptions.length > 0 ? `${userSubscriptions.length}件` : undefined, onClick: () => setIsSubscriptionsDialogOpen(true) },
+    { 
+      icon: Star, 
+      label: "加入中のプラン", 
+      description: "サブスクリプション管理",
+      badge: userSubscriptions && userSubscriptions.length > 0 ? `${userSubscriptions.length}件` : undefined,
+      onClick: () => setIsSubscriptionsDialogOpen(true),
+    },
     { icon: CreditCard, label: "お支払い方法", description: "カードを管理", href: "/payment-methods" },
     { icon: ShoppingBag, label: "購入履歴", description: "過去の購入を確認", href: "/my-purchases" },
   ];
@@ -280,163 +302,158 @@ export default function Account() {
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
 
   return (
-    <div className="pb-20 lg:pb-4 overflow-y-auto scrollbar-hide">
-      <div className="h-16 lg:h-0" />
-      <div className="p-4 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-white p-6"
-        >
-          <div className="flex items-center gap-4">
-            <Avatar className={`h-16 w-16 ${isApprovedCreator ? 'ring-2 ring-pink-500 ring-offset-2 ring-offset-background' : ''}`}>
-              <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || logoImage} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                {displayName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold truncate">{displayName}</h2>
-                <Link href="/points-purchase">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-100 dark:bg-pink-900/30 hover-elevate cursor-pointer whitespace-nowrap" data-testid="link-points-purchase">
-                    <span className="text-xs text-pink-600 dark:text-pink-400">所持ポイント</span>
-                    <span className="text-sm font-semibold text-pink-700 dark:text-pink-400" data-testid="text-user-points">{(profile?.points ?? 0).toLocaleString()}</span>
-                    <span className="text-xs text-pink-500 dark:text-pink-400">| 購入はこちら</span>
-                  </div>
-                </Link>
-              </div>
-              {profile?.bio && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{profile.bio}</p>
+    <div className="pb-24 lg:pb-8 overflow-y-auto scrollbar-hide">
+      <div className="h-14 lg:h-0" />
+
+      {/* Profile Hero */}
+      <div className="relative">
+        <div className="h-28 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600" />
+        <div className="px-4 pb-4">
+          <div className="flex items-end justify-between -mt-10 mb-3">
+            <div className="relative">
+              <Avatar className={`h-20 w-20 border-4 border-background shadow-lg ${isApprovedCreator ? 'ring-2 ring-pink-500' : ''}`}>
+                <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || logoImage} className="object-cover" />
+                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
+                  {displayName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              {isApprovedCreator && (
+                <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-pink-500 border-2 border-background flex items-center justify-center">
+                  <CheckCircle className="h-3.5 w-3.5 text-white" />
+                </div>
               )}
             </div>
+
+            <Link href="/points-purchase">
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900/50 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-950/50 transition-colors" data-testid="link-points-purchase">
+                <span className="text-xs font-medium text-pink-500">🪙</span>
+                <span className="text-sm font-bold text-pink-600 dark:text-pink-400" data-testid="text-user-points">{(profile?.points ?? 0).toLocaleString()}</span>
+                <span className="text-xs text-pink-400">pt</span>
+              </div>
+            </Link>
           </div>
 
-          <Separator className="my-4 bg-border/50" />
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Radio className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <p className="font-medium">クリエイターモード</p>
-                {isApprovedCreator ? (
-                  <div className="flex items-center gap-1 text-xs text-green-600">
-                    <CheckCircle className="h-3 w-3" />
-                    承認済み - 配信・販売が可能です
-                  </div>
-                ) : isPendingApplication ? (
-                  <div className="flex items-center gap-1 text-xs text-amber-600">
-                    <Clock className="h-3 w-3" />
-                    審査中 - 承認をお待ちください
-                  </div>
-                ) : isRejectedApplication ? (
-                  <div className="flex items-center gap-1 text-xs text-red-600">
-                    <XCircle className="h-3 w-3" />
-                    申請が却下されました
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    クリエイターとして活動するには申請が必要です
-                  </p>
-                )}
-              </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold">{displayName}</h2>
+              {isApprovedCreator && (
+                <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-xs">クリエイター</Badge>
+              )}
             </div>
-
-            {!isApprovedCreator && (
-              <Link href="/creator-application">
-                <Button 
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
-                  data-testid="button-apply-creator"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {isPendingApplication ? "申請状況を確認" : "クリエイター申請する"}
-                </Button>
-              </Link>
+            {profile?.bio && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
             )}
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        {isApprovedCreator && (
-          <motion.section
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">クリエイター</h3>
-            <div className="rounded-2xl bg-card border border-card-border overflow-hidden">
-              {creatorMenuItems.map((item, index) => (
-                <div key={item.label}>
-                  <MenuItem {...item} />
-                  {index < creatorMenuItems.length - 1 && (
-                    <Separator className="mx-4" />
+      {/* Creator Mode Card */}
+      {!isApprovedCreator && (
+        <div className="px-4 mb-5">
+          <div className={`rounded-2xl p-4 border ${
+            isPendingApplication
+              ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40"
+              : isRejectedApplication
+              ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/40"
+              : "bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200 dark:border-pink-800/40"
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                  isPendingApplication ? "bg-amber-100 dark:bg-amber-900/40"
+                  : isRejectedApplication ? "bg-red-100 dark:bg-red-900/40"
+                  : "bg-pink-100 dark:bg-pink-900/40"
+                }`}>
+                  <Radio className={`h-5 w-5 ${
+                    isPendingApplication ? "text-amber-600"
+                    : isRejectedApplication ? "text-red-500"
+                    : "text-pink-500"
+                  }`} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">クリエイターモード</p>
+                  {isPendingApplication ? (
+                    <div className="flex items-center gap-1 text-xs text-amber-600">
+                      <Clock className="h-3 w-3" />
+                      審査中 - 承認をお待ちください
+                    </div>
+                  ) : isRejectedApplication ? (
+                    <div className="flex items-center gap-1 text-xs text-red-500">
+                      <XCircle className="h-3 w-3" />
+                      申請が却下されました
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">配信・販売を始めよう</p>
                   )}
                 </div>
-              ))}
+              </div>
+              <Link href="/creator-application">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl text-xs"
+                  data-testid="button-apply-creator"
+                >
+                  {isPendingApplication ? "確認する" : isRejectedApplication ? "再申請" : "申請する"}
+                </Button>
+              </Link>
             </div>
-          </motion.section>
+          </div>
+        </div>
+      )}
+
+      <div className="px-4 space-y-5">
+        {/* Creator Menu */}
+        {isApprovedCreator && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <MenuSection title="クリエイター">
+              {creatorMenuItems.map((item) => (
+                <MenuItem key={item.label} {...item} />
+              ))}
+            </MenuSection>
+          </motion.div>
         )}
 
-        <section>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">アカウント</h3>
-          <div className="rounded-2xl bg-card border border-card-border overflow-hidden">
-            {userMenuItems.map((item, index) => (
-              <div key={item.label}>
-                <MenuItem {...item} />
-                {index < userMenuItems.length - 1 && (
-                  <Separator className="mx-4" />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* User Menu */}
+        <MenuSection title="アカウント">
+          {userMenuItems.map((item) => (
+            <MenuItem key={item.label} {...item} />
+          ))}
+        </MenuSection>
 
-        <section>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">設定</h3>
-          <div className="rounded-2xl bg-card border border-card-border overflow-hidden">
-            {settingsMenuItems.map((item, index) => (
-              <div key={item.label}>
-                <MenuItem {...item} />
-                {index < settingsMenuItems.length - 1 && (
-                  <Separator className="mx-4" />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Settings */}
+        <MenuSection title="設定">
+          {settingsMenuItems.map((item) => (
+            <MenuItem key={item.label} {...item} />
+          ))}
+        </MenuSection>
 
-        <section>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">法的情報</h3>
-          <div className="rounded-2xl bg-card border border-card-border overflow-hidden">
-            {legalMenuItems.map((item, index) => (
-              <div key={item.label}>
-                <MenuItem {...item} />
-                {index < legalMenuItems.length - 1 && (
-                  <Separator className="mx-4" />
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Legal */}
+        <MenuSection title="法的情報">
+          {legalMenuItems.map((item) => (
+            <MenuItem key={item.label} {...item} />
+          ))}
+        </MenuSection>
 
-        <Button 
-          variant="outline" 
-          className="w-full h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
+        {/* Logout */}
+        <button
+          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-border/60 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
           onClick={() => logout()}
           data-testid="button-logout"
         >
-          <LogOut className="h-5 w-5 mr-2" />
+          <LogOut className="h-4 w-4" />
           ログアウト
-        </Button>
-
+        </button>
       </div>
 
+      {/* Subscriptions Dialog */}
       <Dialog open={isSubscriptionsDialogOpen} onOpenChange={setIsSubscriptionsDialogOpen}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>加入中のプラン</DialogTitle>
-            <DialogDescription>
-              現在加入中のサブスクリプションを管理できます
-            </DialogDescription>
+            <DialogDescription>現在加入中のサブスクリプションを管理できます</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {isLoadingSubscriptions ? (
@@ -445,13 +462,13 @@ export default function Account() {
               </div>
             ) : userSubscriptions && userSubscriptions.length > 0 ? (
               userSubscriptions.map((subscription) => (
-                <div 
-                  key={subscription.id} 
-                  className="p-4 rounded-lg bg-muted space-y-3"
+                <div
+                  key={subscription.id}
+                  className="p-4 rounded-xl bg-muted space-y-3"
                   data-testid={`subscription-item-${subscription.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Link 
+                    <Link
                       href={`/creator/${subscription.creatorId}`}
                       onClick={() => setIsSubscriptionsDialogOpen(false)}
                       data-testid={`link-creator-profile-${subscription.id}`}
@@ -464,7 +481,7 @@ export default function Account() {
                       </Avatar>
                     </Link>
                     <div className="flex-1 min-w-0">
-                      <Link 
+                      <Link
                         href={`/creator/${subscription.creatorId}`}
                         onClick={() => setIsSubscriptionsDialogOpen(false)}
                         className="hover:underline"
@@ -487,7 +504,7 @@ export default function Account() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                     <div className="space-y-1">
                       <p>
-                        有効期限: {subscription.expiresAt 
+                        有効期限: {subscription.expiresAt
                           ? new Date(subscription.expiresAt).toLocaleDateString("ja-JP")
                           : "アクティブ"
                         }
@@ -503,9 +520,9 @@ export default function Account() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => toggleAutoRenewMutation.mutate({ 
-                            creatorId: subscription.creatorId, 
-                            planId: subscription.planId! 
+                          onClick={() => toggleAutoRenewMutation.mutate({
+                            creatorId: subscription.creatorId,
+                            planId: subscription.planId!,
                           })}
                           disabled={toggleAutoRenewMutation.isPending}
                           data-testid={`button-stop-auto-renew-${subscription.id}`}
@@ -523,7 +540,7 @@ export default function Account() {
                         asChild
                         data-testid={`button-view-creator-${subscription.id}`}
                       >
-                        <Link 
+                        <Link
                           href={`/creator/${subscription.creatorId}`}
                           onClick={() => setIsSubscriptionsDialogOpen(false)}
                         >
@@ -538,9 +555,7 @@ export default function Account() {
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Crown className="h-12 w-12 text-muted-foreground/50 mb-3" />
                 <p className="text-muted-foreground">加入中のプランはありません</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  クリエイターのプロフィールから登録できます
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">クリエイターのプロフィールから登録できます</p>
               </div>
             )}
           </div>
@@ -569,9 +584,7 @@ export default function Account() {
               disabled={cancelSubscriptionMutation.isPending}
               data-testid="button-confirm-cancel-subscription"
             >
-              {cancelSubscriptionMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
+              {cancelSubscriptionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               解約する
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -586,11 +599,9 @@ export default function Account() {
               <Crown className="h-5 w-5 text-yellow-500" />
               高画質プラン
             </DialogTitle>
-            <DialogDescription>
-              4K・最高画質でコンテンツを視聴できます
-            </DialogDescription>
+            <DialogDescription>4K・最高画質でコンテンツを視聴できます</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
@@ -598,30 +609,20 @@ export default function Account() {
                 <span className="text-2xl font-bold text-yellow-600">980<span className="text-sm">pt/月</span></span>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-yellow-500" />
-                  4K・最高画質でのコンテンツ視聴
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  全クリエイターのコンテンツに適用
-                </li>
-                <li className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                  いつでも解約可能
-                </li>
+                <li className="flex items-center gap-2"><Eye className="h-4 w-4 text-yellow-500" />4K・最高画質でのコンテンツ視聴</li>
+                <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" />全クリエイターのコンテンツに適用</li>
+                <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-blue-500" />いつでも解約可能</li>
               </ul>
             </div>
 
             {premiumStatus?.hasPremium && premiumStatus.plan && (
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
-                  <CheckCircle className="h-4 w-4" />
-                  加入中
+                  <CheckCircle className="h-4 w-4" />加入中
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  有効期限: {premiumStatus.plan.expiresAt 
-                    ? new Date(premiumStatus.plan.expiresAt).toLocaleDateString("ja-JP") 
+                  有効期限: {premiumStatus.plan.expiresAt
+                    ? new Date(premiumStatus.plan.expiresAt).toLocaleDateString("ja-JP")
                     : "無期限"}
                 </p>
                 {premiumStatus.plan.autoRenew && (
@@ -634,41 +635,29 @@ export default function Account() {
           <DialogFooter className="flex flex-col gap-2 sm:flex-col">
             {premiumStatus?.hasPremium ? (
               <>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setIsPremiumDialogOpen(false)}
-                >
-                  閉じる
-                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setIsPremiumDialogOpen(false)}>閉じる</Button>
                 {premiumStatus.plan?.autoRenew && (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full text-muted-foreground"
                     onClick={() => cancelPremiumMutation.mutate()}
                     disabled={cancelPremiumMutation.isPending}
                     data-testid="button-cancel-premium"
                   >
-                    {cancelPremiumMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
+                    {cancelPremiumMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     自動更新を停止する
                   </Button>
                 )}
               </>
             ) : (
               <>
-                <Button 
+                <Button
                   className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                   onClick={() => subscribePremiumMutation.mutate()}
                   disabled={subscribePremiumMutation.isPending || (profile?.points || 0) < 980}
                   data-testid="button-subscribe-premium"
                 >
-                  {subscribePremiumMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Crown className="h-4 w-4 mr-2" />
-                  )}
+                  {subscribePremiumMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Crown className="h-4 w-4 mr-2" />}
                   980ptで加入する
                 </Button>
                 {(profile?.points || 0) < 980 && (
@@ -676,13 +665,7 @@ export default function Account() {
                     ポイントが不足しています（所持: {profile?.points || 0}pt）
                   </p>
                 )}
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setIsPremiumDialogOpen(false)}
-                >
-                  キャンセル
-                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setIsPremiumDialogOpen(false)}>キャンセル</Button>
               </>
             )}
           </DialogFooter>

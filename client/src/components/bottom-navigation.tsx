@@ -11,16 +11,15 @@ interface NavItem {
   path: string;
   icon: IconType;
   labelKey: string;
-  hasLiveIndicator?: boolean;
   iconSize?: string;
 }
 
 const navItems: NavItem[] = [
-  { path: "/", icon: PiHouseDuotone, labelKey: "nav.home", iconSize: "h-7 w-7" },
-  { path: "/live", icon: PiBroadcastDuotone, labelKey: "nav.live", iconSize: "h-7 w-7" },
-  { path: "/shop", icon: PiShoppingBagDuotone, labelKey: "nav.shop", iconSize: "h-8 w-8" },
-  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", iconSize: "h-8 w-8" },
-  { path: "/account", icon: PiUserCircleDuotone, labelKey: "nav.account", iconSize: "h-8 w-8" },
+  { path: "/", icon: PiHouseDuotone, labelKey: "nav.home", iconSize: "h-6 w-6" },
+  { path: "/live", icon: PiBroadcastDuotone, labelKey: "nav.live", iconSize: "h-6 w-6" },
+  { path: "/shop", icon: PiShoppingBagDuotone, labelKey: "nav.shop", iconSize: "h-6 w-6" },
+  { path: "/messages", icon: PiChatCircleDotsDuotone, labelKey: "nav.messages", iconSize: "h-6 w-6" },
+  { path: "/account", icon: PiUserCircleDuotone, labelKey: "nav.account", iconSize: "h-6 w-6" },
 ];
 
 export function BottomNavigation() {
@@ -37,10 +36,8 @@ export function BottomNavigation() {
   const unreadCount = unreadMessages?.count || 0;
 
   return (
-    <nav 
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-safe pointer-events-none"
-    >
-      <div className="flex items-center justify-around h-[72px] max-w-lg mx-auto pl-2 pr-2 pointer-events-auto">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto bg-background/95 backdrop-blur-xl border-t border-border/40 pb-safe shadow-[0_-1px_0_rgba(0,0,0,0.04)]">
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const isActive = location === item.path;
           const Icon = item.icon;
@@ -49,51 +46,33 @@ export function BottomNavigation() {
           return (
             <Link key={item.path} href={item.path}>
               <motion.button
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.88 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 w-16 h-full rounded-full transition-all duration-300",
-                  isActive 
-                    ? "text-white" 
-                    : "text-white/60 hover:text-white/90"
+                  "relative flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-2xl transition-colors duration-200",
+                  isActive ? "text-pink-500" : "text-muted-foreground/60 hover:text-muted-foreground"
                 )}
                 data-testid={`nav-${item.path === "/" ? "home" : item.path.slice(1)}`}
               >
                 {isActive && (
                   <motion.div
-                    layoutId="nav-active-bg"
-                    className="absolute inset-1 bg-white/15 backdrop-blur-sm rounded-full"
+                    layoutId="nav-active-pill"
+                    className="absolute inset-1 bg-pink-50 dark:bg-pink-950/30 rounded-xl"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
-                
-                <div className="relative z-10 translate-y-0.5">
-                  <Icon 
-                    className={cn(
-                      item.iconSize || "h-7 w-7",
-                      "transition-all duration-300",
-                      isActive && "scale-110"
-                    )} 
-                  />
-                  
-                  {item.hasLiveIndicator && (
-                    <motion.span 
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-lg shadow-red-500/60 ring-2 ring-black/30" 
-                    />
-                  )}
-                  
+
+                <div className="relative z-10">
+                  <Icon className={cn(item.iconSize || "h-6 w-6", "transition-transform duration-200", isActive && "scale-110")} />
                   {showBadge && (
-                    <span className="absolute -top-1 -right-2 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg ring-1 ring-black/20">
+                    <span className="absolute -top-1 -right-2 h-4 min-w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold px-0.5 shadow-sm">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
                 </div>
-                
+
                 <span className={cn(
-                  "relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300",
-                  isActive && "font-bold"
+                  "relative z-10 text-[10px] font-medium tracking-wide transition-all duration-200",
+                  isActive && "font-semibold"
                 )}>
                   {t(item.labelKey)}
                 </span>

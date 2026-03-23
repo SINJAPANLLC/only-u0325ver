@@ -1,7 +1,6 @@
 import { PiGlobeHemisphereEastDuotone, PiBellSimpleRingingDuotone, PiMagnifyingGlassDuotone, PiDownloadSimpleDuotone } from "react-icons/pi";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -39,11 +37,28 @@ const languages = [
   { code: "ko", label: "한국어" },
 ];
 
+const pageTitles: Record<string, string> = {
+  "/shop": "ショップ",
+  "/messages": "メッセージ",
+  "/account": "アカウント",
+  "/following": "フォロー中",
+  "/notifications": "通知",
+  "/points-purchase": "ポイント購入",
+  "/my-purchases": "購入履歴",
+  "/payment-methods": "お支払い方法",
+  "/personal-info": "本人情報",
+  "/phone-verification": "電話番号認証",
+  "/email-verification": "メール認証",
+  "/language-settings": "言語設定",
+  "/notification-settings": "通知設定",
+  "/privacy-settings": "プライバシー設定",
+};
+
 export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange, showFeedTabs = false }: HeaderProps) {
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location] = useLocation();
   const { user } = useAuth();
   const { language, setLanguage, t } = useI18n();
   const { isInstallable, isInstalled, install } = usePwaInstall();
@@ -66,31 +81,30 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
     }
   };
 
+  const pageTitle = pageTitles[location];
+
   return (
-    <header 
-      className="lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto bg-gradient-to-b from-black/40 to-transparent pointer-events-none pt-safe"
-    >
-      <div className="flex h-16 items-center justify-between px-4 gap-2 pointer-events-auto">
+    <header className="lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto bg-background/95 backdrop-blur-xl border-b border-border/40 pt-safe">
+      <div className="flex h-14 items-center justify-between px-4">
         <div className="flex flex-col items-start">
-          <motion.div 
-            className="flex items-center"
-            whileHover={{ scale: 1.02 }}
-          >
-            <img 
-              src={logoImage} 
-              alt="Only-U" 
-              className="h-16 object-contain brightness-0 invert"
+          {pageTitle ? (
+            <h1 className="text-lg font-bold text-foreground">{pageTitle}</h1>
+          ) : (
+            <img
+              src={logoImage}
+              alt="Only-U"
+              className="h-10 object-contain dark:invert"
               data-testid="img-logo"
             />
-          </motion.div>
+          )}
           {showFeedTabs && (
-            <div className="flex items-center gap-4 ml-1 -mt-1">
+            <div className="flex items-center gap-4 mt-0.5">
               <button
                 onClick={() => onFeedTypeChange?.("recommend")}
                 className={`text-sm font-medium whitespace-nowrap transition-all ${
-                  feedType === "recommend" 
-                    ? "text-white" 
-                    : "text-white/50"
+                  feedType === "recommend"
+                    ? "text-foreground"
+                    : "text-muted-foreground/60"
                 }`}
                 data-testid="button-feed-recommend"
               >
@@ -99,9 +113,9 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               <button
                 onClick={() => onFeedTypeChange?.("following")}
                 className={`text-sm font-medium whitespace-nowrap transition-all ${
-                  feedType === "following" 
-                    ? "text-white" 
-                    : "text-white/50"
+                  feedType === "following"
+                    ? "text-foreground"
+                    : "text-muted-foreground/60"
                 }`}
                 data-testid="button-feed-following"
               >
@@ -111,24 +125,24 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           )}
         </div>
 
-        <div className="flex items-center gap-1 -mt-2">
+        <div className="flex items-center gap-0.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="button-language"
               >
-                <PiGlobeHemisphereEastDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+                <PiGlobeHemisphereEastDuotone className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20">
+            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code as any)}
-                  className={`rounded-lg text-white hover:bg-white/20 ${language === lang.code ? "bg-gradient-to-r from-pink-500/30 to-rose-500/30" : ""}`}
+                  className={`rounded-lg ${language === lang.code ? "bg-pink-500/10 text-pink-600 dark:text-pink-400" : ""}`}
                   data-testid={`menu-item-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -137,40 +151,40 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-12 w-12 relative hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-10 w-10 relative hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setShowNotificationsModal(true)}
             data-testid="button-notifications"
           >
-            <PiBellSimpleRingingDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+            <PiBellSimpleRingingDuotone className="h-5 w-5" />
             {notificationCount > 0 && (
-              <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-lg">
+              <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-sm">
                 {notificationCount > 9 ? "9+" : notificationCount}
               </span>
             )}
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setShowSearchModal(true)}
             data-testid="button-search"
           >
-            <PiMagnifyingGlassDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+            <PiMagnifyingGlassDuotone className="h-5 w-5" />
           </Button>
 
           {!isInstalled && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full h-12 w-12 hover:bg-white/20 hover:scale-105 transition-all duration-300 text-white"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
               onClick={handleInstallClick}
               data-testid="button-install"
             >
-              <PiDownloadSimpleDuotone className="h-10 w-10 text-white drop-shadow-sm" />
+              <PiDownloadSimpleDuotone className="h-5 w-5" />
             </Button>
           )}
 
@@ -179,17 +193,15 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
       </div>
 
       <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
-        <DialogContent className="max-w-sm rounded-2xl bg-white border-white/20 text-black">
+        <DialogContent className="max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-center text-black">
-              ホーム画面に追加
-            </DialogTitle>
+            <DialogTitle className="text-xl font-bold text-center">ホーム画面に追加</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {isIOS ? (
               <div className="space-y-3">
-                <p className="text-sm text-black/80 text-center">iPhoneでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
+                <p className="text-sm text-muted-foreground text-center">iPhoneでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
                   <li>画面下の<span className="font-bold">共有ボタン</span>をタップ</li>
                   <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
                   <li>右上の「<span className="font-bold">追加</span>」をタップ</li>
@@ -197,8 +209,8 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               </div>
             ) : isAndroid ? (
               <div className="space-y-3">
-                <p className="text-sm text-black/80 text-center">Androidでアプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
+                <p className="text-sm text-muted-foreground text-center">Androidでアプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
                   <li>ブラウザの<span className="font-bold">メニュー（︙）</span>をタップ</li>
                   <li>「<span className="font-bold">ホーム画面に追加</span>」を選択</li>
                   <li>「<span className="font-bold">追加</span>」をタップ</li>
@@ -206,17 +218,14 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-black/80 text-center">アプリをインストール：</p>
-                <ol className="list-decimal list-inside space-y-2 text-sm text-black/90">
+                <p className="text-sm text-muted-foreground text-center">アプリをインストール：</p>
+                <ol className="list-decimal list-inside space-y-2 text-sm">
                   <li>ブラウザのメニューを開く</li>
                   <li>「ホーム画面に追加」または「アプリをインストール」を選択</li>
                 </ol>
               </div>
             )}
-            <Button 
-              onClick={() => setShowInstallDialog(false)}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white"
-            >
+            <Button onClick={() => setShowInstallDialog(false)} className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl">
               OK
             </Button>
           </div>
