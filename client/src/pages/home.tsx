@@ -294,7 +294,7 @@ function VideoPage({
           <video
             ref={videoRef}
             src={videoUrl}
-            className={`absolute inset-0 w-full h-full ${videoFit === "contain" ? "object-contain" : "object-cover"}`}
+            className="absolute inset-0 w-full h-full object-contain"
             loop
             muted={isMuted}
             playsInline
