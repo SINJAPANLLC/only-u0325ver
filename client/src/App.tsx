@@ -8,7 +8,6 @@ import { I18nProvider } from "@/lib/i18n";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
-import { LoadingScreen } from "@/components/loading-screen";
 import { AgeVerification } from "@/components/age-verification";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -247,16 +246,7 @@ function AppContent() {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [isAgeVerified, setIsAgeVerified] = useState<boolean>(() => getAgeVerified());
-  const [showLoading, setShowLoading] = useState(true);
   const [showAgeVerification, setShowAgeVerification] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleAgeVerified = useCallback(() => {
     setIsAgeVerified(true);
@@ -272,8 +262,8 @@ function AppContent() {
     setShowAgeVerification(false);
   }, []);
 
-  if (showLoading || isLoading) {
-    return <LoadingScreen />;
+  if (isLoading) {
+    return null;
   }
 
   if (showAgeVerification) {
