@@ -666,19 +666,11 @@ const demoVideos: VideoPageProps[] = [
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const containerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Recommended videos (all new videos)
   const { data: recommendedVideos } = useQuery<any[]>({
     queryKey: ["/api/videos"],
-  });
-
-  // Following videos (from followed creators)
-  const { data: followingVideosData } = useQuery<any[]>({
-    queryKey: ["/api/videos/following"],
-    enabled: !!user && feedType === "following",
   });
 
   const { data: subscriptions } = useQuery<Subscription[]>({
@@ -722,14 +714,9 @@ export default function Home() {
     };
   };
 
-  // Use API data when available, fallback to demo data for showcase
-  const displayVideos: VideoPageProps[] = feedType === "following" 
-    ? (followingVideosData && followingVideosData.length > 0
-        ? followingVideosData.map(mapVideoToProps)
-        : [])
-    : (recommendedVideos && recommendedVideos.length > 0
-        ? recommendedVideos.map(mapVideoToProps)
-        : (recommendedVideos ? [] : demoVideos));
+  const displayVideos: VideoPageProps[] = recommendedVideos && recommendedVideos.length > 0
+    ? recommendedVideos.map(mapVideoToProps)
+    : (recommendedVideos ? [] : demoVideos);
 
   // Track scroll position to determine active video
   useEffect(() => {
@@ -749,42 +736,21 @@ export default function Home() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [activeIndex, displayVideos.length]);
 
-  const handleFeedTypeChange = (type: "recommend" | "following") => {
-    setFeedType(type);
-    setActiveIndex(0);
-    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <>
-      <Header
-        variant="overlay"
-        feedType={feedType}
-        onFeedTypeChange={handleFeedTypeChange}
-        showFeedTabs={true}
-      />
+      <Header variant="overlay" />
       <div 
         ref={containerRef}
         className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
         data-testid="video-feed"
       >
-        {displayVideos.length === 0 && feedType === "following" ? (
-          <div className="h-[100svh] flex flex-col items-center justify-center text-white px-8">
-            <div className="text-6xl mb-4">👀</div>
-            <h2 className="text-xl font-bold mb-2">フォロー中の動画がありません</h2>
-            <p className="text-white/70 text-center">
-              クリエイターをフォローすると、ここに動画が表示されます
-            </p>
-          </div>
-        ) : (
-          displayVideos.map((video, index) => (
-            <VideoPage
-              key={video.id}
-              {...video}
-              isActive={index === activeIndex}
-            />
-          ))
-        )}
+        {displayVideos.map((video, index) => (
+          <VideoPage
+            key={video.id}
+            {...video}
+            isActive={index === activeIndex}
+          />
+        ))}
       </div>
       <BottomNavigation />
     </>

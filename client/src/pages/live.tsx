@@ -638,7 +638,6 @@ const demoLiveStreams: DemoStreamData[] = [
 
 export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [feedType, setFeedType] = useState<"recommend" | "following">("recommend");
   const [roomModes, setRoomModes] = useState<Record<string, RoomMode>>({});
   const chargeIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({});
   const activeSessionsRef = useRef<Set<string>>(new Set());
@@ -649,12 +648,6 @@ export default function Live() {
   const { data: liveStreams } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
     refetchInterval: 5000,
-  });
-
-  const { data: followingLiveStreams } = useQuery<any[]>({
-    queryKey: ["/api/live/following"],
-    refetchInterval: 5000,
-    enabled: feedType === "following",
   });
 
   const { data: userProfile } = useQuery<any>({
@@ -754,13 +747,9 @@ export default function Live() {
   });
 
   const realLiveStreamsFormatted = (liveStreams || []).map(formatStreamData);
-  const followingStreamsFormatted = (followingLiveStreams || []).map(formatStreamData);
-
-  const baseStreams = feedType === "following"
-    ? (followingStreamsFormatted.length > 0 ? followingStreamsFormatted : [])
-    : realLiveStreamsFormatted.length > 0
-      ? realLiveStreamsFormatted
-      : demoLiveStreams;
+  const baseStreams = realLiveStreamsFormatted.length > 0
+    ? realLiveStreamsFormatted
+    : demoLiveStreams;
 
   const handleModeChange = async (streamId: string, mode: RoomMode) => {
     const previousMode = roomModes[streamId] || "waiting";
@@ -820,12 +809,6 @@ export default function Live() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [activeIndex, baseStreams.length]);
 
-  const handleFeedTypeChange = (type: "recommend" | "following") => {
-    setFeedType(type);
-    setActiveIndex(0);
-    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   // Cleanup intervals and sessions on unmount
   useEffect(() => {
     return () => {
@@ -842,26 +825,13 @@ export default function Live() {
 
   return (
     <>
-      <Header
-        variant="overlay"
-        feedType={feedType}
-        onFeedTypeChange={handleFeedTypeChange}
-        showFeedTabs={true}
-      />
+      <Header variant="overlay" />
       <div 
         ref={containerRef}
         className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
         data-testid="live-feed-container"
       >
-        {baseStreams.length === 0 && feedType === "following" ? (
-          <div className="h-[100svh] flex flex-col items-center justify-center text-white px-8">
-            <div className="text-6xl mb-4">👀</div>
-            <h2 className="text-xl font-bold mb-2">フォロー中の配信がありません</h2>
-            <p className="text-white/70 text-center">
-              クリエイターをフォローすると、ここに配信が表示されます
-            </p>
-          </div>
-        ) : baseStreams.map((stream, index) => (
+        {baseStreams.map((stream, index) => (
           <LiveStreamPage
             key={stream.id}
             id={stream.id}
