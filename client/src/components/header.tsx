@@ -58,39 +58,13 @@ export function Header({ variant = "solid" }: HeaderProps) {
     >
       {isOverlay ? (
         <div className="pointer-events-auto">
-          <div className="flex items-center justify-between px-3 h-14">
+          <div className="flex items-center px-3 h-14">
             <img
               src={logoImage}
               alt="Only-U"
-              className="h-10 object-contain brightness-0 invert"
+              className="h-12 object-contain brightness-0 invert"
               data-testid="img-logo"
             />
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full relative text-white hover:bg-white/20"
-                onClick={() => setShowNotificationsModal(true)}
-                data-testid="button-notifications"
-              >
-                <PiBellSimpleRingingDuotone className="h-5 w-5 drop-shadow" />
-                {notificationCount > 0 && (
-                  <span className="absolute top-1 right-1 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-pink-500 text-white text-[8px] font-bold shadow">
-                    {notificationCount > 9 ? "9+" : notificationCount}
-                  </span>
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full text-white hover:bg-white/20"
-                onClick={() => setShowSearchModal(true)}
-                data-testid="button-search"
-              >
-                <PiMagnifyingGlassDuotone className="h-5 w-5 drop-shadow" />
-              </Button>
-            </div>
           </div>
         </div>
       ) : (
@@ -102,7 +76,7 @@ export function Header({ variant = "solid" }: HeaderProps) {
               <img
                 src={logoImage}
                 alt="Only-U"
-                className="h-11 object-contain"
+                className="h-12 object-contain"
                 data-testid="img-logo"
               />
             )}
