@@ -22,8 +22,10 @@ import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { SearchModal } from "@/components/search-modal";
 import { NotificationsModal } from "@/components/notifications-modal";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
+  variant?: "overlay" | "solid";
   onSearchClick?: () => void;
   feedType?: "recommend" | "following";
   onFeedTypeChange?: (type: "recommend" | "following") => void;
@@ -54,7 +56,12 @@ const pageTitles: Record<string, string> = {
   "/privacy-settings": "プライバシー設定",
 };
 
-export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange, showFeedTabs = false }: HeaderProps) {
+export function Header({
+  variant = "solid",
+  feedType = "recommend",
+  onFeedTypeChange,
+  showFeedTabs = false,
+}: HeaderProps) {
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
@@ -82,13 +89,34 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
   };
 
   const pageTitle = pageTitles[location];
+  const isOverlay = variant === "overlay";
 
   return (
-    <header className="lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto bg-background/95 backdrop-blur-xl border-b border-border/40 pt-safe">
-      <div className="flex h-14 items-center justify-between px-4">
-        <div className="flex flex-col items-start">
-          {pageTitle ? (
-            <h1 className="text-lg font-bold text-foreground">{pageTitle}</h1>
+    <header
+      className={cn(
+        "lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto pt-safe",
+        isOverlay
+          ? "bg-gradient-to-b from-black/55 via-black/20 to-transparent pointer-events-none"
+          : "bg-background/95 backdrop-blur-xl border-b border-border/40"
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center justify-between px-4 gap-2",
+          isOverlay ? "h-16 pointer-events-auto" : "h-14"
+        )}
+      >
+        {/* Left side: logo or page title */}
+        <div className="flex flex-col items-start min-w-0">
+          {isOverlay ? (
+            <img
+              src={logoImage}
+              alt="Only-U"
+              className="h-14 object-contain brightness-0 invert"
+              data-testid="img-logo"
+            />
+          ) : pageTitle ? (
+            <h1 className="text-lg font-bold text-foreground truncate">{pageTitle}</h1>
           ) : (
             <img
               src={logoImage}
@@ -97,26 +125,29 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
               data-testid="img-logo"
             />
           )}
-          {showFeedTabs && (
-            <div className="flex items-center gap-4 mt-0.5">
+
+          {showFeedTabs && isOverlay && (
+            <div className="flex items-center gap-5 mt-0.5">
               <button
                 onClick={() => onFeedTypeChange?.("recommend")}
-                className={`text-sm font-medium whitespace-nowrap transition-all ${
+                className={cn(
+                  "text-sm font-semibold whitespace-nowrap transition-all pb-0.5",
                   feedType === "recommend"
-                    ? "text-foreground"
-                    : "text-muted-foreground/60"
-                }`}
+                    ? "text-white border-b-2 border-white"
+                    : "text-white/55"
+                )}
                 data-testid="button-feed-recommend"
               >
                 {t("feed.recommend")}
               </button>
               <button
                 onClick={() => onFeedTypeChange?.("following")}
-                className={`text-sm font-medium whitespace-nowrap transition-all ${
+                className={cn(
+                  "text-sm font-semibold whitespace-nowrap transition-all pb-0.5",
                   feedType === "following"
-                    ? "text-foreground"
-                    : "text-muted-foreground/60"
-                }`}
+                    ? "text-white border-b-2 border-white"
+                    : "text-white/55"
+                )}
                 data-testid="button-feed-following"
               >
                 {t("feed.following")}
@@ -125,24 +156,43 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           )}
         </div>
 
-        <div className="flex items-center gap-0.5">
+        {/* Right side: action buttons */}
+        <div className={cn("flex items-center", isOverlay ? "gap-0 -mr-1" : "gap-0.5")}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "rounded-full transition-colors",
+                  isOverlay
+                    ? "h-12 w-12 text-white hover:bg-white/20"
+                    : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+                )}
                 data-testid="button-language"
               >
-                <PiGlobeHemisphereEastDuotone className="h-5 w-5" />
+                <PiGlobeHemisphereEastDuotone
+                  className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"}
+                />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
+            <DropdownMenuContent
+              align="end"
+              className={cn(
+                "min-w-[140px] rounded-xl",
+                isOverlay && "bg-black/80 backdrop-blur-xl border-white/20"
+              )}
+            >
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code as any)}
-                  className={`rounded-lg ${language === lang.code ? "bg-pink-500/10 text-pink-600 dark:text-pink-400" : ""}`}
+                  className={cn(
+                    "rounded-lg",
+                    isOverlay
+                      ? `text-white hover:bg-white/20 ${language === lang.code ? "bg-white/15" : ""}`
+                      : language === lang.code ? "bg-pink-500/10 text-pink-600 dark:text-pink-400" : ""
+                  )}
                   data-testid={`menu-item-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -154,13 +204,18 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-10 w-10 relative hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            className={cn(
+              "rounded-full relative transition-colors",
+              isOverlay
+                ? "h-12 w-12 text-white hover:bg-white/20"
+                : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+            )}
             onClick={() => setShowNotificationsModal(true)}
             data-testid="button-notifications"
           >
-            <PiBellSimpleRingingDuotone className="h-5 w-5" />
+            <PiBellSimpleRingingDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
             {notificationCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-sm">
+              <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
                 {notificationCount > 9 ? "9+" : notificationCount}
               </span>
             )}
@@ -169,26 +224,36 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            className={cn(
+              "rounded-full transition-colors",
+              isOverlay
+                ? "h-12 w-12 text-white hover:bg-white/20"
+                : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+            )}
             onClick={() => setShowSearchModal(true)}
             data-testid="button-search"
           >
-            <PiMagnifyingGlassDuotone className="h-5 w-5" />
+            <PiMagnifyingGlassDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
           </Button>
 
           {!isInstalled && (
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-10 w-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              className={cn(
+                "rounded-full transition-colors",
+                isOverlay
+                  ? "h-12 w-12 text-white hover:bg-white/20"
+                  : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
+              )}
               onClick={handleInstallClick}
               data-testid="button-install"
             >
-              <PiDownloadSimpleDuotone className="h-5 w-5" />
+              <PiDownloadSimpleDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
             </Button>
           )}
 
-          <ThemeToggle />
+          <ThemeToggle variant={isOverlay ? "overlay" : "solid"} />
         </div>
       </div>
 
@@ -225,7 +290,10 @@ export function Header({ onSearchClick, feedType = "recommend", onFeedTypeChange
                 </ol>
               </div>
             )}
-            <Button onClick={() => setShowInstallDialog(false)} className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl">
+            <Button
+              onClick={() => setShowInstallDialog(false)}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-xl"
+            >
               OK
             </Button>
           </div>

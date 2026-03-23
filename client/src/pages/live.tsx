@@ -842,8 +842,9 @@ export default function Live() {
 
   return (
     <>
-      <Header 
-        feedType={feedType} 
+      <Header
+        variant="overlay"
+        feedType={feedType}
         onFeedTypeChange={handleFeedTypeChange}
         showFeedTabs={true}
       />

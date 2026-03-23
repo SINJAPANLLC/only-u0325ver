@@ -373,7 +373,7 @@ function VideoPage({
           className="relative mb-1"
           data-testid={`button-avatar-${id}`}
         >
-          <Avatar className="h-11 w-11 ring-2 ring-white shadow-lg">
+          <Avatar className="h-14 w-14 ring-2 ring-white shadow-xl">
             <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold">
               {creatorName.charAt(0)}
@@ -384,22 +384,22 @@ function VideoPage({
         {/* Like */}
         <button
           onClick={(e) => { e.stopPropagation(); handleLike(); }}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-1.5"
           data-testid={`button-like-${id}`}
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className={`h-9 w-9 rounded-full flex items-center justify-center ${
-              isLiked ? "bg-pink-500/20" : "bg-white/10"
-            } backdrop-blur-sm transition-colors`}
+            className={`h-12 w-12 rounded-full flex items-center justify-center ${
+              isLiked ? "bg-pink-500/25" : "bg-black/30"
+            } backdrop-blur-md transition-colors shadow-lg`}
           >
             <Heart
-              className={`h-4 w-4 transition-colors ${
-                isLiked ? "text-pink-500 fill-pink-500" : "text-white"
+              className={`h-6 w-6 transition-colors drop-shadow ${
+                isLiked ? "text-pink-400 fill-pink-400" : "text-white"
               }`}
             />
           </motion.div>
-          <span className="text-[10px] text-white font-semibold" data-testid={`text-likes-${id}`}>
+          <span className="text-[11px] text-white font-bold drop-shadow" data-testid={`text-likes-${id}`}>
             {formatCount(likes)}
           </span>
         </button>
@@ -407,40 +407,40 @@ function VideoPage({
         {/* Comment */}
         <button
           onClick={handleComment}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-1.5"
           data-testid={`button-comment-${id}`}
         >
-          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <MessageCircle className="h-4 w-4 text-white" />
+          <div className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <MessageCircle className="h-6 w-6 text-white drop-shadow" />
           </div>
-          <span className="text-[10px] text-white font-semibold">{formatCount(commentCount)}</span>
+          <span className="text-[11px] text-white font-bold drop-shadow">{formatCount(commentCount)}</span>
         </button>
 
         {/* Share */}
         <button
           onClick={handleShare}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-1.5"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Share2 className="h-4 w-4 text-white" />
+          <div className="h-12 w-12 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <Share2 className="h-6 w-6 text-white drop-shadow" />
           </div>
-          <span className="text-[10px] text-white font-semibold">シェア</span>
+          <span className="text-[11px] text-white font-bold drop-shadow">シェア</span>
         </button>
 
         {/* Volume */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-1.5"
           data-testid={`button-volume-${id}`}
         >
-          <div className={`h-9 w-9 rounded-full flex items-center justify-center backdrop-blur-sm transition-colors ${
-            isMuted ? "bg-white/10" : "bg-white/20"
+          <div className={`h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
+            isMuted ? "bg-black/30" : "bg-white/20"
           }`}>
             {isMuted ? (
-              <VolumeX className="h-4 w-4 text-white" />
+              <VolumeX className="h-6 w-6 text-white drop-shadow" />
             ) : (
-              <Volume2 className="h-4 w-4 text-white" />
+              <Volume2 className="h-6 w-6 text-white drop-shadow" />
             )}
           </div>
         </button>
@@ -736,8 +736,9 @@ export default function Home() {
 
   return (
     <>
-      <Header 
-        feedType={feedType} 
+      <Header
+        variant="overlay"
+        feedType={feedType}
         onFeedTypeChange={handleFeedTypeChange}
         showFeedTabs={true}
       />
