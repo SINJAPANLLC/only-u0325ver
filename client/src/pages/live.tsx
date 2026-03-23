@@ -116,12 +116,13 @@ export default function Live() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (locked.current) return;
+      if (Math.abs(e.deltaY) < 30) return;
       const dir = e.deltaY > 0 ? 1 : -1;
       const next = indexRef.current + dir;
       if (next < 0 || next >= lengthRef.current) return;
       locked.current = true;
       setIndex(next);
-      setTimeout(() => { locked.current = false; }, 500);
+      setTimeout(() => { locked.current = false; }, 900);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
