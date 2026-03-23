@@ -738,18 +738,20 @@ export default function Home() {
   return (
     <>
       <Header variant="overlay" />
-      <div 
-        ref={containerRef}
-        className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
-        data-testid="video-feed"
-      >
-        {displayVideos.map((video, index) => (
-          <VideoPage
-            key={video.id}
-            {...video}
-            isActive={index === activeIndex}
-          />
-        ))}
+      <div className="h-[100svh] bg-black flex items-center justify-center overflow-hidden">
+        <div
+          ref={containerRef}
+          className="w-full h-full lg:max-w-[420px] lg:mx-auto overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+          data-testid="video-feed"
+        >
+          {displayVideos.map((video, index) => (
+            <VideoPage
+              key={video.id}
+              {...video}
+              isActive={index === activeIndex}
+            />
+          ))}
+        </div>
       </div>
       <BottomNavigation />
     </>
