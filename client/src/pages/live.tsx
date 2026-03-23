@@ -133,7 +133,7 @@ export default function Live() {
 
       <div
         ref={containerRef}
-        className="h-full overflow-y-scroll snap-y snap-proximity scroll-smooth"
+        className="h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth"
         style={{ scrollbarWidth: "none" }}
         onScroll={(e) => {
           const el = e.currentTarget;
