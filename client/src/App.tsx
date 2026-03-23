@@ -63,7 +63,7 @@ function ScrollToTop() {
 
 function AuthenticatedApp() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       <ScrollToTop />
       <Switch>
         {/* Home uses full-screen TikTok-style layout with overlay nav - Header/Nav included in component */}

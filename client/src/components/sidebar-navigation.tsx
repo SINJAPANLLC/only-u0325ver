@@ -8,7 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,12 +66,12 @@ export function SidebarNavigation() {
 
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-background border-r border-border/50 fixed left-0 top-0 bottom-0 z-40">
-        <div className="p-5 border-b border-border/30">
+      <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-black border-r border-white/10 fixed left-0 top-0 bottom-0 z-40">
+        <div className="p-5 border-b border-white/10">
           <img
             src={logoImage}
             alt="Only-U"
-            className="h-14 object-contain dark:invert"
+            className="h-14 object-contain brightness-0 invert"
             data-testid="img-logo-sidebar"
           />
         </div>
@@ -91,8 +90,8 @@ export function SidebarNavigation() {
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-pink-500/15 to-rose-500/10 text-pink-500 dark:text-pink-400"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      ? "bg-gradient-to-r from-pink-500/20 to-rose-500/10 text-pink-400"
+                      : "text-white/50 hover:bg-white/10 hover:text-white"
                   )}
                   data-testid={`sidebar-nav-${item.path === "/" ? "home" : item.path.slice(1)}`}
                 >
@@ -104,7 +103,7 @@ export function SidebarNavigation() {
                       </span>
                     )}
                   </div>
-                  <span className={cn("font-medium text-sm", isActive && "font-semibold")}>
+                  <span className={cn("font-medium text-sm", isActive && "font-semibold text-white")}>
                     {t(item.labelKey)}
                   </span>
                   {isActive && (
@@ -120,10 +119,10 @@ export function SidebarNavigation() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-border/30 space-y-1">
+        <div className="p-3 border-t border-white/10 space-y-1">
           <button
             onClick={() => setShowNotificationsModal(true)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-white/50 hover:bg-white/10 hover:text-white transition-all duration-200"
             data-testid="sidebar-notifications"
           >
             <div className="relative">
@@ -139,7 +138,7 @@ export function SidebarNavigation() {
 
           <button
             onClick={() => setShowSearchModal(true)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-white/50 hover:bg-white/10 hover:text-white transition-all duration-200"
             data-testid="sidebar-search"
           >
             <PiMagnifyingGlassDuotone className="h-6 w-6" />
@@ -149,19 +148,19 @@ export function SidebarNavigation() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-white/50 hover:bg-white/10 hover:text-white transition-all duration-200"
                 data-testid="sidebar-language"
               >
                 <PiGlobeHemisphereEastDuotone className="h-6 w-6" />
                 <span className="text-sm font-medium">言語</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top" className="min-w-[140px] rounded-xl">
+            <DropdownMenuContent align="start" side="top" className="min-w-[140px] rounded-xl bg-zinc-900 border border-white/10 text-white">
               {languages.map((lang) => (
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => setLanguage(lang.code as any)}
-                  className={cn("rounded-lg", language === lang.code && "bg-pink-500/10 text-pink-600 dark:text-pink-400")}
+                  className={cn("rounded-lg text-white/70 hover:text-white focus:text-white focus:bg-white/10", language === lang.code && "bg-pink-500/20 text-pink-400 focus:bg-pink-500/20 focus:text-pink-400")}
                   data-testid={`sidebar-lang-${lang.code}`}
                 >
                   {lang.label}
@@ -169,10 +168,6 @@ export function SidebarNavigation() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <div className="px-4 py-2">
-            <ThemeToggle />
-          </div>
         </div>
       </aside>
 
