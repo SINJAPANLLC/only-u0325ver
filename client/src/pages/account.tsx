@@ -60,30 +60,30 @@ interface MenuItemProps {
 function MenuItem({ icon: Icon, label, description, badge, badgeVariant = "default", onClick, href }: MenuItemProps) {
   const content = (
     <div
-      className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer group active:bg-accent/80 transition-colors"
+      className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer group active:bg-white/10 hover:bg-white/5 transition-colors"
       onClick={onClick}
     >
-      <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 group-hover:bg-pink-50 dark:group-hover:bg-pink-950/20 transition-colors">
-        <Icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-pink-500 transition-colors" style={{ height: "18px", width: "18px" }} />
+      <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-500/20 transition-colors">
+        <Icon className="h-4.5 w-4.5 text-white/60 group-hover:text-pink-400 transition-colors" style={{ height: "18px", width: "18px" }} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-sm">{label}</span>
+          <span className="font-medium text-sm text-white">{label}</span>
           {badge && (
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
               badgeVariant === "pink"
-                ? "bg-pink-100 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400"
-                : "bg-muted text-muted-foreground"
+                ? "bg-pink-500/20 text-pink-400"
+                : "bg-white/10 text-white/50"
             }`}>
               {badge}
             </span>
           )}
         </div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-white/40 mt-0.5">{description}</p>
         )}
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
+      <ChevronRight className="h-4 w-4 text-white/20 flex-shrink-0" />
     </div>
   );
 
@@ -97,8 +97,8 @@ function MenuItem({ icon: Icon, label, description, badge, badgeVariant = "defau
 function MenuSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2 px-1">{title}</p>
-      <div className="rounded-2xl bg-card border border-border/50 overflow-hidden divide-y divide-border/40">
+      <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">{title}</p>
+      <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
         {children}
       </div>
     </section>
@@ -242,7 +242,7 @@ export default function Account() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] bg-black">
         <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -302,48 +302,48 @@ export default function Account() {
   const displayName = profile?.displayName || user?.firstName || user?.email?.split("@")[0] || "ゲスト";
 
   return (
-    <div className="pb-24 lg:pb-8 overflow-y-auto scrollbar-hide">
-      <div className="h-14 lg:h-0" />
+    <div className="bg-black text-white pb-24">
+      {/* Logo header */}
+      <div className="flex items-center px-4 h-16">
+        <img src={logoImage} alt="Only-U" className="h-16 object-contain brightness-0 invert" />
+      </div>
 
-      {/* Profile Hero */}
-      <div className="relative">
-        <div className="h-28 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600" />
-        <div className="px-4 pb-4">
-          <div className="flex items-end justify-between -mt-10 mb-3">
-            <div className="relative">
-              <Avatar className={`h-20 w-20 border-4 border-background shadow-lg ${isApprovedCreator ? 'ring-2 ring-pink-500' : ''}`}>
-                <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || logoImage} className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
-                  {displayName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              {isApprovedCreator && (
-                <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-pink-500 border-2 border-background flex items-center justify-center">
-                  <CheckCircle className="h-3.5 w-3.5 text-white" />
-                </div>
-              )}
-            </div>
-
-            <Link href="/points-purchase">
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900/50 cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-950/50 transition-colors" data-testid="link-points-purchase">
-                <span className="text-xs font-medium text-pink-500">🪙</span>
-                <span className="text-sm font-bold text-pink-600 dark:text-pink-400" data-testid="text-user-points">{(profile?.points ?? 0).toLocaleString()}</span>
-                <span className="text-xs text-pink-400">pt</span>
+      {/* Profile Hero — no background image */}
+      <div className="px-4 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative">
+            <Avatar className={`h-20 w-20 shadow-lg ${isApprovedCreator ? 'ring-2 ring-pink-500' : ''}`}>
+              <AvatarImage src={profile?.avatarUrl || user?.profileImageUrl || logoImage} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-2xl font-bold">
+                {displayName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            {isApprovedCreator && (
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-pink-500 border-2 border-black flex items-center justify-center">
+                <CheckCircle className="h-3.5 w-3.5 text-white" />
               </div>
-            </Link>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold">{displayName}</h2>
-              {isApprovedCreator && (
-                <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-xs">クリエイター</Badge>
-              )}
-            </div>
-            {profile?.bio && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
             )}
           </div>
+
+          <Link href="/points-purchase">
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-pink-500/10 border border-pink-500/30 cursor-pointer hover:bg-pink-500/20 transition-colors" data-testid="link-points-purchase">
+              <span className="text-xs font-medium text-pink-400">🪙</span>
+              <span className="text-sm font-bold text-pink-400" data-testid="text-user-points">{(profile?.points ?? 0).toLocaleString()}</span>
+              <span className="text-xs text-pink-400">pt</span>
+            </div>
+          </Link>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl font-bold text-white">{displayName}</h2>
+            {isApprovedCreator && (
+              <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 text-xs">クリエイター</Badge>
+            )}
+          </div>
+          {profile?.bio && (
+            <p className="text-sm text-white/50 mt-1 line-clamp-2">{profile.bio}</p>
+          )}
         </div>
       </div>
 
@@ -352,38 +352,38 @@ export default function Account() {
         <div className="px-4 mb-5">
           <div className={`rounded-2xl p-4 border ${
             isPendingApplication
-              ? "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40"
+              ? "bg-amber-500/10 border-amber-500/30"
               : isRejectedApplication
-              ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/40"
-              : "bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200 dark:border-pink-800/40"
+              ? "bg-red-500/10 border-red-500/30"
+              : "bg-pink-500/10 border-pink-500/30"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                  isPendingApplication ? "bg-amber-100 dark:bg-amber-900/40"
-                  : isRejectedApplication ? "bg-red-100 dark:bg-red-900/40"
-                  : "bg-pink-100 dark:bg-pink-900/40"
+                  isPendingApplication ? "bg-amber-500/20"
+                  : isRejectedApplication ? "bg-red-500/20"
+                  : "bg-pink-500/20"
                 }`}>
                   <Radio className={`h-5 w-5 ${
-                    isPendingApplication ? "text-amber-600"
-                    : isRejectedApplication ? "text-red-500"
-                    : "text-pink-500"
+                    isPendingApplication ? "text-amber-400"
+                    : isRejectedApplication ? "text-red-400"
+                    : "text-pink-400"
                   }`} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">クリエイターモード</p>
+                  <p className="font-semibold text-sm text-white">クリエイターモード</p>
                   {isPendingApplication ? (
-                    <div className="flex items-center gap-1 text-xs text-amber-600">
+                    <div className="flex items-center gap-1 text-xs text-amber-400">
                       <Clock className="h-3 w-3" />
                       審査中 - 承認をお待ちください
                     </div>
                   ) : isRejectedApplication ? (
-                    <div className="flex items-center gap-1 text-xs text-red-500">
+                    <div className="flex items-center gap-1 text-xs text-red-400">
                       <XCircle className="h-3 w-3" />
                       申請が却下されました
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">配信・販売を始めよう</p>
+                    <p className="text-xs text-white/50">配信・販売を始めよう</p>
                   )}
                 </div>
               </div>
@@ -439,7 +439,7 @@ export default function Account() {
 
         {/* Logout */}
         <button
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-border/60 text-destructive hover:bg-destructive/5 transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium"
           onClick={() => logout()}
           data-testid="button-logout"
         >

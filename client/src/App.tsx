@@ -90,8 +90,7 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/account">
-          <div className="h-[100svh] flex flex-col bg-background pt-safe">
-            <Header />
+          <div className="h-[100svh] flex flex-col bg-black">
             <main className="flex-1 overflow-y-auto scrollbar-hide">
               <Account />
             </main>
