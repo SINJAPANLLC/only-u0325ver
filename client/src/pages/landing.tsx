@@ -7,7 +7,7 @@ import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import {
   Heart, Shield, Video, ShoppingBag,
   ChevronDown, ChevronRight, TrendingUp, Lock, Check,
-  Radio, ArrowRight, Sparkles
+  Radio, ArrowRight
 } from "lucide-react";
 
 interface LandingProps {
@@ -109,16 +109,6 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           transition={{ duration: 0.6, delay: 1.7 }}
           className="relative z-10 text-center max-w-3xl mx-auto"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.9 }}
-            className="inline-flex items-center gap-2 bg-pink-50 border border-pink-200 text-pink-500 text-xs font-semibold px-4 py-2 rounded-full mb-8"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            日本発・クリエイター × ファン プラットフォーム
-          </motion.div>
-
           <h1 className="font-black leading-none tracking-tight mb-6 whitespace-nowrap" style={{ fontSize: "clamp(1.8rem, 4.5vw, 4rem)" }}>
             <span className="text-gray-900">あなたの</span><span className="text-pink-500">推しと、もっと。</span>
           </h1>
