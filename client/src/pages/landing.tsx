@@ -139,6 +139,70 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         </motion.div>
       </section>
 
+      {/* ── PORTRAIT SLIDER ── */}
+      <section className="bg-white py-8 overflow-hidden">
+        <style>{`
+          @keyframes marquee-ltr {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          @keyframes marquee-rtl {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
+          }
+          .marquee-ltr { animation: marquee-ltr 28s linear infinite; }
+          .marquee-rtl { animation: marquee-rtl 28s linear infinite; }
+        `}</style>
+
+        {/* Row 1 — left to right */}
+        <div className="flex w-max marquee-ltr gap-4 mb-4">
+          {[
+            { bg: "linear-gradient(160deg,#fce4ec,#f48fb1)", label: "Yuki", hearts: "12.4k" },
+            { bg: "linear-gradient(160deg,#f8bbd0,#e91e63)", label: "Hana", hearts: "8.7k" },
+            { bg: "linear-gradient(160deg,#fce7f3,#ec4899)", label: "Sora", hearts: "21.1k" },
+            { bg: "linear-gradient(160deg,#ffe4e6,#e11d48)", label: "Mio",  hearts: "5.3k" },
+            { bg: "linear-gradient(160deg,#fdf2f8,#c026d3)", label: "Rina", hearts: "16.8k" },
+            { bg: "linear-gradient(160deg,#f3e8ff,#a855f7)", label: "Nana", hearts: "9.2k" },
+            { bg: "linear-gradient(160deg,#fce4ec,#ad1457)", label: "Mei",  hearts: "33.0k" },
+            { bg: "linear-gradient(160deg,#fbcfe8,#db2777)", label: "Aoi",  hearts: "7.6k" },
+            { bg: "linear-gradient(160deg,#fce4ec,#f06292)", label: "Risa", hearts: "11.5k" },
+            { bg: "linear-gradient(160deg,#f9a8d4,#9d174d)", label: "Emi",  hearts: "18.3k" },
+          ].flatMap((c) => [c, { ...c, label: c.label + "2" }]).map((card, i) => (
+            <div key={i} className="relative shrink-0 w-36 h-60 rounded-2xl overflow-hidden shadow-sm" style={{ background: card.bg }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="text-white text-xs font-bold leading-none">{card.label}</p>
+                <p className="text-white/70 text-[10px] mt-0.5">♡ {card.hearts}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Row 2 — right to left */}
+        <div className="flex w-max marquee-rtl gap-4">
+          {[
+            { bg: "linear-gradient(160deg,#fbcfe8,#9d174d)", label: "Kana", hearts: "14.2k" },
+            { bg: "linear-gradient(160deg,#fce4ec,#f06292)", label: "Sara", hearts: "6.9k" },
+            { bg: "linear-gradient(160deg,#f3e8ff,#a855f7)", label: "Yuna", hearts: "25.7k" },
+            { bg: "linear-gradient(160deg,#fdf2f8,#c026d3)", label: "Mika", hearts: "9.1k" },
+            { bg: "linear-gradient(160deg,#ffe4e6,#e11d48)", label: "Rei",  hearts: "42.3k" },
+            { bg: "linear-gradient(160deg,#fce7f3,#ec4899)", label: "Noa",  hearts: "7.8k" },
+            { bg: "linear-gradient(160deg,#f8bbd0,#e91e63)", label: "Hina", hearts: "19.4k" },
+            { bg: "linear-gradient(160deg,#fce4ec,#ad1457)", label: "Yui",  hearts: "11.0k" },
+            { bg: "linear-gradient(160deg,#f9a8d4,#db2777)", label: "Ami",  hearts: "8.3k" },
+            { bg: "linear-gradient(160deg,#fce4ec,#f48fb1)", label: "Riko", hearts: "30.6k" },
+          ].flatMap((c) => [c, { ...c, label: c.label + "2" }]).map((card, i) => (
+            <div key={i} className="relative shrink-0 w-36 h-60 rounded-2xl overflow-hidden shadow-sm" style={{ background: card.bg }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="text-white text-xs font-bold leading-none">{card.label}</p>
+                <p className="text-white/70 text-[10px] mt-0.5">♡ {card.hearts}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── STATS ── */}
       <section className="bg-pink-500 py-14">
         <div className="max-w-5xl mx-auto px-5">
