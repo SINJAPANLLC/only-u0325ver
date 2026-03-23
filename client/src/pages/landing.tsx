@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import girl1 from "@assets/スクリーンショット_2026-03-23_22.39.41_1774273237678.png";
 import girl2 from "@assets/スクリーンショット_2026-03-23_22.39.18_1774273237693.png";
