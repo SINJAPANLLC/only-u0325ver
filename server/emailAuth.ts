@@ -15,7 +15,6 @@ const registerSchema = z.object({
     .regex(/[0-9]/, "パスワードには数字を含めてください"),
   name: z.string().min(1, "お名前を入力してください"),
   confirmPassword: z.string().optional(),
-  turnstileToken: z.string().optional(),
 }).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: "パスワードが一致しません",
   path: ["confirmPassword"],
@@ -24,7 +23,6 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email("有効なメールアドレスを入力してください"),
   password: z.string().min(1, "パスワードを入力してください"),
-  turnstileToken: z.string().optional(),
 });
 
 const BCRYPT_ROUNDS = 12;

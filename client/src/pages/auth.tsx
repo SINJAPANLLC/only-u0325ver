@@ -89,7 +89,6 @@ export default function Auth() {
           password: registerForm.password,
           confirmPassword: registerForm.password,
           name: registerForm.name.trim(),
-          turnstileToken: "bypass",
         }),
       });
       const data = await response.json();
@@ -114,7 +113,6 @@ export default function Auth() {
         body: JSON.stringify({
           email: loginForm.email.trim(),
           password: loginForm.password,
-          turnstileToken: "bypass",
         }),
       });
       const data = await response.json();
