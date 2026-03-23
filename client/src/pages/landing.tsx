@@ -505,7 +505,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           </div>
           <div className="border-t border-pink-50 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
             <p className="text-gray-300 text-xs">&copy; {new Date().getFullYear()} Only-U. All rights reserved.</p>
-            <p className="text-gray-300 text-xs">運営：SIN JAPAN株式会社</p>
+            <p className="text-gray-300 text-xs">運営：合同会社SIN JAPAN KANAGAWA</p>
           </div>
         </div>
       </footer>
