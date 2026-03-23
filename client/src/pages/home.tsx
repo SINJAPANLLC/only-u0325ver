@@ -314,6 +314,8 @@ function VideoPage({
       dragElastic={{ left: 0.5, right: 0 }}
       onDragEnd={handleDragEnd}
     >
+      {/* Inner wrapper: vertical → 420px centered on desktop, horizontal → full width */}
+      <div className={`absolute inset-y-0 left-0 right-0 ${videoFit === 'cover' ? 'lg:w-[420px] lg:left-1/2 lg:-translate-x-1/2 lg:right-auto' : ''}`}>
       {/* Video background */}
       <div 
         className="absolute inset-0 cursor-pointer"
@@ -323,7 +325,7 @@ function VideoPage({
         {effectiveVideoUrl && hasAccess ? (
           <video
             ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full object-${videoFit}`}
             loop
             muted={isMuted}
             playsInline
@@ -335,7 +337,7 @@ function VideoPage({
           <img 
             src={effectiveThumbnail} 
             alt="" 
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full object-${videoFit}`}
           />
         ) : null}
         
@@ -543,6 +545,7 @@ function VideoPage({
           style={{ left: `calc(${progress}% - 5px)` }}
         />
       </div>
+      </div>{/* end inner centering wrapper */}
 
     </motion.div>
   );
@@ -738,10 +741,10 @@ export default function Home() {
   return (
     <>
       <Header variant="overlay" />
-      <div className="h-[100svh] bg-black flex items-center justify-center overflow-hidden">
+      <div className="h-[100svh] bg-black overflow-hidden">
         <div
           ref={containerRef}
-          className="w-full h-full lg:max-w-[420px] lg:mx-auto overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+          className="w-full h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
           data-testid="video-feed"
         >
           {displayVideos.map((video, index) => (
