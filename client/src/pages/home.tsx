@@ -59,6 +59,7 @@ function VideoPage({
   isActive,
   thumbnailUrl,
   videoUrl,
+  musicName,
   isHorizontal = false,
   isPremium = false,
   hasAccess = true,
