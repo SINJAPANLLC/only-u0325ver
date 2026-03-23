@@ -115,7 +115,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
 
           <p className="text-gray-400 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
             クリエイターとファンが深くつながる<br className="hidden sm:block" />
-            日本のプレミアム・ファンクラブプラットフォーム。
+            SNSファンクラブプラットフォーム。
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
@@ -134,14 +134,6 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             </Link>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-xs text-gray-400">
-            {["登録無料", "クレジットカード不要", "いつでも退会可能"].map((t) => (
-              <span key={t} className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-300 inline-block" />
-                {t}
-              </span>
-            ))}
-          </div>
         </motion.div>
       </section>
 
