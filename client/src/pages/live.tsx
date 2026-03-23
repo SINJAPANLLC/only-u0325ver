@@ -115,7 +115,6 @@ function StreamCard({ stream, direction }: StreamCardProps) {
 export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const touchStartY = useRef(0);
   const isAnimating = useRef(false);
 
   const { data: liveStreams, isLoading } = useQuery<any[]>({
@@ -135,31 +134,29 @@ export default function Live() {
     setTimeout(() => { isAnimating.current = false; }, 400);
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartY.current - e.changedTouches[0].clientY;
-    if (Math.abs(diff) < 50) return;
-    goTo(activeIndex + (diff > 0 ? 1 : -1));
-  };
-
   return (
-    <div
-      className="relative h-[100svh] bg-black overflow-hidden touch-none"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="relative h-[100svh] bg-black overflow-hidden">
       <Header variant="overlay" />
 
-      <AnimatePresence initial={false} custom={direction} mode="wait">
-        <StreamCard
-          key={activeIndex}
-          stream={streams[activeIndex]}
-          direction={direction}
-        />
-      </AnimatePresence>
+      <motion.div
+        className="absolute inset-0"
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(_, info) => {
+          if (Math.abs(info.offset.y) > 60) {
+            goTo(activeIndex + (info.offset.y < 0 ? 1 : -1));
+          }
+        }}
+      >
+        <AnimatePresence initial={false} custom={direction} mode="wait">
+          <StreamCard
+            key={activeIndex}
+            stream={streams[activeIndex]}
+            direction={direction}
+          />
+        </AnimatePresence>
+      </motion.div>
 
       <BottomNavigation />
     </div>
