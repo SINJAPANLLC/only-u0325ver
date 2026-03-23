@@ -310,7 +310,7 @@ function VideoPage({
         ) : null}
         
         {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent via-40% to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
         
         {/* Play/Pause indicator */}
         <div className="absolute inset-0 flex items-center justify-center">
