@@ -103,13 +103,13 @@ export default function Landing({ onRegisterClick }: LandingProps) {
           <img src={logoImage} alt="Only-U" className="w-36 h-auto object-contain" />
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/auth?mode=login">
-              <button className="text-sm font-medium text-gray-500 hover:text-pink-500 px-3 py-2 transition-colors hidden sm:block" data-testid="button-header-login">
+              <button className="text-sm font-medium text-gray-500 hover:text-pink-500 px-3 py-2 transition-colors" data-testid="button-header-login">
                 ログイン
               </button>
             </Link>
             <Button
               onClick={onRegisterClick}
-              className="rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white px-5 h-9"
+              className="rounded-full text-sm font-bold bg-pink-500 hover:bg-pink-600 text-white px-4 sm:px-5 h-9"
               data-testid="button-header-register"
             >
               無料登録
