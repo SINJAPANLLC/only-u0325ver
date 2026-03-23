@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Loader2, Check, Truck, Heart } from "lucide-react";
+import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,9 +105,8 @@ function ProductCard({ product, onBuy }: ProductCardProps) {
         </button>
       </div>
 
-      {/* Bottom info — creator, title, price only */}
+      {/* Bottom info — title and price only */}
       <div className="absolute bottom-24 left-4 right-20 z-20">
-        <p className="text-white/80 font-semibold text-sm drop-shadow mb-1">@{product.creatorName}</p>
         <p className="text-white font-bold text-base drop-shadow leading-snug mb-2 line-clamp-2">{product.name}</p>
         <div className="flex items-center gap-2">
           <span className="text-pink-400 font-bold text-lg drop-shadow">{product.price.toLocaleString()}pt</span>
@@ -220,6 +220,11 @@ export default function Shop() {
 
   return (
     <>
+      {/* Logo overlay — top left */}
+      <div className="fixed top-0 left-0 z-40 flex items-center px-3 h-14 pointer-events-none pt-safe">
+        <img src={logoImage} alt="Only-U" className="h-16 object-contain brightness-0 invert" />
+      </div>
+
       {/* Tab filter — top right corner */}
       <div className="fixed top-4 right-3 z-40 flex gap-1 bg-black/50 backdrop-blur-md rounded-full px-2 py-1.5">
         {(["all", "digital", "physical"] as const).map(tab => (
