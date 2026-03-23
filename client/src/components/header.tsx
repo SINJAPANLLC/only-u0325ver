@@ -102,7 +102,7 @@ export function Header({ variant = "solid" }: HeaderProps) {
               <img
                 src={logoImage}
                 alt="Only-U"
-                className="h-9 object-contain"
+                className="h-11 object-contain"
                 data-testid="img-logo"
               />
             )}
