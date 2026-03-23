@@ -821,20 +821,32 @@ export async function registerRoutes(
   app.get("/api/products", async (req, res) => {
     try {
       const { type } = req.query;
-      let query = db
-        .select()
+      const allProducts = await db
+        .select({
+          id: products.id,
+          creatorId: products.creatorId,
+          name: products.name,
+          description: products.description,
+          price: products.price,
+          productType: products.productType,
+          imageUrl: products.imageUrl,
+          contentUrl: products.contentUrl,
+          stock: products.stock,
+          isAvailable: products.isAvailable,
+          createdAt: products.createdAt,
+          creatorDisplayName: creatorProfiles.displayName,
+        })
         .from(products)
+        .leftJoin(creatorProfiles, eq(products.creatorId, creatorProfiles.userId))
         .where(eq(products.isAvailable, true))
         .orderBy(desc(products.createdAt))
         .limit(20);
 
-      const allProducts = await query;
-      
       if (type && (type === "digital" || type === "physical")) {
         const filtered = allProducts.filter(p => p.productType === type);
         return res.json(filtered);
       }
-      
+
       res.json(allProducts);
     } catch (error) {
       console.error("Error fetching products:", error);

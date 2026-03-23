@@ -78,13 +78,10 @@ function AuthenticatedApp() {
             <Live />
           </div>
         </Route>
+        {/* Shop uses full-screen TikTok-style layout - Header/Nav included in component */}
         <Route path="/shop">
-          <div className="h-[100svh] flex flex-col bg-background pt-safe">
-            <Header />
-            <main className="flex-1 overflow-y-auto scrollbar-hide">
-              <Shop />
-            </main>
-            <BottomNavigation />
+          <div className="relative h-[100svh] overflow-hidden">
+            <Shop />
           </div>
         </Route>
         <Route path="/messages">

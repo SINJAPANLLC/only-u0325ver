@@ -105,8 +105,9 @@ function ProductCard({ product, onBuy }: ProductCardProps) {
         </button>
       </div>
 
-      {/* Bottom info — title and price only */}
+      {/* Bottom info — username, title, price */}
       <div className="absolute bottom-24 left-4 right-20 z-20">
+        <p className="text-white/80 font-semibold text-sm drop-shadow mb-1">@{product.creatorName}</p>
         <p className="text-white font-bold text-base drop-shadow leading-snug mb-2 line-clamp-2">{product.name}</p>
         <div className="flex items-center gap-2">
           <span className="text-pink-400 font-bold text-lg drop-shadow">{product.price.toLocaleString()}pt</span>
@@ -172,7 +173,7 @@ export default function Shop() {
   };
 
   const allProducts: DemoProduct[] = products && products.length > 0
-    ? products.map(p => ({ id: p.id, name: p.name, description: p.description || "", price: p.price, imageUrl: p.imageUrl || img1, creatorName: "Creator", productType: p.productType as "digital" | "physical", isAvailable: p.isAvailable ?? true, isDemo: false }))
+    ? products.map((p: any) => ({ id: p.id, name: p.name, description: p.description || "", price: p.price, imageUrl: p.imageUrl || img1, creatorName: p.creatorDisplayName || "Creator", productType: p.productType as "digital" | "physical", isAvailable: p.isAvailable ?? true, isDemo: false }))
     : demoProducts;
 
   const displayProducts = activeTab === "all" ? allProducts : allProducts.filter(p => p.productType === activeTab);
