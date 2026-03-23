@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { AnimatePresence, motion } from "framer-motion";
-import { LoadingScreen } from "@/components/loading-screen";
+import { motion } from "framer-motion";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import girl1 from "@assets/スクリーンショット_2026-03-23_22.39.41_1774273237678.png";
 import girl2 from "@assets/スクリーンショット_2026-03-23_22.39.18_1774273237693.png";
@@ -79,13 +78,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function Landing({ onRegisterClick }: LandingProps) {
-  const [showSplash, setShowSplash] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -104,14 +97,6 @@ export default function Landing({ onRegisterClick }: LandingProps) {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      <AnimatePresence>
-        {showSplash && (
-          <motion.div key="splash" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="fixed inset-0 z-[100]">
-            <LoadingScreen />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* ── HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-pink-100" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-5 h-20 flex items-center justify-between">
