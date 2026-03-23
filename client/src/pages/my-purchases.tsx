@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { 
-  ChevronLeft, 
-  Package, 
-  Download, 
+import {
+  ArrowLeft,
+  Package,
+  Download,
   ExternalLink,
   ShoppingBag,
   Truck,
-  Clock
+  Clock,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -42,6 +42,28 @@ type Purchase = {
   };
 };
 
+function StatusBadge({ status }: { status: string }) {
+  if (status === "completed") {
+    return (
+      <span className="flex items-center gap-1 text-[11px] font-medium text-green-600 dark:text-green-400">
+        <CheckCircle className="h-3 w-3" />完了
+      </span>
+    );
+  }
+  if (status === "shipped") {
+    return (
+      <span className="flex items-center gap-1 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+        <Truck className="h-3 w-3" />配送中
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+      <Clock className="h-3 w-3" />処理中
+    </span>
+  );
+}
+
 export default function MyPurchasesPage() {
   const [, setLocation] = useLocation();
 
@@ -51,94 +73,115 @@ export default function MyPurchasesPage() {
 
   const digitalPurchases = purchases?.filter(p => p.product?.productType === "digital") || [];
   const physicalPurchases = purchases?.filter(p => p.product?.productType === "physical") || [];
-  const otherPurchases = purchases?.filter(p => !p.product || (p.product.productType !== "digital" && p.product.productType !== "physical")) || [];
+  const otherPurchases = purchases?.filter(
+    p => !p.product || (p.product.productType !== "digital" && p.product.productType !== "physical")
+  ) || [];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
+    <div className="min-h-screen bg-background pb-8">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
+            className="h-9 w-9 rounded-xl"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">購入履歴</h1>
+          <h1 className="font-bold text-base">購入履歴</h1>
         </div>
       </header>
 
-      <main className="p-4 space-y-6">
+      <div className="px-4 py-4 space-y-6">
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-lg" />
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30 animate-pulse">
+                <div className="h-20 w-20 rounded-xl bg-muted flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-muted rounded-lg w-3/4" />
+                  <div className="h-3 bg-muted rounded-lg w-1/2" />
+                  <div className="h-3 bg-muted rounded-lg w-1/3" />
+                </div>
+              </div>
             ))}
           </div>
         ) : purchases?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">まだ購入履歴がありません</p>
-            <Button onClick={() => setLocation("/shop")} data-testid="button-browse-shop">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-24 text-center"
+          >
+            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center mb-5">
+              <ShoppingBag className="h-10 w-10 text-pink-400" />
+            </div>
+            <h3 className="font-bold text-lg mb-2">購入履歴がありません</h3>
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed mb-6">
+              ショップでコンテンツや商品を購入してみましょう
+            </p>
+            <Button
+              className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-xl px-6"
+              onClick={() => setLocation("/shop")}
+              data-testid="button-browse-shop"
+            >
               ショップを見る
             </Button>
-          </div>
+          </motion.div>
         ) : (
           <>
             {digitalPurchases.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Download className="h-5 w-5" />
-                  デジタルコンテンツ
-                </h2>
-                <div className="space-y-3">
-                  {digitalPurchases.map((purchase) => (
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <Download className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <h2 className="font-bold text-sm">デジタルコンテンツ</h2>
+                  <span className="text-xs text-muted-foreground">{digitalPurchases.length}件</span>
+                </div>
+                <div className="space-y-2">
+                  {digitalPurchases.map((purchase, index) => (
                     <motion.div
                       key={purchase.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
                     >
-                      <Card className="p-4">
-                        <div className="flex gap-4">
-                          {purchase.product?.imageUrl ? (
-                            <img
-                              src={purchase.product.imageUrl}
-                              alt={purchase.product.name}
-                              className="w-20 h-20 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                              <Package className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate" data-testid={`text-product-name-${purchase.id}`}>
-                              {purchase.product?.name || "削除された商品"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
-                            </p>
-                            <p className="text-sm font-medium mt-1">
-                              {purchase.price.toLocaleString()} pt
-                            </p>
-                            {purchase.product?.contentUrl && (
-                              <Button
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => window.open(purchase.product?.contentUrl, "_blank")}
-                                data-testid={`button-access-content-${purchase.id}`}
-                              >
-                                <ExternalLink className="h-4 w-4 mr-1" />
-                                コンテンツを見る
-                              </Button>
-                            )}
-                          </div>
-                          <Badge variant="secondary" className="shrink-0 h-fit">
-                            デジタル
-                          </Badge>
+                      {purchase.product?.imageUrl ? (
+                        <img
+                          src={purchase.product.imageUrl}
+                          alt={purchase.product.name}
+                          className="w-20 h-20 object-cover rounded-xl flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Download className="h-8 w-8 text-blue-400" />
                         </div>
-                      </Card>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
+                          {purchase.product?.name || "削除された商品"}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
+                        </p>
+                        <p className="text-sm font-bold text-pink-500">
+                          {purchase.price.toLocaleString()}pt
+                        </p>
+                        {purchase.product?.contentUrl && (
+                          <Button
+                            size="sm"
+                            className="mt-2 h-7 px-3 rounded-lg text-xs bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0"
+                            onClick={() => window.open(purchase.product?.contentUrl, "_blank")}
+                            data-testid={`button-access-content-${purchase.id}`}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            コンテンツを見る
+                          </Button>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -147,58 +190,50 @@ export default function MyPurchasesPage() {
 
             {physicalPurchases.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Truck className="h-5 w-5" />
-                  配送商品
-                </h2>
-                <div className="space-y-3">
-                  {physicalPurchases.map((purchase) => (
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                    <Truck className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <h2 className="font-bold text-sm">配送商品</h2>
+                  <span className="text-xs text-muted-foreground">{physicalPurchases.length}件</span>
+                </div>
+                <div className="space-y-2">
+                  {physicalPurchases.map((purchase, index) => (
                     <motion.div
                       key={purchase.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
                     >
-                      <Card className="p-4">
-                        <div className="flex gap-4">
-                          {purchase.product?.imageUrl ? (
-                            <img
-                              src={purchase.product.imageUrl}
-                              alt={purchase.product.name}
-                              className="w-20 h-20 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                              <Package className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate" data-testid={`text-product-name-${purchase.id}`}>
-                              {purchase.product?.name || "削除された商品"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
-                            </p>
-                            <p className="text-sm font-medium mt-1">
-                              {purchase.price.toLocaleString()} pt
-                            </p>
-                            <div className="flex items-center gap-1 mt-2">
-                              <Clock className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">
-                                {purchase.status === "completed" ? "配送完了" : 
-                                 purchase.status === "shipped" ? "配送中" : "処理中"}
-                              </span>
-                            </div>
-                            {purchase.shippingAddress && (
-                              <p className="text-xs text-muted-foreground mt-1 truncate">
-                                配送先: {purchase.shippingAddress}
-                              </p>
-                            )}
-                          </div>
-                          <Badge variant="outline" className="shrink-0 h-fit">
-                            物販
-                          </Badge>
+                      {purchase.product?.imageUrl ? (
+                        <img
+                          src={purchase.product.imageUrl}
+                          alt={purchase.product.name}
+                          className="w-20 h-20 object-cover rounded-xl flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Package className="h-8 w-8 text-orange-400" />
                         </div>
-                      </Card>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
+                          {purchase.product?.name || "削除された商品"}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
+                        </p>
+                        <p className="text-sm font-bold text-pink-500 mb-1">
+                          {purchase.price.toLocaleString()}pt
+                        </p>
+                        <StatusBadge status={purchase.status} />
+                        {purchase.shippingAddress && (
+                          <p className="text-[11px] text-muted-foreground/60 mt-0.5 truncate">
+                            {purchase.shippingAddress}
+                          </p>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -207,42 +242,37 @@ export default function MyPurchasesPage() {
 
             {otherPurchases.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  その他の購入
-                </h2>
-                <div className="space-y-3">
-                  {otherPurchases.map((purchase) => (
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <Package className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <h2 className="font-bold text-sm">その他の購入</h2>
+                  <span className="text-xs text-muted-foreground">{otherPurchases.length}件</span>
+                </div>
+                <div className="space-y-2">
+                  {otherPurchases.map((purchase, index) => (
                     <motion.div
                       key={purchase.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
                     >
-                      <Card className="p-4">
-                        <div className="flex gap-4">
-                          <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                            <Package className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate" data-testid={`text-product-name-${purchase.id}`}>
-                              {purchase.product?.name || "削除された商品"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
-                            </p>
-                            <p className="text-sm font-medium mt-1">
-                              {purchase.price.toLocaleString()} pt
-                            </p>
-                            <div className="flex items-center gap-1 mt-2">
-                              <Clock className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">
-                                {purchase.status === "completed" ? "完了" : 
-                                 purchase.status === "shipped" ? "発送済み" : "処理中"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
+                      <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Package className="h-8 w-8 text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
+                          {purchase.product?.name || "削除された商品"}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
+                        </p>
+                        <p className="text-sm font-bold text-pink-500 mb-1">
+                          {purchase.price.toLocaleString()}pt
+                        </p>
+                        <StatusBadge status={purchase.status} />
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -250,7 +280,7 @@ export default function MyPurchasesPage() {
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }

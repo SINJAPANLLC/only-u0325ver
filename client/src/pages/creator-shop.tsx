@@ -447,20 +447,22 @@ export default function CreatorShop() {
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl sticky top-0 z-20">
+        <div className="flex items-center gap-2">
           <Button 
             size="icon" 
             variant="ghost"
+            className="h-9 w-9 rounded-xl"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold">ショップ管理</h1>
+          <h1 className="font-bold text-base">ショップ管理</h1>
         </div>
         <Button 
           size="sm"
+          className="rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
           onClick={() => setIsDialogOpen(true)}
           data-testid="button-add-product"
         >

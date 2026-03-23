@@ -401,16 +401,17 @@ export default function MyProfile() {
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center px-2 py-3 border-b border-border/50">
+      <div className="flex items-center h-14 px-3 border-b border-border/30 bg-background/95 backdrop-blur-xl sticky top-0 z-20">
         <Button 
           size="icon" 
           variant="ghost"
-          className="h-9 w-9"
+          className="h-9 w-9 rounded-xl"
           onClick={() => setLocation("/account")}
           data-testid="button-back"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-5 w-5" />
         </Button>
+        <h1 className="font-bold text-base ml-1">マイプロフィール</h1>
       </div>
 
       {/* Profile Section */}

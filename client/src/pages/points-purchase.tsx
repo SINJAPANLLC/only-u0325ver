@@ -272,19 +272,20 @@ export default function PointsPurchase() {
   if (step === "card_payment" && clientSecret && selectedPackage && paymentIntentId) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 z-10 bg-background border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={handlePaymentCancel}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">カード決済</h1>
+            <h1 className="font-bold text-base">カード決済</h1>
           </div>
-        </div>
+        </header>
 
         <div className="p-4 space-y-4">
           <Card className="p-4">
@@ -333,19 +334,20 @@ export default function PointsPurchase() {
   if (step === "card_success" && purchasedPoints) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 z-10 bg-background border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">購入完了</h1>
+            <h1 className="font-bold text-base">購入完了</h1>
           </div>
-        </div>
+        </header>
 
         <div className="p-4 space-y-4">
           <motion.div
@@ -389,19 +391,20 @@ export default function PointsPurchase() {
   if (step === "bank_info" && pendingTransfer) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 z-10 bg-background border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">振込情報</h1>
+            <h1 className="font-bold text-base">振込情報</h1>
           </div>
-        </div>
+        </header>
 
         <div className="p-4 space-y-4">
           <motion.div
@@ -541,19 +544,20 @@ export default function PointsPurchase() {
   if (step === "payment" && selectedPackage) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <div className="sticky top-0 z-10 bg-background border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
-              size="icon" 
+              size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={() => setStep("select")}
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">お支払い方法</h1>
+            <h1 className="font-bold text-base">お支払い方法</h1>
           </div>
-        </div>
+        </header>
 
         <div className="p-4 space-y-4">
           <motion.div
@@ -650,16 +654,16 @@ export default function PointsPurchase() {
 
   return (
     <div className="pb-20 overflow-y-auto scrollbar-hide">
-      <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="flex items-center gap-3 p-4">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-4 gap-3">
           <Link href="/account">
-            <Button variant="ghost" size="icon" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-lg font-bold">ポイント購入</h1>
+          <h1 className="font-bold text-base">ポイント購入</h1>
         </div>
-      </div>
+      </header>
 
       <div className="p-4 space-y-4">
         <motion.div

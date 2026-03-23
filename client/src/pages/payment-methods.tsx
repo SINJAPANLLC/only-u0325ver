@@ -85,19 +85,17 @@ export default function PaymentMethods() {
   });
 
   return (
-    <div className="pb-20 overflow-y-auto scrollbar-hide">
-      <div className="h-16" />
-      
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b p-4">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background pb-8">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-4 gap-3">
           <Link href="/account">
-            <Button variant="ghost" size="icon" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-lg font-bold">お支払い方法</h1>
+          <h1 className="font-bold text-base">お支払い方法</h1>
         </div>
-      </div>
+      </header>
 
       <div className="p-4 space-y-6">
         <motion.div

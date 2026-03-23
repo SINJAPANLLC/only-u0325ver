@@ -11,10 +11,8 @@ import {
   Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -84,69 +82,69 @@ export default function PersonalInfoPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-y-auto">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
+    <div className="min-h-screen bg-background pb-8">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
+            className="h-9 w-9 rounded-xl"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">本人情報</h1>
+          <h1 className="font-bold text-base">本人情報</h1>
         </div>
       </header>
 
-      <main className="p-4 space-y-6">
+      <main className="p-4 space-y-4">
         {isLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+              <div key={i} className="h-14 rounded-2xl bg-card border border-border/30 animate-pulse" />
             ))}
           </div>
         ) : (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="p-4 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <h2 className="font-semibold">基本情報</h2>
-              </div>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">基本情報</p>
+              <div className="rounded-2xl bg-card border border-border/30 p-4 space-y-4">
 
-              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">氏名（本名）</Label>
+                  <Label htmlFor="fullName" className="text-xs text-muted-foreground">氏名（本名）</Label>
                   <Input
                     id="fullName"
                     value={form.fullName}
                     onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                     placeholder="山田 太郎"
+                    className="rounded-xl"
                     data-testid="input-fullname"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="birthDate">生年月日</Label>
+                  <Label htmlFor="birthDate" className="text-xs text-muted-foreground">生年月日</Label>
                   <Input
                     id="birthDate"
                     type="date"
                     value={form.birthDate}
                     onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+                    className="rounded-xl"
                     data-testid="input-birthdate"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gender">性別</Label>
+                  <Label htmlFor="gender" className="text-xs text-muted-foreground">性別</Label>
                   <Select
                     value={form.gender}
                     onValueChange={(value) => setForm({ ...form, gender: value })}
                   >
-                    <SelectTrigger data-testid="select-gender">
+                    <SelectTrigger className="rounded-xl" data-testid="select-gender">
                       <SelectValue placeholder="選択してください" />
                     </SelectTrigger>
                     <SelectContent>
@@ -157,33 +155,30 @@ export default function PersonalInfoPage() {
                   </Select>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card className="p-4 space-y-4 mt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
-                <h2 className="font-semibold">住所</h2>
-              </div>
-
-              <div className="space-y-4">
+            <div className="mt-4">
+              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">住所</p>
+              <div className="rounded-2xl bg-card border border-border/30 p-4 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="postalCode">郵便番号</Label>
+                  <Label htmlFor="postalCode" className="text-xs text-muted-foreground">郵便番号</Label>
                   <Input
                     id="postalCode"
                     value={form.postalCode}
                     onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
                     placeholder="123-4567"
+                    className="rounded-xl"
                     data-testid="input-postalcode"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="prefecture">都道府県</Label>
+                  <Label htmlFor="prefecture" className="text-xs text-muted-foreground">都道府県</Label>
                   <Select
                     value={form.prefecture}
                     onValueChange={(value) => setForm({ ...form, prefecture: value })}
                   >
-                    <SelectTrigger data-testid="select-prefecture">
+                    <SelectTrigger className="rounded-xl" data-testid="select-prefecture">
                       <SelectValue placeholder="選択してください" />
                     </SelectTrigger>
                     <SelectContent>
@@ -195,42 +190,45 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="city">市区町村</Label>
+                  <Label htmlFor="city" className="text-xs text-muted-foreground">市区町村</Label>
                   <Input
                     id="city"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="渋谷区"
+                    className="rounded-xl"
                     data-testid="input-city"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">番地</Label>
+                  <Label htmlFor="address" className="text-xs text-muted-foreground">番地</Label>
                   <Input
                     id="address"
                     value={form.address}
                     onChange={(e) => setForm({ ...form, address: e.target.value })}
                     placeholder="1-2-3"
+                    className="rounded-xl"
                     data-testid="input-address"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="building">建物名・部屋番号</Label>
+                  <Label htmlFor="building" className="text-xs text-muted-foreground">建物名・部屋番号</Label>
                   <Input
                     id="building"
                     value={form.building}
                     onChange={(e) => setForm({ ...form, building: e.target.value })}
                     placeholder="○○マンション 101号室"
+                    className="rounded-xl"
                     data-testid="input-building"
                   />
                 </div>
               </div>
-            </Card>
+            </div>
 
             <Button
-              className="w-full mt-6"
+              className="w-full h-12 mt-4 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold"
               onClick={() => updateMutation.mutate(form)}
               disabled={updateMutation.isPending}
               data-testid="button-save"

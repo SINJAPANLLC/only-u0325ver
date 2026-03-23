@@ -227,13 +227,13 @@ export default function CreatorApplication() {
   if (application?.status === "approved") {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <header className="flex items-center p-4 border-b">
+        <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
           <Link href="/account">
-            <Button variant="ghost" size="icon" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-lg font-semibold ml-2">クリエイター申請</h1>
+          <h1 className="font-bold text-base ml-2">クリエイター申請</h1>
         </header>
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
@@ -257,13 +257,13 @@ export default function CreatorApplication() {
   if (application?.status === "rejected") {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <header className="flex items-center p-4 border-b">
+        <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
           <Link href="/account">
-            <Button variant="ghost" size="icon" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-lg font-semibold ml-2">クリエイター申請</h1>
+          <h1 className="font-bold text-base ml-2">クリエイター申請</h1>
         </header>
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
@@ -285,13 +285,13 @@ export default function CreatorApplication() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="flex items-center p-4 border-b">
+      <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl sticky top-0 z-20">
         <Link href="/account">
-          <Button variant="ghost" size="icon" data-testid="button-back">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-lg font-semibold ml-2">クリエイター申請</h1>
+        <h1 className="font-bold text-base ml-2">クリエイター申請</h1>
       </header>
 
       {/* Stepper */}

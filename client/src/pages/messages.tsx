@@ -156,17 +156,27 @@ export default function Messages() {
     <div className="pb-20 lg:pb-4 overflow-y-auto scrollbar-hide">
       <div className="h-14 lg:h-0" />
 
-      {/* Search bar */}
-      <div className="sticky top-14 lg:top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/40 px-4 py-2.5">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
-          <Input
-            placeholder="メッセージを検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-10 rounded-xl bg-muted/60 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/30 text-sm"
-            data-testid="input-search-messages"
-          />
+      {/* Title + Search bar */}
+      <div className="sticky top-14 lg:top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex items-center justify-between mb-2.5">
+            <div>
+              <h1 className="font-bold text-xl leading-tight">メッセージ</h1>
+              {filteredConversations.length > 0 && (
+                <p className="text-xs text-muted-foreground">{filteredConversations.length}件の会話</p>
+              )}
+            </div>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+            <Input
+              placeholder="メッセージを検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 rounded-xl bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/30 text-sm"
+              data-testid="input-search-messages"
+            />
+          </div>
         </div>
       </div>
 

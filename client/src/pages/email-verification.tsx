@@ -68,17 +68,18 @@ export default function EmailVerificationPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20 overflow-y-auto">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center gap-3 px-4 h-14">
           <Button
             variant="ghost"
             size="icon"
+            className="h-9 w-9 rounded-xl"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">メールアドレス認証</h1>
+          <h1 className="font-bold text-base">メールアドレス認証</h1>
         </div>
       </header>
 

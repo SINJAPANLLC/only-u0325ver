@@ -65,19 +65,20 @@ export default function CreatorSales() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
               size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">売上管理</h1>
+            <h1 className="font-bold text-base">売上管理</h1>
           </div>
-        </div>
+        </header>
         <div className="p-4 space-y-4">
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-24 w-full" />
@@ -90,19 +91,20 @@ export default function CreatorSales() {
   if (isError) {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-          <div className="flex items-center gap-3 p-4">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
               size="icon"
+              className="h-9 w-9 rounded-xl"
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-bold">売上管理</h1>
+            <h1 className="font-bold text-base">売上管理</h1>
           </div>
-        </div>
+        </header>
         <div className="p-4">
           <Card className="p-8 text-center">
             <Wallet className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
@@ -120,19 +122,20 @@ export default function CreatorSales() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-4 gap-3">
           <Button 
             variant="ghost" 
             size="icon"
+            className="h-9 w-9 rounded-xl"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-bold">売上管理</h1>
+          <h1 className="font-bold text-base">売上管理</h1>
         </div>
-      </div>
+      </header>
 
       <div className="p-4 space-y-6">
         <motion.div

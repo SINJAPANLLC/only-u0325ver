@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
 
 interface LegalPageProps {
   title: string;
@@ -429,19 +430,21 @@ export default function LegalPage({ title, type }: LegalPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100">
-        <div className="flex items-center gap-3 px-5 h-14">
-          <button
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center gap-3 px-4 h-14">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors"
             data-testid={`button-close-${type}`}
           >
             <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-base font-bold text-gray-900">{title}</h1>
+          </Button>
+          <h1 className="font-bold text-base">{title}</h1>
         </div>
-      </div>
+      </header>
 
       <div className="flex-1 overflow-y-auto px-5 py-6">
         {renderContent()}

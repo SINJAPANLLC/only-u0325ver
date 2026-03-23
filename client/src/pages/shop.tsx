@@ -387,25 +387,39 @@ export default function Shop() {
     <div className="pb-24 lg:pb-6 min-h-screen overflow-y-auto scrollbar-hide bg-background">
       <div className="h-14 lg:h-0" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/30">
-          <TabsList className="w-full h-14 bg-transparent rounded-none !inline-flex !justify-start px-4 gap-4">
+        <div className="sticky top-14 lg:top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <div className="px-4 pt-3 pb-0">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h1 className="font-bold text-xl leading-tight">ショップ</h1>
+                <p className="text-xs text-muted-foreground">{filteredProducts.length}点の商品</p>
+              </div>
+              {user && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/10 to-rose-500/10 border border-pink-200/40 dark:border-pink-900/40">
+                  <span className="text-sm">🪙</span>
+                  <span className="text-sm font-bold text-pink-500">{(profile?.points || 0).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <TabsList className="w-full h-12 bg-transparent rounded-none !inline-flex !justify-start px-4 gap-4">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-3 text-sm font-semibold transition-colors"
               data-testid="tab-all"
             >
               すべて
             </TabsTrigger>
             <TabsTrigger 
               value="digital" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-3 text-sm font-semibold transition-colors"
               data-testid="tab-digital"
             >
               デジタル
             </TabsTrigger>
             <TabsTrigger 
               value="physical" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-4 text-base font-semibold"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-pink-500 rounded-none px-0 pb-3 text-sm font-semibold transition-colors"
               data-testid="tab-physical"
             >
               物販

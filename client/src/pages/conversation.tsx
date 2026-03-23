@@ -139,42 +139,51 @@ export default function ConversationPage() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button 
-            size="icon" 
+      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center h-14 px-3 gap-2">
+          <Button
+            size="icon"
             variant="ghost"
+            className="h-9 w-9 rounded-xl flex-shrink-0"
             onClick={() => setLocation("/messages")}
             data-testid="button-back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div 
-            className="flex items-center gap-3 flex-1 cursor-pointer hover-elevate rounded-lg p-1 -m-1"
+          <div
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-accent/40 transition-colors"
             onClick={handleParticipantClick}
             data-testid="link-participant-profile"
           >
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white">
-                {participantName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h1 className="font-semibold">{participantName}</h1>
+            <div className="relative flex-shrink-0">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-sm font-bold">
+                  {participantName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-sm truncate leading-tight">{participantName}</h1>
+              <p className="text-[11px] text-green-500 leading-tight">オンライン</p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
         {isLoading && !isDemo ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : displayMessages.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">メッセージを送信してみよう</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center mb-3">
+              <Send className="h-8 w-8 text-pink-400" />
+            </div>
+            <p className="font-semibold text-sm mb-1">会話を始めよう</p>
+            <p className="text-xs text-muted-foreground">メッセージを送信してみよう</p>
           </div>
         ) : (
           displayMessages.map((msg) => {
@@ -182,18 +191,28 @@ export default function ConversationPage() {
             return (
               <div
                 key={msg.id}
-                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2 ${isOwn ? "justify-end" : "justify-start"}`}
                 data-testid={`message-${msg.id}`}
               >
-                <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                    isOwn
-                      ? "bg-pink-500 text-white rounded-br-md"
-                      : "bg-muted rounded-bl-md"
-                  }`}
-                >
-                  <p className="text-sm break-all">{msg.content}</p>
-                  <p className={`text-[10px] mt-1 ${isOwn ? "text-white/70" : "text-muted-foreground"}`}>
+                {!isOwn && (
+                  <Avatar className="h-7 w-7 flex-shrink-0 mt-auto">
+                    <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-xs">
+                      {participantName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div className={`max-w-[72%] ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                  <div
+                    className={`rounded-2xl px-3.5 py-2.5 ${
+                      isOwn
+                        ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-sm"
+                        : "bg-muted rounded-bl-sm"
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed break-words">{msg.content}</p>
+                  </div>
+                  <p className={`text-[10px] px-1 ${isOwn ? "text-muted-foreground/60 text-right" : "text-muted-foreground/60"}`}>
                     {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ja })}
                   </p>
                 </div>
@@ -204,21 +223,21 @@ export default function ConversationPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="sticky bottom-0 bg-background border-t p-3">
+      <div className="bg-background/95 backdrop-blur-xl border-t border-border/30 px-3 py-2.5 pb-[max(env(safe-area-inset-bottom),12px)]">
         <div className="flex items-center gap-2">
           <Input
             placeholder="メッセージを入力..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 rounded-full"
+            className="flex-1 rounded-2xl bg-muted/60 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/40 text-sm h-10"
             data-testid="input-message"
           />
           <Button
             size="icon"
             onClick={handleSend}
             disabled={!messageText.trim() || (!isDemo && sendMutation.isPending)}
-            className="rounded-full bg-pink-500 hover:bg-pink-600"
+            className="h-10 w-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-sm flex-shrink-0"
             data-testid="button-send"
           >
             {!isDemo && sendMutation.isPending ? (
