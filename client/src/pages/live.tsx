@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, Radio } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
+import Hls from "hls.js";
 
 import img1 from "@assets/generated_images/live_mock_1.jpg";
 import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
@@ -29,14 +30,61 @@ function formatCount(n: number) {
   return n.toString();
 }
 
+interface StreamData {
+  id: string;
+  creatorId: string;
+  title: string;
+  creatorName: string;
+  likeCount: number;
+  thumbnailUrl?: string;
+  bunnyPlaybackUrl?: string;
+  viewerCount?: number;
+}
+
 interface StreamCardProps {
-  stream: typeof demoStreams[0];
+  stream: StreamData;
 }
 
 function StreamCard({ stream }: StreamCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(stream.likeCount);
   const [, setLocation] = useLocation();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream.bunnyPlaybackUrl) return;
+
+    const url = stream.bunnyPlaybackUrl;
+    if (url.endsWith(".m3u8")) {
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hlsRef.current = hls;
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = url;
+        video.muted = true;
+        video.play().catch(() => {});
+      }
+    } else {
+      video.src = url;
+      video.muted = true;
+      video.play().catch(() => {});
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [stream.bunnyPlaybackUrl]);
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,10 +98,29 @@ function StreamCard({ stream }: StreamCardProps) {
 
   return (
     <div className="w-full h-full relative bg-black flex-shrink-0">
-      {stream.thumbnailUrl && (
+      {stream.bunnyPlaybackUrl ? (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          muted
+          playsInline
+          poster={stream.thumbnailUrl}
+        />
+      ) : stream.thumbnailUrl ? (
         <img src={stream.thumbnailUrl} alt={stream.title} className="absolute inset-0 w-full h-full object-cover" />
-      )}
+      ) : null}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
+
+      {/* LIVE badge */}
+      <div className="absolute top-14 left-4 z-10 flex items-center gap-1.5">
+        <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500 rounded-full">
+          <Radio className="h-2.5 w-2.5 text-white animate-pulse" />
+          <span className="text-white text-[10px] font-bold">LIVE</span>
+        </div>
+        {(stream.viewerCount ?? 0) > 0 && (
+          <span className="text-white/80 text-[10px] bg-black/40 px-2 py-0.5 rounded-full">{stream.viewerCount}人視聴中</span>
+        )}
+      </div>
 
       <div className="absolute right-3 bottom-[100px] z-10 flex flex-col items-center gap-5">
         <button onClick={handleEnter} data-testid={`button-avatar-${stream.id}`}>
@@ -89,11 +156,25 @@ export default function Live() {
   const locked = useRef(false);
   const startY = useRef(0);
 
-  const { data: liveStreams, isLoading } = useQuery<any[]>({
+  const { data: liveStreamsData, isLoading } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
     refetchInterval: 10000,
   });
-  const streams = !isLoading && liveStreams && liveStreams.length > 0 ? liveStreams : demoStreams;
+
+  const mapLiveStream = (s: any): StreamData => ({
+    id: s.id,
+    creatorId: s.creatorId,
+    title: s.title,
+    creatorName: s.creatorDisplayName || s.creatorName || "Creator",
+    likeCount: s.viewerCount || 0,
+    thumbnailUrl: s.thumbnailUrl,
+    bunnyPlaybackUrl: s.bunnyPlaybackUrl,
+    viewerCount: s.viewerCount || 0,
+  });
+
+  const streams: StreamData[] = !isLoading && liveStreamsData && liveStreamsData.length > 0
+    ? liveStreamsData.map(mapLiveStream)
+    : demoStreams;
 
   const navigate = (dir: 1 | -1) => {
     if (locked.current) return;

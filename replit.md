@@ -148,6 +148,23 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
 - `/my-purchases`: User's purchase history with digital content access
 - `/creator-orders`: Creator's order management for physical products
 
+### Bunny Stream Integration (実装済み・APIキー待ち)
+- **Service**: Bunny.net Stream CDN for video hosting and live streaming
+- **Home page**: `bunnyVideoId` フィールドがあればHLS (.m3u8) ストリームで自動再生、なければ従来のvideoUrl/サムネイル画像にフォールバック
+- **Live page**: `bunnyPlaybackUrl` があればHLS低遅延ライブストリーム再生、なければサムネイル表示
+- **Player**: hls.js でHLS再生 (Safariはネイティブ対応)
+- **API Routes**:
+  - `GET /api/bunny/status` - Bunny設定状態確認
+  - `POST /api/bunny/create-video` - Bunny上にビデオを作成してTUSアップロードURLを返す
+  - `GET /api/bunny/video/:bunnyVideoId/status` - ビデオエンコード状態確認
+  - `PATCH /api/videos/:videoId/bunny` - ビデオにbunnyVideoIdを紐付け
+- **Required Env Vars** (設定まだ):
+  - `BUNNY_API_KEY` - アカウントレベルAPIキー
+  - `BUNNY_LIBRARY_ID` - ビデオライブラリID
+  - `BUNNY_CDN_HOSTNAME` - CDNホスト名 (vz-xxxxxx.b-cdn.net)
+  - `VITE_BUNNY_CDN_HOSTNAME` - フロントエンド用CDNホスト名 (同じ値)
+- **Schema fields**: `videos.bunnyVideoId`, `liveStreams.bunnyStreamId`, `liveStreams.bunnyPlaybackUrl`
+
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
 - **Twilio**: SMS verification for creator applications (currently accepts demo codes)

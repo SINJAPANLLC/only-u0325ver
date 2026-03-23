@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getBunnyHlsUrl, getBunnyThumbnail } from "@/components/bunny-player";
+import Hls from "hls.js";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -38,6 +40,7 @@ interface VideoPageProps {
   musicName?: string;
   thumbnailUrl?: string;
   videoUrl?: string;
+  bunnyVideoId?: string;
   isHorizontal?: boolean;
   isPremium?: boolean;
   hasAccess?: boolean;
@@ -56,12 +59,14 @@ function VideoPage({
   isActive,
   thumbnailUrl,
   videoUrl,
+  bunnyVideoId,
   musicName,
   isHorizontal = false,
   isPremium = false,
   hasAccess = true,
 }: VideoPageProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -73,7 +78,12 @@ function VideoPage({
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
+  const hlsUrl = bunnyVideoId ? getBunnyHlsUrl(bunnyVideoId) : "";
+  const effectiveVideoUrl = hlsUrl || videoUrl || "";
+  const effectiveThumbnail = thumbnailUrl || (bunnyVideoId ? getBunnyThumbnail(bunnyVideoId) : "");
+  const isHlsStream = effectiveVideoUrl.endsWith(".m3u8");
+
   const videoDuration = duration || 30;
   
   const x = useMotionValue(0);
@@ -143,16 +153,45 @@ function VideoPage({
     }
   };
 
+  // Set up HLS.js for Bunny / HLS streams
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !effectiveVideoUrl || !hasAccess) return;
+
+    if (isHlsStream) {
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, backBufferLength: 30 });
+        hlsRef.current = hls;
+        hls.loadSource(effectiveVideoUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          if (data.fatal) console.error("HLS error:", data.type, data.details);
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = effectiveVideoUrl;
+      }
+    } else {
+      video.src = effectiveVideoUrl;
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [effectiveVideoUrl, isHlsStream, hasAccess]);
+
   // Control video playback based on isActive
   useEffect(() => {
-    if (videoRef.current && videoUrl) {
+    if (videoRef.current && effectiveVideoUrl) {
       if (isActive && !isPaused && hasAccess) {
         videoRef.current.play().catch(() => {});
       } else {
         videoRef.current.pause();
       }
     }
-  }, [isActive, isPaused, videoUrl, hasAccess]);
+  }, [isActive, isPaused, effectiveVideoUrl, hasAccess]);
 
   const handleVideoMetadata = () => {
     if (videoRef.current) {
@@ -281,21 +320,20 @@ function VideoPage({
         onClick={togglePause}
       >
         {/* Video or fallback image */}
-        {videoUrl && hasAccess ? (
+        {effectiveVideoUrl && hasAccess ? (
           <video
             ref={videoRef}
-            src={videoUrl}
             className="absolute inset-0 w-full h-full object-contain"
             loop
             muted={isMuted}
             playsInline
-            poster={thumbnailUrl}
+            poster={effectiveThumbnail}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleVideoMetadata}
           />
-        ) : thumbnailUrl ? (
+        ) : effectiveThumbnail ? (
           <img 
-            src={thumbnailUrl} 
+            src={effectiveThumbnail} 
             alt="" 
             className="absolute inset-0 w-full h-full object-contain"
           />
@@ -669,6 +707,7 @@ export default function Home() {
       musicName: "オリジナル音源",
       thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
       videoUrl: v.videoUrl,
+      bunnyVideoId: v.bunnyVideoId,
     };
   };
 

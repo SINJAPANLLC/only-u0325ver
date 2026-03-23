@@ -19,6 +19,7 @@ import {
   insertSubscriptionPlanSchema
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
+import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured } from "./services/bunny";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -318,6 +319,75 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error creating video:", error);
       res.status(500).json({ message: "Failed to create video" });
+    }
+  });
+
+  // Bunny Stream API routes
+  app.get("/api/bunny/status", async (req, res) => {
+    res.json({ configured: isBunnyConfigured() });
+  });
+
+  app.post("/api/bunny/create-video", isAuthenticated, isCreator, async (req: any, res) => {
+    try {
+      const { title } = req.body;
+      if (!title) return res.status(400).json({ message: "Title is required" });
+
+      if (!isBunnyConfigured()) {
+        return res.status(503).json({ message: "Bunny Stream is not configured yet" });
+      }
+
+      const result = await createBunnyVideo(title);
+      if (!result) return res.status(500).json({ message: "Failed to create Bunny video" });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error creating Bunny video:", error);
+      res.status(500).json({ message: "Failed to create Bunny video" });
+    }
+  });
+
+  app.get("/api/bunny/video/:bunnyVideoId/status", isAuthenticated, async (req, res) => {
+    try {
+      const { bunnyVideoId } = req.params;
+      const status = await getBunnyVideoStatus(bunnyVideoId);
+      if (!status) return res.status(404).json({ message: "Video not found or Bunny not configured" });
+      res.json(status);
+    } catch (error) {
+      console.error("Error fetching Bunny video status:", error);
+      res.status(500).json({ message: "Failed to fetch video status" });
+    }
+  });
+
+  app.patch("/api/videos/:videoId/bunny", isAuthenticated, isCreator, async (req: any, res) => {
+    try {
+      const { videoId } = req.params;
+      const { bunnyVideoId } = req.body;
+      const userId = req.user.claims.sub;
+
+      if (!bunnyVideoId) return res.status(400).json({ message: "bunnyVideoId is required" });
+
+      const [existing] = await db.select().from(videos).where(eq(videos.id, videoId));
+      if (!existing || existing.creatorId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const bunnyUrl = getBunnyVideoUrl(bunnyVideoId);
+      const bunnyThumb = getBunnyThumbnailUrl(bunnyVideoId);
+
+      const [updated] = await db
+        .update(videos)
+        .set({
+          bunnyVideoId,
+          videoUrl: bunnyUrl || existing.videoUrl,
+          thumbnailUrl: bunnyThumb || existing.thumbnailUrl,
+        })
+        .where(eq(videos.id, videoId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating video with Bunny ID:", error);
+      res.status(500).json({ message: "Failed to update video" });
     }
   });
 
