@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, MessageCircle, Share2, Volume2, VolumeX, Lock } from "lucide-react";
+import { Play, Heart, Share2, Volume2, VolumeX, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { CommentsModal } from "@/components/comments-modal";
 
 // AI-generated explicit images for 18+ adult content
 import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
@@ -34,7 +33,6 @@ interface VideoPageProps {
   creatorAvatar?: string;
   viewCount: number;
   likeCount: number;
-  commentCount: number;
   duration: number;
   isActive: boolean;
   musicName?: string;
@@ -54,7 +52,6 @@ function VideoPage({
   displayName,
   creatorAvatar,
   likeCount,
-  commentCount,
   duration,
   isActive,
   thumbnailUrl,
@@ -71,7 +68,6 @@ function VideoPage({
   const [likes, setLikes] = useState(likeCount);
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [videoFit, setVideoFit] = useState<"cover" | "contain">(isHorizontal ? "contain" : "cover");
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
@@ -237,11 +233,6 @@ function VideoPage({
     } else {
       setLocation(`/creator/${creatorName}`);
     }
-  };
-
-  const handleComment = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowComments(true);
   };
 
   const handleShare = async (e: React.MouseEvent) => {
@@ -423,18 +414,6 @@ function VideoPage({
           </span>
         </button>
 
-        {/* Comment */}
-        <button
-          onClick={handleComment}
-          className="flex flex-col items-center gap-1"
-          data-testid={`button-comment-${id}`}
-        >
-          <div className="h-11 w-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
-            <MessageCircle className="h-6 w-6 text-white drop-shadow" />
-          </div>
-          <span className="text-[11px] text-white font-bold drop-shadow">{formatCount(commentCount)}</span>
-        </button>
-
         {/* Share */}
         <button
           onClick={handleShare}
@@ -530,13 +509,6 @@ function VideoPage({
         />
       </div>
 
-      {/* Comments Modal */}
-      <CommentsModal
-        open={showComments}
-        onOpenChange={setShowComments}
-        videoId={id}
-        commentCount={commentCount}
-      />
     </motion.div>
   );
 }
@@ -550,7 +522,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "りさ💋",
     viewCount: 285000,
     likeCount: 24800,
-    commentCount: 1890,
     duration: 45,
     isActive: false,
     musicName: "Midnight Jazz - Lounge Mix",
@@ -563,7 +534,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "ゆあ🖤",
     viewCount: 456000,
     likeCount: 38200,
-    commentCount: 2340,
     duration: 60,
     isActive: false,
     musicName: "Sensual R&B Mix",
@@ -576,7 +546,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "みお🛁",
     viewCount: 189000,
     likeCount: 15600,
-    commentCount: 890,
     duration: 35,
     isActive: false,
     musicName: "Ambient Relaxation",
@@ -589,7 +558,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "れいな🐰",
     viewCount: 523000,
     likeCount: 42000,
-    commentCount: 3100,
     duration: 55,
     isActive: false,
     musicName: "Tokyo Night Vibes",
@@ -602,7 +570,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "ひな📸",
     viewCount: 612000,
     likeCount: 51000,
-    commentCount: 4200,
     duration: 50,
     isActive: false,
     musicName: "Summer Beach House",
@@ -615,7 +582,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "さき💕",
     viewCount: 178000,
     likeCount: 13400,
-    commentCount: 780,
     duration: 40,
     isActive: false,
     musicName: "Lo-fi Chill Beats",
@@ -628,7 +594,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "あや🔞",
     viewCount: 398000,
     likeCount: 32000,
-    commentCount: 2800,
     duration: 45,
     isActive: false,
     musicName: "Kawaii EDM Mix",
@@ -641,7 +606,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "なな🎀",
     viewCount: 445000,
     likeCount: 36500,
-    commentCount: 2650,
     duration: 50,
     isActive: false,
     musicName: "Kawaii Pop Mix",
@@ -654,7 +618,6 @@ const demoVideos: VideoPageProps[] = [
     displayName: "めい💫",
     viewCount: 234000,
     likeCount: 19800,
-    commentCount: 1520,
     duration: 55,
     isActive: false,
     musicName: "Chill Lounge Mix",
@@ -701,7 +664,6 @@ export default function Home() {
       creatorAvatar: v.creatorAvatarUrl,
       viewCount: v.viewCount || 0,
       likeCount: v.likeCount || 0,
-      commentCount: v.commentCount || 0,
       duration: v.duration || 0,
       isPremium,
       hasAccess,
