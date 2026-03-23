@@ -15,7 +15,7 @@ const registerSchema = z.object({
     .regex(/[0-9]/, "パスワードには数字を含めてください"),
   name: z.string().min(1, "お名前を入力してください"),
   confirmPassword: z.string().optional(),
-  turnstileToken: z.string().min(1, "認証に失敗しました"),
+  turnstileToken: z.string().optional(),
 }).refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
   message: "パスワードが一致しません",
   path: ["confirmPassword"],
@@ -24,34 +24,8 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email("有効なメールアドレスを入力してください"),
   password: z.string().min(1, "パスワードを入力してください"),
-  turnstileToken: z.string().min(1, "認証に失敗しました"),
+  turnstileToken: z.string().optional(),
 });
-
-async function verifyTurnstile(token: string, remoteIP?: string): Promise<boolean> {
-  const secretKey = process.env.TURNSTILE_SECRET_KEY;
-  if (!secretKey) {
-    console.warn("TURNSTILE_SECRET_KEY not set, skipping verification");
-    return true;
-  }
-
-  try {
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        secret: secretKey,
-        response: token,
-        remoteip: remoteIP,
-      }),
-    });
-
-    const data = await response.json() as { success: boolean };
-    return data.success;
-  } catch (error) {
-    console.error("Turnstile verification error:", error);
-    return false;
-  }
-}
 
 const BCRYPT_ROUNDS = 12;
 
@@ -68,16 +42,7 @@ export function registerEmailAuthRoutes(app: Express): void {
         });
       }
 
-      const { email, password, name, turnstileToken } = validation.data;
-
-      // Verify Turnstile token
-      const remoteIP = req.headers["cf-connecting-ip"] as string || 
-                       req.headers["x-forwarded-for"] as string || 
-                       req.socket.remoteAddress;
-      const isTurnstileValid = await verifyTurnstile(turnstileToken, remoteIP);
-      if (!isTurnstileValid) {
-        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
-      }
+      const { email, password, name } = validation.data;
 
       // Check if user already exists
       const [existingUser] = await db
@@ -147,16 +112,7 @@ export function registerEmailAuthRoutes(app: Express): void {
         });
       }
 
-      const { email, password, turnstileToken } = validation.data;
-
-      // Verify Turnstile token
-      const remoteIP = req.headers["cf-connecting-ip"] as string || 
-                       req.headers["x-forwarded-for"] as string || 
-                       req.socket.remoteAddress;
-      const isTurnstileValid = await verifyTurnstile(turnstileToken, remoteIP);
-      if (!isTurnstileValid) {
-        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
-      }
+      const { email, password } = validation.data;
 
       // Find user
       const [user] = await db
@@ -231,19 +187,10 @@ export function registerEmailAuthRoutes(app: Express): void {
   // Forgot password endpoint
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
-      const { email, turnstileToken } = req.body;
+      const { email } = req.body;
 
       if (!email || typeof email !== "string") {
         return res.status(400).json({ message: "メールアドレスを入力してください" });
-      }
-
-      // Verify Turnstile token
-      const remoteIP = req.headers["cf-connecting-ip"] as string || 
-                       req.headers["x-forwarded-for"] as string || 
-                       req.socket.remoteAddress;
-      const isTurnstileValid = await verifyTurnstile(turnstileToken || "", remoteIP);
-      if (!isTurnstileValid && process.env.TURNSTILE_SECRET_KEY) {
-        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
       }
 
       // Find user by email
@@ -317,7 +264,7 @@ export function registerEmailAuthRoutes(app: Express): void {
   // Reset password endpoint
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
-      const { token, password, turnstileToken } = req.body;
+      const { token, password } = req.body;
 
       if (!token || typeof token !== "string") {
         return res.status(400).json({ message: "無効なリンクです" });
@@ -333,15 +280,6 @@ export function registerEmailAuthRoutes(app: Express): void {
 
       if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
         return res.status(400).json({ message: "パスワードには英字と数字を含めてください" });
-      }
-
-      // Verify Turnstile token
-      const remoteIP = req.headers["cf-connecting-ip"] as string || 
-                       req.headers["x-forwarded-for"] as string || 
-                       req.socket.remoteAddress;
-      const isTurnstileValid = await verifyTurnstile(turnstileToken || "", remoteIP);
-      if (!isTurnstileValid && process.env.TURNSTILE_SECRET_KEY) {
-        return res.status(400).json({ message: "認証に失敗しました。もう一度お試しください" });
       }
 
       // Find valid token
