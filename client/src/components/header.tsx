@@ -96,45 +96,106 @@ export function Header({
       className={cn(
         "lg:hidden fixed top-0 left-0 right-0 z-40 w-full max-w-[430px] mx-auto pt-safe",
         isOverlay
-          ? "bg-gradient-to-b from-black/55 via-black/20 to-transparent pointer-events-none"
+          ? "bg-gradient-to-b from-black/40 via-black/15 to-transparent pointer-events-none"
           : "bg-background/95 backdrop-blur-xl border-b border-border/40"
       )}
     >
-      <div
-        className={cn(
-          "flex items-center justify-between px-4 gap-2",
-          isOverlay ? "h-16 pointer-events-auto" : "h-14"
-        )}
-      >
-        {/* Left side: logo or page title */}
-        <div className="flex flex-col items-start min-w-0">
-          {isOverlay ? (
+      {isOverlay ? (
+        /* Overlay layout: logo + icons on one row, feed tabs below */
+        <div className="pointer-events-auto">
+          <div className="flex items-center justify-between px-3 h-20">
+            {/* Large logo */}
             <img
               src={logoImage}
               alt="Only-U"
-              className="h-14 object-contain brightness-0 invert"
+              className="h-16 object-contain brightness-0 invert"
               data-testid="img-logo"
             />
-          ) : pageTitle ? (
-            <h1 className="text-lg font-bold text-foreground truncate">{pageTitle}</h1>
-          ) : (
-            <img
-              src={logoImage}
-              alt="Only-U"
-              className="h-10 object-contain dark:invert"
-              data-testid="img-logo"
-            />
-          )}
 
-          {showFeedTabs && isOverlay && (
-            <div className="flex items-center gap-5 mt-0.5">
+            {/* Right icon buttons */}
+            <div className="flex items-center gap-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                    data-testid="button-language"
+                  >
+                    <PiGlobeHemisphereEastDuotone className="h-8 w-8 drop-shadow-md" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-[140px] rounded-xl bg-black/80 backdrop-blur-xl border-white/20"
+                >
+                  {languages.map((lang) => (
+                    <DropdownMenuItem
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code as any)}
+                      className={cn(
+                        "rounded-lg text-white hover:bg-white/20",
+                        language === lang.code && "bg-white/15"
+                      )}
+                      data-testid={`menu-item-lang-${lang.code}`}
+                    >
+                      {lang.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-12 w-12 rounded-full relative text-white hover:bg-white/20"
+                onClick={() => setShowNotificationsModal(true)}
+                data-testid="button-notifications"
+              >
+                <PiBellSimpleRingingDuotone className="h-8 w-8 drop-shadow-md" />
+                {notificationCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </span>
+                )}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                onClick={() => setShowSearchModal(true)}
+                data-testid="button-search"
+              >
+                <PiMagnifyingGlassDuotone className="h-8 w-8 drop-shadow-md" />
+              </Button>
+
+              {!isInstalled && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-full text-white hover:bg-white/20"
+                  onClick={handleInstallClick}
+                  data-testid="button-install"
+                >
+                  <PiDownloadSimpleDuotone className="h-8 w-8 drop-shadow-md" />
+                </Button>
+              )}
+
+              <ThemeToggle variant="overlay" />
+            </div>
+          </div>
+
+          {/* Feed tabs row */}
+          {showFeedTabs && (
+            <div className="flex items-center gap-6 px-4 pb-2">
               <button
                 onClick={() => onFeedTypeChange?.("recommend")}
                 className={cn(
-                  "text-sm font-semibold whitespace-nowrap transition-all pb-0.5",
+                  "text-base font-bold whitespace-nowrap transition-all pb-0.5",
                   feedType === "recommend"
                     ? "text-white border-b-2 border-white"
-                    : "text-white/55"
+                    : "text-white/50"
                 )}
                 data-testid="button-feed-recommend"
               >
@@ -143,10 +204,10 @@ export function Header({
               <button
                 onClick={() => onFeedTypeChange?.("following")}
                 className={cn(
-                  "text-sm font-semibold whitespace-nowrap transition-all pb-0.5",
+                  "text-base font-bold whitespace-nowrap transition-all pb-0.5",
                   feedType === "following"
                     ? "text-white border-b-2 border-white"
-                    : "text-white/55"
+                    : "text-white/50"
                 )}
                 data-testid="button-feed-following"
               >
@@ -155,107 +216,92 @@ export function Header({
             </div>
           )}
         </div>
+      ) : (
+        /* Solid layout: page title or logo + action icons */
+        <div className="flex h-14 items-center justify-between px-4 gap-2">
+          <div className="min-w-0">
+            {pageTitle ? (
+              <h1 className="text-lg font-bold text-foreground truncate">{pageTitle}</h1>
+            ) : (
+              <img
+                src={logoImage}
+                alt="Only-U"
+                className="h-10 object-contain dark:invert"
+                data-testid="img-logo"
+              />
+            )}
+          </div>
 
-        {/* Right side: action buttons */}
-        <div className={cn("flex items-center", isOverlay ? "gap-0 -mr-1" : "gap-0.5")}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "rounded-full transition-colors",
-                  isOverlay
-                    ? "h-12 w-12 text-white hover:bg-white/20"
-                    : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
-                )}
-                data-testid="button-language"
-              >
-                <PiGlobeHemisphereEastDuotone
-                  className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"}
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className={cn(
-                "min-w-[140px] rounded-xl",
-                isOverlay && "bg-black/80 backdrop-blur-xl border-white/20"
-              )}
-            >
-              {languages.map((lang) => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => setLanguage(lang.code as any)}
-                  className={cn(
-                    "rounded-lg",
-                    isOverlay
-                      ? `text-white hover:bg-white/20 ${language === lang.code ? "bg-white/15" : ""}`
-                      : language === lang.code ? "bg-pink-500/10 text-pink-600 dark:text-pink-400" : ""
-                  )}
-                  data-testid={`menu-item-lang-${lang.code}`}
+          <div className="flex items-center gap-0.5">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+                  data-testid="button-language"
                 >
-                  {lang.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <PiGlobeHemisphereEastDuotone className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code as any)}
+                    className={cn(
+                      "rounded-lg",
+                      language === lang.code && "bg-pink-500/10 text-pink-600 dark:text-pink-400"
+                    )}
+                    data-testid={`menu-item-lang-${lang.code}`}
+                  >
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "rounded-full relative transition-colors",
-              isOverlay
-                ? "h-12 w-12 text-white hover:bg-white/20"
-                : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
-            )}
-            onClick={() => setShowNotificationsModal(true)}
-            data-testid="button-notifications"
-          >
-            <PiBellSimpleRingingDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
-            {notificationCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
-                {notificationCount > 9 ? "9+" : notificationCount}
-              </span>
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "rounded-full transition-colors",
-              isOverlay
-                ? "h-12 w-12 text-white hover:bg-white/20"
-                : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
-            )}
-            onClick={() => setShowSearchModal(true)}
-            data-testid="button-search"
-          >
-            <PiMagnifyingGlassDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
-          </Button>
-
-          {!isInstalled && (
             <Button
               variant="ghost"
               size="icon"
-              className={cn(
-                "rounded-full transition-colors",
-                isOverlay
-                  ? "h-12 w-12 text-white hover:bg-white/20"
-                  : "h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-accent"
-              )}
-              onClick={handleInstallClick}
-              data-testid="button-install"
+              className="h-10 w-10 rounded-full relative text-muted-foreground hover:text-foreground hover:bg-accent"
+              onClick={() => setShowNotificationsModal(true)}
+              data-testid="button-notifications"
             >
-              <PiDownloadSimpleDuotone className={isOverlay ? "h-7 w-7 drop-shadow" : "h-5 w-5"} />
+              <PiBellSimpleRingingDuotone className="h-5 w-5" />
+              {notificationCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow">
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </span>
+              )}
             </Button>
-          )}
 
-          <ThemeToggle variant={isOverlay ? "overlay" : "solid"} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+              onClick={() => setShowSearchModal(true)}
+              data-testid="button-search"
+            >
+              <PiMagnifyingGlassDuotone className="h-5 w-5" />
+            </Button>
+
+            {!isInstalled && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
+                onClick={handleInstallClick}
+                data-testid="button-install"
+              >
+                <PiDownloadSimpleDuotone className="h-5 w-5" />
+              </Button>
+            )}
+
+            <ThemeToggle variant="solid" />
+          </div>
         </div>
-      </div>
+      )}
 
       <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
         <DialogContent className="max-w-sm rounded-2xl">

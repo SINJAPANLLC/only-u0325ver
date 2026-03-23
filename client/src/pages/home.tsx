@@ -71,6 +71,7 @@ function VideoPage({
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [videoFit, setVideoFit] = useState<"cover" | "contain">(isHorizontal ? "contain" : "cover");
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -155,6 +156,15 @@ function VideoPage({
       }
     }
   }, [isActive, isPaused, videoUrl, hasAccess]);
+
+  const handleVideoMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      if (videoWidth > 0 && videoHeight > 0) {
+        setVideoFit(videoWidth > videoHeight ? "contain" : "cover");
+      }
+    }
+  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current && !isDragging) {
@@ -277,18 +287,19 @@ function VideoPage({
           <video
             ref={videoRef}
             src={videoUrl}
-            className={`absolute inset-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
+            className={`absolute inset-0 w-full h-full ${videoFit === "contain" ? "object-contain" : "object-cover"}`}
             loop
             muted={isMuted}
             playsInline
             poster={thumbnailUrl}
             onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleVideoMetadata}
           />
         ) : thumbnailUrl ? (
           <img 
             src={thumbnailUrl} 
             alt="" 
-            className={`absolute inset-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
+            className="absolute inset-0 w-full h-full object-contain"
           />
         ) : null}
         
