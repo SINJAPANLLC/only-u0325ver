@@ -46,6 +46,7 @@ import NotificationSettings from "@/pages/notification-settings";
 import PrivacySettings from "@/pages/privacy-settings";
 import Help from "@/pages/help";
 import NotFound from "@/pages/not-found";
+import LiveRoom from "@/pages/live-room";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -96,6 +97,9 @@ function AuthenticatedApp() {
             </main>
             <BottomNavigation />
           </div>
+        </Route>
+        <Route path="/live-room/:streamId">
+          <LiveRoom />
         </Route>
         <Route path="/creator/:username">
           <div className="relative h-[100svh] overflow-hidden">

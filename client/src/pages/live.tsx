@@ -93,7 +93,7 @@ function StreamCard({ stream }: StreamCardProps) {
 
   const handleEnter = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!stream.id.startsWith("demo-")) setLocation(`/creator/${stream.creatorId}`);
+    setLocation(`/live-room/${stream.id}`);
   };
 
   return (
