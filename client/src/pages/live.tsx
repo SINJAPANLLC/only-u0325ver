@@ -99,11 +99,18 @@ function StreamCard({ stream, isActive }: StreamCardProps) {
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-20 left-4 right-20 z-10">
-        <button onClick={handleCreatorClick} className="flex items-center gap-2 mb-2">
+      <div className="absolute bottom-24 left-4 right-20 z-10">
+        <button onClick={handleCreatorClick} className="flex items-center gap-2 mb-1">
           <span className="text-white font-bold text-sm drop-shadow">{stream.creatorName}</span>
         </button>
-        <p className="text-white/90 text-sm drop-shadow leading-snug">{stream.title}</p>
+        <p className="text-white/90 text-sm drop-shadow leading-snug mb-3">{stream.title}</p>
+        <button
+          onClick={handleCreatorClick}
+          className="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white text-sm font-bold px-5 py-2 rounded-full shadow-lg"
+          data-testid={`button-enter-${stream.id}`}
+        >
+          入室する
+        </button>
       </div>
     </div>
   );
@@ -126,7 +133,7 @@ export default function Live() {
 
       <div
         ref={containerRef}
-        className="h-full overflow-y-scroll snap-y snap-mandatory"
+        className="h-full overflow-y-scroll snap-y snap-proximity scroll-smooth"
         style={{ scrollbarWidth: "none" }}
         onScroll={(e) => {
           const el = e.currentTarget;
