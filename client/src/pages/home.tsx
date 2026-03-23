@@ -472,7 +472,6 @@ function VideoPage({
           <span className="text-white font-bold text-[15px] drop-shadow-sm" data-testid={`text-creator-${id}`}>
             {displayName || creatorName}
           </span>
-          <span className="text-white/60 text-xs">@{creatorName}</span>
         </div>
 
         {/* Title/description */}
