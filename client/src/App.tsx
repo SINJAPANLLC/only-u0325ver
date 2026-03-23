@@ -344,7 +344,9 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <I18nProvider>
           <TooltipProvider>
-            <AppLayout />
+            <Suspense fallback={null}>
+              <AppLayout />
+            </Suspense>
             <Toaster />
           </TooltipProvider>
         </I18nProvider>
