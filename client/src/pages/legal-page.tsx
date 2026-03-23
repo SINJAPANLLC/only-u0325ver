@@ -9,15 +9,15 @@ interface LegalPageProps {
 
 function TermsContent() {
   return (
-    <div className="prose prose-sm max-w-none text-white/70">
-      <h2 className="text-xl font-bold text-white mb-4">Only-U[オンリーユー]利用規約</h2>
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Only-U[オンリーユー]利用規約</h2>
       <p className="mb-4">
         合同会社SIN JAPAN KANAGAWA（以下「弊社」といいます。）は、弊社が運営するウェブサイト及び弊社が運営するファンクラブサイトの提供サービスの利用について、以下のとおり規約（以下「本規約」といいます。）を定めます。本規約は、弊社とすべての利用者との間に適用されます。
       </p>
 
-      <h3 className="text-lg font-bold text-white mt-6 mb-3">第１章 総則</h3>
+      <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3">第１章 総則</h3>
       
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第１条（定義）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第１条（定義）</h4>
       <p className="mb-2">本規約では、以下のとおり用語を定義します。</p>
       
       <div className="ml-4 mb-4">
@@ -62,7 +62,7 @@ function TermsContent() {
         本規約等に基づく弊社と利用者との契約をいいます。</p>
       </div>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第２条（会員登録）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第２条（会員登録）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">本サービスの会員登録手続きは、必ず利用者本人が行うものとします。未成年者（２０２２年４月１日以後は、１８歳に満たない者をいいます。）は、本サービスをご利用いただけません。</li>
         <li className="mb-2">会員登録を希望する者（以下「会員登録希望者」といいます。）は、本サイト上の会員登録画面において、弊社の定める必要事項を入力し送信することで会員登録手続きを行うものとし、弊社が、これを承諾する旨の通知（電子メール等）をした時点で、弊社が会員登録希望者を会員として承諾したものとみなします。</li>
@@ -83,23 +83,23 @@ function TermsContent() {
         <li className="mb-2">会員は本規約等に従うものとします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第３条（会員情報の変更）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第３条（会員情報の変更）</h4>
       <p className="mb-4">
         会員は、本規約第２条１項に基づく会員登録手続きの際に弊社に届け出た会員の氏名、所在地又は住所、電話番号、電子メールアドレス、その他の情報に変更又は訂正があった場合、速やかに弊社に通知するものとします。会員が会員情報の変更を通知していない場合又は遅滞した場合、これにより会員又は第三者に生じた一切の損害について弊社は責任を負いません。
       </p>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第４条（会員の地位承継）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第４条（会員の地位承継）</h4>
       <p className="mb-4">
         会員が個人の場合、本契約上の会員としての地位は相続の対象とはならないものとします。但し、既に発生しているファンクラブ会費の支払い義務は、会員の死亡により相続されるものとします。
       </p>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第５条（利用者への通知）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第５条（利用者への通知）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">弊社が利用者（会員を含みます。）に対し通知を行う必要がある場合、本サイト上に掲示をして行うことができるものとします。この場合、利用者の閲覧可能な状態でサーバに掲示内容の情報が保存された時点で通知の効果が生じるものとします。</li>
         <li className="mb-2">弊社が会員に対し本サービスについて個別に通知を行う必要がある場合、当該会員が届け出た情報を利用して、弊社が適切と判断する方法により行うことができるものとします。これらの方法を採用した場合、弊社が当該会員に発信又は発送した時点で通知の効果が生じるものとします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第６条（本規約等の変更）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第６条（本規約等の変更）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">次の各号のいずれかに該当する場合、本規約等の変更をすることにより、変更後の本規約等の条項について合意があったものとみなし、弊社は個別に利用者と合意をすることなく本契約等の内容を変更することができるものとします。
           <ul className="list-disc ml-6 mt-2">
@@ -111,9 +111,9 @@ function TermsContent() {
         <li className="mb-2">前項で定めた効力発生時期から変更後の本規約等が適用され、本契約の内容が変更されるものとします。</li>
       </ol>
 
-      <div className="mt-8 pt-4 border-t border-white/10">
-        <p className="text-sm text-white/40">最終更新日: 2025年10月10日</p>
-        <p className="text-sm text-white/40">本規約に関するご質問は、info@only-u.fun までご連絡ください。</p>
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-400">最終更新日: 2025年10月10日</p>
+        <p className="text-sm text-gray-400">本規約に関するご質問は、info@only-u.fun までご連絡ください。</p>
       </div>
     </div>
   );
@@ -121,16 +121,16 @@ function TermsContent() {
 
 function PrivacyContent() {
   return (
-    <div className="prose prose-sm max-w-none text-white/70">
-      <h2 className="text-xl font-bold text-white mb-4">プライバシーポリシー</h2>
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-4">プライバシーポリシー</h2>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第1条（総則）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第1条（総則）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">ウェブサービスである「Only-U」（以下「本サービス」といいます。）を運営する合同会社SIN JAPAN KANAGAWA（以下「当社」といいます。）は、本サービスのユーザー（以下「ユーザー」という）のプライバシーを尊重し、ユーザーの個人情報およびその他のユーザーのプライバシーに係る情報（以下「プライバシー情報」といいます。）の管理に細心の注意を払います。</li>
         <li className="mb-2">当社は、個人情報保護法をはじめとする各法令およびその他の規範を遵守してユーザーから収集した個人情報を適切に取り扱います。また、当社は、個人情報を取り扱う体制の強化、SSL技術の導入等、ユーザーの個人情報の取り扱いについて、継続的な改善を図っています。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第2条（本ポリシーへの同意、同意の撤回）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第2条（本ポリシーへの同意、同意の撤回）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">ユーザーは、問い合わせ又は会員登録を通じて当社に自身のプライバシー情報を提供する場合、本ポリシーを熟読し、その内容に同意するものとします。</li>
         <li className="mb-2">ユーザーは、当社によるプライバシー情報の使用等について同意を撤回することができます。この場合、本サービスを継続利用することはできません。</li>
@@ -138,7 +138,7 @@ function PrivacyContent() {
         <li className="mb-2">当社は、クッキー、IPアドレス、アクセスログ等のWEBトラッキング技術を活用してユーザーの行動や嗜好に関する情報を収集します。当社は、ユーザーが本サービスを利用した場合、当該ユーザーが当社によるこれらの技術を利用したプライバシー情報の収集について同意したものとみなします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第3条（収集するプライバシー情報）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第3条（収集するプライバシー情報）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">当社は、本サービスの提供に際して、ユーザーから以下の情報を収集または取得します。
           <ul className="list-disc ml-6 mt-2">
@@ -149,7 +149,7 @@ function PrivacyContent() {
         <li className="mb-2">当社は、適法かつ公正な手段によってプライバシー情報を入手し、ユーザーの意思に反する不正な入手をしません。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第4条（プライバシー情報の利用目的）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第4条（プライバシー情報の利用目的）</h4>
       <p className="mb-2">当社は、ユーザーから収集したプライバシー情報を本サービスの運営の目的のために使用します。主な利用目的は、以下のとおりです。</p>
       <ul className="list-disc ml-6 mb-4">
         <li>(1)料金請求、本人確認、認証のため</li>
@@ -168,7 +168,7 @@ function PrivacyContent() {
         <li>(14)クレーム、紛争・訴訟等の対応のため</li>
       </ul>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第5条（プライバシー情報の第三者提供）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第5条（プライバシー情報の第三者提供）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">当社は、ユーザーの個人情報を第三者に開示または提供する場合、その提供先・提供情報内容を開示し、ユーザー本人の同意を得るものとします。なお、当社は、以下の場合を除き、ユーザー本人の事前の同意を得ることなく、個人情報を第三者に開示または提供することはありません。
           <ul className="list-disc ml-6 mt-2">
@@ -183,13 +183,13 @@ function PrivacyContent() {
         <li className="mb-2">当社は、合併や分割等で当社の事業を第三者に譲渡する場合または本サービスの一部または全部を第三者に譲渡する場合、本サービスに係るユーザーの個人情報等を当該第三者に提供します。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第6条（プライバシー情報の管理、保管期間）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第6条（プライバシー情報の管理、保管期間）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">当社は、ユーザーが本サービスを利用している期間中、当該ユーザーから開示または提供されたプライバシー情報の漏洩、改ざん等を防止するため、現時点での技術水準に合わせた必要かつ適切な安全管理措置を講じます。</li>
         <li className="mb-2">当社は、当社が保管するプライバシー情報を利用する必要がなくなった場合、当該プライバシー情報を遅滞なく消去するよう努めるものとします。また、ユーザーよりプライバシー情報の削除を要求された場合も、同様とします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第7条（ユーザーによる照会等への対応）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第7条（ユーザーによる照会等への対応）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">ユーザーは、当社に対して、当社が保有する自身のプライバシー情報の開示、訂正、追加または削除、および利用停止を請求することができます。</li>
         <li className="mb-2">ユーザーは、当社が定める手段によって前項の開示等の請求をするものとします。なお、同請求は、ユーザー本人、法定代理人（ユーザーが未成年者または成年被後見人である場合）または当該請求につきユーザー本人より委任された代理人のみすることができます。</li>
@@ -199,7 +199,7 @@ function PrivacyContent() {
           ※原則的に簡易書留（送料３９２円）にて発送します。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第8条（解析ツール等の使用）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第8条（解析ツール等の使用）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">当社は、アクセス解析ツールを使用してユーザーの行動履歴等に関する情報を収集します。また、本サービスの提供に係るウェブサイト上に掲載される広告等の一部は、クッキーを利用した第三者の運営するサービスを利用して表示されます。なお、Googleが提供するサービスについては、Googleのプライバシーポリシーが適用されます。<br />
           <a href="https://policies.google.com/privacy?hl=ja" className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy?hl=ja</a></li>
@@ -207,20 +207,20 @@ function PrivacyContent() {
         <li className="mb-2">前項の設定の変更等は、ユーザー自身の自己責任にてなされるものとし、当社は、設定を変更したこと等により一部の情報が閲覧できない等、ユーザーに損害が生じた場合でも、一切責任を負わないものとします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第9条（本ポリシーの変更）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第9条（本ポリシーの変更）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">当社は、自身の判断にて、本ポリシーを改定することができます。当社は、本ポリシーを改定する場合、緊急性がある場合を除き、事前に当社が適当であると判断する手段にてユーザーにその旨を通知するものとします。</li>
         <li className="mb-2">本ポリシーの改定は、改定後のプライバシーポリシーを本サービスにかかるWEBサイト上に掲載した時点で効力を生じるものとします。</li>
         <li className="mb-2">ユーザーは、本ポリシーの改定に同意することができない場合、当社に対して、第７条に定める手段にて自身のプライバシー情報の削除を要求することができます。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第10条（合意管轄、準拠法）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第10条（合意管轄、準拠法）</h4>
       <ol className="list-decimal ml-6 mb-4">
         <li className="mb-2">本ポリシーは、日本国法に準拠して解釈されるものとします。</li>
         <li className="mb-2">ユーザーは、本ポリシーに関連して紛争等が発生した場合、東京地方裁判所において第一審の裁判を行うことにあらかじめ同意するものとします。</li>
       </ol>
 
-      <h4 className="text-base font-bold text-white mt-4 mb-2">第11条（管理責任者）</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-4 mb-2">第11条（管理責任者）</h4>
       <p className="mb-4">
         当社では、個人情報の管理責任者を以下の者として、個人情報の適正な管理および個人情報保護に関する施策の継続的な改善を実施しています。なお、個人情報に関するお問い合わせ、ご相談、第７条の開示等の請求の窓口もこちらをご利用ください。
       </p>
@@ -231,9 +231,9 @@ function PrivacyContent() {
         <p>開示等の請求の方法: メール、郵送</p>
       </div>
 
-      <div className="mt-8 pt-4 border-t border-white/10">
-        <p className="text-sm text-white/40">最終更新日: 2025年10月10日</p>
-        <p className="text-sm text-white/40">本ポリシーに関するご質問は、info@only-u.fun までご連絡ください。</p>
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-400">最終更新日: 2025年10月10日</p>
+        <p className="text-sm text-gray-400">本ポリシーに関するご質問は、info@only-u.fun までご連絡ください。</p>
       </div>
     </div>
   );
@@ -241,81 +241,81 @@ function PrivacyContent() {
 
 function LegalNoticeContent() {
   return (
-    <div className="prose prose-sm max-w-none text-white/70">
-      <h2 className="text-xl font-bold text-white mb-6">特定商取引法に基づく表記</h2>
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-6">特定商取引法に基づく表記</h2>
 
       <table className="w-full border-collapse">
         <tbody>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white w-1/3">販売業者</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900 w-1/3">販売業者</td>
             <td className="py-3">合同会社SIN JAPAN KANAGAWA</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">運営統括責任者名</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">運営統括責任者名</td>
             <td className="py-3">榎本翔太</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">所在地</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">所在地</td>
             <td className="py-3">神奈川県愛甲郡愛川町中津7287</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">電話番号</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">電話番号</td>
             <td className="py-3">
               050-5526-9906<br />
-              <span className="text-sm text-white/40">※ お電話での対応は行っておりません。<br />お急ぎの際は問い合わせフォームからお願いいたします。</span>
+              <span className="text-sm text-gray-400">※ お電話での対応は行っておりません。<br />お急ぎの際は問い合わせフォームからお願いいたします。</span>
             </td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">連絡先メールアドレス</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">連絡先メールアドレス</td>
             <td className="py-3">info@only-u.fun</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">ホームページ</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">ホームページ</td>
             <td className="py-3">
               <a href="https://only-u.fun" className="text-blue-400 hover:underline">https://only-u.fun</a>
             </td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">販売価格</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">販売価格</td>
             <td className="py-3">各商品ページの価格に準じます。</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">お支払い方法</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">お支払い方法</td>
             <td className="py-3">クレジットカード</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">お支払期限</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">お支払期限</td>
             <td className="py-3">ご注文時にお支払い確定</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">商品の引き渡し時期</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">商品の引き渡し時期</td>
             <td className="py-3">お支払い完了後、サービスの提供を行います。</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">返品・キャンセル</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">返品・キャンセル</td>
             <td className="py-3">サービスの性質上、契約締結後のキャンセル、クーリングオフは一切認められず、お支払い頂いた料金については理由を問わず返還いたしません。</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">サービスの解約条件</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">サービスの解約条件</td>
             <td className="py-3">解約される場合は、当社サイト上の記載に従って解約手続を行う必要があります。</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">その他費用</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">その他費用</td>
             <td className="py-3">
               当社が代理受領した料金を「主催者」が指定する振込先口座に振り込む際、振込手数料として３３０円（税込）を当社にお支払いいただきます。<br /><br />
               なお、ご指定いただいた振込先口座情報の不備・誤記によって誤った振込先への振込がなされてしまった場合に、当社が任意で行う組戻し手続に際し、組戻し手数料として８８０円（税込）を当社にお支払いいただきます。
             </td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">映像送信型性風俗特殊営業届出</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">映像送信型性風俗特殊営業届出</td>
             <td className="py-3">神奈川県公安委員会第　号</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">無店舗型性風俗特殊営業届出</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">無店舗型性風俗特殊営業届出</td>
             <td className="py-3">神奈川県公安委員会第　号</td>
           </tr>
-          <tr className="border-b border-white/10">
-            <td className="py-3 pr-4 font-medium text-white">古物商許可</td>
+          <tr className="border-b border-gray-200">
+            <td className="py-3 pr-4 font-medium text-gray-900">古物商許可</td>
             <td className="py-3">神奈川県公安委員会第　号</td>
           </tr>
         </tbody>
@@ -326,10 +326,10 @@ function LegalNoticeContent() {
 
 function GuidelinesContent() {
   return (
-    <div className="prose prose-sm max-w-none text-white/70">
-      <h2 className="text-xl font-bold text-white mb-6">掲載ガイドライン</h2>
+    <div className="prose prose-sm max-w-none text-gray-700">
+      <h2 className="text-xl font-bold text-gray-900 mb-6">掲載ガイドライン</h2>
 
-      <h4 className="text-base font-bold text-white mt-6 mb-3">1. 禁止コンテンツ</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">1. 禁止コンテンツ</h4>
       <p className="mb-2">以下のコンテンツは掲載を禁止します：</p>
       <ul className="list-disc ml-6 mb-4">
         <li>18歳未満の人物が関与するコンテンツ</li>
@@ -343,7 +343,7 @@ function GuidelinesContent() {
         <li>その他、弊社が不適切と判断したコンテンツ</li>
       </ul>
 
-      <h4 className="text-base font-bold text-white mt-6 mb-3">2. 掲載要件</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">2. 掲載要件</h4>
       <p className="mb-2">コンテンツを掲載する際は以下を遵守してください：</p>
       <ul className="list-disc ml-6 mb-4">
         <li>出演者の年齢確認書類の提出</li>
@@ -354,7 +354,7 @@ function GuidelinesContent() {
         <li>プライバシーの保護</li>
       </ul>
 
-      <h4 className="text-base font-bold text-white mt-6 mb-3">3. コンテンツの品質基準</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">3. コンテンツの品質基準</h4>
       <ul className="list-disc ml-6 mb-4">
         <li>映像・音声の品質が良好であること</li>
         <li>適切な照明と撮影環境であること</li>
@@ -363,7 +363,7 @@ function GuidelinesContent() {
         <li>正確なタグ付け</li>
       </ul>
 
-      <h4 className="text-base font-bold text-white mt-6 mb-3">4. コミュニケーションガイドライン</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">4. コミュニケーションガイドライン</h4>
       <ul className="list-disc ml-6 mb-4">
         <li>相手を尊重した丁寧なコミュニケーション</li>
         <li>ハラスメント行為の禁止</li>
@@ -372,7 +372,7 @@ function GuidelinesContent() {
         <li>適切な言語の使用</li>
       </ul>
 
-      <h4 className="text-base font-bold text-white mt-6 mb-3">5. 違反時の措置</h4>
+      <h4 className="text-base font-bold text-gray-900 mt-6 mb-3">5. 違反時の措置</h4>
       <p className="mb-2">ガイドライン違反が発覚した場合、以下の措置を講じます：</p>
       <ul className="list-disc ml-6 mb-4">
         <li>コンテンツの削除</li>
@@ -381,8 +381,8 @@ function GuidelinesContent() {
         <li>法的措置の検討</li>
       </ul>
 
-      <div className="mt-8 pt-4 border-t border-white/10">
-        <p className="text-sm text-white/40">
+      <div className="mt-8 pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-400">
           注意：本ガイドラインは、安全で適切なサービス提供のために定められています。
           全てのユーザーは本ガイドラインを遵守し、責任ある利用をお願いします。
           疑問点がございましたら、サポートまでお問い合わせください。
@@ -400,7 +400,7 @@ function PlaceholderContent() {
         alt="Only-U" 
         className="h-20 object-contain mb-6"
       />
-      <p className="text-white/40 text-center">
+      <p className="text-gray-400 text-center">
         このページは準備中です
       </p>
     </div>
@@ -430,19 +430,19 @@ export default function LegalPage({ title, type }: LegalPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="flex items-center gap-3 px-4 h-14">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
+            className="h-9 w-9 rounded-xl text-gray-700 hover:bg-gray-100"
             onClick={handleBack}
             data-testid={`button-close-${type}`}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="font-bold text-base">{title}</h1>
+          <h1 className="font-bold text-base text-gray-900">{title}</h1>
         </div>
       </header>
 
