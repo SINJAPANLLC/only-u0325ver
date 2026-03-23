@@ -79,7 +79,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       {/* ── HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-pink-100" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-5 h-20 flex items-center justify-between">
-          <img src={logoImage} alt="Only-U" className="h-16 object-contain" />
+          <img src={logoImage} alt="Only-U" className="w-36 h-auto object-contain" />
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/auth?mode=login">
               <button className="text-sm font-medium text-gray-500 hover:text-pink-500 px-3 py-2 transition-colors hidden sm:block" data-testid="button-header-login">
@@ -119,7 +119,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             日本発・クリエイター × ファン プラットフォーム
           </motion.div>
 
-          <h1 className="font-black leading-none tracking-tight mb-6 whitespace-nowrap" style={{ fontSize: "clamp(2rem, 6.5vw, 5.5rem)" }}>
+          <h1 className="font-black leading-none tracking-tight mb-6 whitespace-nowrap" style={{ fontSize: "clamp(1.8rem, 4.5vw, 4rem)" }}>
             <span className="text-gray-900">あなたの</span><span className="text-pink-500">推しと、もっと。</span>
           </h1>
 
@@ -409,7 +409,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         <div className="max-w-5xl mx-auto px-5">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-10 mb-10">
             <div>
-              <img src={logoImage} alt="Only-U" className="h-16 object-contain mb-3" />
+              <img src={logoImage} alt="Only-U" className="w-36 h-auto object-contain mb-3" />
               <p className="text-gray-400 text-xs leading-relaxed max-w-xs">
                 クリエイターとファンをつなぐ<br />日本発のプレミアムSNSプラットフォーム。
               </p>
