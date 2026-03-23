@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
@@ -31,10 +31,10 @@ function formatCount(count: number) {
 
 interface StreamCardProps {
   stream: typeof demoStreams[0];
-  direction: number;
+  isActive: boolean;
 }
 
-function StreamCard({ stream, direction }: StreamCardProps) {
+function StreamCard({ stream, isActive }: StreamCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(stream.likeCount);
   const [, setLocation] = useLocation();
@@ -55,14 +55,7 @@ function StreamCard({ stream, direction }: StreamCardProps) {
   };
 
   return (
-    <motion.div
-      key={stream.id}
-      className="absolute inset-0 bg-black"
-      initial={{ y: direction > 0 ? "100%" : "-100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: direction > 0 ? "-100%" : "100%" }}
-      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-    >
+    <div className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black" data-testid={`live-card-${stream.id}`}>
       {stream.thumbnailUrl && (
         <img
           src={stream.thumbnailUrl}
@@ -108,14 +101,13 @@ function StreamCard({ stream, direction }: StreamCardProps) {
           入室する
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
-  const isAnimating = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: liveStreams, isLoading } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -124,41 +116,36 @@ export default function Live() {
 
   const streams = !isLoading && liveStreams && liveStreams.length > 0 ? liveStreams : demoStreams;
 
-  const goTo = (next: number) => {
-    if (isAnimating.current) return;
-    const clamped = Math.max(0, Math.min(next, streams.length - 1));
-    if (clamped === activeIndex) return;
-    isAnimating.current = true;
-    setDirection(next > activeIndex ? 1 : -1);
-    setActiveIndex(clamped);
-    setTimeout(() => { isAnimating.current = false; }, 400);
-  };
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const newIndex = Math.round(container.scrollTop / container.clientHeight);
+      if (newIndex !== activeIndex && newIndex >= 0 && newIndex < streams.length) {
+        setActiveIndex(newIndex);
+      }
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [activeIndex, streams.length]);
 
   return (
-    <div className="relative h-[100svh] bg-black overflow-hidden">
+    <>
       <Header variant="overlay" />
-
-      <motion.div
-        className="absolute inset-0"
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.2}
-        onDragEnd={(_, info) => {
-          if (Math.abs(info.offset.y) > 60) {
-            goTo(activeIndex + (info.offset.y < 0 ? 1 : -1));
-          }
-        }}
+      <div
+        ref={containerRef}
+        className="h-[100svh] overflow-y-scroll snap-y snap-mandatory hide-scrollbar bg-black"
+        data-testid="live-feed"
       >
-        <AnimatePresence initial={false} custom={direction} mode="wait">
+        {streams.map((stream, index) => (
           <StreamCard
-            key={activeIndex}
-            stream={streams[activeIndex]}
-            direction={direction}
+            key={stream.id}
+            stream={stream}
+            isActive={index === activeIndex}
           />
-        </AnimatePresence>
-      </motion.div>
-
+        ))}
+      </div>
       <BottomNavigation />
-    </div>
+    </>
   );
 }
