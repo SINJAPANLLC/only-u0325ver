@@ -1,10 +1,26 @@
 import { useQuery } from "@tanstack/react-query";
-import { Radio, Users, Eye } from "lucide-react";
+import { Radio, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/header";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { useLocation } from "wouter";
+
+import img1 from "@assets/generated_images/live_mock_1.jpg";
+import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
+import img3 from "@assets/generated_images/bunny_girl_5.jpg";
+import img4 from "@assets/generated_images/nude_shower_4.jpg";
+import img5 from "@assets/generated_images/sexy_maid_7.jpg";
+import img6 from "@assets/generated_images/bikini_beach_5.jpg";
+
+const demoStreams = [
+  { id: "demo-1", creatorId: "demo-1", title: "脱衣リクエスト配信🔥どんどん脱ぐよ", creatorName: "れいな", viewerCount: 2450, thumbnailUrl: img1 },
+  { id: "demo-2", creatorId: "demo-2", title: "下着試着会💕全部見せちゃう", creatorName: "ゆあ", viewerCount: 1890, thumbnailUrl: img2 },
+  { id: "demo-3", creatorId: "demo-3", title: "バニーガール配信🐰今夜は何でもします", creatorName: "みお", viewerCount: 1250, thumbnailUrl: img3 },
+  { id: "demo-4", creatorId: "demo-4", title: "シャワー配信🚿全身見せちゃうかも…？", creatorName: "ひな", viewerCount: 3200, thumbnailUrl: img4 },
+  { id: "demo-5", creatorId: "demo-5", title: "メイドコス配信💖リクエスト全部応えます", creatorName: "さき", viewerCount: 1680, thumbnailUrl: img5 },
+  { id: "demo-6", creatorId: "demo-6", title: "ビーチ配信🌊水着でお喋り", creatorName: "まい", viewerCount: 980, thumbnailUrl: img6 },
+];
 
 export default function Live() {
   const [, setLocation] = useLocation();
@@ -13,6 +29,8 @@ export default function Live() {
     queryKey: ["/api/live/active"],
     refetchInterval: 10000,
   });
+
+  const streams = !isLoading && liveStreams && liveStreams.length > 0 ? liveStreams : demoStreams;
 
   const formatViewers = (count: number) => {
     if (count >= 10000) return `${(count / 10000).toFixed(1)}万`;
@@ -39,20 +57,16 @@ export default function Live() {
               <div key={i} className="rounded-2xl bg-gray-100 animate-pulse aspect-[3/4]" />
             ))}
           </div>
-        ) : !liveStreams || liveStreams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-8 text-center">
-            <div className="h-20 w-20 rounded-full bg-pink-50 flex items-center justify-center mb-4">
-              <Radio className="h-10 w-10 text-pink-300" />
-            </div>
-            <h2 className="text-lg font-bold text-gray-800 mb-2">現在配信中のクリエイターはいません</h2>
-            <p className="text-sm text-gray-400">クリエイターが配信を開始するとここに表示されます</p>
-          </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 p-4">
-            {liveStreams.map((stream) => (
+            {streams.map((stream) => (
               <button
                 key={stream.id}
-                onClick={() => setLocation(`/creator/${stream.creatorId}`)}
+                onClick={() => {
+                  if (!stream.id.startsWith("demo-")) {
+                    setLocation(`/creator/${stream.creatorId}`);
+                  }
+                }}
                 className="relative rounded-2xl overflow-hidden bg-gray-100 aspect-[3/4] text-left shadow-sm"
                 data-testid={`live-card-${stream.id}`}
               >
