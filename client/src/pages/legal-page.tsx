@@ -1,6 +1,5 @@
-import { X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 
 interface LegalPageProps {
   title: string;
@@ -430,20 +429,21 @@ export default function LegalPage({ title, type }: LegalPageProps) {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
-      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-100">
-        <button 
-          onClick={handleBack}
-          className="text-gray-600 hover:text-gray-800" 
-          data-testid={`button-close-${type}`}
-        >
-          <X className="h-6 w-6" />
-        </button>
-        <h1 className="text-lg font-bold text-gray-900">{title}</h1>
-        <div className="w-6" />
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+        <div className="flex items-center gap-3 px-5 h-14">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors"
+            data-testid={`button-close-${type}`}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-base font-bold text-gray-900">{title}</h1>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex-1 overflow-y-auto px-5 py-6">
         {renderContent()}
       </div>
     </div>

@@ -4,20 +4,18 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
-import { 
-  ChevronLeft, 
-  HelpCircle,
-  MessageCircle,
+import { motion, AnimatePresence } from "framer-motion";
+import {
   ChevronDown,
-  ChevronUp,
   Send,
   Mail,
   AlertTriangle,
-  Trash2
+  Trash2,
+  ArrowLeft,
+  MessageCircle,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -45,11 +43,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -100,12 +93,7 @@ export default function HelpPage() {
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
-    defaultValues: {
-      category: "",
-      email: "",
-      subject: "",
-      message: "",
-    },
+    defaultValues: { category: "", email: "", subject: "", message: "" },
   });
 
   const contactMutation = useMutation({
@@ -135,9 +123,7 @@ export default function HelpPage() {
     },
   });
 
-  const onSubmit = (data: ContactFormValues) => {
-    contactMutation.mutate(data);
-  };
+  const onSubmit = (data: ContactFormValues) => contactMutation.mutate(data);
 
   const handleDeleteAccount = () => {
     if (deleteConfirmText !== "退会する") {
@@ -148,69 +134,74 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-y-auto">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
+    <div className="min-h-screen bg-white pb-24 overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+        <div className="flex items-center gap-3 px-5 h-14">
+          <button
             onClick={() => setLocation("/account")}
+            className="flex items-center gap-1.5 text-gray-400 hover:text-pink-500 transition-colors"
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold" data-testid="heading-page-title">ヘルプ・お問い合わせ</h1>
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-base font-bold text-gray-900" data-testid="heading-page-title">ヘルプ・お問い合わせ</h1>
         </div>
-      </header>
+      </div>
 
-      <main className="p-4 space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <HelpCircle className="h-5 w-5 text-muted-foreground" />
-              <h2 className="font-semibold" data-testid="heading-faq">よくある質問</h2>
+      <div className="px-5 py-6 space-y-6">
+        {/* FAQ */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center">
+              <HelpCircle className="h-4 w-4 text-pink-500" />
             </div>
+            <h2 className="font-bold text-gray-900" data-testid="heading-faq">よくある質問</h2>
+          </div>
 
-            <div className="space-y-2">
-              {faqItems.map((item, index) => (
-                <Collapsible
-                  key={index}
-                  open={openFaqIndex === index}
-                  onOpenChange={(open) => setOpenFaqIndex(open ? index : null)}
+          <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden divide-y divide-gray-50">
+            {faqItems.map((item, index) => (
+              <div key={index}>
+                <button
+                  className="w-full flex items-center justify-between px-4 py-4 text-left"
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                  data-testid={`button-faq-${index}`}
                 >
-                  <CollapsibleTrigger asChild>
-                    <button
-                      className="w-full flex items-center justify-between p-3 rounded-lg hover-elevate text-left"
-                      data-testid={`button-faq-${index}`}
+                  <span className="text-sm font-medium text-gray-800 pr-4" data-testid={`text-faq-question-${index}`}>{item.question}</span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-pink-400 shrink-0 transition-transform duration-200 ${openFaqIndex === index ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {openFaqIndex === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
                     >
-                      <span className="font-medium text-sm pr-4" data-testid={`text-faq-question-${index}`}>{item.question}</span>
-                      {openFaqIndex === index ? (
-                        <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                      )}
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-3 pb-3 text-sm text-muted-foreground" data-testid={`text-faq-answer-${index}`}>
-                      {item.answer}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
-            </div>
-          </Card>
+                      <p className="px-4 pb-4 text-sm text-gray-500 leading-relaxed" data-testid={`text-faq-answer-${index}`}>
+                        {item.answer}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageCircle className="h-5 w-5 text-muted-foreground" />
-              <h2 className="font-semibold" data-testid="heading-contact">お問い合わせ</h2>
+        {/* Contact Form */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center">
+              <MessageCircle className="h-4 w-4 text-pink-500" />
             </div>
+            <h2 className="font-bold text-gray-900" data-testid="heading-contact">お問い合わせ</h2>
+          </div>
 
+          <div className="rounded-2xl border border-gray-100 bg-white p-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -218,10 +209,10 @@ export default function HelpPage() {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>カテゴリ</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">カテゴリ</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-category">
+                          <SelectTrigger className="rounded-xl border-gray-200 bg-gray-50" data-testid="select-category">
                             <SelectValue placeholder="選択してください" />
                           </SelectTrigger>
                         </FormControl>
@@ -244,14 +235,9 @@ export default function HelpPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>メールアドレス</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">メールアドレス</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="example@email.com"
-                          data-testid="input-email"
-                          {...field}
-                        />
+                        <Input type="email" placeholder="example@email.com" className="rounded-xl border-gray-200 bg-gray-50" data-testid="input-email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -263,13 +249,9 @@ export default function HelpPage() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>件名（任意）</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">件名（任意）</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="お問い合わせの件名"
-                          data-testid="input-subject"
-                          {...field}
-                        />
+                        <Input placeholder="お問い合わせの件名" className="rounded-xl border-gray-200 bg-gray-50" data-testid="input-subject" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -281,14 +263,9 @@ export default function HelpPage() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>お問い合わせ内容</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">お問い合わせ内容</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="お問い合わせ内容を入力してください"
-                          rows={5}
-                          data-testid="textarea-message"
-                          {...field}
-                        />
+                        <Textarea placeholder="お問い合わせ内容を入力してください" rows={5} className="rounded-xl border-gray-200 bg-gray-50 resize-none" data-testid="textarea-message" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -297,7 +274,7 @@ export default function HelpPage() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full h-12"
                   disabled={contactMutation.isPending}
                   data-testid="button-submit-contact"
                 >
@@ -306,47 +283,47 @@ export default function HelpPage() {
                 </Button>
               </form>
             </Form>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <h2 className="font-semibold" data-testid="heading-other-contact">その他のお問い合わせ</h2>
-            </div>
-            <p className="text-sm text-muted-foreground" data-testid="text-other-contact-desc">
-              上記フォームで解決しない場合は、メールでもお問い合わせいただけます。
-            </p>
-            <p className="text-sm mt-2">
-              <a href="mailto:info@only-u.fun" className="text-primary hover:underline" data-testid="link-email">
-                info@only-u.fun
-              </a>
-            </p>
-          </Card>
-
-          <div className="border-t pt-6">
-            <button
-              className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-              onClick={() => setShowDeleteDialog(true)}
-              data-testid="button-delete-account"
-            >
-              <Trash2 className="h-3 w-3 inline mr-1" />
-              アカウントを退会する
-            </button>
           </div>
         </motion.div>
-      </main>
+
+        {/* Other contact */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="rounded-2xl border border-gray-100 bg-white p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="h-4 w-4 text-pink-400" />
+              <h2 className="text-sm font-bold text-gray-900" data-testid="heading-other-contact">メールでのお問い合わせ</h2>
+            </div>
+            <p className="text-xs text-gray-400 mb-2" data-testid="text-other-contact-desc">
+              フォームで解決しない場合はメールでもお問い合わせいただけます。
+            </p>
+            <a href="mailto:info@only-u.fun" className="text-sm text-pink-500 hover:underline font-medium" data-testid="link-email">
+              info@only-u.fun
+            </a>
+          </div>
+        </motion.div>
+
+        {/* Delete account */}
+        <div className="pt-2 text-center">
+          <button
+            className="text-xs text-gray-300 hover:text-red-400 transition-colors flex items-center gap-1 mx-auto"
+            onClick={() => setShowDeleteDialog(true)}
+            data-testid="button-delete-account"
+          >
+            <Trash2 className="h-3 w-3" />
+            アカウントを退会する
+          </button>
+        </div>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive" data-testid="heading-delete-dialog">
+            <AlertDialogTitle className="flex items-center gap-2 text-red-500" data-testid="heading-delete-dialog">
               <AlertTriangle className="h-5 w-5" />
               アカウントの退会
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
-              <p data-testid="text-delete-warning">
-                アカウントを削除すると、以下のデータが全て削除され、復元できません。
-              </p>
+              <p data-testid="text-delete-warning">アカウントを削除すると、以下のデータが全て削除され、復元できません。</p>
               <ul className="list-disc list-inside text-sm space-y-1" data-testid="list-delete-items">
                 <li data-testid="text-delete-item-0">プロフィール情報</li>
                 <li data-testid="text-delete-item-1">購入履歴・ポイント残高</li>
@@ -354,26 +331,20 @@ export default function HelpPage() {
                 <li data-testid="text-delete-item-3">フォロー・サブスクリプション</li>
                 <li data-testid="text-delete-item-4">クリエイターデータ（該当する場合）</li>
               </ul>
-              <p className="font-medium" data-testid="text-delete-confirm-instruction">
-                退会を続ける場合は「退会する」と入力してください。
-              </p>
+              <p className="font-medium" data-testid="text-delete-confirm-instruction">退会を続ける場合は「退会する」と入力してください。</p>
               <Input
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="退会する"
+                className="rounded-xl"
                 data-testid="input-delete-confirm"
               />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={() => setDeleteConfirmText("")}
-              data-testid="button-cancel-delete"
-            >
-              キャンセル
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText("")} data-testid="button-cancel-delete">キャンセル</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-500 hover:bg-red-600 text-white"
               onClick={handleDeleteAccount}
               disabled={deleteConfirmText !== "退会する" || deleteAccountMutation.isPending}
               data-testid="button-confirm-delete"
