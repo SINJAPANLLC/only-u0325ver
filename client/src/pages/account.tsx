@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { 
   User, Settings, CreditCard, ShoppingBag, Heart, Bell, 
   HelpCircle, FileText, Shield, LogOut, ChevronRight,
-  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Eye, Phone, Mail, Crown, Loader2, Trash2
+  Radio, Package, BarChart3, Wallet, Star, Globe, Send, Clock, CheckCircle, XCircle, Edit, Phone, Mail, Crown, Loader2, Trash2
 } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -112,7 +112,6 @@ export default function Account() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
   const [isSubscriptionsDialogOpen, setIsSubscriptionsDialogOpen] = useState(false);
-  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
   const [subscriptionToCancel, setSubscriptionToCancel] = useState<SubscriptionWithDetails | null>(null);
   
   const [profileForm, setProfileForm] = useState({
@@ -138,49 +137,6 @@ export default function Account() {
   const { data: userSubscriptions, isLoading: isLoadingSubscriptions } = useQuery<SubscriptionWithDetails[]>({
     queryKey: ["/api/subscriptions"],
     enabled: !!user,
-  });
-
-  interface PremiumPlanStatus {
-    hasPremium: boolean;
-    plan: {
-      id: string;
-      expiresAt: string | null;
-      autoRenew: boolean;
-    } | null;
-    price: number;
-  }
-
-  const { data: premiumStatus } = useQuery<PremiumPlanStatus>({
-    queryKey: ["/api/premium-plan"],
-    enabled: !!user,
-  });
-
-  const subscribePremiumMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", "/api/premium-plan/subscribe");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/premium-plan"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      setIsPremiumDialogOpen(false);
-      toast({ title: "高画質プランに加入しました" });
-    },
-    onError: (error: any) => {
-      toast({ title: error.message || "加入に失敗しました", variant: "destructive" });
-    },
-  });
-
-  const cancelPremiumMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("DELETE", "/api/premium-plan");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/premium-plan"] });
-      toast({ title: "自動更新を停止しました" });
-    },
-    onError: () => {
-      toast({ title: "解約に失敗しました", variant: "destructive" });
-    },
   });
 
   const cancelSubscriptionMutation = useMutation({
@@ -254,14 +210,6 @@ export default function Account() {
 
   const userMenuItems: MenuItemProps[] = [
     { icon: User, label: "プロフィール", description: "自分のプロフィールを見る", onClick: () => setLocation("/my-profile") },
-    { 
-      icon: Eye, 
-      label: "高画質プラン", 
-      description: premiumStatus?.hasPremium ? "4K画質で視聴中" : "4K画質で視聴",
-      badge: premiumStatus?.hasPremium ? "加入中" : "980pt/月",
-      badgeVariant: premiumStatus?.hasPremium ? "pink" : "default",
-      onClick: () => setIsPremiumDialogOpen(true),
-    },
     { 
       icon: Star, 
       label: "加入中のプラン", 
@@ -590,86 +538,6 @@ export default function Account() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Premium Plan Dialog */}
-      <Dialog open={isPremiumDialogOpen} onOpenChange={setIsPremiumDialogOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-yellow-500" />
-              高画質プラン
-            </DialogTitle>
-            <DialogDescription>4K・最高画質でコンテンツを視聴できます</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold">高画質プラン</span>
-                <span className="text-2xl font-bold text-yellow-600">980<span className="text-sm">pt/月</span></span>
-              </div>
-              <ul className="space-y-2 text-sm text-white/50">
-                <li className="flex items-center gap-2"><Eye className="h-4 w-4 text-yellow-500" />4K・最高画質でのコンテンツ視聴</li>
-                <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" />全クリエイターのコンテンツに適用</li>
-                <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-blue-500" />いつでも解約可能</li>
-              </ul>
-            </div>
-
-            {premiumStatus?.hasPremium && premiumStatus.plan && (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
-                  <CheckCircle className="h-4 w-4" />加入中
-                </div>
-                <p className="text-sm text-white/50 mt-1">
-                  有効期限: {premiumStatus.plan.expiresAt
-                    ? new Date(premiumStatus.plan.expiresAt).toLocaleDateString("ja-JP")
-                    : "無期限"}
-                </p>
-                {premiumStatus.plan.autoRenew && (
-                  <p className="text-xs text-white/50">自動更新: オン</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
-            {premiumStatus?.hasPremium ? (
-              <>
-                <Button variant="outline" className="w-full" onClick={() => setIsPremiumDialogOpen(false)}>閉じる</Button>
-                {premiumStatus.plan?.autoRenew && (
-                  <Button
-                    variant="ghost"
-                    className="w-full text-white/50"
-                    onClick={() => cancelPremiumMutation.mutate()}
-                    disabled={cancelPremiumMutation.isPending}
-                    data-testid="button-cancel-premium"
-                  >
-                    {cancelPremiumMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    自動更新を停止する
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                <Button
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                  onClick={() => subscribePremiumMutation.mutate()}
-                  disabled={subscribePremiumMutation.isPending || (profile?.points || 0) < 980}
-                  data-testid="button-subscribe-premium"
-                >
-                  {subscribePremiumMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Crown className="h-4 w-4 mr-2" />}
-                  980ptで加入する
-                </Button>
-                {(profile?.points || 0) < 980 && (
-                  <p className="text-xs text-center text-red-500">
-                    ポイントが不足しています（所持: {profile?.points || 0}pt）
-                  </p>
-                )}
-                <Button variant="outline" className="w-full" onClick={() => setIsPremiumDialogOpen(false)}>キャンセル</Button>
-              </>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
