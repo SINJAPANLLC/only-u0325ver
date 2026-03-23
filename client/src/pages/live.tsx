@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Heart, Eye } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
@@ -67,15 +67,11 @@ function StreamCard({ stream, isActive }: StreamCardProps) {
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
 
-      {/* LIVE badge + viewers (top-left) */}
-      <div className="absolute top-16 left-4 flex items-center gap-2 z-10">
+      {/* LIVE badge (top-left) */}
+      <div className="absolute top-16 left-4 z-10">
         <Badge className="bg-red-500 hover:bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-md animate-pulse">
           LIVE
         </Badge>
-        <div className="flex items-center gap-1 bg-black/40 rounded-full px-2 py-0.5">
-          <Eye className="h-3 w-3 text-white" />
-          <span className="text-white text-xs font-medium">{formatCount(stream.viewerCount)}</span>
-        </div>
       </div>
 
       {/* Right side actions */}
