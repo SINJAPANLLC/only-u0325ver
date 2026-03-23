@@ -645,7 +645,7 @@ export default function Live() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: liveStreams } = useQuery<any[]>({
+  const { data: liveStreams, isLoading: isLoadingStreams } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
     refetchInterval: 5000,
   });
@@ -747,9 +747,11 @@ export default function Live() {
   });
 
   const realLiveStreamsFormatted = (liveStreams || []).map(formatStreamData);
-  const baseStreams = realLiveStreamsFormatted.length > 0
-    ? realLiveStreamsFormatted
-    : demoLiveStreams;
+  const baseStreams = isLoadingStreams
+    ? []
+    : realLiveStreamsFormatted.length > 0
+      ? realLiveStreamsFormatted
+      : demoLiveStreams;
 
   const handleModeChange = async (streamId: string, mode: RoomMode) => {
     const previousMode = roomModes[streamId] || "waiting";

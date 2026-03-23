@@ -669,7 +669,7 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  const { data: recommendedVideos } = useQuery<any[]>({
+  const { data: recommendedVideos, isLoading: isLoadingVideos } = useQuery<any[]>({
     queryKey: ["/api/videos"],
   });
 
@@ -714,9 +714,11 @@ export default function Home() {
     };
   };
 
-  const displayVideos: VideoPageProps[] = recommendedVideos && recommendedVideos.length > 0
-    ? recommendedVideos.map(mapVideoToProps)
-    : (recommendedVideos ? [] : demoVideos);
+  const displayVideos: VideoPageProps[] = isLoadingVideos
+    ? []
+    : recommendedVideos && recommendedVideos.length > 0
+      ? recommendedVideos.map(mapVideoToProps)
+      : demoVideos;
 
   // Track scroll position to determine active video
   useEffect(() => {
