@@ -6,7 +6,7 @@ import { LoadingScreen } from "@/components/loading-screen";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
 import {
   Heart, Shield, Video, ShoppingBag,
-  ChevronDown, ChevronRight, TrendingUp, Lock, Check,
+  ChevronDown, TrendingUp, Lock, Check,
   Radio, ArrowRight
 } from "lucide-react";
 
@@ -118,7 +118,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             SNSファンクラブプラットフォーム。
           </p>
 
-          <div className="flex gap-3 justify-center items-center mb-10">
+          <div className="flex gap-5 justify-center items-center mb-10">
             <a href="#" className="flex items-center gap-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl px-5 py-3 transition-colors" data-testid="button-appstore">
               <svg className="h-6 w-6 fill-white shrink-0" viewBox="0 0 814 1000"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105-42.4-155.5-127.4C46.7 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.4 174.9 46.4 42.8 0 109.7-49.1 193.2-49.1 31.2 0 113.7 2.6 178 66.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>
               <div className="text-left leading-tight">
@@ -135,21 +135,6 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             </a>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
-            <Button
-              onClick={onRegisterClick}
-              size="lg"
-              className="w-full sm:w-auto rounded-full bg-pink-500 hover:bg-pink-600 text-white font-bold px-8 h-12 shadow-lg shadow-pink-100"
-              data-testid="button-hero-register"
-            >
-              無料で始める <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Link href="/auth?mode=login">
-              <button className="text-sm font-medium text-gray-400 hover:text-pink-500 transition-colors flex items-center gap-1" data-testid="button-hero-login">
-                ログインはこちら <ChevronRight className="h-4 w-4" />
-              </button>
-            </Link>
-          </div>
 
         </motion.div>
       </section>
