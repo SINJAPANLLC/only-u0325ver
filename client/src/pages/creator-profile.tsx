@@ -513,18 +513,18 @@ export default function CreatorProfile() {
   
   return (
     <motion.div 
-      className="h-full bg-background overflow-y-auto scrollbar-hide"
+      className="h-full bg-black text-white overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-2 py-3 border-b border-border/50">
+      <div className="flex items-center justify-between gap-2 px-2 py-3 border-b border-white/10 sticky top-0 z-20 bg-black/90 backdrop-blur-xl">
         <Button 
           size="icon" 
           variant="ghost"
-          className="h-9 w-9"
+          className="h-9 w-9 text-white hover:bg-white/10"
           onClick={handleBack}
           data-testid="button-back"
         >
@@ -534,7 +534,7 @@ export default function CreatorProfile() {
           <Button 
             size="icon" 
             variant="ghost"
-            className="h-9 w-9"
+            className="h-9 w-9 text-white hover:bg-white/10"
             onClick={handleShare}
             data-testid="button-share"
           >
@@ -545,7 +545,7 @@ export default function CreatorProfile() {
               <Button 
                 size="icon" 
                 variant="ghost"
-                className="h-9 w-9"
+                className="h-9 w-9 text-white hover:bg-white/10"
                 data-testid="button-more"
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -602,21 +602,13 @@ export default function CreatorProfile() {
         </div>
 
         {/* Handle */}
-        <p className="text-muted-foreground text-sm mt-1">@{creator.name}</p>
+        <p className="text-white/50 text-sm mt-1">@{creator.name}</p>
 
-        {/* Stats Row */}
-        <div className="flex items-center justify-center gap-8 mt-5">
+        {/* Posts count */}
+        <div className="flex items-center justify-center mt-4">
           <div className="text-center">
-            <p className="text-lg font-bold">{creator.following}</p>
-            <p className="text-xs text-muted-foreground">フォロー</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold">{formatCount(creator.followers)}</p>
-            <p className="text-xs text-muted-foreground">フォロワー</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold">{formatCount(creator.likes)}</p>
-            <p className="text-xs text-muted-foreground">いいね</p>
+            <p className="text-lg font-bold">{creator.posts}</p>
+            <p className="text-xs text-white/50">投稿</p>
           </div>
         </div>
 
@@ -638,53 +630,35 @@ export default function CreatorProfile() {
         </div>
 
         {/* Action Buttons */}
-        <div className="w-full mt-4 space-y-2">
+        <div className="w-full mt-5 space-y-2">
           <div className="flex gap-2">
-            <Button 
-              variant={isFollowing ? "secondary" : "default"}
-              className="flex-1"
-              onClick={handleFollowToggle}
-              disabled={isLoading}
-              data-testid="button-follow-toggle"
+            {subscriptionPlans && subscriptionPlans.length > 0 && (
+              <Button 
+                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white rounded-xl"
+                onClick={handleSubscribe}
+                disabled={isSubscribeLoading}
+                data-testid="button-subscribe"
+              >
+                {isSubscribeLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Crown className="h-4 w-4 mr-2" />
+                    サブスク登録
+                  </>
+                )}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="flex-1 border-white/20 text-white hover:bg-white/10 rounded-xl bg-transparent"
+              onClick={handleMessage}
+              data-testid="button-message"
             >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isFollowing ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  フォロー中
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  フォロー
-                </>
-              )}
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={handleMessage} data-testid="button-message">
               <MessageCircle className="h-4 w-4 mr-2" />
               メッセージ
             </Button>
           </div>
-          
-          {subscriptionPlans && subscriptionPlans.length > 0 && (
-            <Button 
-              variant="default"
-              className="w-full bg-pink-500 hover:bg-pink-600"
-              onClick={handleSubscribe}
-              disabled={isSubscribeLoading}
-              data-testid="button-subscribe"
-            >
-              {isSubscribeLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Crown className="h-4 w-4 mr-2" />
-                  サブスクプランを見る
-                </>
-              )}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -808,10 +782,10 @@ export default function CreatorProfile() {
         
       {/* Content Tabs */}
       <Tabs defaultValue="videos" className="mt-2">
-        <TabsList className="w-full bg-transparent border-b border-border/50 rounded-none h-12 justify-start px-2">
+        <TabsList className="w-full bg-transparent border-b border-white/10 rounded-none h-12 justify-start px-2">
           <TabsTrigger 
             value="videos" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-videos"
           >
             <div className="flex items-center gap-1">
@@ -821,14 +795,14 @@ export default function CreatorProfile() {
           </TabsTrigger>
           <TabsTrigger 
             value="shop" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-shop"
           >
             <ShoppingBag className="h-5 w-5" />
           </TabsTrigger>
           <TabsTrigger 
             value="liked" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-liked"
           >
             <Heart className="h-5 w-5" />

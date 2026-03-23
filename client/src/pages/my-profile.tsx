@@ -394,24 +394,24 @@ export default function MyProfile() {
   
   return (
     <motion.div 
-      className="h-full bg-background overflow-y-auto scrollbar-hide"
+      className="h-full bg-black text-white overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
       {/* Header */}
-      <div className="flex items-center h-14 px-3 border-b border-border/30 bg-background/95 backdrop-blur-xl sticky top-0 z-20">
+      <div className="flex items-center h-14 px-3 border-b border-white/10 bg-black/90 backdrop-blur-xl sticky top-0 z-20">
         <Button 
           size="icon" 
           variant="ghost"
-          className="h-9 w-9 rounded-xl"
+          className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
           onClick={() => setLocation("/account")}
           data-testid="button-back"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h1 className="font-bold text-base ml-1">マイプロフィール</h1>
+        <h1 className="font-bold text-base ml-1 text-white">マイプロフィール</h1>
       </div>
 
       {/* Profile Section */}
@@ -536,22 +536,20 @@ export default function MyProfile() {
         </div>
 
         {/* Handle */}
-        <p className="text-muted-foreground text-sm mt-1">@{username}</p>
+        <p className="text-white/50 text-sm mt-1">@{username}</p>
 
-        {/* Stats Row */}
-        <div className="flex items-center justify-center gap-8 mt-5">
+        {/* Posts count */}
+        <div className="flex items-center justify-center mt-4 gap-8">
           <div className="text-center">
-            <p className="text-lg font-bold">{formatCount(following)}</p>
-            <p className="text-xs text-muted-foreground">フォロー</p>
+            <p className="text-lg font-bold">{displayVideos.length || 0}</p>
+            <p className="text-xs text-white/50">投稿</p>
           </div>
-          <div className="text-center">
-            <p className="text-lg font-bold">{formatCount(followers)}</p>
-            <p className="text-xs text-muted-foreground">フォロワー</p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-bold">{formatCount(likes)}</p>
-            <p className="text-xs text-muted-foreground">いいね</p>
-          </div>
+          {creatorProfile && (
+            <div className="text-center">
+              <p className="text-lg font-bold">{formatCount(followers)}</p>
+              <p className="text-xs text-white/50">登録者</p>
+            </div>
+          )}
         </div>
 
         {/* Bio Section */}
@@ -560,7 +558,7 @@ export default function MyProfile() {
           {websiteUrl && (
             <div className="flex items-center justify-center gap-1 mt-1 text-sm">
               <LinkIcon className="h-3 w-3" />
-              <a href={websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:underline">
+              <a href={websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:underline">
                 {websiteUrl.replace("https://", "").replace("http://", "")}
               </a>
             </div>
@@ -570,11 +568,11 @@ export default function MyProfile() {
         {/* Subscription Plans */}
         <div className="w-full mt-6 px-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold">サブスクリプションプラン</h2>
+            <h2 className="text-sm font-bold text-white">サブスクリプションプラン</h2>
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-7 rounded-full text-[10px] px-3"
+              className="h-7 rounded-full text-[10px] px-3 border-white/20 text-white hover:bg-white/10 bg-transparent"
               onClick={() => {
                 setIsNewPlan(true);
                 setEditingPlan(null);
@@ -593,17 +591,17 @@ export default function MyProfile() {
           <div className="space-y-3">
             {mySubscriptionPlans && mySubscriptionPlans.length > 0 ? (
               mySubscriptionPlans.map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50 shadow-sm">
+                <div key={plan.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 shadow-sm">
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold">{plan.name}</span>
-                    <span className="text-[10px] text-muted-foreground">{plan.description}</span>
+                    <span className="text-sm font-bold text-white">{plan.name}</span>
+                    <span className="text-[10px] text-white/50">{plan.description}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-pink-500 font-bold text-sm">{plan.price}pt / 月</span>
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="h-7 rounded-full text-[10px] px-3"
+                      className="h-7 rounded-full text-[10px] px-3 border-white/20 text-white hover:bg-white/10 bg-transparent"
                       onClick={() => {
                         setIsNewPlan(false);
                         setEditingPlan(plan);
@@ -639,7 +637,7 @@ export default function MyProfile() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-6 text-muted-foreground text-sm">
+              <div className="text-center py-6 text-white/50 text-sm">
                 プランがまだありません
               </div>
             )}
@@ -650,10 +648,10 @@ export default function MyProfile() {
 
       {/* Content Tabs */}
       <Tabs defaultValue="videos" className="mt-2">
-        <TabsList className="w-full bg-transparent border-b border-border/50 rounded-none h-12 justify-start px-2">
+        <TabsList className="w-full bg-transparent border-b border-white/10 rounded-none h-12 justify-start px-2">
           <TabsTrigger 
             value="videos" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-videos"
           >
             <div className="flex items-center gap-1">
@@ -663,14 +661,14 @@ export default function MyProfile() {
           </TabsTrigger>
           <TabsTrigger 
             value="shop" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-shop"
           >
             <ShoppingBag className="h-5 w-5" />
           </TabsTrigger>
           <TabsTrigger 
             value="liked" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
             data-testid="tab-liked"
           >
             <Heart className="h-5 w-5" />
@@ -678,7 +676,7 @@ export default function MyProfile() {
           {creatorProfile && (
             <TabsTrigger 
               value="plans" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full"
+              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
               data-testid="tab-plans"
             >
               <Crown className="h-5 w-5" />
