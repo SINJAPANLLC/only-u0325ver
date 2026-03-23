@@ -9,7 +9,7 @@ import girl2 from "@assets/スクリーンショット_2026-03-23_22.39.18_17742
 import girl3 from "@assets/スクリーンショット_2026-03-23_22.39.30_1774273237701.png";
 import {
   Heart, Shield, Video, ShoppingBag,
-  ChevronDown, TrendingUp, Lock, Check,
+  ChevronDown, TrendingUp, Lock,
   Radio, ArrowRight
 } from "lucide-react";
 
@@ -365,74 +365,67 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+      {/* ── POINTS ── */}
       <section className="py-24 sm:py-32 bg-pink-50">
         <div className="max-w-5xl mx-auto px-5">
           <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-pink-400 text-xs font-bold tracking-widest mb-3 uppercase">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">シンプルな料金設定。</h2>
-            <p className="text-gray-400 text-sm mt-3">1ポイント＝1円（税抜）。使いたい分だけ購入。</p>
+            <p className="text-pink-400 text-xs font-bold tracking-widest mb-3 uppercase">Points</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900">ポイントで、自由に応援。</h2>
+            <p className="text-gray-400 text-sm mt-3">1ポイント＝1円（税抜）。料金はクリエイターが自由に設定。</p>
           </motion.div>
 
           <div className="grid sm:grid-cols-3 gap-5">
             {[
               {
-                name: "スタータープラン",
-                price: "¥3,000",
-                sub: "3,000pt購入",
-                features: ["コンテンツ視聴", "メッセージ送信", "通常ライブ参加", "グッズ購入"],
+                icon: <Heart className="h-6 w-6" />,
+                title: "サブスクリプション",
+                desc: "クリエイターが月額料金を自由設定。継続応援でお気に入りの限定コンテンツを楽しめる。",
+                tag: "月額・クリエイター設定",
                 featured: false,
               },
               {
-                name: "プレミアムプラン",
-                price: "¥980〜",
-                sub: "月額・クリエイター設定",
-                badge: "人気No.1",
-                features: ["全限定コンテンツ", "2SHOTライブ", "パーティーライブ", "優先メッセージ", "限定グッズ先行購入"],
+                icon: <Radio className="h-6 w-6" />,
+                title: "ライブ配信",
+                desc: "2SHOTやパーティーはクリエイターがレート設定。リアルタイムで特別な時間を過ごせる。",
+                tag: "分単位・クリエイター設定",
                 featured: true,
               },
               {
-                name: "クリエイター",
-                price: "無料",
-                sub: "収益還元型",
-                features: ["無制限コンテンツ投稿", "ライブ配信", "ショップ開設", "収益分析ツール", "専属サポート"],
+                icon: <ShoppingBag className="h-6 w-6" />,
+                title: "グッズ・デジタル販売",
+                desc: "物販・デジタルコンテンツの価格もクリエイターが決める。推しだけの限定品をゲット。",
+                tag: "価格自由・クリエイター設定",
                 featured: false,
               },
-            ].map((plan, i) => (
+            ].map((item, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className={`rounded-3xl p-7 relative ${plan.featured ? "bg-pink-500 text-white" : "bg-white border border-pink-100"}`}
+                transition={{ delay: i * 0.1 }}
+                className={`rounded-3xl p-7 ${item.featured ? "bg-pink-500" : "bg-white border border-pink-100"}`}
               >
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-pink-500 text-[10px] font-bold px-3 py-1 rounded-full border border-pink-200">
-                    {plan.badge}
-                  </span>
-                )}
-                <div className={`text-xs font-bold mb-2 ${plan.featured ? "text-pink-100" : "text-pink-500"}`}>{plan.name}</div>
-                <div className={`text-3xl font-black mb-0.5 ${plan.featured ? "text-white" : "text-gray-900"}`}>{plan.price}</div>
-                <div className={`text-xs mb-7 ${plan.featured ? "text-pink-200" : "text-gray-400"}`}>{plan.sub}</div>
-                <ul className="space-y-3 mb-7">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-2.5 text-sm">
-                      <Check className={`h-3.5 w-3.5 shrink-0 ${plan.featured ? "text-white" : "text-pink-400"}`} />
-                      <span className={plan.featured ? "text-pink-50" : "text-gray-600"}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={onRegisterClick}
-                  className={`w-full rounded-full font-bold h-10 text-sm ${plan.featured ? "bg-white text-pink-500 hover:bg-pink-50" : "bg-pink-500 hover:bg-pink-600 text-white"}`}
-                  data-testid={`button-plan-${i}`}
-                >
-                  始める
-                </Button>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${item.featured ? "bg-white/20 text-white" : "bg-pink-50 text-pink-500"}`}>
+                  {item.icon}
+                </div>
+                <div className={`text-base font-black mb-2 ${item.featured ? "text-white" : "text-gray-900"}`}>{item.title}</div>
+                <p className={`text-xs leading-relaxed mb-5 ${item.featured ? "text-pink-100" : "text-gray-500"}`}>{item.desc}</p>
+                <span className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full ${item.featured ? "bg-white/20 text-white" : "bg-pink-50 text-pink-500"}`}>
+                  {item.tag}
+                </span>
               </motion.div>
             ))}
           </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center text-xs text-gray-400 mt-10"
+          >
+            ポイントは銀行振込またはカード決済で購入できます。
+          </motion.p>
         </div>
       </section>
 
