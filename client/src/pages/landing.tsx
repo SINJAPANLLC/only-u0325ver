@@ -79,7 +79,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       {/* ── HEADER ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-xl border-b border-pink-100" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-          <img src={logoImage} alt="Only-U" className="h-9 object-contain" />
+          <img src={logoImage} alt="Only-U" className="h-12 object-contain" />
           <nav className="flex items-center gap-2 sm:gap-3">
             <Link href="/auth?mode=login">
               <button className="text-sm font-medium text-gray-500 hover:text-pink-500 px-3 py-2 transition-colors hidden sm:block" data-testid="button-header-login">
@@ -119,9 +119,8 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             日本発・クリエイター × ファン プラットフォーム
           </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 leading-[0.95] tracking-tight mb-6">
-            あなたの
-            <span className="block text-pink-500">推しと、もっと。</span>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] tracking-tight mb-6">
+            <span className="text-gray-900">あなたの</span><span className="text-pink-500">推しと、もっと。</span>
           </h1>
 
           <p className="text-gray-400 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
@@ -410,7 +409,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         <div className="max-w-5xl mx-auto px-5">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-10 mb-10">
             <div>
-              <img src={logoImage} alt="Only-U" className="h-9 object-contain mb-3" />
+              <img src={logoImage} alt="Only-U" className="h-12 object-contain mb-3" />
               <p className="text-gray-400 text-xs leading-relaxed max-w-xs">
                 クリエイターとファンをつなぐ<br />日本発のプレミアムSNSプラットフォーム。
               </p>
