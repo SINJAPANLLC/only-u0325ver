@@ -10,7 +10,7 @@ import { BottomNavigation } from "@/components/bottom-navigation";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { AgeVerification } from "@/components/age-verification";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -26,41 +26,41 @@ function ScrollToTop() {
   return null;
 }
 
-const Landing = lazy(() => import("@/pages/landing"));
-const Home = lazy(() => import("@/pages/home"));
-const Live = lazy(() => import("@/pages/live"));
-const Shop = lazy(() => import("@/pages/shop"));
-const Messages = lazy(() => import("@/pages/messages"));
-const Account = lazy(() => import("@/pages/account"));
-const AdminLogin = lazy(() => import("@/pages/admin-login"));
-const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
-const CreatorProfile = lazy(() => import("@/pages/creator-profile"));
-const MyProfile = lazy(() => import("@/pages/my-profile"));
-const Auth = lazy(() => import("@/pages/auth"));
-const LegalPage = lazy(() => import("@/pages/legal-page"));
-const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
-const ResetPassword = lazy(() => import("@/pages/reset-password"));
-const CreatorApplication = lazy(() => import("@/pages/creator-application"));
-const PointsPurchase = lazy(() => import("@/pages/points-purchase"));
-const CreatorContent = lazy(() => import("@/pages/creator-content"));
-const CreatorLive = lazy(() => import("@/pages/creator-live"));
-const CreatorShop = lazy(() => import("@/pages/creator-shop"));
-const Following = lazy(() => import("@/pages/following"));
-const Conversation = lazy(() => import("@/pages/conversation"));
-const Notifications = lazy(() => import("@/pages/notifications"));
-const MyPurchases = lazy(() => import("@/pages/my-purchases"));
-const CreatorOrders = lazy(() => import("@/pages/creator-orders"));
-const CreatorSales = lazy(() => import("@/pages/creator-sales"));
-const CreatorWithdrawal = lazy(() => import("@/pages/creator-withdrawal"));
-const PaymentMethods = lazy(() => import("@/pages/payment-methods"));
-const PersonalInfo = lazy(() => import("@/pages/personal-info"));
-const PhoneVerification = lazy(() => import("@/pages/phone-verification"));
-const EmailVerification = lazy(() => import("@/pages/email-verification"));
-const LanguageSettings = lazy(() => import("@/pages/language-settings"));
-const NotificationSettings = lazy(() => import("@/pages/notification-settings"));
-const PrivacySettings = lazy(() => import("@/pages/privacy-settings"));
-const Help = lazy(() => import("@/pages/help"));
-const NotFound = lazy(() => import("@/pages/not-found"));
+import Landing from "@/pages/landing";
+import Home from "@/pages/home";
+import Live from "@/pages/live";
+import Shop from "@/pages/shop";
+import Messages from "@/pages/messages";
+import Account from "@/pages/account";
+import AdminLogin from "@/pages/admin-login";
+import AdminDashboard from "@/pages/admin-dashboard";
+import CreatorProfile from "@/pages/creator-profile";
+import MyProfile from "@/pages/my-profile";
+import Auth from "@/pages/auth";
+import LegalPage from "@/pages/legal-page";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
+import CreatorApplication from "@/pages/creator-application";
+import PointsPurchase from "@/pages/points-purchase";
+import CreatorContent from "@/pages/creator-content";
+import CreatorLive from "@/pages/creator-live";
+import CreatorShop from "@/pages/creator-shop";
+import Following from "@/pages/following";
+import Conversation from "@/pages/conversation";
+import Notifications from "@/pages/notifications";
+import MyPurchases from "@/pages/my-purchases";
+import CreatorOrders from "@/pages/creator-orders";
+import CreatorSales from "@/pages/creator-sales";
+import CreatorWithdrawal from "@/pages/creator-withdrawal";
+import PaymentMethods from "@/pages/payment-methods";
+import PersonalInfo from "@/pages/personal-info";
+import PhoneVerification from "@/pages/phone-verification";
+import EmailVerification from "@/pages/email-verification";
+import LanguageSettings from "@/pages/language-settings";
+import NotificationSettings from "@/pages/notification-settings";
+import PrivacySettings from "@/pages/privacy-settings";
+import Help from "@/pages/help";
+import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
   return (
@@ -344,9 +344,7 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="only-u-theme">
         <I18nProvider>
           <TooltipProvider>
-            <Suspense fallback={null}>
-              <AppLayout />
-            </Suspense>
+            <AppLayout />
             <Toaster />
           </TooltipProvider>
         </I18nProvider>
