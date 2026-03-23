@@ -139,7 +139,7 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/conversation/:id">
-          <div className="h-[100svh] flex flex-col overflow-hidden">
+          <div className="h-[100svh] flex flex-col overflow-hidden bg-black">
             <Conversation />
           </div>
         </Route>

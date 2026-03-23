@@ -138,20 +138,21 @@ export default function ConversationPage() {
       );
 
   return (
-    <div className="h-full flex flex-col bg-background">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="h-full flex flex-col bg-black text-white">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-black border-b border-white/10 flex-shrink-0">
         <div className="flex items-center h-14 px-3 gap-2">
           <Button
             size="icon"
             variant="ghost"
-            className="h-9 w-9 rounded-xl flex-shrink-0"
+            className="h-9 w-9 rounded-xl flex-shrink-0 text-white hover:bg-white/10"
             onClick={() => setLocation("/messages")}
             data-testid="button-back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div
-            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-accent/40 transition-colors"
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer rounded-xl px-2 py-1.5 hover:bg-white/10 transition-colors"
             onClick={handleParticipantClick}
             data-testid="link-participant-profile"
           >
@@ -162,16 +163,17 @@ export default function ConversationPage() {
                   {participantName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-black" />
             </div>
             <div className="min-w-0">
-              <h1 className="font-bold text-sm truncate leading-tight">{participantName}</h1>
-              <p className="text-[11px] text-green-500 leading-tight">オンライン</p>
+              <h1 className="font-bold text-sm truncate leading-tight text-white">{participantName}</h1>
+              <p className="text-[11px] text-green-400 leading-tight">オンライン</p>
             </div>
           </div>
         </div>
       </header>
 
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
         {isLoading && !isDemo ? (
           <div className="flex items-center justify-center py-12">
@@ -179,11 +181,11 @@ export default function ConversationPage() {
           </div>
         ) : displayMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center mb-3">
+            <div className="h-16 w-16 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-3">
               <Send className="h-8 w-8 text-pink-400" />
             </div>
-            <p className="font-semibold text-sm mb-1">会話を始めよう</p>
-            <p className="text-xs text-muted-foreground">メッセージを送信してみよう</p>
+            <p className="font-semibold text-sm mb-1 text-white">会話を始めよう</p>
+            <p className="text-xs text-white/50">メッセージを送信してみよう</p>
           </div>
         ) : (
           displayMessages.map((msg) => {
@@ -207,12 +209,12 @@ export default function ConversationPage() {
                     className={`rounded-2xl px-3.5 py-2.5 ${
                       isOwn
                         ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-sm"
-                        : "bg-muted rounded-bl-sm"
+                        : "bg-white/10 text-white rounded-bl-sm"
                     }`}
                   >
                     <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                   </div>
-                  <p className={`text-[10px] px-1 ${isOwn ? "text-muted-foreground/60 text-right" : "text-muted-foreground/60"}`}>
+                  <p className={`text-[10px] px-1 text-white/30 ${isOwn ? "text-right" : ""}`}>
                     {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ja })}
                   </p>
                 </div>
@@ -223,14 +225,15 @@ export default function ConversationPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-background/95 backdrop-blur-xl border-t border-border/30 px-3 py-2.5 pb-[max(env(safe-area-inset-bottom),12px)]">
+      {/* Input area */}
+      <div className="bg-black border-t border-white/10 px-3 py-2.5 pb-[max(env(safe-area-inset-bottom),12px)] flex-shrink-0">
         <div className="flex items-center gap-2">
           <Input
             placeholder="メッセージを入力..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 rounded-2xl bg-muted/60 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/40 text-sm h-10"
+            className="flex-1 rounded-2xl bg-white/10 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/40 text-sm h-10 text-white placeholder:text-white/40"
             data-testid="input-message"
           />
           <Button
