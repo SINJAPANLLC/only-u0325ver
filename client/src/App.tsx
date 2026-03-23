@@ -85,12 +85,8 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/messages">
-          <div className="h-[100svh] flex flex-col bg-background pt-safe">
-            <Header />
-            <main className="flex-1 overflow-y-auto scrollbar-hide">
-              <Messages />
-            </main>
-            <BottomNavigation />
+          <div className="h-[100svh] flex flex-col bg-black">
+            <Messages />
           </div>
         </Route>
         <Route path="/account">
