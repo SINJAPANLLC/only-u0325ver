@@ -121,6 +121,7 @@ export default function Live() {
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
+  const activeIndexRef = useRef(0);
 
   const { data: liveStreams, isLoading } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -129,34 +130,38 @@ export default function Live() {
 
   const streams = !isLoading && liveStreams && liveStreams.length > 0 ? liveStreams : demoStreams;
 
-  const scrollToIndex = useCallback((index: number) => {
+  const scrollToIndex = useCallback((index: number, total: number) => {
     const el = containerRef.current;
     if (!el) return;
-    const clamped = Math.max(0, Math.min(index, streams.length - 1));
+    const clamped = Math.max(0, Math.min(index, total - 1));
     el.scrollTo({ top: clamped * el.clientHeight, behavior: "smooth" });
+    activeIndexRef.current = clamped;
     setActiveIndex(clamped);
-  }, [streams.length]);
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isScrolling.current) return;
     touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (isScrolling.current) return;
     const diff = touchStartY.current - e.changedTouches[0].clientY;
-    if (Math.abs(diff) < 30) return;
+    if (Math.abs(diff) < 40) return;
     isScrolling.current = true;
-    scrollToIndex(activeIndex + (diff > 0 ? 1 : -1));
-    setTimeout(() => { isScrolling.current = false; }, 600);
+    const next = activeIndexRef.current + (diff > 0 ? 1 : -1);
+    scrollToIndex(next, streams.length);
+    setTimeout(() => { isScrolling.current = false; }, 800);
   };
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     if (isScrolling.current) return;
     isScrolling.current = true;
-    scrollToIndex(activeIndex + (e.deltaY > 0 ? 1 : -1));
-    setTimeout(() => { isScrolling.current = false; }, 600);
-  }, [activeIndex, scrollToIndex]);
+    const next = activeIndexRef.current + (e.deltaY > 0 ? 1 : -1);
+    scrollToIndex(next, streams.length);
+    setTimeout(() => { isScrolling.current = false; }, 800);
+  }, [scrollToIndex, streams.length]);
 
   return (
     <div className="relative h-[100svh] bg-black overflow-hidden">
