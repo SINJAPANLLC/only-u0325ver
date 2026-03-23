@@ -11,21 +11,6 @@ import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { AgeVerification } from "@/components/age-verification";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect, useCallback, useRef } from "react";
-
-function ScrollToTop() {
-  const [location] = useLocation();
-  const prevLocation = useRef(location);
-
-  useEffect(() => {
-    if (prevLocation.current !== location) {
-      window.scrollTo(0, 0);
-      prevLocation.current = location;
-    }
-  }, [location]);
-
-  return null;
-}
-
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Live from "@/pages/live";
@@ -61,6 +46,20 @@ import NotificationSettings from "@/pages/notification-settings";
 import PrivacySettings from "@/pages/privacy-settings";
 import Help from "@/pages/help";
 import NotFound from "@/pages/not-found";
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  const prevLocation = useRef(location);
+
+  useEffect(() => {
+    if (prevLocation.current !== location) {
+      window.scrollTo(0, 0);
+      prevLocation.current = location;
+    }
+  }, [location]);
+
+  return null;
+}
 
 function AuthenticatedApp() {
   return (
