@@ -155,8 +155,8 @@ export default function Messages() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-      {/* Logo overlay header */}
-      <div className="flex items-center px-4 pt-safe h-16 flex-shrink-0">
+      {/* Logo overlay header (mobile only) */}
+      <div className="flex items-center px-4 pt-safe h-16 flex-shrink-0 lg:hidden">
         <img src={logoImage} alt="Only-U" className="h-16 object-contain brightness-0 invert" />
       </div>
 

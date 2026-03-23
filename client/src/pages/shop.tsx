@@ -221,8 +221,8 @@ export default function Shop() {
 
   return (
     <>
-      {/* Logo overlay — top left */}
-      <div className="fixed top-0 left-0 z-40 flex items-center px-3 h-14 pointer-events-none pt-safe">
+      {/* Logo overlay — top left (mobile only) */}
+      <div className="fixed top-0 left-0 z-40 flex items-center px-3 h-14 pointer-events-none pt-safe lg:hidden">
         <img src={logoImage} alt="Only-U" className="h-16 object-contain brightness-0 invert" />
       </div>
 
