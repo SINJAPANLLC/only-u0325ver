@@ -323,7 +323,7 @@ function VideoPage({
         {effectiveVideoUrl && hasAccess ? (
           <video
             ref={videoRef}
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
             loop
             muted={isMuted}
             playsInline
@@ -335,7 +335,7 @@ function VideoPage({
           <img 
             src={effectiveThumbnail} 
             alt="" 
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : null}
         
