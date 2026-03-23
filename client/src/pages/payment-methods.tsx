@@ -85,11 +85,11 @@ export default function PaymentMethods() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Link href="/account">
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white hover:bg-white/10" data-testid="button-back">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
@@ -109,7 +109,7 @@ export default function PaymentMethods() {
               </div>
               <div>
                 <h3 className="font-bold">カード管理</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/50">
                   ポイント購入時に使用するカードを管理
                 </p>
               </div>
@@ -126,20 +126,20 @@ export default function PaymentMethods() {
           
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="h-8 w-8 animate-spin text-white/50" />
             </div>
           ) : error ? (
-            <Card className="p-6 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">カード情報の取得に失敗しました</p>
+            <Card className="p-6 text-center bg-white/5 border border-white/10">
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-white/50" />
+              <p className="text-white/50">カード情報の取得に失敗しました</p>
             </Card>
           ) : paymentMethods && paymentMethods.length > 0 ? (
             <div className="space-y-3">
               {paymentMethods.map((method) => (
-                <Card key={method.id} className="p-4">
+                <Card key={method.id} className="p-4 bg-white/5 border border-white/10">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-xl">
+                      <div className="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center text-xl">
                         {getBrandIcon(method.brand)}
                       </div>
                       <div>
@@ -153,7 +153,7 @@ export default function PaymentMethods() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-white/50">
                           有効期限: {method.expMonth.toString().padStart(2, "0")}/{method.expYear}
                         </p>
                       </div>
@@ -186,12 +186,12 @@ export default function PaymentMethods() {
               ))}
             </div>
           ) : (
-            <Card className="p-6 text-center">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">
+            <Card className="p-6 text-center bg-white/5 border border-white/10">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 text-white/50" />
+              <p className="text-white/50 mb-4">
                 登録済みのカードはありません
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/50">
                 ポイント購入時にカードを登録できます
               </p>
             </Card>
@@ -216,7 +216,7 @@ export default function PaymentMethods() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-4 bg-white/5 border border-white/10">
             <h3 className="font-medium mb-2">ご利用いただけるカード</h3>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">Visa</Badge>
@@ -224,7 +224,7 @@ export default function PaymentMethods() {
               <Badge variant="outline">JCB</Badge>
               <Badge variant="outline">American Express</Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
+            <p className="text-xs text-white/50 mt-3">
               カード情報は安全に暗号化され保護されています。
             </p>
           </Card>

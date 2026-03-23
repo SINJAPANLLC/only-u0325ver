@@ -90,13 +90,13 @@ export default function PrivacySettingsPage() {
   const isLoading = isLoadingSettings || isLoadingBlocked;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -110,14 +110,14 @@ export default function PrivacySettingsPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 rounded-2xl bg-card border border-border/30 animate-pulse" />
+              <div key={i} className="h-16 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">プライバシー</p>
-              <div className="rounded-2xl bg-card border border-border/30 overflow-hidden divide-y divide-border/30">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">プライバシー</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
                 {privacyItems.map((item) => (
                   <div key={item.key} className="flex items-center gap-3 p-4">
                     <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center flex-shrink-0`}>
@@ -125,7 +125,7 @@ export default function PrivacySettingsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                      <p className="text-xs text-white/50">{item.description}</p>
                     </div>
                     <Switch
                       checked={form[item.key]}
@@ -151,10 +151,10 @@ export default function PrivacySettingsPage() {
             </Button>
 
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">ブロックしたユーザー</p>
-              <div className="rounded-2xl bg-card border border-border/30 overflow-hidden">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">ブロックしたユーザー</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
                 {blockedUsers && blockedUsers.length > 0 ? (
-                  <div className="divide-y divide-border/30">
+                  <div className="divide-y divide-white/10">
                     {blockedUsers.map((user) => (
                       <div key={user.id} className="flex items-center gap-3 p-4">
                         <Avatar className="h-10 w-10 flex-shrink-0">
@@ -165,12 +165,12 @@ export default function PrivacySettingsPage() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{user.displayName}</p>
-                          <p className="text-xs text-muted-foreground">@{user.username}</p>
+                          <p className="text-xs text-white/50">@{user.username}</p>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 px-3 rounded-xl text-xs border-border/40"
+                          className="h-8 px-3 rounded-xl text-xs border-white/20 text-white hover:bg-white/10"
                           onClick={() => unblockMutation.mutate(user.id)}
                           disabled={unblockMutation.isPending}
                           data-testid={`button-unblock-${user.id}`}
@@ -182,11 +182,11 @@ export default function PrivacySettingsPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-2">
-                      <UserX className="h-6 w-6 text-muted-foreground" />
+                    <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center mb-2">
+                      <UserX className="h-6 w-6 text-white/50" />
                     </div>
                     <p className="text-sm font-medium">ブロック中のユーザーなし</p>
-                    <p className="text-xs text-muted-foreground">ブロックしているユーザーはいません</p>
+                    <p className="text-xs text-white/50">ブロックしているユーザーはいません</p>
                   </div>
                 )}
               </div>

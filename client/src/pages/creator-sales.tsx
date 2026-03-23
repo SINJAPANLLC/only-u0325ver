@@ -64,8 +64,8 @@ export default function CreatorSales() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+      <div className="min-h-screen bg-black text-white pb-24">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -90,8 +90,8 @@ export default function CreatorSales() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+      <div className="min-h-screen bg-black text-white pb-24">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -107,9 +107,9 @@ export default function CreatorSales() {
         </header>
         <div className="p-4">
           <Card className="p-8 text-center">
-            <Wallet className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-muted-foreground">売上データを取得できませんでした</p>
-            <p className="text-sm text-muted-foreground mt-1">クリエイター登録が必要です</p>
+            <Wallet className="h-12 w-12 mx-auto mb-3 text-white/50" />
+            <p className="text-white/50">売上データを取得できませんでした</p>
+            <p className="text-sm text-white/50 mt-1">クリエイター登録が必要です</p>
           </Card>
         </div>
       </div>
@@ -121,8 +121,8 @@ export default function CreatorSales() {
   const pendingBalance = salesData?.profile?.pendingBalance || 0;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-24">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button 
             variant="ghost" 
@@ -148,17 +148,17 @@ export default function CreatorSales() {
                 <Wallet className="h-6 w-6 text-pink-400" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">振込可能残高</p>
+                <p className="text-sm text-white/50">振込可能残高</p>
                 <p className="text-3xl font-bold text-foreground">{formatPoints(availableBalance)}<span className="text-lg ml-1">pt</span></p>
               </div>
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">累計売上</p>
+                <p className="text-xs text-white/50">累計売上</p>
                 <p className="text-lg font-semibold">{formatPoints(totalEarnings)} pt</p>
               </div>
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground">振込申請中</p>
+                <p className="text-xs text-white/50">振込申請中</p>
                 <p className="text-lg font-semibold">{formatPoints(pendingBalance)} pt</p>
               </div>
             </div>
@@ -183,9 +183,9 @@ export default function CreatorSales() {
             >
               <Card className="p-4 text-center">
                 <Users className="h-6 w-6 mx-auto mb-2 text-purple-400" />
-                <p className="text-xs text-muted-foreground mb-1">サブスクプラン</p>
+                <p className="text-xs text-white/50 mb-1">サブスクプラン</p>
                 <p className="text-lg font-bold">{formatPoints(salesData?.subscriptionEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">pt</p>
+                <p className="text-xs text-white/50">pt</p>
               </Card>
             </motion.div>
             <motion.div
@@ -195,9 +195,9 @@ export default function CreatorSales() {
             >
               <Card className="p-4 text-center">
                 <Radio className="h-6 w-6 mx-auto mb-2 text-red-400" />
-                <p className="text-xs text-muted-foreground mb-1">ライブ配信</p>
+                <p className="text-xs text-white/50 mb-1">ライブ配信</p>
                 <p className="text-lg font-bold">{formatPoints(salesData?.liveEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">pt</p>
+                <p className="text-xs text-white/50">pt</p>
               </Card>
             </motion.div>
             <motion.div
@@ -207,9 +207,9 @@ export default function CreatorSales() {
             >
               <Card className="p-4 text-center">
                 <ShoppingBag className="h-6 w-6 mx-auto mb-2 text-blue-400" />
-                <p className="text-xs text-muted-foreground mb-1">SHOP</p>
+                <p className="text-xs text-white/50 mb-1">SHOP</p>
                 <p className="text-lg font-bold">{formatPoints(salesData?.productEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">pt</p>
+                <p className="text-xs text-white/50">pt</p>
               </Card>
             </motion.div>
           </div>
@@ -218,7 +218,7 @@ export default function CreatorSales() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold">最近の売上</h2>
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <TrendingUp className="h-5 w-5 text-white/50" />
           </div>
           
           {salesData?.recentSales && salesData.recentSales.length > 0 ? (
@@ -237,7 +237,7 @@ export default function CreatorSales() {
                           <p className="font-medium">{sale.productName || "商品"}</p>
                           {getStatusBadge(sale.status)}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-white/50">
                           <Calendar className="h-3 w-3" />
                           <span>
                             {sale.createdAt ? format(new Date(sale.createdAt), "yyyy/MM/dd HH:mm", { locale: ja }) : "-"}
@@ -249,7 +249,7 @@ export default function CreatorSales() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-pink-400">+{formatPoints(sale.amount || 0)}</p>
-                        <p className="text-xs text-muted-foreground">pt</p>
+                        <p className="text-xs text-white/50">pt</p>
                       </div>
                     </div>
                   </Card>
@@ -258,9 +258,9 @@ export default function CreatorSales() {
             </div>
           ) : (
             <Card className="p-8 text-center">
-              <ShoppingBag className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">まだ売上がありません</p>
-              <p className="text-sm text-muted-foreground mt-1">商品を販売したり配信を始めると、ここに売上が表示されます</p>
+              <ShoppingBag className="h-12 w-12 mx-auto mb-3 text-white/50" />
+              <p className="text-white/50">まだ売上がありません</p>
+              <p className="text-sm text-white/50 mt-1">商品を販売したり配信を始めると、ここに売上が表示されます</p>
             </Card>
           )}
         </div>

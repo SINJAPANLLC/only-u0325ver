@@ -73,13 +73,13 @@ export default function NotificationSettingsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -93,14 +93,14 @@ export default function NotificationSettingsPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 rounded-2xl bg-card border border-border/30 animate-pulse" />
+              <div key={i} className="h-16 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">通知の種類</p>
-              <div className="rounded-2xl bg-card border border-border/30 overflow-hidden divide-y divide-border/30">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">通知の種類</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
                 {notificationTypes.map((type) => (
                   <div key={type.key} className="flex items-center gap-3 p-4">
                     <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${type.gradient} flex items-center justify-center flex-shrink-0`}>
@@ -108,7 +108,7 @@ export default function NotificationSettingsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm">{type.label}</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
+                      <p className="text-xs text-white/50 leading-relaxed">{type.description}</p>
                     </div>
                     <Switch
                       checked={form[type.key]}
@@ -121,15 +121,15 @@ export default function NotificationSettingsPage() {
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">通知方法</p>
-              <div className="rounded-2xl bg-card border border-border/30 overflow-hidden divide-y divide-border/30">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">通知方法</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
                 <div className="flex items-center gap-3 p-4">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0">
                     <Mail className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">メール通知</p>
-                    <p className="text-xs text-muted-foreground">重要な通知をメールで受け取る</p>
+                    <p className="text-xs text-white/50">重要な通知をメールで受け取る</p>
                   </div>
                   <Switch
                     checked={form.email}
@@ -143,7 +143,7 @@ export default function NotificationSettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">プッシュ通知</p>
-                    <p className="text-xs text-muted-foreground">ブラウザでプッシュ通知を受け取る</p>
+                    <p className="text-xs text-white/50">ブラウザでプッシュ通知を受け取る</p>
                   </div>
                   <Switch
                     checked={form.push}

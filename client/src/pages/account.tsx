@@ -457,7 +457,7 @@ export default function Account() {
           <div className="space-y-4 py-4">
             {isLoadingSubscriptions ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <Loader2 className="h-6 w-6 animate-spin text-white/50" />
               </div>
             ) : userSubscriptions && userSubscriptions.length > 0 ? (
               userSubscriptions.map((subscription) => (
@@ -500,7 +500,7 @@ export default function Account() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
+                  <div className="flex items-center justify-between text-xs text-white/50 border-t pt-3">
                     <div className="space-y-1">
                       <p>
                         有効期限: {subscription.expiresAt
@@ -552,9 +552,9 @@ export default function Account() {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Crown className="h-12 w-12 text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">加入中のプランはありません</p>
-                <p className="text-xs text-muted-foreground mt-1">クリエイターのプロフィールから登録できます</p>
+                <Crown className="h-12 w-12 text-white/50/50 mb-3" />
+                <p className="text-white/50">加入中のプランはありません</p>
+                <p className="text-xs text-white/50 mt-1">クリエイターのプロフィールから登録できます</p>
               </div>
             )}
           </div>
@@ -607,7 +607,7 @@ export default function Account() {
                 <span className="text-lg font-bold">高画質プラン</span>
                 <span className="text-2xl font-bold text-yellow-600">980<span className="text-sm">pt/月</span></span>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <ul className="space-y-2 text-sm text-white/50">
                 <li className="flex items-center gap-2"><Eye className="h-4 w-4 text-yellow-500" />4K・最高画質でのコンテンツ視聴</li>
                 <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" />全クリエイターのコンテンツに適用</li>
                 <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-blue-500" />いつでも解約可能</li>
@@ -619,13 +619,13 @@ export default function Account() {
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
                   <CheckCircle className="h-4 w-4" />加入中
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-white/50 mt-1">
                   有効期限: {premiumStatus.plan.expiresAt
                     ? new Date(premiumStatus.plan.expiresAt).toLocaleDateString("ja-JP")
                     : "無期限"}
                 </p>
                 {premiumStatus.plan.autoRenew && (
-                  <p className="text-xs text-muted-foreground">自動更新: オン</p>
+                  <p className="text-xs text-white/50">自動更新: オン</p>
                 )}
               </div>
             )}
@@ -638,7 +638,7 @@ export default function Account() {
                 {premiumStatus.plan?.autoRenew && (
                   <Button
                     variant="ghost"
-                    className="w-full text-muted-foreground"
+                    className="w-full text-white/50"
                     onClick={() => cancelPremiumMutation.mutate()}
                     disabled={cancelPremiumMutation.isPending}
                     data-testid="button-cancel-premium"

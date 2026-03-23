@@ -1341,7 +1341,7 @@ export default function CreatorLive() {
             <Radio className="h-10 w-10 text-white" />
           </div>
           <h3 className="font-bold text-xl mb-2">ライブ配信を開始</h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-white/50 mb-6">
             カメラを使ってリアルタイムでフォロワーに配信しましょう
           </p>
           <Button
@@ -1366,10 +1366,10 @@ export default function CreatorLive() {
               {pastStreams.map((stream) => (
                 <div 
                   key={stream.id}
-                  className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
                   data-testid={`stream-item-${stream.id}`}
                 >
-                  <div className="w-16 h-10 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
+                  <div className="w-16 h-10 bg-white/10 rounded-md flex items-center justify-center flex-shrink-0">
                     {stream.thumbnailUrl ? (
                       <img 
                         src={stream.thumbnailUrl} 
@@ -1377,12 +1377,12 @@ export default function CreatorLive() {
                         className="w-full h-full object-cover rounded-md"
                       />
                     ) : (
-                      <Radio className="h-5 w-5 text-muted-foreground" />
+                      <Radio className="h-5 w-5 text-white/50" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm truncate">{stream.title}</h3>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-white/50">
                       <Badge variant="secondary" className="text-[10px]">
                         {stream.status === "ended" ? "終了" : stream.status}
                       </Badge>
@@ -1405,7 +1405,7 @@ export default function CreatorLive() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-white/50">
               <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">配信履歴はありません</p>
             </div>

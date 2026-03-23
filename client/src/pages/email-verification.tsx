@@ -67,13 +67,13 @@ export default function EmailVerificationPage() {
   const isVerified = status?.verified;
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-y-auto">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-20 overflow-y-auto">
+      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center gap-3 px-4 h-14">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -94,34 +94,34 @@ export default function EmailVerificationPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             {isVerified ? (
-              <Card className="p-6 text-center">
+              <Card className="p-6 text-center bg-white/5 border border-white/10">
                 <div className="flex flex-col items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  <div className="h-16 w-16 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="h-8 w-8 text-green-400" />
                   </div>
                   <div>
                     <h2 className="font-semibold text-lg">認証済み</h2>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-white/50 mt-1">
                       {user?.email}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="bg-green-500/20 text-green-400">
                     認証完了
                   </Badge>
                 </div>
               </Card>
             ) : (
-              <Card className="p-4 space-y-4">
+              <Card className="p-4 space-y-4 bg-white/5 border border-white/10">
                 <div className="flex items-center gap-2 mb-2">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <Mail className="h-5 w-5 text-white/50" />
                   <h2 className="font-semibold">メールアドレスを確認</h2>
                 </div>
 
-                <div className="bg-muted rounded-lg p-3">
+                <div className="bg-white/10 rounded-lg p-3">
                   <p className="text-sm font-medium">{user?.email}</p>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/50">
                   上記のメールアドレスに認証コードを送信します。
                 </p>
 
@@ -148,7 +148,7 @@ export default function EmailVerificationPage() {
                           maxLength={6}
                           data-testid="input-code"
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-white/50">
                           メールに記載されたコードを入力してください
                         </p>
                       </div>

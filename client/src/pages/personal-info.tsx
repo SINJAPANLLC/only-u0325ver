@@ -82,13 +82,13 @@ export default function PersonalInfoPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -102,7 +102,7 @@ export default function PersonalInfoPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-14 rounded-2xl bg-card border border-border/30 animate-pulse" />
+              <div key={i} className="h-14 rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
             ))}
           </div>
         ) : (
@@ -111,11 +111,11 @@ export default function PersonalInfoPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <div>
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">基本情報</p>
-              <div className="rounded-2xl bg-card border border-border/30 p-4 space-y-4">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">基本情報</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-4">
 
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-xs text-muted-foreground">氏名（本名）</Label>
+                  <Label htmlFor="fullName" className="text-xs text-white/50">氏名（本名）</Label>
                   <Input
                     id="fullName"
                     value={form.fullName}
@@ -127,7 +127,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="birthDate" className="text-xs text-muted-foreground">生年月日</Label>
+                  <Label htmlFor="birthDate" className="text-xs text-white/50">生年月日</Label>
                   <Input
                     id="birthDate"
                     type="date"
@@ -139,7 +139,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gender" className="text-xs text-muted-foreground">性別</Label>
+                  <Label htmlFor="gender" className="text-xs text-white/50">性別</Label>
                   <Select
                     value={form.gender}
                     onValueChange={(value) => setForm({ ...form, gender: value })}
@@ -158,10 +158,10 @@ export default function PersonalInfoPage() {
             </div>
 
             <div className="mt-4">
-              <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-2 px-1">住所</p>
-              <div className="rounded-2xl bg-card border border-border/30 p-4 space-y-4">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-2 px-1">住所</p>
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="postalCode" className="text-xs text-muted-foreground">郵便番号</Label>
+                  <Label htmlFor="postalCode" className="text-xs text-white/50">郵便番号</Label>
                   <Input
                     id="postalCode"
                     value={form.postalCode}
@@ -173,7 +173,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="prefecture" className="text-xs text-muted-foreground">都道府県</Label>
+                  <Label htmlFor="prefecture" className="text-xs text-white/50">都道府県</Label>
                   <Select
                     value={form.prefecture}
                     onValueChange={(value) => setForm({ ...form, prefecture: value })}
@@ -190,7 +190,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="city" className="text-xs text-muted-foreground">市区町村</Label>
+                  <Label htmlFor="city" className="text-xs text-white/50">市区町村</Label>
                   <Input
                     id="city"
                     value={form.city}
@@ -202,7 +202,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address" className="text-xs text-muted-foreground">番地</Label>
+                  <Label htmlFor="address" className="text-xs text-white/50">番地</Label>
                   <Input
                     id="address"
                     value={form.address}
@@ -214,7 +214,7 @@ export default function PersonalInfoPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="building" className="text-xs text-muted-foreground">建物名・部屋番号</Label>
+                  <Label htmlFor="building" className="text-xs text-white/50">建物名・部屋番号</Label>
                   <Input
                     id="building"
                     value={form.building}

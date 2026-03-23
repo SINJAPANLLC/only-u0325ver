@@ -272,7 +272,7 @@ export default function PointsPurchase() {
   if (step === "card_payment" && clientSecret && selectedPackage && paymentIntentId) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -291,11 +291,11 @@ export default function PointsPurchase() {
           <Card className="p-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground">購入ポイント</p>
+                <p className="text-sm text-white/50">購入ポイント</p>
                 <p className="text-xl font-bold">{selectedPackage.points.toLocaleString()} pt</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">お支払い金額</p>
+                <p className="text-sm text-white/50">お支払い金額</p>
                 <p className="text-xl font-bold text-pink-600 dark:text-pink-400">
                   ¥{selectedPackage.priceIncludingTax.toLocaleString()}
                 </p>
@@ -334,7 +334,7 @@ export default function PointsPurchase() {
   if (step === "card_success" && purchasedPoints) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -361,16 +361,16 @@ export default function PointsPurchase() {
                 </div>
               </div>
               <h2 className="text-xl font-bold mb-2">ポイント購入完了</h2>
-              <p className="text-muted-foreground mb-4">カード決済が正常に完了しました</p>
+              <p className="text-white/50 mb-4">カード決済が正常に完了しました</p>
               
               <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-4 mb-4">
-                <p className="text-sm text-muted-foreground">購入ポイント</p>
+                <p className="text-sm text-white/50">購入ポイント</p>
                 <p className="text-3xl font-bold text-pink-600 dark:text-pink-400">
                   +{purchasedPoints.toLocaleString()} pt
                 </p>
               </div>
 
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-white/50">
                 <p>ポイントは即座にアカウントに反映されました</p>
               </div>
             </Card>
@@ -391,7 +391,7 @@ export default function PointsPurchase() {
   if (step === "bank_info" && pendingTransfer) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -418,7 +418,7 @@ export default function PointsPurchase() {
                 </div>
                 <div>
                   <h2 className="font-bold">振込申請を受け付けました</h2>
-                  <p className="text-sm text-muted-foreground">以下の口座にお振込みください</p>
+                  <p className="text-sm text-white/50">以下の口座にお振込みください</p>
                 </div>
               </div>
 
@@ -431,7 +431,7 @@ export default function PointsPurchase() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">銀行名</span>
+                  <span className="text-white/50">銀行名</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{BANK_INFO.bankName}</span>
                     <Button 
@@ -446,7 +446,7 @@ export default function PointsPurchase() {
                 </div>
 
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">支店名</span>
+                  <span className="text-white/50">支店名</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{BANK_INFO.branchName}</span>
                     <Button 
@@ -461,12 +461,12 @@ export default function PointsPurchase() {
                 </div>
 
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">口座種別</span>
+                  <span className="text-white/50">口座種別</span>
                   <span className="font-medium">{BANK_INFO.accountType}</span>
                 </div>
 
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">口座番号</span>
+                  <span className="text-white/50">口座番号</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{BANK_INFO.accountNumber}</span>
                     <Button 
@@ -481,7 +481,7 @@ export default function PointsPurchase() {
                 </div>
 
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">口座名義</span>
+                  <span className="text-white/50">口座名義</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{BANK_INFO.accountName}</span>
                     <Button 
@@ -500,15 +500,15 @@ export default function PointsPurchase() {
 
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">ポイント</span>
+                  <span className="text-white/50">ポイント</span>
                   <span>¥{pendingTransfer.points.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">購入手数料（10%）</span>
+                  <span className="text-white/50">購入手数料（10%）</span>
                   <span>¥{Math.floor(pendingTransfer.points * 0.1).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">消費税（10%）</span>
+                  <span className="text-white/50">消費税（10%）</span>
                   <span>¥{Math.floor(pendingTransfer.points * 0.1).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
@@ -517,10 +517,10 @@ export default function PointsPurchase() {
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-muted rounded-lg">
+              <div className="mt-6 p-4 bg-white/10 rounded-lg">
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-muted-foreground">
+                  <Info className="h-4 w-4 text-white/50 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-white/50">
                     <p>お振込みを確認次第、ポイントが付与されます。確認には1〜3営業日かかる場合があります。</p>
                     <p className="mt-2">振込人名義は登録氏名と一致させてください。</p>
                   </div>
@@ -544,7 +544,7 @@ export default function PointsPurchase() {
   if (step === "payment" && selectedPackage) {
     return (
       <div className="pb-20 overflow-y-auto scrollbar-hide">
-        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+        <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center h-14 px-4 gap-3">
             <Button 
               variant="ghost" 
@@ -576,7 +576,7 @@ export default function PointsPurchase() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-lg">¥{selectedPackage.priceIncludingTax.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">税込</p>
+                  <p className="text-xs text-white/50">税込</p>
                 </div>
               </div>
             </Card>
@@ -592,10 +592,10 @@ export default function PointsPurchase() {
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover-elevate cursor-pointer">
                 <RadioGroupItem value="card" id="card" data-testid="radio-card" />
                 <Label htmlFor="card" className="flex items-center gap-3 cursor-pointer flex-1">
-                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <CreditCard className="h-5 w-5 text-white/50" />
                   <div>
                     <p className="font-medium">クレジットカード</p>
-                    <p className="text-xs text-muted-foreground">VISA / Mastercard / JCB / AMEX</p>
+                    <p className="text-xs text-white/50">VISA / Mastercard / JCB / AMEX</p>
                   </div>
                 </Label>
               </div>
@@ -603,10 +603,10 @@ export default function PointsPurchase() {
               <div className="flex items-center space-x-3 p-3 rounded-lg border hover-elevate cursor-pointer">
                 <RadioGroupItem value="bank" id="bank" data-testid="radio-bank" />
                 <Label htmlFor="bank" className="flex items-center gap-3 cursor-pointer flex-1">
-                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <Building2 className="h-5 w-5 text-white/50" />
                   <div>
                     <p className="font-medium">銀行振込</p>
-                    <p className="text-xs text-muted-foreground">入金確認後にポイント付与</p>
+                    <p className="text-xs text-white/50">入金確認後にポイント付与</p>
                   </div>
                 </Label>
               </div>
@@ -617,15 +617,15 @@ export default function PointsPurchase() {
             <h3 className="font-bold mb-3">お支払い内容</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">ポイント</span>
+                <span className="text-white/50">ポイント</span>
                 <span>¥{selectedPackage.points.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">購入手数料（10%）</span>
+                <span className="text-white/50">購入手数料（10%）</span>
                 <span>¥{Math.floor(selectedPackage.points * 0.1).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">消費税（10%）</span>
+                <span className="text-white/50">消費税（10%）</span>
                 <span>¥{Math.floor(selectedPackage.points * 0.1).toLocaleString()}</span>
               </div>
               <Separator className="my-2" />
@@ -654,7 +654,7 @@ export default function PointsPurchase() {
 
   return (
     <div className="pb-20 overflow-y-auto scrollbar-hide">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Link href="/account">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
@@ -721,12 +721,12 @@ export default function PointsPurchase() {
           ))}
         </div>
 
-        <Card className="p-4 bg-muted/50">
+        <Card className="p-4 bg-white/5">
           <h3 className="font-medium mb-2 flex items-center gap-2">
             <Info className="h-4 w-4" />
             ご利用について
           </h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
+          <ul className="text-sm text-white/50 space-y-1">
             <li>• ポイントは購入後すぐにご利用いただけます（銀行振込を除く）</li>
             <li>• 銀行振込の場合、入金確認後にポイントが付与されます</li>
             <li>• ポイントの有効期限は最終利用日から1年間です</li>

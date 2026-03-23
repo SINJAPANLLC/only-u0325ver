@@ -16,13 +16,13 @@ export default function LanguageSettingsPage() {
   const { language, setLanguage } = useI18n();
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -39,7 +39,7 @@ export default function LanguageSettingsPage() {
           </div>
           <div>
             <p className="font-semibold text-sm">表示言語</p>
-            <p className="text-xs text-muted-foreground">アプリ全体の表示言語を変更</p>
+            <p className="text-xs text-white/50">アプリ全体の表示言語を変更</p>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export default function LanguageSettingsPage() {
               className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.98] ${
                 language === lang.code
                   ? "bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-pink-300/60 dark:border-pink-800/60"
-                  : "bg-card border-border/30 hover:bg-accent/30"
+                  : "bg-white/5 border-white/10 hover:bg-white/10"
               }`}
               onClick={() => setLanguage(lang.code)}
               data-testid={`button-lang-${lang.code}`}
@@ -64,7 +64,7 @@ export default function LanguageSettingsPage() {
                   <p className={`font-semibold text-sm ${language === lang.code ? "text-pink-600 dark:text-pink-400" : ""}`}>
                     {lang.native}
                   </p>
-                  <p className="text-xs text-muted-foreground">{lang.name}</p>
+                  <p className="text-xs text-white/50">{lang.name}</p>
                 </div>
               </div>
               {language === lang.code && (

@@ -58,7 +58,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   }
   return (
-    <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+    <span className="flex items-center gap-1 text-[11px] font-medium text-white/50">
       <Clock className="h-3 w-3" />処理中
     </span>
   );
@@ -78,13 +78,13 @@ export default function MyPurchasesPage() {
   ) || [];
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-8">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -98,12 +98,12 @@ export default function MyPurchasesPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30 animate-pulse">
-                <div className="h-20 w-20 rounded-xl bg-muted flex-shrink-0" />
+              <div key={i} className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 animate-pulse">
+                <div className="h-20 w-20 rounded-xl bg-white/10 flex-shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded-lg w-3/4" />
-                  <div className="h-3 bg-muted rounded-lg w-1/2" />
-                  <div className="h-3 bg-muted rounded-lg w-1/3" />
+                  <div className="h-4 bg-white/10 rounded-lg w-3/4" />
+                  <div className="h-3 bg-white/10 rounded-lg w-1/2" />
+                  <div className="h-3 bg-white/10 rounded-lg w-1/3" />
                 </div>
               </div>
             ))}
@@ -118,7 +118,7 @@ export default function MyPurchasesPage() {
               <ShoppingBag className="h-10 w-10 text-pink-400" />
             </div>
             <h3 className="font-bold text-lg mb-2">購入履歴がありません</h3>
-            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed mb-6">
+            <p className="text-sm text-white/50 max-w-xs leading-relaxed mb-6">
               ショップでコンテンツや商品を購入してみましょう
             </p>
             <Button
@@ -138,7 +138,7 @@ export default function MyPurchasesPage() {
                     <Download className="h-3.5 w-3.5 text-white" />
                   </div>
                   <h2 className="font-bold text-sm">デジタルコンテンツ</h2>
-                  <span className="text-xs text-muted-foreground">{digitalPurchases.length}件</span>
+                  <span className="text-xs text-white/50">{digitalPurchases.length}件</span>
                 </div>
                 <div className="space-y-2">
                   {digitalPurchases.map((purchase, index) => (
@@ -147,7 +147,7 @@ export default function MyPurchasesPage() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
+                      className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10"
                     >
                       {purchase.product?.imageUrl ? (
                         <img
@@ -164,7 +164,7 @@ export default function MyPurchasesPage() {
                         <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
                           {purchase.product?.name || "削除された商品"}
                         </h3>
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className="text-xs text-white/50 mb-1">
                           {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
                         </p>
                         <p className="text-sm font-bold text-pink-500">
@@ -195,7 +195,7 @@ export default function MyPurchasesPage() {
                     <Truck className="h-3.5 w-3.5 text-white" />
                   </div>
                   <h2 className="font-bold text-sm">配送商品</h2>
-                  <span className="text-xs text-muted-foreground">{physicalPurchases.length}件</span>
+                  <span className="text-xs text-white/50">{physicalPurchases.length}件</span>
                 </div>
                 <div className="space-y-2">
                   {physicalPurchases.map((purchase, index) => (
@@ -204,7 +204,7 @@ export default function MyPurchasesPage() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
+                      className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10"
                     >
                       {purchase.product?.imageUrl ? (
                         <img
@@ -221,7 +221,7 @@ export default function MyPurchasesPage() {
                         <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
                           {purchase.product?.name || "削除された商品"}
                         </h3>
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className="text-xs text-white/50 mb-1">
                           {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
                         </p>
                         <p className="text-sm font-bold text-pink-500 mb-1">
@@ -229,7 +229,7 @@ export default function MyPurchasesPage() {
                         </p>
                         <StatusBadge status={purchase.status} />
                         {purchase.shippingAddress && (
-                          <p className="text-[11px] text-muted-foreground/60 mt-0.5 truncate">
+                          <p className="text-[11px] text-white/30 mt-0.5 truncate">
                             {purchase.shippingAddress}
                           </p>
                         )}
@@ -247,7 +247,7 @@ export default function MyPurchasesPage() {
                     <Package className="h-3.5 w-3.5 text-white" />
                   </div>
                   <h2 className="font-bold text-sm">その他の購入</h2>
-                  <span className="text-xs text-muted-foreground">{otherPurchases.length}件</span>
+                  <span className="text-xs text-white/50">{otherPurchases.length}件</span>
                 </div>
                 <div className="space-y-2">
                   {otherPurchases.map((purchase, index) => (
@@ -256,7 +256,7 @@ export default function MyPurchasesPage() {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex gap-3 p-4 rounded-2xl bg-card border border-border/30"
+                      className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10"
                     >
                       <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                         <Package className="h-8 w-8 text-purple-400" />
@@ -265,7 +265,7 @@ export default function MyPurchasesPage() {
                         <h3 className="font-semibold text-sm line-clamp-2 leading-tight mb-1" data-testid={`text-product-name-${purchase.id}`}>
                           {purchase.product?.name || "削除された商品"}
                         </h3>
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className="text-xs text-white/50 mb-1">
                           {format(new Date(purchase.createdAt), "yyyy年M月d日", { locale: ja })}
                         </p>
                         <p className="text-sm font-bold text-pink-500 mb-1">

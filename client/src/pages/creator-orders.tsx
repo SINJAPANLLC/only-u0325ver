@@ -92,8 +92,8 @@ export default function CreatorOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-y-auto">
-      <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/30">
+    <div className="min-h-screen bg-black text-white pb-20 overflow-y-auto">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
@@ -117,8 +117,8 @@ export default function CreatorOrdersPage() {
           </div>
         ) : orders?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Package className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">まだ注文がありません</p>
+            <Package className="h-16 w-16 text-white/50 mb-4" />
+            <p className="text-white/50 mb-4">まだ注文がありません</p>
           </div>
         ) : (
           <>
@@ -144,8 +144,8 @@ export default function CreatorOrdersPage() {
                               className="w-16 h-16 object-cover rounded-lg"
                             />
                           ) : (
-                            <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                              <Package className="h-6 w-6 text-muted-foreground" />
+                            <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
+                              <Package className="h-6 w-6 text-white/50" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
@@ -155,7 +155,7 @@ export default function CreatorOrdersPage() {
                               </h3>
                               {getStatusBadge(order.status)}
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-white/50 mt-1">
                               {format(new Date(order.createdAt), "yyyy年M月d日 HH:mm", { locale: ja })}
                             </p>
                             <p className="text-sm font-medium mt-1">
@@ -164,26 +164,26 @@ export default function CreatorOrdersPage() {
                           </div>
                         </div>
 
-                        <div className="bg-muted rounded-lg p-3 space-y-2 text-sm">
+                        <div className="bg-white/10 rounded-lg p-3 space-y-2 text-sm">
                           <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
+                            <User className="h-4 w-4 text-white/50" />
                             <span>{order.shippingName || "名前なし"}</span>
                           </div>
                           <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                            <MapPin className="h-4 w-4 text-white/50 mt-0.5" />
                             <div>
                               <p>〒{order.shippingPostalCode}</p>
                               <p>{order.shippingAddress}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <Phone className="h-4 w-4 text-white/50" />
                             <span>{order.shippingPhone}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3 mt-3">
-                          <span className="text-sm text-muted-foreground">ステータス:</span>
+                          <span className="text-sm text-white/50">ステータス:</span>
                           <Select
                             value={order.status}
                             onValueChange={(value) => updateStatusMutation.mutate({ id: order.id, status: value })}
@@ -227,8 +227,8 @@ export default function CreatorOrdersPage() {
                               className="w-16 h-16 object-cover rounded-lg"
                             />
                           ) : (
-                            <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                              <Package className="h-6 w-6 text-muted-foreground" />
+                            <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
+                              <Package className="h-6 w-6 text-white/50" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
@@ -240,7 +240,7 @@ export default function CreatorOrdersPage() {
                                 <CheckCircle2 className="h-3 w-3 mr-1" />完了
                               </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-white/50 mt-1">
                               {format(new Date(order.createdAt), "yyyy年M月d日 HH:mm", { locale: ja })}
                             </p>
                             <p className="text-sm font-medium mt-1">
@@ -270,8 +270,8 @@ export default function CreatorOrdersPage() {
                     >
                       <Card className="p-4">
                         <div className="flex gap-4">
-                          <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                            <Package className="h-6 w-6 text-muted-foreground" />
+                          <div className="w-16 h-16 bg-white/10 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-white/50" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
@@ -280,7 +280,7 @@ export default function CreatorOrdersPage() {
                               </h3>
                               {getStatusBadge(order.status)}
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-white/50 mt-1">
                               {format(new Date(order.createdAt), "yyyy年M月d日 HH:mm", { locale: ja })}
                             </p>
                             <p className="text-sm font-medium mt-1">

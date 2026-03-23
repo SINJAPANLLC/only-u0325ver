@@ -288,17 +288,17 @@ export default function Shop() {
 
               {selectedProduct.isDemo ? (
                 <div className="bg-muted rounded-lg p-4 text-center">
-                  <p className="text-sm text-muted-foreground">これはサンプル表示用のデモ商品です。実際の商品はクリエイターが出品した際に購入できます。</p>
+                  <p className="text-sm text-white/50">これはサンプル表示用のデモ商品です。実際の商品はクリエイターが出品した際に購入できます。</p>
                 </div>
               ) : (
                 <>
                   <div className="bg-muted rounded-lg p-3 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">現在の保有ポイント</span>
+                      <span className="text-white/50">現在の保有ポイント</span>
                       <span className="font-medium">{userPoints.toLocaleString()}pt</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">購入後の残高</span>
+                      <span className="text-white/50">購入後の残高</span>
                       <span className={`font-medium ${userPoints < selectedProduct.price ? "text-destructive" : ""}`}>
                         {(userPoints - selectedProduct.price).toLocaleString()}pt
                       </span>
@@ -314,7 +314,7 @@ export default function Shop() {
 
               {!selectedProduct.isDemo && selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm font-medium text-white/50">
                     <Truck className="h-4 w-4" />配送先情報
                   </div>
                   <div className="space-y-3">

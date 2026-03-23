@@ -217,7 +217,7 @@ export default function CreatorApplication() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -226,8 +226,8 @@ export default function CreatorApplication() {
   // If application is approved
   if (application?.status === "approved") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
+      <div className="min-h-screen bg-black text-white flex flex-col">
+        <header className="flex items-center h-14 px-4 border-b border-white/10 bg-black/95 backdrop-blur-xl">
           <Link href="/account">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
@@ -240,7 +240,7 @@ export default function CreatorApplication() {
             <Check className="h-8 w-8 text-green-600" />
           </div>
           <h2 className="text-xl font-bold mb-2">承認されました</h2>
-          <p className="text-muted-foreground text-center mb-6">
+          <p className="text-white/50 text-center mb-6">
             クリエイターとして活動を開始できます
           </p>
           <Link href="/account">
@@ -256,8 +256,8 @@ export default function CreatorApplication() {
   // If application is rejected
   if (application?.status === "rejected") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl">
+      <div className="min-h-screen bg-black text-white flex flex-col">
+        <header className="flex items-center h-14 px-4 border-b border-white/10 bg-black/95 backdrop-blur-xl">
           <Link href="/account">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
@@ -270,7 +270,7 @@ export default function CreatorApplication() {
             <Circle className="h-8 w-8 text-red-600" />
           </div>
           <h2 className="text-xl font-bold mb-2">申請が却下されました</h2>
-          <p className="text-muted-foreground text-center mb-6">
+          <p className="text-white/50 text-center mb-6">
             詳細はサポートまでお問い合わせください
           </p>
           <Link href="/account">
@@ -284,8 +284,8 @@ export default function CreatorApplication() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="flex items-center h-14 px-4 border-b border-border/30 bg-background/95 backdrop-blur-xl sticky top-0 z-20">
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <header className="flex items-center h-14 px-4 border-b border-white/10 bg-black/95 backdrop-blur-xl sticky top-0 z-20">
         <Link href="/account">
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
@@ -295,7 +295,7 @@ export default function CreatorApplication() {
       </header>
 
       {/* Stepper */}
-      <div className="p-4 border-b bg-muted/30">
+      <div className="p-4 border-b bg-white/5">
         <div className="flex items-center justify-between">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
@@ -309,15 +309,15 @@ export default function CreatorApplication() {
                   w-10 h-10 rounded-full flex items-center justify-center mb-1
                   ${isCompleted ? "bg-green-500 text-white" : 
                     isCurrent ? "bg-primary text-primary-foreground" : 
-                    "bg-muted text-muted-foreground"}
+                    "bg-white/10 text-white/50"}
                 `}>
                   {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                 </div>
-                <span className={`text-xs text-center ${isCurrent ? "font-medium" : "text-muted-foreground"}`}>
+                <span className={`text-xs text-center ${isCurrent ? "font-medium" : "text-white/50"}`}>
                   {step.label}
                 </span>
                 {index < STEPS.length - 1 && (
-                  <div className={`absolute h-0.5 w-full ${isCompleted ? "bg-green-500" : "bg-muted"}`} 
+                  <div className={`absolute h-0.5 w-full ${isCompleted ? "bg-green-500" : "bg-white/10"}`} 
                        style={{ top: "20px", left: "50%" }} />
                 )}
               </div>
@@ -456,7 +456,7 @@ export default function CreatorApplication() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveContactInfo} className="space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/50">
                   連絡先として電話番号とメールアドレスを登録してください。
                 </p>
 
@@ -505,7 +505,7 @@ export default function CreatorApplication() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleDocumentSubmit} className="space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/50">
                   本人確認のため、身分証明書の写真をアップロードしてください。
                 </p>
 
@@ -529,7 +529,7 @@ export default function CreatorApplication() {
                 <div>
                   <Label>書類の表面 <span className="text-red-500">*</span></Label>
                   <div className="mt-2">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white/5">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         {documentInfo.idDocumentFront ? (
                           <>
@@ -538,8 +538,8 @@ export default function CreatorApplication() {
                           </>
                         ) : (
                           <>
-                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                            <span className="text-sm text-muted-foreground">クリックしてアップロード</span>
+                            <Upload className="h-8 w-8 text-white/50 mb-2" />
+                            <span className="text-sm text-white/50">クリックしてアップロード</span>
                           </>
                         )}
                       </div>
@@ -557,7 +557,7 @@ export default function CreatorApplication() {
                 <div>
                   <Label>書類の裏面（任意）</Label>
                   <div className="mt-2">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white/5">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         {documentInfo.idDocumentBack ? (
                           <>
@@ -566,8 +566,8 @@ export default function CreatorApplication() {
                           </>
                         ) : (
                           <>
-                            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                            <span className="text-sm text-muted-foreground">クリックしてアップロード</span>
+                            <Upload className="h-8 w-8 text-white/50 mb-2" />
+                            <span className="text-sm text-white/50">クリックしてアップロード</span>
                           </>
                         )}
                       </div>
@@ -584,11 +584,11 @@ export default function CreatorApplication() {
 
                 <div>
                   <Label>顔写真（セルフィー） <span className="text-red-500">*</span></Label>
-                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                  <p className="text-xs text-white/50 mt-1 mb-2">
                     本人確認書類と一緒に顔が写るように撮影してください
                   </p>
                   <div className="mt-2">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white/5">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
                         {documentInfo.selfie ? (
                           <>
@@ -597,8 +597,8 @@ export default function CreatorApplication() {
                           </>
                         ) : (
                           <>
-                            <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                            <span className="text-sm text-muted-foreground">クリックしてアップロード</span>
+                            <Camera className="h-8 w-8 text-white/50 mb-2" />
+                            <span className="text-sm text-white/50">クリックしてアップロード</span>
                           </>
                         )}
                       </div>
@@ -637,11 +637,11 @@ export default function CreatorApplication() {
                 <Clock className="h-8 w-8 text-yellow-600" />
               </div>
               <h3 className="text-lg font-medium mb-2">審査中です</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-white/50 mb-4">
                 提出された書類を確認しています。<br />
                 審査には通常1〜3営業日かかります。
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/50">
                 審査が完了次第、通知でお知らせします。
               </p>
             </CardContent>
