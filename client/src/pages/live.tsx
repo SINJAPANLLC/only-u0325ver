@@ -51,7 +51,7 @@ function StreamCard({ stream }: StreamCardProps) {
   return (
     <div className="w-full h-full relative bg-black flex-shrink-0">
       {stream.thumbnailUrl && (
-        <img src={stream.thumbnailUrl} alt={stream.title} className="absolute inset-0 w-full h-full object-contain" />
+        <img src={stream.thumbnailUrl} alt={stream.title} className="absolute inset-0 w-full h-full object-cover" />
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
 
