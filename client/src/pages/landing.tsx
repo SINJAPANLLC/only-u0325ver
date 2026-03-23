@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,6 +15,39 @@ import {
 
 interface LandingProps {
   onRegisterClick?: () => void;
+}
+
+function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: number; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          setCount(Math.floor(ease * target));
+          if (progress < 1) requestAnimationFrame(tick);
+          else setCount(target);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.3 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return (
+    <div ref={ref} className="text-3xl sm:text-4xl font-black text-white mb-1">
+      {count.toLocaleString()}{suffix}
+    </div>
+  );
 }
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
@@ -191,22 +224,21 @@ export default function Landing({ onRegisterClick }: LandingProps) {
       {/* ── STATS ── */}
       <section className="bg-pink-500 py-14">
         <div className="max-w-5xl mx-auto px-5">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-3 gap-8">
             {[
-              { num: "10,000+", label: "登録クリエイター" },
-              { num: "500,000+", label: "アクティブファン" },
-              { num: "¥980〜", label: "月額プラン" },
-              { num: "98%", label: "クリエイター満足度" },
+              { target: 10000, suffix: "+", label: "登録クリエイター" },
+              { target: 500000, suffix: "+", label: "アクティブファン" },
+              { target: 98, suffix: "%", label: "クリエイター満足度" },
             ].map((s, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
+                transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="text-3xl sm:text-4xl font-black text-white mb-1">{s.num}</div>
+                <AnimatedCounter target={s.target} suffix={s.suffix} />
                 <div className="text-xs text-pink-100">{s.label}</div>
               </motion.div>
             ))}
