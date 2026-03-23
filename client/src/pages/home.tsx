@@ -388,9 +388,6 @@ function VideoPage({
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center shadow">
-            <span className="text-white text-[10px] font-bold">+</span>
-          </div>
         </button>
 
         {/* Like */}

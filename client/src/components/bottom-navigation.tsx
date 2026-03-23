@@ -36,7 +36,7 @@ export function BottomNavigation() {
   const unreadCount = unreadMessages?.count || 0;
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/40 pb-safe shadow-[0_-1px_0_rgba(0,0,0,0.04)]">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-black pb-safe">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const isActive = location === item.path;
@@ -49,14 +49,14 @@ export function BottomNavigation() {
                 whileTap={{ scale: 0.88 }}
                 className={cn(
                   "relative flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-2xl transition-colors duration-200",
-                  isActive ? "text-pink-500" : "text-muted-foreground/60 hover:text-muted-foreground"
+                  isActive ? "text-pink-400" : "text-white/50 hover:text-white/80"
                 )}
                 data-testid={`nav-${item.path === "/" ? "home" : item.path.slice(1)}`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="nav-active-pill"
-                    className="absolute inset-1 bg-pink-50 dark:bg-pink-950/30 rounded-xl"
+                    className="absolute inset-1 bg-white/10 rounded-xl"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
