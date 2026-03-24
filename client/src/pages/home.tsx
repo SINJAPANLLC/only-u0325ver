@@ -15,16 +15,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getBunnyHlsUrl, getBunnyThumbnail } from "@/components/bunny-player";
 import Hls from "hls.js";
 
-// AI-generated explicit images for 18+ adult content
-import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
-import img2 from "@assets/generated_images/nude_bath_2.jpg";
-import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
-import img4 from "@assets/generated_images/nude_shower_4.jpg";
-import img5 from "@assets/generated_images/bunny_girl_5.jpg";
-import img6 from "@assets/generated_images/micro_bikini_6.jpg";
-import img7 from "@assets/generated_images/sexy_maid_7.jpg";
-import img8 from "@assets/generated_images/topless_morning_8.jpg";
-import imgHorizontal from "@assets/generated_images/horizontal_glamour_sofa_scene.png";
 
 interface VideoPageProps {
   id: string;
@@ -93,11 +83,6 @@ function VideoPage({
     if (info.offset.x < -100 || info.velocity.x < -500) {
       animate(x, -500, { duration: 0.3 });
       setTimeout(() => {
-        if (id.startsWith("demo-")) {
-          setLocation(`/creator/${creatorName}`);
-          return;
-        }
-
         if (creatorId === user?.id) {
           setLocation("/my-profile");
         } else if (creatorId) {
