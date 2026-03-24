@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, Share2, Volume2, VolumeX, Lock, Film } from "lucide-react";
+import { Play, Heart, Share2, Volume2, VolumeX, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -621,9 +621,6 @@ export default function Home() {
         ) : displayVideos.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-950 to-black">
             <div className="flex flex-col items-center gap-4 px-8 text-center">
-              <div className="h-20 w-20 rounded-2xl bg-pink-500/20 flex items-center justify-center">
-                <Film className="h-10 w-10 text-pink-400" />
-              </div>
               <h2 className="text-white font-bold text-xl">まだ動画がありません</h2>
               <p className="text-white/50 text-sm leading-relaxed">
                 クリエイターがコンテンツを投稿すると<br />ここに表示されます。
