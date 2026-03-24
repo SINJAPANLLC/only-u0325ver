@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -52,6 +52,12 @@ const demoMessages: Record<string, { id: string; senderId: string; content: stri
     { id: "m3", senderId: "creator", content: "新しいコスプレ写真撮ったよ！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) },
   ],
 };
+
+const AUTO_REPLY_PREFIXES = ["【ご購入ありがとうございます】", "【自動返信】"];
+
+function isAutoReply(content: string) {
+  return AUTO_REPLY_PREFIXES.some((p) => content.startsWith(p));
+}
 
 export default function ConversationPage() {
   const [, setLocation] = useLocation();
@@ -105,7 +111,6 @@ export default function ConversationPage() {
     ? demoCreator?.avatar 
     : ((conversation as any)?.participantAvatarUrl || undefined);
   const participantId = (conversation as any)?.participantId;
-  const participantIsCreator = (conversation as any)?.participantIsCreator;
 
   const handleParticipantClick = () => {
     if (isDemo) return;
@@ -156,25 +161,21 @@ export default function ConversationPage() {
             onClick={handleParticipantClick}
             data-testid="link-participant-profile"
           >
-            <div className="relative flex-shrink-0">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-sm font-bold">
-                  {participantName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-black" />
-            </div>
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-sm font-bold">
+                {participantName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0">
               <h1 className="font-bold text-sm truncate leading-tight text-white">{participantName}</h1>
-              <p className="text-[11px] text-green-400 leading-tight">オンライン</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5 overflow-x-hidden">
         {isLoading && !isDemo ? (
           <div className="flex items-center justify-center py-12">
             <div className="h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
@@ -190,6 +191,8 @@ export default function ConversationPage() {
         ) : (
           displayMessages.map((msg) => {
             const isOwn = isDemo ? msg.senderId === "user" : msg.senderId === userId;
+            const autoReply = !isOwn && isAutoReply(msg.content);
+
             return (
               <div
                 key={msg.id}
@@ -204,16 +207,29 @@ export default function ConversationPage() {
                     </AvatarFallback>
                   </Avatar>
                 )}
-                <div className={`max-w-[72%] ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}>
-                  <div
-                    className={`rounded-2xl px-3.5 py-2.5 ${
-                      isOwn
-                        ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-sm"
-                        : "bg-white/10 text-white rounded-bl-sm"
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed break-words">{msg.content}</p>
-                  </div>
+                <div className={`max-w-[72%] min-w-0 ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                  {autoReply ? (
+                    /* 自動返信メッセージ */
+                    <div className="rounded-2xl rounded-bl-sm border border-pink-500/30 bg-pink-500/5 overflow-hidden">
+                      <div className="flex items-center gap-1.5 px-3 pt-2 pb-1 border-b border-pink-500/20">
+                        <Zap className="h-3 w-3 text-pink-400 flex-shrink-0" />
+                        <span className="text-[10px] text-pink-400 font-medium">自動返信</span>
+                      </div>
+                      <p className="text-sm leading-relaxed break-all px-3 py-2 text-white/90">
+                        {msg.content}
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      className={`rounded-2xl px-3.5 py-2.5 min-w-0 ${
+                        isOwn
+                          ? "bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-br-sm shadow-sm"
+                          : "bg-white/10 text-white rounded-bl-sm"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed break-all">{msg.content}</p>
+                    </div>
+                  )}
                   <p className={`text-[10px] px-1 text-white/30 ${isOwn ? "text-right" : ""}`}>
                     {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: ja })}
                   </p>
