@@ -418,6 +418,15 @@ export default function CreatorProfile() {
       setLocation("/auth");
       return;
     }
+    // Auto-select first unsubscribed plan
+    if (subscriptionPlans && subscriptionPlans.length > 0) {
+      const firstUnsubscribed = subscriptionPlans.find(
+        (p) => !subscriptionStatus?.subscribedPlanIds?.includes(p.id)
+      );
+      if (firstUnsubscribed && !selectedPlanId) {
+        setSelectedPlanId(firstUnsubscribed.id);
+      }
+    }
     setShowSubscribeDialog(true);
   };
 
@@ -663,16 +672,16 @@ export default function CreatorProfile() {
       </div>
 
         <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
-          <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl" aria-describedby={undefined}>
+          <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl max-h-[90vh] flex flex-col" aria-describedby={undefined}>
             {/* Header gradient */}
-            <div className="bg-gradient-to-br from-pink-500 to-rose-600 px-6 pt-6 pb-8 text-white relative">
+            <div className="bg-gradient-to-br from-pink-500 to-rose-600 px-6 pt-6 pb-6 text-white relative flex-shrink-0">
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
               <Crown className="h-7 w-7 mb-2 opacity-90" />
               <h2 className="text-xl font-bold">プレミアム登録</h2>
-              <p className="text-sm text-white/80 mt-1">{creator.displayName}の限定コンテンツにアクセス</p>
+              <p className="text-sm text-white/80 mt-1">Only-Uの限定コンテンツにアクセス</p>
             </div>
 
-            <div className="px-5 pt-5 pb-3 space-y-2.5">
+            <div className="px-5 pt-5 pb-3 space-y-2.5 overflow-y-auto flex-1">
               {subscriptionPlans && subscriptionPlans.length > 0 ? (
                 subscriptionPlans.map((plan) => {
                   const isAlreadySubscribed = subscriptionStatus?.subscribedPlanIds?.includes(plan.id);
@@ -767,7 +776,7 @@ export default function CreatorProfile() {
 
             </div>
 
-            <div className="px-5 pb-5 flex gap-2.5">
+            <div className="px-5 pb-5 pt-2 flex gap-2.5 flex-shrink-0 border-t border-border">
               <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setShowSubscribeDialog(false)}>
                 キャンセル
               </Button>
@@ -779,7 +788,7 @@ export default function CreatorProfile() {
                 {isSubscribeLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 ) : null}
-                {getSubscriptionPrice().toLocaleString()}pt で登録
+                {selectedPlanId ? `${getSubscriptionPrice().toLocaleString()}pt で登録` : "プランを選択"}
               </Button>
             </div>
           </DialogContent>
