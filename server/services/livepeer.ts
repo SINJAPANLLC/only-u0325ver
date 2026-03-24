@@ -17,6 +17,7 @@ export interface LivepeerStreamInfo {
   rtmpServerUrl: string;
   streamKey: string;
   playbackUrl: string;
+  whipUrl: string;
 }
 
 export async function createLivepeerStream(name: string): Promise<LivepeerStreamInfo | null> {
@@ -54,6 +55,7 @@ export async function createLivepeerStream(name: string): Promise<LivepeerStream
       rtmpServerUrl: "rtmp://rtmp.livepeer.com/live",
       streamKey: stream.streamKey,
       playbackUrl: `https://livepeercdn.studio/hls/${stream.playbackId}/index.m3u8`,
+      whipUrl: `https://livepeer.studio/live/${stream.streamKey}/whip`,
     };
   } catch (err) {
     console.error("Livepeer create stream error:", err);

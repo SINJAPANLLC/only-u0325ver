@@ -589,9 +589,10 @@ export async function registerRoutes(
       }
       let [stream] = await db.insert(liveStreams).values(insertData).returning();
       
-      // 1) Try Livepeer (simplest: 1 API key, adult content OK, free tier)
+      // 1) Try Livepeer (simplest: 1 API key, adult content OK, free tier, supports WHIP)
       let rtmpServerUrl: string | null = null;
       let rtmpStreamKey: string | null = null;
+      let whipUrl: string | null = null;
       let streamAssigned = false;
 
       if (isLivepeerConfigured()) {
@@ -609,6 +610,7 @@ export async function registerRoutes(
           stream = updated;
           rtmpServerUrl = lpStream.rtmpServerUrl;
           rtmpStreamKey = lpStream.streamKey;
+          whipUrl = lpStream.whipUrl;
           streamAssigned = true;
           console.log("Livepeer stream created:", lpStream.livepeerStreamId);
         }
@@ -680,7 +682,7 @@ export async function registerRoutes(
         }).catch(err => console.error("Live stream moderation error:", err));
       }
       
-      res.status(201).json({ ...stream, rtmpServerUrl, rtmpStreamKey });
+      res.status(201).json({ ...stream, rtmpServerUrl, rtmpStreamKey, whipUrl });
     } catch (error) {
       console.error("Error creating live stream:", error);
       res.status(500).json({ message: "Failed to create live stream" });
