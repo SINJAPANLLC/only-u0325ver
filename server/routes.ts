@@ -25,10 +25,12 @@ import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm
 import { generateImage } from "./modelslab";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+function getOpenAI(): OpenAI {
+  return new OpenAI({
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "dummy",
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+}
 
 // Admin check middleware
 function isAdmin(req: any, res: any, next: any) {
@@ -5782,7 +5784,7 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
 }
 `;
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
@@ -6027,7 +6029,7 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
   "emailBody": "メール本文（改行も含めて読みやすく）"` : ""}
 }`;
 
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
