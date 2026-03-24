@@ -587,24 +587,45 @@ export async function registerRoutes(
       }
       let [stream] = await db.insert(liveStreams).values(insertData).returning();
       
-      // Assign an available Bunny stream channel (pre-registered by admin)
+      // 1) Try to auto-create a Bunny live channel via API
       let bunnyWhipUrl: string | null = null;
-      const bunnyChannel = await storage.getAvailableBunnyStreamChannel();
-      if (bunnyChannel) {
-        await storage.assignBunnyStreamChannel(bunnyChannel.id, stream.id);
+      let bunnyAssigned = false;
+
+      const autoChannel = await createBunnyLiveStream(`only-u-live-${stream.id}`);
+      if (autoChannel) {
         const [updated] = await db.update(liveStreams)
           .set({
-            bunnyStreamId: bunnyChannel.streamId,
-            streamKey: bunnyChannel.streamKey,
-            bunnyPlaybackUrl: bunnyChannel.playbackUrl,
+            bunnyStreamId: autoChannel.bunnyStreamId,
+            streamKey: autoChannel.streamKey,
+            bunnyPlaybackUrl: autoChannel.playbackUrl,
           })
           .where(eq(liveStreams.id, stream.id))
           .returning();
         stream = updated;
-        bunnyWhipUrl = bunnyChannel.whipUrl;
-        console.log("Bunny channel assigned:", bunnyChannel.id, "->", stream.id);
-      } else {
-        console.log("No Bunny stream channel available, stream will be without CDN");
+        bunnyWhipUrl = autoChannel.whipUrl;
+        bunnyAssigned = true;
+        console.log("Bunny channel auto-created for stream:", stream.id);
+      }
+
+      // 2) Fall back to pre-registered pool if auto-creation failed
+      if (!bunnyAssigned) {
+        const bunnyChannel = await storage.getAvailableBunnyStreamChannel();
+        if (bunnyChannel) {
+          await storage.assignBunnyStreamChannel(bunnyChannel.id, stream.id);
+          const [updated] = await db.update(liveStreams)
+            .set({
+              bunnyStreamId: bunnyChannel.streamId,
+              streamKey: bunnyChannel.streamKey,
+              bunnyPlaybackUrl: bunnyChannel.playbackUrl,
+            })
+            .where(eq(liveStreams.id, stream.id))
+            .returning();
+          stream = updated;
+          bunnyWhipUrl = bunnyChannel.whipUrl;
+          console.log("Bunny pool channel assigned:", bunnyChannel.id, "->", stream.id);
+        } else {
+          console.log("No Bunny channel available (neither auto nor pool)");
+        }
       }
 
       // AI content moderation for thumbnail (async, don't block response)
@@ -6485,6 +6506,40 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
         }
       }
       console.log("Default settings seeded");
+
+      // Auto-register Bunny live channels from environment variables
+      // Supports: BUNNY_STREAM_KEY_1/BUNNY_STREAM_ID_1, BUNNY_STREAM_KEY_2/BUNNY_STREAM_ID_2, etc.
+      // Also supports: BUNNY_STREAM_KEY / BUNNY_STREAM_ID (single channel)
+      const bunnyChannelDefs: { name: string; key: string; id: string }[] = [];
+      // Single channel shorthand
+      if (process.env.BUNNY_STREAM_KEY && process.env.BUNNY_STREAM_ID) {
+        bunnyChannelDefs.push({ name: "Default Channel", key: process.env.BUNNY_STREAM_KEY, id: process.env.BUNNY_STREAM_ID });
+      }
+      // Numbered channels: BUNNY_STREAM_KEY_1, BUNNY_STREAM_KEY_2 ...
+      for (let i = 1; i <= 10; i++) {
+        const k = process.env[`BUNNY_STREAM_KEY_${i}`];
+        const s = process.env[`BUNNY_STREAM_ID_${i}`];
+        if (k && s) bunnyChannelDefs.push({ name: `Channel-${i}`, key: k, id: s });
+      }
+
+      const BUNNY_LIB = process.env.BUNNY_LIBRARY_ID || "";
+      const BUNNY_CDN = process.env.BUNNY_CDN_HOSTNAME || "";
+      for (const ch of bunnyChannelDefs) {
+        const [existing] = await db.select().from(bunnyStreamChannels).where(eq(bunnyStreamChannels.streamKey, ch.key));
+        if (!existing) {
+          const whipUrl = BUNNY_LIB ? `https://video.bunnycdn.com/live/${BUNNY_LIB}/${ch.key}/whip` : "";
+          const playbackUrl = BUNNY_CDN ? `https://${BUNNY_CDN}/${ch.id}/playlist.m3u8` : "";
+          await db.insert(bunnyStreamChannels).values({
+            name: ch.name,
+            streamKey: ch.key,
+            streamId: ch.id,
+            whipUrl,
+            playbackUrl,
+            isAvailable: true,
+          });
+          console.log(`Auto-registered Bunny channel from env: ${ch.name}`);
+        }
+      }
     } catch (error) {
       console.error("Failed to seed admin account or settings:", error);
     }

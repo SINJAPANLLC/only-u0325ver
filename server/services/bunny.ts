@@ -40,38 +40,50 @@ export async function createBunnyLiveStream(name: string): Promise<{
 } | null> {
   if (!isBunnyConfigured()) return null;
 
-  try {
-    const res = await fetch(`${BUNNY_STREAM_BASE}/${BUNNY_LIBRARY_ID}/streams`, {
-      method: "POST",
-      headers: {
-        AccessKey: BUNNY_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name }),
-    });
+  // Try both possible Bunny live channel creation endpoints
+  const endpoints = [
+    `${BUNNY_STREAM_BASE}/${BUNNY_LIBRARY_ID}/channels`,
+    `${BUNNY_STREAM_BASE}/${BUNNY_LIBRARY_ID}/streams`,
+  ];
 
-    if (!res.ok) {
-      console.error("Bunny create live stream failed:", await res.text());
-      return null;
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          AccessKey: BUNNY_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.log(`Bunny endpoint ${endpoint} failed (${res.status}):`, errText);
+        continue;
+      }
+
+      const data = await res.json();
+      console.log("Bunny live channel create response:", JSON.stringify(data));
+
+      const bunnyStreamId: string = data.guid || data.id || data.streamId || data.channelId;
+      const streamKey: string = data.streamKey || data.ingestKey || data.key;
+
+      if (!bunnyStreamId || !streamKey) {
+        console.error("Bunny live stream missing id/streamKey:", data);
+        continue;
+      }
+
+      const playbackUrl = getBunnyLivePlaybackUrl(bunnyStreamId);
+      const whipUrl = getBunnyWhipUrl(streamKey);
+
+      return { bunnyStreamId, streamKey, playbackUrl, whipUrl };
+    } catch (err) {
+      console.error(`Bunny create live stream error (${endpoint}):`, err);
     }
-
-    const data = await res.json();
-    const bunnyStreamId: string = data.guid || data.id || data.streamId;
-    const streamKey: string = data.streamKey;
-
-    if (!bunnyStreamId || !streamKey) {
-      console.error("Bunny live stream missing id/streamKey:", data);
-      return null;
-    }
-
-    const playbackUrl = getBunnyLivePlaybackUrl(bunnyStreamId);
-    const whipUrl = getBunnyWhipUrl(streamKey);
-
-    return { bunnyStreamId, streamKey, playbackUrl, whipUrl };
-  } catch (err) {
-    console.error("Bunny create live stream error:", err);
-    return null;
   }
+
+  return null;
 }
 
 export async function deleteBunnyLiveStream(bunnyStreamId: string): Promise<boolean> {

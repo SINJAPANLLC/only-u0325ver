@@ -174,10 +174,13 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
   - `POST /api/admin/bunny-channels` - チャンネル登録 (name, streamKey, streamId)
   - `DELETE /api/admin/bunny-channels/:id` - チャンネル削除
 - **Schema**: `bunnyStreamChannels` テーブル (streamKey, streamId, whipUrl, playbackUrl, isAvailable, currentLiveStreamId)
+- **自動登録**: `BUNNY_STREAM_KEY`/`BUNNY_STREAM_ID` 環境変数（または番号付き `BUNNY_STREAM_KEY_1`/`BUNNY_STREAM_ID_1` など）が設定されていれば起動時に自動登録
 - **Required Env Vars**:
   - `BUNNY_LIBRARY_ID` - ビデオライブラリID (設定済み: 623903)
   - `BUNNY_CDN_HOSTNAME` - CDNホスト名 (設定済み: vz-edb8f34c-88a.b-cdn.net)
   - `VITE_BUNNY_CDN_HOSTNAME` - フロントエンド用CDNホスト名 (同じ値)
+  - `BUNNY_STREAM_KEY` - (オプション) デフォルトライブチャンネルのStream Key
+  - `BUNNY_STREAM_ID` - (オプション) デフォルトライブチャンネルのStream ID
 
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
