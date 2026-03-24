@@ -21,7 +21,7 @@ import {
   insertSubscriptionPlanSchema, insertLiveChatMessageSchema
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
-import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured } from "./services/bunny";
+import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -577,8 +577,31 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid stream data", errors: validation.error.flatten() });
       }
 
-      const [stream] = await db.insert(liveStreams).values(validation.data).returning();
+      let [stream] = await db.insert(liveStreams).values(validation.data).returning();
       
+      // Auto-create Bunny live stream for WebRTC-to-HLS broadcasting
+      let bunnyWhipUrl: string | null = null;
+      if (isBunnyConfigured()) {
+        try {
+          const bunnyLive = await createBunnyLiveStream(stream.title || "Live Stream");
+          if (bunnyLive) {
+            const [updated] = await db.update(liveStreams)
+              .set({
+                bunnyStreamId: bunnyLive.bunnyStreamId,
+                streamKey: bunnyLive.streamKey,
+                bunnyPlaybackUrl: bunnyLive.playbackUrl,
+              })
+              .where(eq(liveStreams.id, stream.id))
+              .returning();
+            stream = updated;
+            bunnyWhipUrl = bunnyLive.whipUrl;
+            console.log("Bunny live stream created:", bunnyLive.bunnyStreamId);
+          }
+        } catch (err) {
+          console.error("Bunny live stream creation error (non-fatal):", err);
+        }
+      }
+
       // AI content moderation for thumbnail (async, don't block response)
       if (stream.thumbnailUrl) {
         const baseUrl = process.env.REPLIT_DEV_DOMAIN 
@@ -603,7 +626,7 @@ export async function registerRoutes(
         }).catch(err => console.error("Live stream moderation error:", err));
       }
       
-      res.status(201).json(stream);
+      res.status(201).json({ ...stream, bunnyWhipUrl });
     } catch (error) {
       console.error("Error creating live stream:", error);
       res.status(500).json({ message: "Failed to create live stream" });
@@ -1281,6 +1304,12 @@ export async function registerRoutes(
         updateData.status = status;
         if (status === "ended") {
           updateData.endedAt = new Date();
+          // Delete Bunny live stream when stream ends (async, non-blocking)
+          if (stream.bunnyStreamId) {
+            deleteBunnyLiveStream(stream.bunnyStreamId).catch(err =>
+              console.error("Failed to delete Bunny live stream:", err)
+            );
+          }
         }
       }
 
@@ -1311,6 +1340,12 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Stream not found" });
       }
 
+      // Delete Bunny live stream too (async, non-blocking)
+      if (stream.bunnyStreamId) {
+        deleteBunnyLiveStream(stream.bunnyStreamId).catch(err =>
+          console.error("Failed to delete Bunny live stream on deletion:", err)
+        );
+      }
       await db.delete(liveStreams).where(eq(liveStreams.id, id));
       res.json({ message: "Stream deleted" });
     } catch (error) {

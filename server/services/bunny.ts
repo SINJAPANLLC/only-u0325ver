@@ -18,8 +18,75 @@ export function getBunnyLiveUrl(bunnyPlaybackUrl: string): string {
   return bunnyPlaybackUrl || "";
 }
 
+export function getBunnyLivePlaybackUrl(bunnyStreamId: string): string {
+  if (!BUNNY_CDN_HOSTNAME || !bunnyStreamId) return "";
+  return `https://${BUNNY_CDN_HOSTNAME}/${bunnyStreamId}/playlist.m3u8`;
+}
+
+export function getBunnyWhipUrl(streamKey: string): string {
+  if (!BUNNY_LIBRARY_ID || !streamKey) return "";
+  return `https://video.bunnycdn.com/live/${BUNNY_LIBRARY_ID}/${streamKey}/whip`;
+}
+
 export function isBunnyConfigured(): boolean {
   return !!(BUNNY_API_KEY && BUNNY_LIBRARY_ID && BUNNY_CDN_HOSTNAME);
+}
+
+export async function createBunnyLiveStream(name: string): Promise<{
+  bunnyStreamId: string;
+  streamKey: string;
+  playbackUrl: string;
+  whipUrl: string;
+} | null> {
+  if (!isBunnyConfigured()) return null;
+
+  try {
+    const res = await fetch(`${BUNNY_STREAM_BASE}/${BUNNY_LIBRARY_ID}/streams`, {
+      method: "POST",
+      headers: {
+        AccessKey: BUNNY_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    if (!res.ok) {
+      console.error("Bunny create live stream failed:", await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    const bunnyStreamId: string = data.guid || data.id || data.streamId;
+    const streamKey: string = data.streamKey;
+
+    if (!bunnyStreamId || !streamKey) {
+      console.error("Bunny live stream missing id/streamKey:", data);
+      return null;
+    }
+
+    const playbackUrl = getBunnyLivePlaybackUrl(bunnyStreamId);
+    const whipUrl = getBunnyWhipUrl(streamKey);
+
+    return { bunnyStreamId, streamKey, playbackUrl, whipUrl };
+  } catch (err) {
+    console.error("Bunny create live stream error:", err);
+    return null;
+  }
+}
+
+export async function deleteBunnyLiveStream(bunnyStreamId: string): Promise<boolean> {
+  if (!isBunnyConfigured() || !bunnyStreamId) return false;
+
+  try {
+    const res = await fetch(`${BUNNY_STREAM_BASE}/${BUNNY_LIBRARY_ID}/streams/${bunnyStreamId}`, {
+      method: "DELETE",
+      headers: { AccessKey: BUNNY_API_KEY },
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("Bunny delete live stream error:", err);
+    return false;
+  }
 }
 
 export async function createBunnyVideo(title: string): Promise<{ videoId: string; uploadUrl: string; authorizationSignature: string; expirationTime: number } | null> {

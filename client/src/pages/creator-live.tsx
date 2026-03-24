@@ -54,7 +54,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useWebRTC } from "@/hooks/use-webrtc";
+import { useWHIP } from "@/hooks/use-whip";
 import { useUpload } from "@/hooks/use-upload";
 import { ImagePlus, Loader2 } from "lucide-react";
 import type { LiveStream, UserProfile } from "@shared/schema";
@@ -113,7 +113,6 @@ export default function CreatorLive() {
   });
   
   const [commentText, setCommentText] = useState("");
-  const [creatorComments, setCreatorComments] = useState<string[]>([]);
   const [partyPointsPerMinute, setPartyPointsPerMinute] = useState(50);
   const [twoshotPointsPerMinute, setTwoshotPointsPerMinute] = useState(100);
   const [earnedPoints, setEarnedPoints] = useState(0);
@@ -129,28 +128,19 @@ export default function CreatorLive() {
   const effectsRef = useRef(effects);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
-  const handleWebRTCViewerCount = useCallback((count: number) => {
-    setViewerCount(count);
-  }, []);
+  const [bunnyWhipUrl, setBunnyWhipUrl] = useState<string | null>(null);
 
-  const handleWebRTCError = useCallback((error: string) => {
-    toast({ title: error, variant: "destructive" });
-  }, [toast]);
-
-  const handleChatReceived = useCallback((message: { id: number; text: string; username: string; senderId: string }) => {
-    setCreatorComments(prev => {
-      if (prev.includes(message.text)) return prev;
-      return [...prev, `${message.username}: ${message.text}`];
-    });
-  }, []);
-
-  const webrtc = useWebRTC({
-    streamId: currentStreamId || "",
-    isBroadcaster: true,
-    localStream,
-    onViewerCountChange: handleWebRTCViewerCount,
-    onChatReceived: handleChatReceived,
-    onError: handleWebRTCError,
+  const whip = useWHIP({
+    onConnected: () => {
+      toast({ title: "Bunny Streamに接続しました" });
+    },
+    onDisconnected: () => {
+      console.log("WHIP disconnected");
+    },
+    onError: (error) => {
+      console.error("WHIP error:", error);
+      toast({ title: `配信接続エラー: ${error}`, variant: "destructive" });
+    },
   });
 
   const { data: profile } = useQuery<UserProfile | null>({
@@ -159,6 +149,14 @@ export default function CreatorLive() {
 
   const { data: myLiveStreams, isLoading } = useQuery<LiveStream[]>({
     queryKey: ["/api/my-live"],
+  });
+
+  // Live chat messages from the API (creator view)
+  const { data: liveChatMessages } = useQuery<any[]>({
+    queryKey: ["/api/live", currentStreamId, "chat"],
+    queryFn: () => fetch(`/api/live/${currentStreamId}/chat`).then(r => r.json()),
+    enabled: !!currentStreamId && viewMode === "streaming",
+    refetchInterval: 3000,
   });
 
   const { data: streamStatus } = useQuery<{
@@ -419,11 +417,12 @@ export default function CreatorLive() {
     };
   }, [stopCamera]);
 
+  // Auto-connect WHIP when we have both the URL and a stream
   useEffect(() => {
-    if (currentStreamId && viewMode === "streaming" && localStream) {
-      webrtc.startBroadcast();
+    if (bunnyWhipUrl && localStream && viewMode === "streaming" && !whip.isConnected && !whip.isConnecting) {
+      whip.connect(bunnyWhipUrl, localStream).catch(console.error);
     }
-  }, [currentStreamId, viewMode, localStream]);
+  }, [bunnyWhipUrl, localStream, viewMode]);
 
   // Send heartbeat every 10 seconds while streaming
   useEffect(() => {
@@ -464,7 +463,14 @@ export default function CreatorLive() {
       setCurrentStreamId(data.id);
       setViewMode("streaming");
       setViewerCount(0);
-      toast({ title: "ライブ配信を開始しました" });
+      // Connect to Bunny via WHIP if URL is available
+      if (data.bunnyWhipUrl && localStream) {
+        setBunnyWhipUrl(data.bunnyWhipUrl);
+        whip.connect(data.bunnyWhipUrl, localStream).catch(console.error);
+        toast({ title: "ライブ配信を開始しました (Bunny Stream)" });
+      } else {
+        toast({ title: "ライブ配信を開始しました" });
+      }
     },
     onError: (error: any) => {
       const message = error?.message || "配信の開始に失敗しました。クリエイター登録が必要です。";
@@ -482,7 +488,8 @@ export default function CreatorLive() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
-      webrtc.stopBroadcast();
+      whip.disconnect();
+      setBunnyWhipUrl(null);
       setViewMode("list");
       setCurrentStreamId(null);
       stopCamera();
@@ -562,12 +569,17 @@ export default function CreatorLive() {
     });
   };
 
-  const handleSendComment = (e: React.FormEvent) => {
+  const handleSendComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
-    const displayName = profile?.displayName || "配信者";
-    webrtc.sendChat(commentText.trim(), displayName);
-    setCommentText("");
+    if (!commentText.trim() || !currentStreamId) return;
+    try {
+      await apiRequest("POST", `/api/live/${currentStreamId}/chat`, {
+        message: commentText.trim(),
+      });
+      setCommentText("");
+    } catch (err) {
+      console.error("Failed to send comment:", err);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -1152,25 +1164,25 @@ export default function CreatorLive() {
         </div>
 
         <div className="absolute left-4 bottom-28 max-h-48 overflow-y-auto space-y-2 w-64">
-          {creatorComments.map((comment, idx) => (
-            <div key={idx} className="flex items-start gap-2 bg-black/40 rounded-lg px-3 py-2">
+          {(liveChatMessages || []).slice(-15).map((msg: any) => (
+            <div key={msg.id} className="flex items-start gap-2 bg-black/40 rounded-lg px-3 py-2">
               <Avatar className="h-6 w-6 flex-shrink-0">
+                <AvatarImage src={msg.avatarUrl} className="object-cover" />
                 <AvatarFallback className="bg-pink-500 text-white text-xs">
-                  {displayName.charAt(0)}
+                  {msg.displayName?.charAt(0) || "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="text-white text-xs font-medium">{displayName}</span>
-                  <Badge className="bg-pink-500/80 text-white text-[8px] px-1">配信者</Badge>
-                </div>
-                <p className="text-white/90 text-sm break-words">{comment}</p>
+                <span className="text-pink-300 text-xs font-bold">{msg.displayName}</span>
+                <p className="text-white/90 text-xs break-words">{msg.message}</p>
               </div>
             </div>
           ))}
-          {creatorComments.length === 0 && (
+          {(!liveChatMessages || liveChatMessages.length === 0) && (
             <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
-              <p className="text-pink-400 font-medium mb-1">配信中</p>
+              <p className="text-pink-400 font-medium mb-1">
+                {whip.isConnecting ? "Bunny Stream接続中..." : whip.isConnected ? "Bunny Stream配信中" : "配信中"}
+              </p>
               <p className="text-white/80 text-xs leading-relaxed">
                 {streamTitle || "ライブ配信"}
               </p>
