@@ -870,6 +870,68 @@ export async function registerRoutes(
   });
 
   // Get live streams from followed creators
+  // Get single stream details (public)
+  app.get("/api/live/:streamId/info", async (req, res) => {
+    try {
+      const { streamId } = req.params;
+      const [stream] = await db
+        .select({
+          id: liveStreams.id,
+          creatorId: liveStreams.creatorId,
+          title: liveStreams.title,
+          thumbnailUrl: liveStreams.thumbnailUrl,
+          status: liveStreams.status,
+          viewerCount: liveStreams.viewerCount,
+          bunnyPlaybackUrl: liveStreams.bunnyPlaybackUrl,
+          startedAt: liveStreams.startedAt,
+          creatorDisplayName: userProfiles.displayName,
+          creatorAvatarUrl: userProfiles.avatarUrl,
+        })
+        .from(liveStreams)
+        .leftJoin(userProfiles, eq(liveStreams.creatorId, userProfiles.userId))
+        .where(eq(liveStreams.id, streamId));
+
+      if (!stream) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+      res.json(stream);
+    } catch (error) {
+      console.error("Error fetching stream info:", error);
+      res.status(500).json({ message: "Failed to fetch stream info" });
+    }
+  });
+
+  // Increment viewer count (free viewers, no auth required)
+  app.post("/api/live/:streamId/viewer", async (req, res) => {
+    try {
+      const { streamId } = req.params;
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream) return res.status(404).json({ message: "Stream not found" });
+      await db.update(liveStreams)
+        .set({ viewerCount: (stream.viewerCount || 0) + 1 })
+        .where(eq(liveStreams.id, streamId));
+      res.json({ viewerCount: (stream.viewerCount || 0) + 1 });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update viewer count" });
+    }
+  });
+
+  // Decrement viewer count
+  app.delete("/api/live/:streamId/viewer", async (req, res) => {
+    try {
+      const { streamId } = req.params;
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream) return res.status(404).json({ message: "Stream not found" });
+      const newCount = Math.max(0, (stream.viewerCount || 0) - 1);
+      await db.update(liveStreams)
+        .set({ viewerCount: newCount })
+        .where(eq(liveStreams.id, streamId));
+      res.json({ viewerCount: newCount });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update viewer count" });
+    }
+  });
+
   app.get("/api/live/following", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

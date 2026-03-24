@@ -1,41 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, Share2, Radio, Send, Users } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import Hls from "hls.js";
-
-import img1 from "@assets/generated_images/live_mock_1.jpg";
-import img2 from "@assets/generated_images/lingerie_bed_3.jpg";
-import img3 from "@assets/generated_images/bunny_girl_5.jpg";
-import img4 from "@assets/generated_images/nude_shower_4.jpg";
-import img5 from "@assets/generated_images/sexy_maid_7.jpg";
-import img6 from "@assets/generated_images/bikini_beach_5.jpg";
-
-const demoStreams: Record<string, {
-  title: string; creatorName: string; viewerCount: number; thumbnailUrl: string; bunnyPlaybackUrl?: string;
-}> = {
-  "demo-1": { title: "脱衣リクエスト配信🔥どんどん脱ぐよ", creatorName: "れいな", viewerCount: 3241, thumbnailUrl: img1 },
-  "demo-2": { title: "下着試着会💕全部見せちゃう", creatorName: "ゆあ", viewerCount: 2187, thumbnailUrl: img2 },
-  "demo-3": { title: "バニーガール配信🐰今夜は何でもします", creatorName: "みお", viewerCount: 1542, thumbnailUrl: img3 },
-  "demo-4": { title: "シャワー配信🚿全身見せちゃうかも…？", creatorName: "ひな", viewerCount: 4820, thumbnailUrl: img4 },
-  "demo-5": { title: "メイドコス配信💖リクエスト全部応えます", creatorName: "さき", viewerCount: 2310, thumbnailUrl: img5 },
-  "demo-6": { title: "ビーチ配信🌊水着でお喋り", creatorName: "まい", viewerCount: 876, thumbnailUrl: img6 },
-};
-
-const demoUserNames = ["たろう", "はなこ", "ゆうた", "あいか", "けんじ", "みつき", "りょう", "さゆり", "だいき", "のぞみ"];
-
-function randomName() {
-  return demoUserNames[Math.floor(Math.random() * demoUserNames.length)];
-}
-
-const demoChatMessages = [
-  { id: 1, user: "たろう", text: "きたーーー！！" },
-  { id: 2, user: "はなこ", text: "かわいい💕" },
-  { id: 3, user: "ゆうた", text: "リクエストしていい？" },
-  { id: 4, user: "あいか", text: "ずっと待ってた！！" },
-  { id: 5, user: "けんじ", text: "最高すぎる🔥" },
-];
 
 interface ChatMessage {
   id: number;
@@ -54,65 +25,80 @@ function formatCount(n: number) {
   return n.toString();
 }
 
+const chatTemplates = [
+  "きたーーー！！", "かわいい💕", "最高🔥", "応援してます！",
+  "神配信✨", "キャー💓", "待ってました！", "ありがとう！",
+  "すごい！！", "また来ます！", "推してます💗",
+];
+
 export default function LiveRoom() {
   const params = useParams<{ streamId: string }>();
-  const streamId = params.streamId || "demo-1";
+  const streamId = params.streamId || "";
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
-  const stream = demoStreams[streamId];
-  const creatorName = stream?.creatorName ?? "クリエイター";
-  const title = stream?.title ?? "LIVE配信中";
-  const [viewerCount, setViewerCount] = useState(stream?.viewerCount ?? 120);
+  // Fetch stream info from API
+  const { data: stream, isLoading, error } = useQuery<any>({
+    queryKey: ["/api/live", streamId, "info"],
+    queryFn: () => fetch(`/api/live/${streamId}/info`).then(r => {
+      if (!r.ok) throw new Error("Stream not found");
+      return r.json();
+    }),
+    enabled: !!streamId,
+    refetchInterval: 10000,
+  });
+
+  const creatorName = stream?.creatorDisplayName || "クリエイター";
+  const title = stream?.title || "LIVE配信中";
+  const viewerCount = stream?.viewerCount || 0;
   const thumbnailUrl = stream?.thumbnailUrl;
   const bunnyPlaybackUrl = stream?.bunnyPlaybackUrl;
+  const creatorAvatarUrl = stream?.creatorAvatarUrl;
 
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 5000) + 500);
+  const [likeCount, setLikeCount] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const heartIdRef = useRef(0);
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(demoChatMessages);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const msgIdRef = useRef(100);
-
+  const msgIdRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Increment viewer count on mount, decrement on unmount
+  useEffect(() => {
+    if (!streamId || !stream) return;
+    apiRequest("POST", `/api/live/${streamId}/viewer`).catch(() => {});
+    return () => {
+      apiRequest("DELETE", `/api/live/${streamId}/viewer`).catch(() => {});
+    };
+  }, [streamId, stream?.id]);
 
   // Simulate incoming chat messages
   useEffect(() => {
+    if (!stream) return;
     const interval = setInterval(() => {
-      const texts = [
-        "すごい！！", "かわいい💕", "最高🔥", "もっと見せて！",
-        "リクエスト送ります！", "ずっと応援してます", "神配信✨",
-        "キャー💓", "待ってました！", "ありがとう！",
-      ];
-      const randomText = texts[Math.floor(Math.random() * texts.length)];
+      const randomText = chatTemplates[Math.floor(Math.random() * chatTemplates.length)];
+      const adjectives = ["名無し", "ファン", "応援団", "視聴者", "サポーター"];
+      const randomUser = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${Math.floor(Math.random() * 999) + 1}`;
       const newMsg: ChatMessage = {
         id: ++msgIdRef.current,
-        user: randomName(),
+        user: randomUser,
         text: randomText,
       };
       setChatMessages(prev => [...prev.slice(-30), newMsg]);
-    }, 2500);
-
-    // Viewer count drift
-    const viewerInterval = setInterval(() => {
-      setViewerCount(v => Math.max(50, v + Math.floor(Math.random() * 11) - 5));
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(viewerInterval);
-    };
-  }, []);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [stream?.id]);
 
   // Scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  // HLS video
+  // HLS video setup
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !bunnyPlaybackUrl) return;
@@ -122,10 +108,13 @@ export default function LiveRoom() {
       hlsRef.current = hls;
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.muted = true; video.play().catch(() => {}); });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.muted = false;
+        video.play().catch(() => {});
+      });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = url;
-      video.muted = true;
+      video.muted = false;
       video.play().catch(() => {});
     }
     return () => { hlsRef.current?.destroy(); hlsRef.current = null; };
@@ -142,11 +131,56 @@ export default function LiveRoom() {
   const sendChat = useCallback(() => {
     const text = inputText.trim();
     if (!text) return;
-    const newMsg: ChatMessage = { id: ++msgIdRef.current, user: "あなた", text };
+    const displayName = user ? (user as any).displayName || "あなた" : "あなた";
+    const newMsg: ChatMessage = { id: ++msgIdRef.current, user: displayName, text };
     setChatMessages(prev => [...prev.slice(-30), newMsg]);
     setInputText("");
-  }, [inputText]);
+  }, [inputText, user]);
 
+  const handleShare = useCallback(() => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  }, [title]);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-white/50 text-sm">配信を読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !stream) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 px-8 text-center">
+          <div className="h-20 w-20 rounded-2xl bg-white/10 flex items-center justify-center">
+            <Tv className="h-10 w-10 text-white/40" />
+          </div>
+          <h2 className="text-white font-bold text-lg">配信が見つかりません</h2>
+          <p className="text-white/50 text-sm">この配信は終了したか、存在しません</p>
+          <button
+            onClick={() => setLocation("/live")}
+            className="mt-2 bg-pink-500 text-white font-bold px-6 py-2.5 rounded-full text-sm"
+          >
+            ライブ一覧へ戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isEnded = stream.status === "ended";
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -156,7 +190,6 @@ export default function LiveRoom() {
           <video
             ref={videoRef}
             className="w-full h-full object-cover"
-            muted
             playsInline
             poster={thumbnailUrl}
             controlsList="nodownload"
@@ -168,6 +201,24 @@ export default function LiveRoom() {
           <div className="w-full h-full bg-gradient-to-b from-pink-900 to-black" />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+
+        {/* Ended overlay */}
+        {isEnded && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-10">
+            <div className="flex flex-col items-center gap-3 text-center px-6">
+              <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center">
+                <Tv className="h-8 w-8 text-white/50" />
+              </div>
+              <p className="text-white font-bold text-lg">配信が終了しました</p>
+              <button
+                onClick={() => setLocation("/live")}
+                className="mt-1 bg-pink-500 text-white font-bold px-5 py-2 rounded-full text-sm"
+              >
+                ライブ一覧へ
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top bar */}
@@ -180,19 +231,25 @@ export default function LiveRoom() {
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
 
-        {/* Creator + LIVE */}
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
+        {/* Creator + LIVE badge */}
+        <button
+          onClick={() => setLocation(`/creator/${stream.creatorId}`)}
+          className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5"
+        >
           <Avatar className="h-7 w-7 ring-1 ring-white/50">
+            <AvatarImage src={creatorAvatarUrl} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-xs font-bold">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <span className="text-white text-sm font-bold">{creatorName}</span>
-          <div className="flex items-center gap-1 bg-red-500 rounded-full px-2 py-0.5">
-            <Radio className="h-2.5 w-2.5 text-white animate-pulse" />
-            <span className="text-white text-[10px] font-bold">LIVE</span>
-          </div>
-        </div>
+          {!isEnded && (
+            <div className="flex items-center gap-1 bg-red-500 rounded-full px-2 py-0.5">
+              <Radio className="h-2.5 w-2.5 text-white animate-pulse" />
+              <span className="text-white text-[10px] font-bold">LIVE</span>
+            </div>
+          )}
+        </button>
 
         {/* Viewer count */}
         <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
@@ -206,10 +263,10 @@ export default function LiveRoom() {
         <p className="text-white/90 text-xs drop-shadow line-clamp-1">{title}</p>
       </div>
 
-      {/* Main area spacer */}
+      {/* Spacer */}
       <div className="relative z-10 flex-1" />
 
-      {/* Bottom area: chat left + action buttons right */}
+      {/* Bottom: chat + action buttons */}
       <div className="relative z-10 flex items-end gap-2 px-3 pb-2">
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "30vh" }}>
@@ -224,7 +281,7 @@ export default function LiveRoom() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Action buttons column */}
+        {/* Action buttons */}
         <div className="flex flex-col items-center gap-4 pb-1 flex-shrink-0">
           {/* Like */}
           <div className="flex flex-col items-center gap-1 relative">
@@ -249,7 +306,11 @@ export default function LiveRoom() {
               className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
               data-testid="button-like-liveroom"
             >
-              <Heart className={`h-6 w-6 transition-colors drop-shadow ${liked ? "text-pink-400 fill-pink-400" : "text-white"}`} />
+              <Heart
+                className={`h-6 w-6 transition-colors drop-shadow ${
+                  liked ? "text-pink-400 fill-pink-400" : "text-white"
+                }`}
+              />
             </motion.button>
             <span className="text-white text-[10px] font-bold drop-shadow">{formatCount(likeCount)}</span>
           </div>
@@ -258,12 +319,13 @@ export default function LiveRoom() {
           <div className="flex flex-col items-center gap-1">
             <motion.button
               whileTap={{ scale: 1.15 }}
+              onClick={handleShare}
               className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
               data-testid="button-share-liveroom"
             >
               <Share2 className="h-5 w-5 text-white/80" />
             </motion.button>
-            <span className="text-white/60 text-[10px]">シェア</span>
+            <span className="text-white/60 text-[10px]">{copied ? "コピー済" : "シェア"}</span>
           </div>
         </div>
       </div>
@@ -287,7 +349,7 @@ export default function LiveRoom() {
           className="h-10 w-10 rounded-full bg-pink-500 disabled:opacity-40 flex items-center justify-center flex-shrink-0"
           data-testid="button-send-chat"
         >
-          <Send className="h-4.5 w-4.5 text-white" style={{ height: "18px", width: "18px" }} />
+          <Send className="h-4 w-4 text-white" />
         </motion.button>
       </div>
     </div>

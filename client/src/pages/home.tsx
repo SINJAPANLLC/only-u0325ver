@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { Play, Heart, Share2, Volume2, VolumeX, Lock } from "lucide-react";
+import { Play, Heart, Share2, Volume2, VolumeX, Lock, Film } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -534,118 +534,6 @@ function VideoPage({
   );
 }
 
-// Adult content mock data for 18+ platform with AI-generated images
-const demoVideos: VideoPageProps[] = [
-  {
-    id: "demo-1",
-    title: "深夜のランジェリー配信💋 今夜はどこまで見せる？ #18禁 #下着",
-    creatorName: "Risa",
-    displayName: "りさ💋",
-    viewCount: 285000,
-    likeCount: 24800,
-    duration: 45,
-    isActive: false,
-    musicName: "Midnight Jazz - Lounge Mix",
-    thumbnailUrl: img1,
-  },
-  {
-    id: "demo-2",
-    title: "ベッドルームからお届け🖤 シルクローブで誘惑...寝室の秘密 #寝室配信",
-    creatorName: "Yua",
-    displayName: "ゆあ🖤",
-    viewCount: 456000,
-    likeCount: 38200,
-    duration: 60,
-    isActive: false,
-    musicName: "Sensual R&B Mix",
-    thumbnailUrl: img2,
-  },
-  {
-    id: "demo-3",
-    title: "お風呂配信🛁 泡で隠れてる？ギリギリを攻めます #入浴 #セクシー",
-    creatorName: "Mio",
-    displayName: "みお🛁",
-    viewCount: 189000,
-    likeCount: 15600,
-    duration: 35,
-    isActive: false,
-    musicName: "Ambient Relaxation",
-    thumbnailUrl: img3,
-  },
-  {
-    id: "demo-4",
-    title: "バニーガール登場🐰 ご主人様のために...リクエスト受付中 #コスプレ #バニー",
-    creatorName: "Reina",
-    displayName: "れいな🐰",
-    viewCount: 523000,
-    likeCount: 42000,
-    duration: 55,
-    isActive: false,
-    musicName: "Tokyo Night Vibes",
-    thumbnailUrl: img4,
-  },
-  {
-    id: "demo-5",
-    title: "マイクロビキニ撮影会📸 際どすぎて放送ギリギリ！？ #水着 #グラビア",
-    creatorName: "Hina",
-    displayName: "ひな📸",
-    viewCount: 612000,
-    likeCount: 51000,
-    duration: 50,
-    isActive: false,
-    musicName: "Summer Beach House",
-    thumbnailUrl: img5,
-  },
-  {
-    id: "demo-6",
-    title: "添い寝ASMR💕 耳舐め＆吐息責め...イヤホン推奨 #ASMR #耳舐め",
-    creatorName: "Saki",
-    displayName: "さき💕",
-    viewCount: 178000,
-    likeCount: 13400,
-    duration: 40,
-    isActive: false,
-    musicName: "Lo-fi Chill Beats",
-    thumbnailUrl: img6,
-  },
-  {
-    id: "demo-7",
-    title: "ノーブラ配信🔞 薄着でゴロゴロ...見えちゃうかも？ #ノーブラ #チラ見え",
-    creatorName: "Aya",
-    displayName: "あや🔞",
-    viewCount: 398000,
-    likeCount: 32000,
-    duration: 45,
-    isActive: false,
-    musicName: "Kawaii EDM Mix",
-    thumbnailUrl: img7,
-  },
-  {
-    id: "demo-8",
-    title: "メイドコス配信🎀 ご主人様のお帰りをお待ちしてます #メイド #エロコス",
-    creatorName: "Nana",
-    displayName: "なな🎀",
-    viewCount: 445000,
-    likeCount: 36500,
-    duration: 50,
-    isActive: false,
-    musicName: "Kawaii Pop Mix",
-    thumbnailUrl: img8,
-  },
-  {
-    id: "demo-9",
-    title: "ソファでくつろぎ配信💫 リラックスした姿をお届け #横型 #グラビア",
-    creatorName: "Mei",
-    displayName: "めい💫",
-    viewCount: 234000,
-    likeCount: 19800,
-    duration: 55,
-    isActive: false,
-    musicName: "Chill Lounge Mix",
-    thumbnailUrl: imgHorizontal,
-    isHorizontal: true,
-  },
-];
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -691,7 +579,7 @@ export default function Home() {
       requiredTier,
       isActive: false,
       musicName: "オリジナル音源",
-      thumbnailUrl: v.thumbnailUrl || demoVideos[idx % demoVideos.length]?.thumbnailUrl,
+      thumbnailUrl: v.thumbnailUrl,
       videoUrl: v.videoUrl,
       bunnyVideoId: v.bunnyVideoId,
     };
@@ -699,9 +587,7 @@ export default function Home() {
 
   const displayVideos: VideoPageProps[] = isLoadingVideos
     ? []
-    : recommendedVideos && recommendedVideos.length > 0
-      ? recommendedVideos.map(mapVideoToProps)
-      : demoVideos;
+    : (recommendedVideos || []).map(mapVideoToProps);
 
   // Track scroll position to determine active video
   useEffect(() => {
@@ -725,19 +611,40 @@ export default function Home() {
     <>
       <Header variant="overlay" />
       <div className="h-[100svh] bg-black overflow-hidden">
-        <div
-          ref={containerRef}
-          className="w-full h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
-          data-testid="video-feed"
-        >
-          {displayVideos.map((video, index) => (
-            <VideoPage
-              key={video.id}
-              {...video}
-              isActive={index === activeIndex}
-            />
-          ))}
-        </div>
+        {isLoadingVideos ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-10 w-10 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-white/50 text-sm">コンテンツを読み込み中...</p>
+            </div>
+          </div>
+        ) : displayVideos.length === 0 ? (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-950 to-black">
+            <div className="flex flex-col items-center gap-4 px-8 text-center">
+              <div className="h-20 w-20 rounded-2xl bg-pink-500/20 flex items-center justify-center">
+                <Film className="h-10 w-10 text-pink-400" />
+              </div>
+              <h2 className="text-white font-bold text-xl">まだ動画がありません</h2>
+              <p className="text-white/50 text-sm leading-relaxed">
+                クリエイターがコンテンツを投稿すると<br />ここに表示されます。
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="w-full h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+            data-testid="video-feed"
+          >
+            {displayVideos.map((video, index) => (
+              <VideoPage
+                key={video.id}
+                {...video}
+                isActive={index === activeIndex}
+              />
+            ))}
+          </div>
+        )}
       </div>
       <BottomNavigation />
     </>
