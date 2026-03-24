@@ -422,9 +422,9 @@ export default function CreatorContent() {
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5 text-white" />
           </Button>
-          <h1 className="font-bold text-base">コンテンツ管理</h1>
+          <h1 className="font-bold text-base text-white">コンテンツ管理</h1>
         </div>
         <Button 
           size="sm"
@@ -447,10 +447,10 @@ export default function CreatorContent() {
             {myVideos.map((video) => (
               <div 
                 key={video.id}
-                className="flex gap-3 p-3 bg-white/5 rounded-lg"
+                className="flex gap-3 p-3 bg-muted/40 rounded-lg"
                 data-testid={`video-item-${video.id}`}
               >
-                <div className="w-24 h-16 bg-white/10 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-24 h-16 bg-muted rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {video.thumbnailUrl ? (
                     <img 
                       src={video.thumbnailUrl} 
@@ -458,12 +458,12 @@ export default function CreatorContent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Video className="h-6 w-6 text-white/50" />
+                    <Video className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-sm truncate">{video.title}</h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-white/50">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <span className={video.isPublished ? "text-green-500" : "text-yellow-500"}>
                       {video.isPublished ? "公開中" : "非公開"}
                     </span>
@@ -496,7 +496,7 @@ export default function CreatorContent() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-60 text-white/50">
+          <div className="flex flex-col items-center justify-center h-60 text-muted-foreground">
             <Video className="h-12 w-12 mb-3 opacity-50" />
             <p>まだコンテンツがありません</p>
             <p className="text-sm mt-1">新規投稿ボタンからコンテンツを追加しましょう</p>
@@ -556,7 +556,7 @@ export default function CreatorContent() {
                     {isUploadingVideo ? (
                       <div className="flex flex-col items-center gap-2">
                         <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                        <p className="text-sm text-white/50">アップロード中...</p>
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
                       </div>
                     ) : form.videoPreview ? (
                       <div className="flex flex-col items-center gap-2">
@@ -568,8 +568,8 @@ export default function CreatorContent() {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
-                        <Upload className="h-8 w-8 text-white/50" />
-                        <p className="text-sm text-white/50">クリックして動画を選択</p>
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
                       </div>
                     )}
                   </div>
@@ -578,7 +578,7 @@ export default function CreatorContent() {
                 <div>
                   <Label>
                     サムネイル画像を選択 * 
-                    <span className="text-xs text-white/50 ml-2">（縦型推奨）</span>
+                    <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
                   </Label>
                   <input
                     ref={thumbnailInputRef}
@@ -594,7 +594,7 @@ export default function CreatorContent() {
                     {isUploadingThumbnail ? (
                       <div className="flex flex-col items-center gap-2">
                         <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                        <p className="text-sm text-white/50">アップロード中...</p>
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
                       </div>
                     ) : form.thumbnailPreview ? (
                       <div className="flex items-center justify-center">
@@ -606,8 +606,8 @@ export default function CreatorContent() {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
-                        <Image className="h-8 w-8 text-white/50" />
-                        <p className="text-sm text-white/50">クリックしてサムネイルを選択</p>
+                        <Image className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">クリックしてサムネイルを選択</p>
                       </div>
                     )}
                   </div>
@@ -617,7 +617,7 @@ export default function CreatorContent() {
               <div>
                 <Label>
                   画像を選択 * 
-                  <span className="text-xs text-white/50 ml-2">（縦型推奨）</span>
+                  <span className="text-xs text-muted-foreground ml-2">（縦型推奨）</span>
                 </Label>
                 <input
                   ref={thumbnailInputRef}
@@ -633,7 +633,7 @@ export default function CreatorContent() {
                   {isUploadingThumbnail ? (
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                      <p className="text-sm text-white/50">アップロード中...</p>
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
                     </div>
                   ) : form.thumbnailPreview ? (
                     <div className="flex items-center justify-center">
@@ -645,8 +645,8 @@ export default function CreatorContent() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <Image className="h-8 w-8 text-white/50" />
-                      <p className="text-sm text-white/50">クリックして画像を選択</p>
+                      <Image className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">クリックして画像を選択</p>
                     </div>
                   )}
                 </div>
@@ -784,7 +784,7 @@ export default function CreatorContent() {
               {createVideoMutation.isPending ? "投稿中..." : "投稿する"}
             </Button>
 
-            <div className="text-xs text-white/50 space-y-2 pt-2 border-t">
+            <div className="text-xs text-muted-foreground space-y-2 pt-2 border-t">
               <p>
                 いつも安心安全なプラットフォームの運営にご協力頂きありがとうございます。
                 利用規約に則したコンテンツの投稿をお願いいたします。
@@ -833,7 +833,7 @@ export default function CreatorContent() {
                 {isUploadingEditVideo ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                    <p className="text-sm text-white/50">アップロード中...</p>
+                    <p className="text-sm text-muted-foreground">アップロード中...</p>
                   </div>
                 ) : editForm.videoPreview ? (
                   <div className="flex flex-col items-center gap-2">
@@ -845,8 +845,8 @@ export default function CreatorContent() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Upload className="h-8 w-8 text-white/50" />
-                    <p className="text-sm text-white/50">クリックして動画を選択</p>
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
                   </div>
                 )}
               </div>
@@ -868,7 +868,7 @@ export default function CreatorContent() {
                 {isUploadingEditThumbnail ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                    <p className="text-sm text-white/50">アップロード中...</p>
+                    <p className="text-sm text-muted-foreground">アップロード中...</p>
                   </div>
                 ) : editForm.thumbnailPreview ? (
                   <div className="flex items-center justify-center">
@@ -880,8 +880,8 @@ export default function CreatorContent() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <Image className="h-8 w-8 text-white/50" />
-                    <p className="text-sm text-white/50">クリックしてサムネイルを選択</p>
+                    <Image className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">クリックしてサムネイルを選択</p>
                   </div>
                 )}
               </div>
