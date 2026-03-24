@@ -3,15 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import Hls from "hls.js";
 
-interface ChatMessage {
-  id: number;
-  user: string;
-  text: string;
+interface LiveChatMessage {
+  id: string;
+  streamId: string;
+  userId: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+  message: string;
+  createdAt: string;
 }
 
 interface FloatingHeart {
@@ -25,17 +29,12 @@ function formatCount(n: number) {
   return n.toString();
 }
 
-const chatTemplates = [
-  "きたーーー！！", "かわいい💕", "最高🔥", "応援してます！",
-  "神配信✨", "キャー💓", "待ってました！", "ありがとう！",
-  "すごい！！", "また来ます！", "推してます💗",
-];
-
 export default function LiveRoom() {
   const params = useParams<{ streamId: string }>();
   const streamId = params.streamId || "";
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch stream info from API
   const { data: stream, isLoading, error } = useQuery<any>({
@@ -54,15 +53,44 @@ export default function LiveRoom() {
   const thumbnailUrl = stream?.thumbnailUrl;
   const bunnyPlaybackUrl = stream?.bunnyPlaybackUrl;
   const creatorAvatarUrl = stream?.creatorAvatarUrl;
+  const isEnded = stream?.status === "ended";
+
+  // Fetch chat messages with polling
+  const lastMessageTimeRef = useRef<string | null>(null);
+  const { data: chatData } = useQuery<LiveChatMessage[]>({
+    queryKey: ["/api/live", streamId, "chat"],
+    queryFn: () => fetch(`/api/live/${streamId}/chat`).then(r => r.json()),
+    enabled: !!streamId && !!stream,
+    refetchInterval: 3000,
+  });
+
+  const [displayedMessages, setDisplayedMessages] = useState<LiveChatMessage[]>([]);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatData) {
+      setDisplayedMessages(chatData);
+    }
+  }, [chatData]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [displayedMessages]);
+
+  // Post chat message mutation
+  const sendMutation = useMutation({
+    mutationFn: (message: string) =>
+      apiRequest("POST", `/api/live/${streamId}/chat`, { message }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/live", streamId, "chat"] });
+    },
+  });
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const heartIdRef = useRef(0);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const msgIdRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [copied, setCopied] = useState(false);
@@ -75,28 +103,6 @@ export default function LiveRoom() {
       apiRequest("DELETE", `/api/live/${streamId}/viewer`).catch(() => {});
     };
   }, [streamId, stream?.id]);
-
-  // Simulate incoming chat messages
-  useEffect(() => {
-    if (!stream) return;
-    const interval = setInterval(() => {
-      const randomText = chatTemplates[Math.floor(Math.random() * chatTemplates.length)];
-      const adjectives = ["名無し", "ファン", "応援団", "視聴者", "サポーター"];
-      const randomUser = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${Math.floor(Math.random() * 999) + 1}`;
-      const newMsg: ChatMessage = {
-        id: ++msgIdRef.current,
-        user: randomUser,
-        text: randomText,
-      };
-      setChatMessages(prev => [...prev.slice(-30), newMsg]);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [stream?.id]);
-
-  // Scroll chat to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
 
   // HLS video setup
   useEffect(() => {
@@ -130,12 +136,10 @@ export default function LiveRoom() {
 
   const sendChat = useCallback(() => {
     const text = inputText.trim();
-    if (!text) return;
-    const displayName = user ? (user as any).displayName || "あなた" : "あなた";
-    const newMsg: ChatMessage = { id: ++msgIdRef.current, user: displayName, text };
-    setChatMessages(prev => [...prev.slice(-30), newMsg]);
+    if (!text || sendMutation.isPending) return;
+    sendMutation.mutate(text);
     setInputText("");
-  }, [inputText, user]);
+  }, [inputText, sendMutation]);
 
   const handleShare = useCallback(() => {
     const url = window.location.href;
@@ -179,8 +183,6 @@ export default function LiveRoom() {
       </div>
     );
   }
-
-  const isEnded = stream.status === "ended";
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -235,6 +237,7 @@ export default function LiveRoom() {
         <button
           onClick={() => setLocation(`/creator/${stream.creatorId}`)}
           className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5"
+          data-testid="button-creator-profile"
         >
           <Avatar className="h-7 w-7 ring-1 ring-white/50">
             <AvatarImage src={creatorAvatarUrl} className="object-cover" />
@@ -270,11 +273,17 @@ export default function LiveRoom() {
       <div className="relative z-10 flex items-end gap-2 px-3 pb-2">
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "30vh" }}>
-          {chatMessages.map(msg => (
+          {displayedMessages.length === 0 && (
+            <p className="text-white/30 text-xs text-center py-4">まだコメントはありません</p>
+          )}
+          {displayedMessages.map(msg => (
             <div key={msg.id} className="flex items-start gap-2">
               <div className="flex items-baseline gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-3 py-1.5 max-w-full">
-                <span className="text-pink-300 text-xs font-bold whitespace-nowrap">{msg.user}</span>
-                <span className="text-white text-xs break-words">{msg.text}</span>
+                {msg.avatarUrl && (
+                  <img src={msg.avatarUrl} alt="" className="h-4 w-4 rounded-full object-cover flex-shrink-0" />
+                )}
+                <span className="text-pink-300 text-xs font-bold whitespace-nowrap">{msg.displayName}</span>
+                <span className="text-white text-xs break-words">{msg.message}</span>
               </div>
             </div>
           ))}
@@ -345,7 +354,7 @@ export default function LiveRoom() {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={sendChat}
-          disabled={!inputText.trim()}
+          disabled={!inputText.trim() || sendMutation.isPending}
           className="h-10 w-10 rounded-full bg-pink-500 disabled:opacity-40 flex items-center justify-center flex-shrink-0"
           data-testid="button-send-chat"
         >

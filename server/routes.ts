@@ -15,10 +15,10 @@ import {
   userProfiles, creatorApplications, phoneVerificationCodes,
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
-  premiumPlans, adminUsers, siteSettings, adminNotifications,
+  premiumPlans, adminUsers, siteSettings, adminNotifications, liveChatMessages,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
-  insertSubscriptionPlanSchema
+  insertSubscriptionPlanSchema, insertLiveChatMessageSchema
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured } from "./services/bunny";
@@ -929,6 +929,62 @@ export async function registerRoutes(
       res.json({ viewerCount: newCount });
     } catch (error) {
       res.status(500).json({ message: "Failed to update viewer count" });
+    }
+  });
+
+  // Get live chat messages for a stream (poll every few seconds)
+  app.get("/api/live/:streamId/chat", async (req, res) => {
+    try {
+      const { streamId } = req.params;
+      const since = req.query.since as string | undefined;
+      let query = db
+        .select()
+        .from(liveChatMessages)
+        .where(
+          since
+            ? and(eq(liveChatMessages.streamId, streamId), gt(liveChatMessages.createdAt, new Date(since)))
+            : eq(liveChatMessages.streamId, streamId)
+        )
+        .orderBy(desc(liveChatMessages.createdAt))
+        .limit(50);
+      const msgs = await query;
+      res.json(msgs.reverse());
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch chat messages" });
+    }
+  });
+
+  // Post a live chat message
+  app.post("/api/live/:streamId/chat", async (req: any, res) => {
+    try {
+      const { streamId } = req.params;
+      const { message } = req.body;
+      if (!message || typeof message !== "string" || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      let displayName = "ゲスト";
+      let avatarUrl: string | null = null;
+      let userId: string | null = null;
+
+      if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+        const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+        displayName = profile?.displayName || "ユーザー";
+        avatarUrl = profile?.avatarUrl || null;
+      }
+
+      const [chatMsg] = await db.insert(liveChatMessages).values({
+        streamId,
+        userId,
+        displayName,
+        avatarUrl,
+        message: message.trim(),
+      }).returning();
+
+      res.status(201).json(chatMsg);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to post chat message" });
     }
   });
 

@@ -77,6 +77,11 @@ function StreamCard({ stream }: { stream: StreamData }) {
     setLocation(`/live-room/${stream.id}`);
   };
 
+  const handleProfile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocation(`/creator/${stream.creatorId}`);
+  };
+
   return (
     <div className="w-full h-full relative bg-black flex-shrink-0">
       {stream.bunnyPlaybackUrl ? (
@@ -115,7 +120,7 @@ function StreamCard({ stream }: { stream: StreamData }) {
 
       {/* Right side actions */}
       <div className="absolute right-3 bottom-[100px] z-10 flex flex-col items-center gap-5">
-        <button onClick={handleEnter} data-testid={`button-avatar-${stream.id}`}>
+        <button onClick={handleProfile} data-testid={`button-avatar-${stream.id}`}>
           <Avatar className="h-12 w-12 ring-2 ring-white shadow-xl">
             <AvatarImage src={stream.creatorAvatarUrl} className="object-cover" />
             <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
