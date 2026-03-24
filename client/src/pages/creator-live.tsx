@@ -66,6 +66,9 @@ export default function CreatorLive() {
   const [partyPointsPerMinute, setPartyPointsPerMinute] = useState(50);
   const [twoshotPointsPerMinute, setTwoshotPointsPerMinute] = useState(100);
   const [earnedPoints, setEarnedPoints] = useState(0);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [commentText, setCommentText] = useState("");
   const [livekitStatus, setLivekitStatus] = useState<LiveKitStatus>("idle");
 
@@ -257,6 +260,20 @@ export default function CreatorLive() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
+      // Upload thumbnail if selected
+      if (thumbnailFile) {
+        try {
+          const formData = new FormData();
+          formData.append("file", thumbnailFile);
+          const upRes = await fetch("/api/uploads/bunny", { method: "POST", body: formData });
+          if (upRes.ok) {
+            const { url } = await upRes.json();
+            await apiRequest("PATCH", `/api/live/${data.id}`, { thumbnailUrl: url });
+          }
+        } catch {}
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+      }
       setCurrentStreamId(data.id);
       setViewMode("streaming");
       setLivekitStatus("idle");
@@ -662,6 +679,36 @@ export default function CreatorLive() {
                 data-testid="input-stream-title"
                 autoFocus
               />
+            </div>
+            <div>
+              <Label>サムネイル（任意）</Label>
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setThumbnailFile(file);
+                  setThumbnailPreview(URL.createObjectURL(file));
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => thumbnailInputRef.current?.click()}
+                className="mt-1 w-full h-24 border-2 border-dashed border-white/20 rounded-xl flex items-center justify-center overflow-hidden hover:border-pink-500/50 transition-colors"
+                data-testid="button-thumbnail-upload"
+              >
+                {thumbnailPreview ? (
+                  <img src={thumbnailPreview} alt="サムネイル" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                    <Camera className="h-6 w-6" />
+                    <span className="text-xs">タップして画像を選択</span>
+                  </div>
+                )}
+              </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

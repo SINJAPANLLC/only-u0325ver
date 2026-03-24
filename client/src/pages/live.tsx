@@ -165,7 +165,7 @@ function StreamCard({ stream }: { stream: StreamData }) {
           </button>
           {stream.partyRatePerMinute != null && (
             <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <span className="text-yellow-300 text-[10px] font-bold">パーティー</span>
+              <span className="text-pink-300 text-[10px] font-bold">パーティー</span>
               <span className="text-white text-[10px] font-bold">{stream.partyRatePerMinute}pt/分</span>
             </div>
           )}

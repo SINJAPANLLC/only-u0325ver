@@ -409,9 +409,17 @@ export default function LiveRoom() {
           )}
         </button>
 
-        <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
-          <Users className="h-3.5 w-3.5 text-white/70" />
-          <span className="text-white text-xs font-bold">{formatCount(viewerCount)}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
+            <Users className="h-3.5 w-3.5 text-white/70" />
+            <span className="text-white text-xs font-bold">{formatCount(viewerCount)}</span>
+          </div>
+          {user && (
+            <div className="flex items-center gap-1 bg-pink-500/30 backdrop-blur-md rounded-full px-3 py-1.5">
+              <Coins className="h-3.5 w-3.5 text-pink-300" />
+              <span className="text-white text-xs font-bold">{userPoints.toLocaleString()}pt</span>
+            </div>
+          )}
         </div>
       </div>
 
