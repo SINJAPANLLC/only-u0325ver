@@ -73,7 +73,7 @@ function VideoPage({
   const [likes, setLikes] = useState(likeCount);
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [videoFit, setVideoFit] = useState<"cover" | "contain">(isHorizontal ? "contain" : "cover");
+  const [videoFit, setVideoFit] = useState<"cover" | "contain">("contain");
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
