@@ -663,27 +663,6 @@ export default function CreatorProfile() {
               メッセージ
             </Button>
           </div>
-          <Button
-            variant="outline"
-            className={`w-full rounded-xl ${isFollowing ? "border-pink-500 text-pink-500 hover:bg-pink-500/10" : "border-white/20 text-white hover:bg-white/10"} bg-transparent`}
-            onClick={handleFollowToggle}
-            disabled={isLoading}
-            data-testid="button-follow"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : isFollowing ? (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                フォロー中
-              </>
-            ) : (
-              <>
-                <Heart className="h-4 w-4 mr-2" />
-                フォロー
-              </>
-            )}
-          </Button>
         </div>
       </div>
 
