@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv } from "lucide-react";
+import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -54,7 +54,10 @@ export default function LiveRoom() {
   const creatorAvatarUrl = stream?.creatorAvatarUrl;
   const isEnded = stream?.status === "ended";
 
-  // WebRTC viewer state
+  // HLS readiness state
+  const [hlsReady, setHlsReady] = useState(false);
+
+  // WebRTC viewer state (fallback when no Bunny HLS)
   const [webRTCStream, setWebRTCStream] = useState<MediaStream | null>(null);
   const [webRTCConnected, setWebRTCConnected] = useState(false);
   const webRTCVideoRef = useRef<HTMLVideoElement>(null);
@@ -74,16 +77,12 @@ export default function LiveRoom() {
     onStreamReceived: handleStreamReceived,
   });
 
-  // Start WebRTC viewing when stream info loaded and no Bunny URL
   useEffect(() => {
     if (!stream || bunnyPlaybackUrl || isEnded) return;
     webrtc.joinAsViewer();
-    return () => {
-      webrtc.stopViewing();
-    };
+    return () => { webrtc.stopViewing(); };
   }, [stream?.id, bunnyPlaybackUrl, isEnded]);
 
-  // Attach webRTC stream when video element mounts
   useEffect(() => {
     if (webRTCVideoRef.current && webRTCStream) {
       webRTCVideoRef.current.srcObject = webRTCStream;
@@ -98,6 +97,7 @@ export default function LiveRoom() {
   useEffect(() => {
     const video = hlsVideoRef.current;
     if (!video || !bunnyPlaybackUrl) return;
+    setHlsReady(false);
     if (bunnyPlaybackUrl.endsWith(".m3u8") && Hls.isSupported()) {
       const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
       hlsRef.current = hls;
@@ -106,12 +106,17 @@ export default function LiveRoom() {
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.muted = false;
         video.play().catch(() => {});
+        setHlsReady(true);
+      });
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) setHlsReady(false);
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = bunnyPlaybackUrl;
       video.play().catch(() => {});
+      setHlsReady(true);
     }
-    return () => { hlsRef.current?.destroy(); hlsRef.current = null; };
+    return () => { hlsRef.current?.destroy(); hlsRef.current = null; setHlsReady(false); };
   }, [bunnyPlaybackUrl]);
 
   // Fetch chat messages with polling
@@ -216,32 +221,32 @@ export default function LiveRoom() {
     );
   }
 
-  // Determine what video to show
-  const showBunny = !!bunnyPlaybackUrl;
-  const showWebRTC = !bunnyPlaybackUrl && !isEnded;
-  const showThumbnail = !bunnyPlaybackUrl && !webRTCConnected && !!thumbnailUrl;
-
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Background / Video */}
       <div className="absolute inset-0">
-        {/* Bunny HLS player */}
-        {showBunny && (
-          <video
-            ref={hlsVideoRef}
-            className="w-full h-full object-cover"
-            playsInline
-            poster={thumbnailUrl}
-            controlsList="nodownload"
-            onContextMenu={(e) => e.preventDefault()}
-          />
+        {/* Background: thumbnail or gradient */}
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-b from-pink-900/60 to-black" />
         )}
 
-        {/* WebRTC player */}
-        {showWebRTC && (
+        {/* Bunny HLS video player */}
+        <video
+          ref={hlsVideoRef}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${hlsReady ? "opacity-100" : "opacity-0"}`}
+          playsInline
+          poster={thumbnailUrl}
+          controlsList="nodownload"
+          onContextMenu={(e) => e.preventDefault()}
+        />
+
+        {/* WebRTC video player (fallback when no Bunny HLS) */}
+        {!bunnyPlaybackUrl && (
           <video
             ref={webRTCVideoRef}
-            className="w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${webRTCConnected ? "opacity-100" : "opacity-0"}`}
             playsInline
             autoPlay
             muted={false}
@@ -250,23 +255,35 @@ export default function LiveRoom() {
           />
         )}
 
-        {/* Thumbnail fallback when WebRTC not yet connected */}
-        {showThumbnail && !showBunny && !webRTCConnected && (
-          <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />
-        )}
-
         {/* Gradient overlay */}
-        {(!showBunny && !webRTCConnected && !thumbnailUrl) && (
-          <div className="w-full h-full bg-gradient-to-b from-pink-900 to-black" />
-        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-        {/* Connecting indicator for WebRTC */}
-        {showWebRTC && !webRTCConnected && !isEnded && (
+        {/* Connecting spinner: WebRTC not yet connected */}
+        {!isEnded && !bunnyPlaybackUrl && !webRTCConnected && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="flex flex-col items-center gap-4 text-center px-6">
+              <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+                <Radio className="h-8 w-8 text-pink-400 animate-pulse" />
+              </div>
+              <p className="text-white font-bold text-lg">配信接続中...</p>
+              <p className="text-white/60 text-sm">クリエイターの配信に接続しています</p>
+              <button
+                onClick={() => { webrtc.stopViewing(); setTimeout(() => webrtc.joinAsViewer(), 500); }}
+                className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                再接続する
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Waiting overlay: when live but HLS stream not yet ready */}
+        {!isEnded && bunnyPlaybackUrl && !hlsReady && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/70 text-sm font-medium">接続中...</p>
+              <p className="text-white/70 text-sm font-medium">配信を読み込み中...</p>
             </div>
           </div>
         )}

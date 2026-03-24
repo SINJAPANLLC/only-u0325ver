@@ -55,6 +55,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useWHIP } from "@/hooks/use-whip";
+import { useWebRTC } from "@/hooks/use-webrtc";
 import { useUpload } from "@/hooks/use-upload";
 import { ImagePlus, Loader2 } from "lucide-react";
 import type { LiveStream, UserProfile } from "@shared/schema";
@@ -139,8 +140,14 @@ export default function CreatorLive() {
     },
     onError: (error) => {
       console.error("WHIP error:", error);
-      toast({ title: `配信接続エラー: ${error}`, variant: "destructive" });
     },
+  });
+
+  // WebRTC broadcaster (fallback when no Bunny WHIP URL)
+  const webrtc = useWebRTC({
+    streamId: currentStreamId || "",
+    isBroadcaster: true,
+    localStream: (!bunnyWhipUrl && viewMode === "streaming") ? localStream : null,
   });
 
   const { data: profile } = useQuery<UserProfile | null>({
@@ -463,12 +470,14 @@ export default function CreatorLive() {
       setCurrentStreamId(data.id);
       setViewMode("streaming");
       setViewerCount(0);
-      // Connect to Bunny via WHIP if URL is available
+      // Connect to Bunny via WHIP if URL is available, otherwise use WebRTC P2P
       if (data.bunnyWhipUrl && localStream) {
         setBunnyWhipUrl(data.bunnyWhipUrl);
         whip.connect(data.bunnyWhipUrl, localStream).catch(console.error);
         toast({ title: "ライブ配信を開始しました (Bunny Stream)" });
       } else {
+        // Start WebRTC P2P broadcast
+        setTimeout(() => webrtc.startBroadcast(), 100);
         toast({ title: "ライブ配信を開始しました" });
       }
     },
@@ -489,6 +498,7 @@ export default function CreatorLive() {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
       whip.disconnect();
+      webrtc.stopBroadcast();
       setBunnyWhipUrl(null);
       setViewMode("list");
       setCurrentStreamId(null);
@@ -1181,7 +1191,10 @@ export default function CreatorLive() {
           {(!liveChatMessages || liveChatMessages.length === 0) && (
             <div className="bg-black/60 rounded-lg p-3 text-white text-sm">
               <p className="text-pink-400 font-medium mb-1">
-                {whip.isConnecting ? "Bunny Stream接続中..." : whip.isConnected ? "Bunny Stream配信中" : "配信中"}
+                {bunnyWhipUrl 
+                  ? (whip.isConnecting ? "Bunny Stream接続中..." : whip.isConnected ? "Bunny Stream配信中" : "配信中")
+                  : "配信中（WebRTC）"
+                }
               </p>
               <p className="text-white/80 text-xs leading-relaxed">
                 {streamTitle || "ライブ配信"}
