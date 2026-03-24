@@ -512,11 +512,11 @@ export default function MyProfile() {
         {/* Handle */}
         <p className="text-white/50 text-sm mt-1">@{username}</p>
 
-        {/* Posts count */}
+        {/* Likes count */}
         <div className="flex items-center justify-center mt-4 gap-8">
           <div className="text-center">
-            <p className="text-lg font-bold">{displayVideos.length || 0}</p>
-            <p className="text-xs text-white/50">投稿</p>
+            <p className="text-lg font-bold">{formatCount(displayVideos.reduce((sum, v) => sum + (v.likeCount || 0), 0))}</p>
+            <p className="text-xs text-white/50">いいね</p>
           </div>
           {creatorProfile && (
             <div className="text-center">
