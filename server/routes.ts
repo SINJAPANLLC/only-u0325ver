@@ -27,6 +27,7 @@ import { moderateImage, createModerationNotification } from "./services/content-
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
 import { createWowzaLiveStream, stopWowzaLiveStream, deleteWowzaLiveStream, isWowzaConfigured } from "./services/wowza";
 import { createLivepeerStream, deleteLivepeerStream, isLivepeerConfigured } from "./services/livepeer";
+import { AccessToken } from "livekit-server-sdk";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -1458,6 +1459,47 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating heartbeat:", error);
       res.status(500).json({ message: "Failed to update heartbeat" });
+    }
+  });
+
+  // LiveKit token for creator (publish) or viewer (subscribe)
+  app.get("/api/live/:id/livekit-token", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const role = (req.query.role as string) || "viewer";
+
+      const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
+      const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
+
+      if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
+        return res.status(503).json({ message: "LiveKit not configured" });
+      }
+
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, id));
+      if (!stream) return res.status(404).json({ message: "Stream not found" });
+
+      const userId = req.user?.claims?.sub || `anon-${Date.now()}`;
+      const displayName = req.user?.claims?.name || "ゲスト";
+
+      const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
+        identity: userId,
+        name: displayName,
+        ttl: 7200, // 2 hours
+      });
+
+      at.addGrant({
+        room: id,
+        roomJoin: true,
+        canPublish: role === "creator",
+        canSubscribe: true,
+        canPublishData: true,
+      });
+
+      const token = await at.toJwt();
+      res.json({ token, room: id });
+    } catch (error) {
+      console.error("LiveKit token error:", error);
+      res.status(500).json({ message: "Failed to generate token" });
     }
   });
 

@@ -160,23 +160,23 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
   - `GET /api/bunny/video/:bunnyVideoId/status` - ビデオエンコード状態確認
   - `PATCH /api/videos/:videoId/bunny` - ビデオにbunnyVideoIdを紐付け
 
-#### ライブ配信（Wowza Streaming Cloud方式）
-- **サービス**: Wowza Streaming Cloud（アダルトコンテンツ対応・API完全自動化）
-- **仕組み**: クリエイターがライブ開始時にWowza APIで自動チャンネル作成→RTMP接続情報をUIに表示→クリエイターはOBSやLarix BroadcasterでRTMP配信→視聴者はHLSで視聴
+#### ライブ配信（LiveKit方式 - TikTok型ブラウザ配信）
+- **サービス**: LiveKit（自己ホスト・アダルトコンテンツ完全対応）
+- **仕組み**: クリエイターのブラウザカメラ→LiveKitサーバー（Hostinger VPS）→視聴者のブラウザ（WebRTC）
+- **特徴**: OBS不要、ブラウザ/スマホから直接配信、超低遅延（< 1秒）、TikTok Liveと同じ方式
 - **フロー**:
   1. クリエイターが「配信開始」をタップしてタイトルを設定
-  2. バックエンドがWowza APIで自動的にライブストリームを作成
-  3. クリエイターUIにRTMPサーバーURL・ストリームキーが表示される
-  4. クリエイターがOBS/Larixに接続情報を入力して配信開始
-  5. 視聴者はHLS（Wowzaが生成）で視聴
-  6. 配信終了時にWowzaストリームを自動停止・削除
-- **配信ツール**: OBS Studio（PC）またはLarix Broadcaster（iOS/Android）を推奨
-- **Service**: `server/services/wowza.ts`
-- **Schema**: `liveStreams`テーブルの`bunnyStreamId`（WowzaストリームID）、`streamKey`（RTMPキー）、`rtmpServerUrl`（RTMPサーバーURL）、`bunnyPlaybackUrl`（HLS再生URL）を利用
+  2. バックエンドがLiveKitトークン（publisher権限）を発行
+  3. クリエイターのブラウザがLiveKitルームに接続しカメラ/マイクを配信
+  4. 視聴者はLiveKitルームにsubscriber権限で接続してリアルタイムで視聴
+  5. 配信終了でルームから切断
+- **SDK**: `livekit-server-sdk`（バックエンドトークン生成）、`livekit-client`（フロントエンドWebRTC）
+- **Token Endpoint**: `GET /api/live/:id/livekit-token?role=creator|viewer`
 - **Required Env Vars**:
-  - `WOWZA_API_KEY` - Wowza Cloud APIキー（要設定）
-  - `WOWZA_ACCESS_KEY` - Wowza Cloud アクセスキー（要設定）
-- **フォールバック**: Wowza未設定時はBunnyプール方式にフォールバック
+  - `LIVEKIT_API_KEY` - LiveKitサーバーのAPIキー
+  - `LIVEKIT_API_SECRET` - LiveKitサーバーのシークレット
+  - `VITE_LIVEKIT_URL` - LiveKitサーバーのWSS URL（例: wss://live.yourdomain.com）
+- **VPS設定**: Hostinger VPSにLiveKitをインストール（ポート7880/7881/TCP、7882/UDP）
 - **Bunny VOD継続**: Bunnyは動画アップロード（VOD）に引き続き利用
 - **Required Env Vars (VOD)**:
   - `BUNNY_LIBRARY_ID` - ビデオライブラリID (設定済み: 623903)

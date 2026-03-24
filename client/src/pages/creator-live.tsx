@@ -14,15 +14,10 @@ import {
   Share2,
   ChevronLeft,
   Copy,
-  Check,
   Send,
   Coins,
-  Eye,
-  EyeOff,
   Wifi,
   WifiOff,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,78 +41,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { LiveStream, UserProfile } from "@shared/schema";
+import { Room, RoomEvent, ConnectionState, Track, VideoPresets } from "livekit-client";
 
 type ViewMode = "list" | "streaming";
-
-// Minimal WHIP client using backend proxy
-async function startWhipStream(
-  streamId: string,
-  stream: MediaStream,
-  signal: AbortSignal
-): Promise<RTCPeerConnection | null> {
-  console.log("[WHIP] Starting, tracks:", stream.getTracks().map(t => t.kind + ":" + t.enabled));
-
-  const pc = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun.cloudflare.com:3478" },
-    ],
-  });
-
-  stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  console.log("[WHIP] Offer created, ICE gathering state:", pc.iceGatheringState);
-
-  // Wait for ICE gathering (max 5 seconds)
-  await new Promise<void>((resolve) => {
-    if (pc.iceGatheringState === "complete") { resolve(); return; }
-    const timer = setTimeout(() => { console.log("[WHIP] ICE timeout, proceeding"); resolve(); }, 5000);
-    pc.addEventListener("icegatheringstatechange", () => {
-      if (pc.iceGatheringState === "complete") { clearTimeout(timer); resolve(); }
-    });
-    pc.addEventListener("icecandidate", (e) => {
-      if (!e.candidate) { clearTimeout(timer); resolve(); }
-    });
-  });
-
-  const sdp = pc.localDescription?.sdp;
-  if (!sdp) {
-    pc.close();
-    throw new Error("SDP is null after ICE gathering");
-  }
-  console.log("[WHIP] Sending SDP to proxy, length:", sdp.length);
-
-  let res: Response;
-  try {
-    res = await fetch(`/api/live/${streamId}/whip`, {
-      method: "POST",
-      headers: { "Content-Type": "application/sdp" },
-      body: sdp,
-      signal,
-    });
-  } catch (fetchErr: any) {
-    pc.close();
-    throw new Error(`Fetch error: ${fetchErr?.message || fetchErr}`);
-  }
-
-  console.log("[WHIP] Proxy response:", res.status);
-  if (!res.ok) {
-    const txt = await res.text();
-    pc.close();
-    throw new Error(`WHIP ${res.status}: ${txt}`);
-  }
-
-  const answerSdp = await res.text();
-  console.log("[WHIP] Got answer SDP, length:", answerSdp.length);
-  if (answerSdp.trim()) {
-    await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
-    console.log("[WHIP] Remote description set");
-  }
-
-  return pc;
-}
+type LiveKitStatus = "idle" | "connecting" | "connected" | "failed";
 
 export default function CreatorLive() {
   const [, setLocation] = useLocation();
@@ -125,7 +52,7 @@ export default function CreatorLive() {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  // Camera state
+  // Camera/mic UI state
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
@@ -136,23 +63,14 @@ export default function CreatorLive() {
   const [streamTitle, setStreamTitle] = useState("");
   const [isTitleDialogOpen, setIsTitleDialogOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [showRtmpInfo, setShowRtmpInfo] = useState(false);
-  const [showStreamKey, setShowStreamKey] = useState(false);
   const [partyPointsPerMinute, setPartyPointsPerMinute] = useState(50);
   const [twoshotPointsPerMinute, setTwoshotPointsPerMinute] = useState(100);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [commentText, setCommentText] = useState("");
-  const [whipStatus, setWhipStatus] = useState<"idle" | "connecting" | "connected" | "failed">("idle");
-
-  // Streaming credentials
-  const [rtmpServerUrl, setRtmpServerUrl] = useState<string | null>(null);
-  const [rtmpStreamKey, setRtmpStreamKey] = useState<string | null>(null);
+  const [livekitStatus, setLivekitStatus] = useState<LiveKitStatus>("idle");
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const whipAbortRef = useRef<AbortController | null>(null);
+  const roomRef = useRef<Room | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: profile } = useQuery<UserProfile | null>({
@@ -184,117 +102,125 @@ export default function CreatorLive() {
     enabled: !!currentStreamId && viewMode === "streaming",
   });
 
-  // Camera setup
-  const startCamera = useCallback(async () => {
+  // Connect to LiveKit room as creator/publisher
+  const connectLiveKit = useCallback(async (streamId: string) => {
+    const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
+    if (!livekitUrl) {
+      console.warn("[LiveKit] VITE_LIVEKIT_URL not set");
+      setLivekitStatus("failed");
+      return;
+    }
+
     try {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
+      setLivekitStatus("connecting");
+
+      // Get token from backend
+      const res = await fetch(`/api/live/${streamId}/livekit-token?role=creator`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Token fetch failed");
       }
-      const media = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: true,
+      const { token } = await res.json();
+
+      // Create room
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+        videoCaptureDefaults: {
+          resolution: VideoPresets.h720.resolution,
+          facingMode,
+        },
+        audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true },
       });
-      media.getVideoTracks().forEach((t) => { t.enabled = isCameraOn; });
-      media.getAudioTracks().forEach((t) => { t.enabled = isMicOn; });
-      streamRef.current = media;
-      if (videoRef.current) videoRef.current.srcObject = media;
-      return media;
-    } catch {
-      toast({ title: "カメラへのアクセスに失敗しました", variant: "destructive" });
-      return null;
-    }
-  }, [facingMode, isCameraOn, isMicOn, toast]);
+      roomRef.current = room;
 
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) videoRef.current.srcObject = null;
-  }, []);
+      // Room event handlers
+      room.on(RoomEvent.Connected, async () => {
+        console.log("[LiveKit] Connected to room:", streamId);
+        setLivekitStatus("connected");
 
-  const connectWhip = useCallback(async (streamId: string) => {
-    if (!streamRef.current) return;
-    try {
-      setWhipStatus("connecting");
-      whipAbortRef.current = new AbortController();
-      const pc = await startWhipStream(streamId, streamRef.current, whipAbortRef.current.signal);
-      pcRef.current = pc;
-      if (pc) {
-        pc.onconnectionstatechange = () => {
-          if (pc.connectionState === "connected") {
-            setWhipStatus("connected");
-          } else if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
-            setWhipStatus("failed");
-            setShowRtmpInfo(true);
+        // Enable camera and mic
+        await room.localParticipant.setCameraEnabled(true, { facingMode });
+        await room.localParticipant.setMicrophoneEnabled(true);
+
+        // Attach local video track to preview element
+        const attachLocalVideo = () => {
+          const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+          if (camPub?.videoTrack && videoRef.current) {
+            camPub.videoTrack.attach(videoRef.current);
+            console.log("[LiveKit] Local video attached");
           }
         };
-        setWhipStatus("connected");
-      }
-    } catch (err: any) {
-      if (err.name !== "AbortError") {
-        console.error("WHIP failed:", err?.message || err?.name || String(err), err);
-        setWhipStatus("failed");
-        setShowRtmpInfo(true);
-      }
-    }
-  }, []);
+        attachLocalVideo();
 
-  const disconnectWhip = useCallback(() => {
-    whipAbortRef.current?.abort();
-    pcRef.current?.close();
-    pcRef.current = null;
-    setWhipStatus("idle");
-  }, []);
-
-  // Populate RTMP credentials from DB if state is empty (e.g. after page reload)
-  useEffect(() => {
-    if (currentStreamId && myLiveStreams) {
-      const stream = myLiveStreams.find((s) => s.id === currentStreamId);
-      if (stream) {
-        if (!rtmpStreamKey && stream.streamKey) setRtmpStreamKey(stream.streamKey);
-        if (!rtmpServerUrl && stream.rtmpServerUrl) setRtmpServerUrl(stream.rtmpServerUrl);
-        else if (!rtmpServerUrl) setRtmpServerUrl("rtmp://rtmp.livepeer.com/live");
-      }
-    }
-  }, [currentStreamId, myLiveStreams]);
-
-  // Start camera + connect WHIP when entering streaming mode
-  useEffect(() => {
-    if (viewMode === "streaming" && currentStreamId) {
-      startCamera().then((media) => {
-        if (media) connectWhip(currentStreamId);
+        // Also listen for track publication in case it's async
+        room.localParticipant.on("trackPublished", attachLocalVideo);
       });
-    } else if (viewMode !== "streaming") {
-      disconnectWhip();
-      stopCamera();
-    }
-  }, [viewMode, currentStreamId]);
 
-  // Re-init camera on facingMode change (don't reconnect WHIP - it's already connected)
-  useEffect(() => {
-    if (viewMode === "streaming") {
-      startCamera().then((media) => {
-        // Update WHIP tracks if already connected
-        if (media && pcRef.current) {
-          const senders = pcRef.current.getSenders();
-          media.getTracks().forEach((track) => {
-            const sender = senders.find((s) => s.track?.kind === track.kind);
-            if (sender) sender.replaceTrack(track).catch(() => {});
-          });
+      room.on(RoomEvent.Disconnected, (reason) => {
+        console.log("[LiveKit] Disconnected:", reason);
+        setLivekitStatus("failed");
+      });
+
+      room.on(RoomEvent.ConnectionStateChanged, (state) => {
+        console.log("[LiveKit] Connection state:", state);
+        if (state === ConnectionState.Reconnecting) {
+          setLivekitStatus("connecting");
+        } else if (state === ConnectionState.Connected) {
+          setLivekitStatus("connected");
+        } else if (state === ConnectionState.Disconnected) {
+          setLivekitStatus("failed");
         }
       });
+
+      // Connect to room
+      await room.connect(livekitUrl, token);
+
+    } catch (err: any) {
+      console.error("[LiveKit] Connection failed:", err);
+      setLivekitStatus("failed");
+      toast({ title: `配信接続に失敗しました: ${err?.message || ""}`, variant: "destructive" });
     }
+  }, [facingMode, toast]);
+
+  const disconnectLiveKit = useCallback(async () => {
+    if (roomRef.current) {
+      await roomRef.current.disconnect();
+      roomRef.current = null;
+    }
+    setLivekitStatus("idle");
+  }, []);
+
+  // Connect LiveKit when entering streaming mode
+  useEffect(() => {
+    if (viewMode === "streaming" && currentStreamId) {
+      connectLiveKit(currentStreamId);
+    } else if (viewMode !== "streaming") {
+      disconnectLiveKit();
+    }
+    return () => {
+      if (viewMode !== "streaming") {
+        disconnectLiveKit();
+      }
+    };
+  }, [viewMode, currentStreamId]);
+
+  // Re-attach local video after camera flip
+  useEffect(() => {
+    if (viewMode !== "streaming" || !roomRef.current) return;
+    const room = roomRef.current;
+    (async () => {
+      await room.localParticipant.setCameraEnabled(false);
+      await room.localParticipant.setCameraEnabled(true, { facingMode });
+      const camPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      if (camPub?.videoTrack && videoRef.current) {
+        camPub.videoTrack.attach(videoRef.current);
+      }
+    })();
   }, [facingMode]);
 
   // Cleanup on unmount
-  useEffect(
-    () => () => {
-      disconnectWhip();
-      stopCamera();
-    },
-    []
-  );
+  useEffect(() => () => { disconnectLiveKit(); }, []);
 
   // Timer
   useEffect(() => {
@@ -332,10 +258,8 @@ export default function CreatorLive() {
       queryClient.invalidateQueries({ queryKey: ["/api/my-live"] });
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
       setCurrentStreamId(data.id);
-      if (data.rtmpServerUrl) setRtmpServerUrl(data.rtmpServerUrl);
-      if (data.rtmpStreamKey) setRtmpStreamKey(data.rtmpStreamKey);
       setViewMode("streaming");
-      setWhipStatus("idle");
+      setLivekitStatus("idle");
     },
     onError: (error: any) => {
       toast({ title: error?.message || "配信の開始に失敗しました", variant: "destructive" });
@@ -352,8 +276,6 @@ export default function CreatorLive() {
       queryClient.invalidateQueries({ queryKey: ["/api/live"] });
       setViewMode("list");
       setCurrentStreamId(null);
-      setRtmpServerUrl(null);
-      setRtmpStreamKey(null);
       toast({ title: "配信を終了しました" });
     },
     onError: () => toast({ title: "配信終了に失敗しました", variant: "destructive" }),
@@ -380,14 +302,6 @@ export default function CreatorLive() {
     startLiveMutation.mutate(streamTitle);
   };
 
-  const copyText = async (text: string, field: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 2000);
-    } catch {}
-  };
-
   const handleSendComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || !currentStreamId) return;
@@ -409,7 +323,7 @@ export default function CreatorLive() {
   if (viewMode === "streaming") {
     return (
       <div className="absolute inset-0 bg-black flex flex-col overflow-hidden" style={{ zIndex: 9999 }}>
-        {/* Camera */}
+        {/* Camera preview */}
         <video
           ref={videoRef}
           autoPlay
@@ -440,21 +354,21 @@ export default function CreatorLive() {
               <Users className="h-3 w-3 text-white/70" />
               <span className="text-white text-xs">{streamStatus?.activeSessionCount || 0}</span>
             </div>
-            {/* Connection status */}
+            {/* LiveKit connection status */}
             <div className={`rounded-full px-2.5 py-1 flex items-center gap-1 ${
-              whipStatus === "connected"
+              livekitStatus === "connected"
                 ? "bg-green-500/30"
-                : whipStatus === "connecting"
+                : livekitStatus === "connecting"
                 ? "bg-yellow-500/30"
-                : whipStatus === "failed"
+                : livekitStatus === "failed"
                 ? "bg-red-500/30"
                 : "bg-black/50"
             }`}>
-              {whipStatus === "connected" ? (
+              {livekitStatus === "connected" ? (
                 <><Wifi className="h-3 w-3 text-green-400" /><span className="text-green-400 text-xs">配信中</span></>
-              ) : whipStatus === "connecting" ? (
+              ) : livekitStatus === "connecting" ? (
                 <><div className="animate-spin h-3 w-3 border border-yellow-400 border-t-transparent rounded-full" /><span className="text-yellow-400 text-xs">接続中</span></>
-              ) : whipStatus === "failed" ? (
+              ) : livekitStatus === "failed" ? (
                 <><WifiOff className="h-3 w-3 text-red-400" /><span className="text-red-400 text-xs">未接続</span></>
               ) : null}
             </div>
@@ -474,9 +388,12 @@ export default function CreatorLive() {
         {/* Camera controls */}
         <div className="relative z-10 flex items-center justify-center gap-3 mt-1">
           <button
-            onClick={() => {
-              if (streamRef.current) streamRef.current.getVideoTracks().forEach((t) => { t.enabled = !isCameraOn; });
-              setIsCameraOn((p) => !p);
+            onClick={async () => {
+              const newVal = !isCameraOn;
+              setIsCameraOn(newVal);
+              if (roomRef.current) {
+                await roomRef.current.localParticipant.setCameraEnabled(newVal);
+              }
             }}
             className={`h-11 w-11 rounded-full flex items-center justify-center ${
               isCameraOn ? "bg-white/20" : "bg-red-500/60"
@@ -486,9 +403,12 @@ export default function CreatorLive() {
             {isCameraOn ? <Camera className="h-5 w-5 text-white" /> : <CameraOff className="h-5 w-5 text-white" />}
           </button>
           <button
-            onClick={() => {
-              if (streamRef.current) streamRef.current.getAudioTracks().forEach((t) => { t.enabled = !isMicOn; });
-              setIsMicOn((p) => !p);
+            onClick={async () => {
+              const newVal = !isMicOn;
+              setIsMicOn(newVal);
+              if (roomRef.current) {
+                await roomRef.current.localParticipant.setMicrophoneEnabled(newVal);
+              }
             }}
             className={`h-11 w-11 rounded-full flex items-center justify-center ${
               isMicOn ? "bg-white/20" : "bg-red-500/60"
@@ -511,10 +431,9 @@ export default function CreatorLive() {
           >
             <Share2 className="h-5 w-5 text-white" />
           </button>
-          {/* Reconnect button if WHIP failed */}
-          {whipStatus === "failed" && currentStreamId && (
+          {livekitStatus === "failed" && currentStreamId && (
             <button
-              onClick={() => { setWhipStatus("idle"); connectWhip(currentStreamId); }}
+              onClick={() => connectLiveKit(currentStreamId)}
               className="h-11 px-3 rounded-full bg-yellow-500/60 flex items-center justify-center"
             >
               <span className="text-white text-xs font-medium">再接続</span>
@@ -523,94 +442,21 @@ export default function CreatorLive() {
         </div>
 
         {/* Stats */}
-        <div className="relative z-10 px-4 mt-2">
-          <div className="flex items-center gap-2 justify-center">
-            <div className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-              <Coins className="h-3.5 w-3.5 text-yellow-400" />
-              <span className="text-white text-xs">{earnedPoints.toLocaleString()}pt</span>
-            </div>
-            {rtmpStreamKey && whipStatus !== "failed" && (
-              <button
-                onClick={() => setShowRtmpInfo((p) => !p)}
-                className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5"
-              >
-                <span className="text-white/60 text-xs">OBS接続情報</span>
-                {showRtmpInfo ? <ChevronUp className="h-3 w-3 text-white/60" /> : <ChevronDown className="h-3 w-3 text-white/60" />}
-              </button>
-            )}
+        <div className="relative z-10 px-4 mt-2 flex justify-center">
+          <div className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+            <Coins className="h-3.5 w-3.5 text-yellow-400" />
+            <span className="text-white text-xs">{earnedPoints.toLocaleString()}pt</span>
           </div>
-          {showRtmpInfo && rtmpStreamKey && whipStatus !== "failed" && (
-            <div className="mt-2 bg-black/60 backdrop-blur rounded-xl border border-white/10 p-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-white/40 text-xs w-16 flex-shrink-0">サーバー</span>
-                <span className="text-white/80 text-xs font-mono flex-1 truncate">{rtmpServerUrl}</span>
-                <button onClick={() => copyText(rtmpServerUrl!, "srv")} className="text-white/40">
-                  {copiedField === "srv" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white/40 text-xs w-16 flex-shrink-0">キー</span>
-                <span className="text-white/80 text-xs font-mono flex-1 truncate">
-                  {showStreamKey ? rtmpStreamKey : "•".repeat(Math.min(rtmpStreamKey.length, 20))}
-                </span>
-                <button onClick={() => setShowStreamKey((p) => !p)} className="text-white/40">
-                  {showStreamKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
-                <button onClick={() => copyText(rtmpStreamKey, "key")} className="text-white/40">
-                  {copiedField === "key" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* RTMP Fallback Panel - shown prominently when WHIP fails */}
-        {whipStatus === "failed" && rtmpStreamKey && (
+        {/* LiveKit not configured warning */}
+        {livekitStatus === "failed" && !import.meta.env.VITE_LIVEKIT_URL && (
           <div className="relative z-10 mx-3 mt-2 bg-black/80 backdrop-blur rounded-2xl border border-orange-500/40 p-4">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <WifiOff className="h-4 w-4 text-orange-400 flex-shrink-0" />
-              <p className="text-orange-300 text-xs font-medium">ブラウザ配信未対応のため、外部アプリで配信してください</p>
+              <p className="text-orange-300 text-xs font-semibold">LiveKit未設定</p>
             </div>
-            <p className="text-white/50 text-xs mb-3">OBS Studio または Larix Broadcaster に以下を設定：</p>
-            <div className="space-y-2">
-              <div className="bg-white/5 rounded-lg px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-white/40 text-[10px] mb-0.5">RTMPサーバー</p>
-                    <p className="text-white text-xs font-mono truncate">{rtmpServerUrl || "rtmp://rtmp.livepeer.com/live"}</p>
-                  </div>
-                  <button onClick={() => copyText(rtmpServerUrl || "rtmp://rtmp.livepeer.com/live", "srv")} className="flex-shrink-0 h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
-                    {copiedField === "srv" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/60" />}
-                  </button>
-                </div>
-              </div>
-              <div className="bg-white/5 rounded-lg px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white/40 text-[10px] mb-0.5">ストリームキー</p>
-                    <p className="text-white text-xs font-mono truncate">
-                      {showStreamKey ? rtmpStreamKey : "•".repeat(Math.min(rtmpStreamKey.length, 24))}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => setShowStreamKey((p) => !p)} className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
-                      {showStreamKey ? <EyeOff className="h-3.5 w-3.5 text-white/60" /> : <Eye className="h-3.5 w-3.5 text-white/60" />}
-                    </button>
-                    <button onClick={() => copyText(rtmpStreamKey, "key")} className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
-                      {copiedField === "key" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/60" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {currentStreamId && (
-              <button
-                onClick={() => { setWhipStatus("idle"); connectWhip(currentStreamId); }}
-                className="mt-3 w-full py-2 rounded-lg bg-white/10 text-white/60 text-xs"
-              >
-                ブラウザ配信を再試行
-              </button>
-            )}
+            <p className="text-white/60 text-xs">VPS に LiveKit をインストールして VITE_LIVEKIT_URL を設定してください</p>
           </div>
         )}
 

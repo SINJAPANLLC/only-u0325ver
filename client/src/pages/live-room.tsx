@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import Hls from "hls.js";
+import { Room, RoomEvent, Track } from "livekit-client";
 
 interface LiveChatMessage {
   id: string;
@@ -49,61 +49,118 @@ export default function LiveRoom() {
   const title = stream?.title || "LIVE配信中";
   const viewerCount = stream?.viewerCount || 0;
   const thumbnailUrl = stream?.thumbnailUrl;
-  const bunnyPlaybackUrl = stream?.bunnyPlaybackUrl;
   const creatorAvatarUrl = stream?.creatorAvatarUrl;
   const isEnded = stream?.status === "ended";
 
-  // HLS readiness state
-  const [hlsReady, setHlsReady] = useState(false);
-  const [hlsRetryCount, setHlsRetryCount] = useState(0);
-  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // LiveKit state
+  const [videoReady, setVideoReady] = useState(false);
+  const [lkStatus, setLkStatus] = useState<"idle" | "connecting" | "connected" | "failed">("idle");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const roomRef = useRef<Room | null>(null);
+  const audioElementsRef = useRef<HTMLAudioElement[]>([]);
 
-  // HLS playback (Bunny)
-  const hlsVideoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
+  // Connect to LiveKit room as viewer/subscriber
+  const connectLiveKit = useCallback(async () => {
+    if (!streamId || isEnded) return;
+    const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
+    if (!livekitUrl) {
+      setLkStatus("failed");
+      return;
+    }
 
-  const retryHls = useCallback(() => {
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-    setHlsRetryCount(c => c + 1);
-  }, []);
+    try {
+      setLkStatus("connecting");
 
-  useEffect(() => {
-    const video = hlsVideoRef.current;
-    if (!video || !bunnyPlaybackUrl) return;
-    setHlsReady(false);
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      const res = await fetch(`/api/live/${streamId}/livekit-token?role=viewer`);
+      if (!res.ok) throw new Error("Token error");
+      const { token } = await res.json();
 
-    if (bunnyPlaybackUrl.endsWith(".m3u8") && Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-      hlsRef.current = hls;
-      hls.loadSource(bunnyPlaybackUrl);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-        video.muted = false;
-        video.play().catch(() => {});
-        setHlsReady(true);
-      });
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) {
-          setHlsReady(false);
-          retryTimerRef.current = setTimeout(() => {
-            setHlsRetryCount(c => c + 1);
-          }, 15000);
+      const room = new Room({ adaptiveStream: true });
+      roomRef.current = room;
+
+      room.on(RoomEvent.TrackSubscribed, (track, _pub, _participant) => {
+        if (track.kind === Track.Kind.Video && videoRef.current) {
+          track.attach(videoRef.current);
+          setVideoReady(true);
+        }
+        if (track.kind === Track.Kind.Audio) {
+          const el = track.attach() as HTMLAudioElement;
+          audioElementsRef.current.push(el);
+          document.body.appendChild(el);
         }
       });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = bunnyPlaybackUrl;
-      video.play().catch(() => {});
-      setHlsReady(true);
+
+      room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        if (track.kind === Track.Kind.Video) {
+          track.detach();
+          setVideoReady(false);
+        }
+        if (track.kind === Track.Kind.Audio) {
+          const elements = track.detach();
+          elements.forEach(el => {
+            try { document.body.removeChild(el); } catch {}
+          });
+        }
+      });
+
+      room.on(RoomEvent.Connected, () => {
+        setLkStatus("connected");
+        // Attach any already-published tracks
+        room.remoteParticipants.forEach(p => {
+          p.trackPublications.forEach(pub => {
+            if (pub.isSubscribed && pub.track) {
+              if (pub.track.kind === Track.Kind.Video && videoRef.current) {
+                pub.track.attach(videoRef.current);
+                setVideoReady(true);
+              }
+              if (pub.track.kind === Track.Kind.Audio) {
+                const el = pub.track.attach() as HTMLAudioElement;
+                audioElementsRef.current.push(el);
+                document.body.appendChild(el);
+              }
+            }
+          });
+        });
+      });
+
+      room.on(RoomEvent.Disconnected, () => {
+        setLkStatus("failed");
+        setVideoReady(false);
+      });
+
+      await room.connect(livekitUrl, token);
+
+    } catch (err) {
+      console.error("[LiveKit viewer] connection failed:", err);
+      setLkStatus("failed");
     }
-    return () => {
-      hlsRef.current?.destroy();
-      hlsRef.current = null;
-      setHlsReady(false);
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-    };
-  }, [bunnyPlaybackUrl, hlsRetryCount]);
+  }, [streamId, isEnded]);
+
+  const disconnectLiveKit = useCallback(async () => {
+    audioElementsRef.current.forEach(el => {
+      try { document.body.removeChild(el); } catch {}
+    });
+    audioElementsRef.current = [];
+    if (roomRef.current) {
+      await roomRef.current.disconnect();
+      roomRef.current = null;
+    }
+    setVideoReady(false);
+    setLkStatus("idle");
+  }, []);
+
+  // Connect when stream info is loaded and stream is live
+  useEffect(() => {
+    if (stream && !isEnded && lkStatus === "idle") {
+      connectLiveKit();
+    }
+    if (isEnded) {
+      disconnectLiveKit();
+    }
+  }, [stream?.id, isEnded]);
+
+  // Cleanup on unmount
+  useEffect(() => () => { disconnectLiveKit(); }, []);
 
   // Fetch chat messages with polling
   const { data: chatData } = useQuery<LiveChatMessage[]>({
@@ -211,60 +268,59 @@ export default function LiveRoom() {
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Background / Video */}
       <div className="absolute inset-0">
-        {/* Background: thumbnail or gradient */}
         {thumbnailUrl ? (
           <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-b from-pink-900/60 to-black" />
         )}
 
-        {/* Bunny HLS video player */}
+        {/* LiveKit video */}
         <video
-          ref={hlsVideoRef}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${hlsReady ? "opacity-100" : "opacity-0"}`}
+          ref={videoRef}
+          autoPlay
           playsInline
-          poster={thumbnailUrl}
-          controlsList="nodownload"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${videoReady ? "opacity-100" : "opacity-0"}`}
           onContextMenu={(e) => e.preventDefault()}
         />
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-        {/* No Bunny channel: live but no HLS playback URL */}
-        {!isEnded && !bunnyPlaybackUrl && (
+        {/* Waiting: LiveKit connecting / no video yet */}
+        {!isEnded && !videoReady && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-4 text-center px-6">
-              <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
-                <Radio className="h-8 w-8 text-pink-400 animate-pulse" />
-              </div>
-              <p className="text-white font-bold text-lg">配信準備中</p>
-              <p className="text-white/60 text-sm">配信チャンネルが設定されるまでお待ちください</p>
-              <button
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/live", streamId, "info"] })}
-                className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
-              >
-                <RefreshCw className="h-4 w-4" />
-                更新する
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Waiting overlay: when live but HLS stream not yet ready */}
-        {!isEnded && bunnyPlaybackUrl && !hlsReady && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="flex flex-col items-center gap-4 text-center px-6">
-              <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/80 text-sm font-medium">映像を受信するまでお待ちください</p>
-              <p className="text-white/40 text-xs">配信者が映像を送信すると自動で再生されます</p>
-              <button
-                onClick={retryHls}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
-              >
-                <RefreshCw className="h-4 w-4" />
-                今すぐ再読み込み
-              </button>
+              {lkStatus === "connecting" || lkStatus === "connected" ? (
+                <>
+                  <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-white/80 text-sm font-medium">配信者の映像を待っています...</p>
+                  <p className="text-white/40 text-xs">配信者が映像を送信すると自動で再生されます</p>
+                </>
+              ) : lkStatus === "failed" ? (
+                <>
+                  <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+                    <Radio className="h-8 w-8 text-pink-400 animate-pulse" />
+                  </div>
+                  <p className="text-white font-bold text-lg">配信接続中...</p>
+                  <p className="text-white/60 text-sm">
+                    {!import.meta.env.VITE_LIVEKIT_URL
+                      ? "LiveKit未設定"
+                      : "接続できませんでした"}
+                  </p>
+                  <button
+                    onClick={() => { setLkStatus("idle"); connectLiveKit(); }}
+                    className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    再接続する
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-white/80 text-sm font-medium">接続中...</p>
+                </>
+              )}
             </div>
           </div>
         )}
