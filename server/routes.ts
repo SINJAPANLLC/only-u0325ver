@@ -25,6 +25,7 @@ import {
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
 import { createWowzaLiveStream, stopWowzaLiveStream, deleteWowzaLiveStream, isWowzaConfigured } from "./services/wowza";
+import { createLivepeerStream, deleteLivepeerStream, isLivepeerConfigured } from "./services/livepeer";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -588,12 +589,33 @@ export async function registerRoutes(
       }
       let [stream] = await db.insert(liveStreams).values(insertData).returning();
       
-      // 1) Try Wowza Streaming Cloud (fully automatic, supports adult content)
+      // 1) Try Livepeer (simplest: 1 API key, adult content OK, free tier)
       let rtmpServerUrl: string | null = null;
       let rtmpStreamKey: string | null = null;
       let streamAssigned = false;
 
-      if (isWowzaConfigured()) {
+      if (isLivepeerConfigured()) {
+        const lpStream = await createLivepeerStream(`only-u-live-${stream.id}`);
+        if (lpStream) {
+          const [updated] = await db.update(liveStreams)
+            .set({
+              bunnyStreamId: lpStream.livepeerStreamId,
+              streamKey: lpStream.streamKey,
+              rtmpServerUrl: lpStream.rtmpServerUrl,
+              bunnyPlaybackUrl: lpStream.playbackUrl,
+            })
+            .where(eq(liveStreams.id, stream.id))
+            .returning();
+          stream = updated;
+          rtmpServerUrl = lpStream.rtmpServerUrl;
+          rtmpStreamKey = lpStream.streamKey;
+          streamAssigned = true;
+          console.log("Livepeer stream created:", lpStream.livepeerStreamId);
+        }
+      }
+
+      // 2) Fall back to Wowza
+      if (!streamAssigned && isWowzaConfigured()) {
         const wowzaStream = await createWowzaLiveStream(`only-u-live-${stream.id}`);
         if (wowzaStream) {
           const [updated] = await db.update(liveStreams)
@@ -1336,19 +1358,23 @@ export async function registerRoutes(
         updateData.status = status;
         if (status === "ended") {
           updateData.endedAt = new Date();
-          // Stop and delete Wowza stream (if using Wowza)
-          if (stream.bunnyStreamId && isWowzaConfigured()) {
-            stopWowzaLiveStream(stream.bunnyStreamId).then(() =>
-              deleteWowzaLiveStream(stream.bunnyStreamId!)
-            ).catch(err =>
-              console.error("Failed to stop/delete Wowza stream:", err)
-            );
-          }
-          // Release Bunny channel back to pool (if using Bunny pool)
-          if (!isWowzaConfigured()) {
-            storage.releaseBunnyStreamChannel(id).catch(err =>
-              console.error("Failed to release Bunny stream channel:", err)
-            );
+          // Delete Livepeer or Wowza stream, or release Bunny channel
+          if (stream.bunnyStreamId) {
+            if (isLivepeerConfigured()) {
+              deleteLivepeerStream(stream.bunnyStreamId).catch(err =>
+                console.error("Failed to delete Livepeer stream:", err)
+              );
+            } else if (isWowzaConfigured()) {
+              stopWowzaLiveStream(stream.bunnyStreamId).then(() =>
+                deleteWowzaLiveStream(stream.bunnyStreamId!)
+              ).catch(err =>
+                console.error("Failed to stop/delete Wowza stream:", err)
+              );
+            } else {
+              storage.releaseBunnyStreamChannel(id).catch(err =>
+                console.error("Failed to release Bunny stream channel:", err)
+              );
+            }
           }
         }
       }
@@ -1380,9 +1406,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      // Stop and delete Wowza stream (if configured), otherwise try Bunny
+      // Clean up streaming service
       if (stream.bunnyStreamId) {
-        if (isWowzaConfigured()) {
+        if (isLivepeerConfigured()) {
+          deleteLivepeerStream(stream.bunnyStreamId).catch(err =>
+            console.error("Failed to delete Livepeer stream on deletion:", err)
+          );
+        } else if (isWowzaConfigured()) {
           stopWowzaLiveStream(stream.bunnyStreamId).then(() =>
             deleteWowzaLiveStream(stream.bunnyStreamId!)
           ).catch(err =>
