@@ -487,9 +487,6 @@ export default function MyProfile() {
           </Dialog>
         </div>
 
-        {/* Handle */}
-        <p className="text-white/50 text-sm mt-1">@{username}</p>
-
         {/* Likes count */}
         <div className="flex items-center justify-center mt-4 gap-8">
           <div className="text-center">
