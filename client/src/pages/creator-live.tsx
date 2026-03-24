@@ -222,8 +222,12 @@ export default function CreatorLive() {
       pcRef.current = pc;
       if (pc) {
         pc.onconnectionstatechange = () => {
-          if (pc.connectionState === "connected") setWhipStatus("connected");
-          else if (["disconnected", "failed", "closed"].includes(pc.connectionState)) setWhipStatus("failed");
+          if (pc.connectionState === "connected") {
+            setWhipStatus("connected");
+          } else if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
+            setWhipStatus("failed");
+            setShowRtmpInfo(true);
+          }
         };
         setWhipStatus("connected");
       }
@@ -242,6 +246,18 @@ export default function CreatorLive() {
     pcRef.current = null;
     setWhipStatus("idle");
   }, []);
+
+  // Populate RTMP credentials from DB if state is empty (e.g. after page reload)
+  useEffect(() => {
+    if (currentStreamId && myLiveStreams) {
+      const stream = myLiveStreams.find((s) => s.id === currentStreamId);
+      if (stream) {
+        if (!rtmpStreamKey && stream.streamKey) setRtmpStreamKey(stream.streamKey);
+        if (!rtmpServerUrl && stream.rtmpServerUrl) setRtmpServerUrl(stream.rtmpServerUrl);
+        else if (!rtmpServerUrl) setRtmpServerUrl("rtmp://rtmp.livepeer.com/live");
+      }
+    }
+  }, [currentStreamId, myLiveStreams]);
 
   // Start camera + connect WHIP when entering streaming mode
   useEffect(() => {

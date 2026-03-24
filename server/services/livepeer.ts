@@ -55,7 +55,7 @@ export async function createLivepeerStream(name: string): Promise<LivepeerStream
       rtmpServerUrl: "rtmp://rtmp.livepeer.com/live",
       streamKey: stream.streamKey,
       playbackUrl: `https://livepeercdn.studio/hls/${stream.playbackId}/index.m3u8`,
-      whipUrl: `https://livepeer.studio/live/${stream.streamKey}/whip`,
+      whipUrl: `https://livepeer.studio/webrtc/${stream.playbackId}`,
     };
   } catch (err) {
     console.error("Livepeer create stream error:", err);

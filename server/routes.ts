@@ -1485,12 +1485,18 @@ export async function registerRoutes(
       const sdpOffer = typeof req.body === "string" ? req.body : String(req.body || "");
       console.log(`[WHIP] Received SDP body length: ${sdpOffer.length}`);
 
-      const whipUrl = `https://livepeer.studio/live/${stream.streamKey}/whip`;
+      // Extract playbackId from bunnyPlaybackUrl: https://livepeercdn.studio/hls/{playbackId}/index.m3u8
+      const playbackId = stream.bunnyPlaybackUrl?.match(/hls\/([^/]+)\/index\.m3u8/)?.[1];
+      if (!playbackId) {
+        return res.status(400).json({ message: "Stream playbackId not found" });
+      }
+      const whipUrl = `https://livepeer.studio/webrtc/${playbackId}`;
       console.log(`[WHIP] Proxying to ${whipUrl}, SDP length: ${sdpOffer.length}`);
       const lpRes = await fetch(whipUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/sdp",
+          "Authorization": `Bearer ${LIVEPEER_API_KEY}`,
         },
         body: sdpOffer,
       });
