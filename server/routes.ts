@@ -965,6 +965,8 @@ export async function registerRoutes(
           viewerCount: liveStreams.viewerCount,
           bunnyPlaybackUrl: liveStreams.bunnyPlaybackUrl,
           startedAt: liveStreams.startedAt,
+          partyRatePerMinute: liveStreams.partyRatePerMinute,
+          twoshotRatePerMinute: liveStreams.twoshotRatePerMinute,
           creatorDisplayName: userProfiles.displayName,
           creatorAvatarUrl: userProfiles.avatarUrl,
         })

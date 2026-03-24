@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv, RefreshCw } from "lucide-react";
+import {
+  ArrowLeft, Heart, Share2, Radio, Send, Users, Tv, RefreshCw,
+  Coins, PartyPopper, Zap, LogOut, Clock,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { Room, RoomEvent, Track } from "livekit-client";
 
 interface LiveChatMessage {
@@ -28,11 +33,19 @@ function formatCount(n: number) {
   return n.toString();
 }
 
+function formatTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
 export default function LiveRoom() {
   const params = useParams<{ streamId: string }>();
   const streamId = params.streamId || "";
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   // Fetch stream info
   const { data: stream, isLoading, error } = useQuery<any>({
@@ -45,12 +58,21 @@ export default function LiveRoom() {
     refetchInterval: 10000,
   });
 
+  // User profile (for points)
+  const { data: userProfile } = useQuery<any>({
+    queryKey: ["/api/profile"],
+    enabled: !!user,
+  });
+
   const creatorName = stream?.creatorDisplayName || "クリエイター";
   const title = stream?.title || "LIVE配信中";
   const viewerCount = stream?.viewerCount || 0;
   const thumbnailUrl = stream?.thumbnailUrl;
   const creatorAvatarUrl = stream?.creatorAvatarUrl;
   const isEnded = stream?.status === "ended";
+  const partyRate = stream?.partyRatePerMinute ?? 50;
+  const twoshotRate = stream?.twoshotRatePerMinute ?? 100;
+  const userPoints = userProfile?.points ?? 0;
 
   // LiveKit state
   const [videoReady, setVideoReady] = useState(false);
@@ -59,18 +81,21 @@ export default function LiveRoom() {
   const roomRef = useRef<Room | null>(null);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);
 
+  // Session state
+  const [activeMode, setActiveMode] = useState<"party" | "twoshot" | null>(null);
+  const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [sessionPoints, setSessionPoints] = useState(0);
+  const sessionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const chargeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Connect to LiveKit room as viewer/subscriber
   const connectLiveKit = useCallback(async () => {
     if (!streamId || isEnded) return;
     const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
-    if (!livekitUrl) {
-      setLkStatus("failed");
-      return;
-    }
+    if (!livekitUrl) { setLkStatus("failed"); return; }
 
     try {
       setLkStatus("connecting");
-
       const res = await fetch(`/api/live/${streamId}/livekit-token?role=viewer`);
       if (!res.ok) throw new Error("Token error");
       const { token } = await res.json();
@@ -78,7 +103,7 @@ export default function LiveRoom() {
       const room = new Room({ adaptiveStream: true });
       roomRef.current = room;
 
-      room.on(RoomEvent.TrackSubscribed, (track, _pub, _participant) => {
+      room.on(RoomEvent.TrackSubscribed, (track) => {
         if (track.kind === Track.Kind.Video && videoRef.current) {
           track.attach(videoRef.current);
           setVideoReady(true);
@@ -91,78 +116,124 @@ export default function LiveRoom() {
       });
 
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
-        if (track.kind === Track.Kind.Video) {
-          track.detach();
-          setVideoReady(false);
-        }
+        if (track.kind === Track.Kind.Video) { track.detach(); setVideoReady(false); }
         if (track.kind === Track.Kind.Audio) {
-          const elements = track.detach();
-          elements.forEach(el => {
-            try { document.body.removeChild(el); } catch {}
-          });
+          track.detach().forEach(el => { try { document.body.removeChild(el); } catch {} });
         }
       });
 
       room.on(RoomEvent.Connected, () => {
         setLkStatus("connected");
-        // Attach any already-published tracks
         room.remoteParticipants.forEach(p => {
           p.trackPublications.forEach(pub => {
-            if (pub.isSubscribed && pub.track) {
-              if (pub.track.kind === Track.Kind.Video && videoRef.current) {
-                pub.track.attach(videoRef.current);
-                setVideoReady(true);
-              }
-              if (pub.track.kind === Track.Kind.Audio) {
-                const el = pub.track.attach() as HTMLAudioElement;
-                audioElementsRef.current.push(el);
-                document.body.appendChild(el);
-              }
+            if (!pub.isSubscribed || !pub.track) return;
+            if (pub.track.kind === Track.Kind.Video && videoRef.current) {
+              pub.track.attach(videoRef.current); setVideoReady(true);
+            }
+            if (pub.track.kind === Track.Kind.Audio) {
+              const el = pub.track.attach() as HTMLAudioElement;
+              audioElementsRef.current.push(el);
+              document.body.appendChild(el);
             }
           });
         });
       });
 
-      room.on(RoomEvent.Disconnected, () => {
-        setLkStatus("failed");
-        setVideoReady(false);
-      });
-
+      room.on(RoomEvent.Disconnected, () => { setLkStatus("failed"); setVideoReady(false); });
       await room.connect(livekitUrl, token);
-
     } catch (err) {
-      console.error("[LiveKit viewer] connection failed:", err);
+      console.error("[LiveKit viewer]", err);
       setLkStatus("failed");
     }
   }, [streamId, isEnded]);
 
   const disconnectLiveKit = useCallback(async () => {
-    audioElementsRef.current.forEach(el => {
-      try { document.body.removeChild(el); } catch {}
-    });
+    audioElementsRef.current.forEach(el => { try { document.body.removeChild(el); } catch {} });
     audioElementsRef.current = [];
-    if (roomRef.current) {
-      await roomRef.current.disconnect();
-      roomRef.current = null;
-    }
-    setVideoReady(false);
-    setLkStatus("idle");
+    if (roomRef.current) { await roomRef.current.disconnect(); roomRef.current = null; }
+    setVideoReady(false); setLkStatus("idle");
   }, []);
 
-  // Connect when stream info is loaded and stream is live
   useEffect(() => {
-    if (stream && !isEnded && lkStatus === "idle") {
-      connectLiveKit();
-    }
-    if (isEnded) {
-      disconnectLiveKit();
-    }
+    if (stream && !isEnded && lkStatus === "idle") connectLiveKit();
+    if (isEnded) disconnectLiveKit();
   }, [stream?.id, isEnded]);
 
-  // Cleanup on unmount
   useEffect(() => () => { disconnectLiveKit(); }, []);
 
-  // Fetch chat messages with polling
+  // Session timer
+  useEffect(() => {
+    if (activeMode) {
+      sessionTimerRef.current = setInterval(() => setSessionSeconds(s => s + 1), 1000);
+    } else {
+      if (sessionTimerRef.current) clearInterval(sessionTimerRef.current);
+      setSessionSeconds(0);
+    }
+    return () => { if (sessionTimerRef.current) clearInterval(sessionTimerRef.current); };
+  }, [activeMode]);
+
+  // Point charge every 60 seconds
+  useEffect(() => {
+    if (!activeMode || !streamId) return;
+    chargeTimerRef.current = setInterval(async () => {
+      try {
+        const res = await apiRequest("POST", `/api/live/${streamId}/charge`);
+        const data = await res.json();
+        if (data.insufficientPoints) {
+          toast({ title: "ポイントが不足したためセッションを終了しました", variant: "destructive" });
+          setActiveMode(null);
+          queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+          return;
+        }
+        setSessionPoints(p => p + (data.charged || 0));
+        queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      } catch {}
+    }, 60000);
+    return () => { if (chargeTimerRef.current) clearInterval(chargeTimerRef.current); };
+  }, [activeMode, streamId]);
+
+  // Leave session on unmount if active
+  useEffect(() => () => {
+    if (activeMode && streamId) {
+      apiRequest("POST", `/api/live/${streamId}/leave`).catch(() => {});
+    }
+  }, []);
+
+  const joinMutation = useMutation({
+    mutationFn: (mode: "party" | "twoshot") =>
+      apiRequest("POST", `/api/live/${streamId}/join`, { mode }).then(r => r.json()),
+    onSuccess: (data, mode) => {
+      if (data.insufficientPoints) {
+        toast({ title: "ポイントが不足しています。ポイントを購入してください。", variant: "destructive" });
+        return;
+      }
+      if (data.twoshotOccupied) {
+        toast({ title: "2ショットは現在他のユーザーが利用中です", variant: "destructive" });
+        return;
+      }
+      setActiveMode(mode);
+      setSessionSeconds(0);
+      setSessionPoints(0);
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      toast({ title: mode === "party" ? "パーティーに参加しました 🎉" : "2ショットに参加しました ✨" });
+    },
+    onError: (e: any) => {
+      toast({ title: e?.message || "参加に失敗しました", variant: "destructive" });
+    },
+  });
+
+  const leaveMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/live/${streamId}/leave`).then(r => r.json()),
+    onSuccess: () => {
+      setActiveMode(null);
+      setSessionSeconds(0);
+      setSessionPoints(0);
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      toast({ title: "セッションを終了しました" });
+    },
+  });
+
+  // Chat
   const { data: chatData } = useQuery<LiveChatMessage[]>({
     queryKey: ["/api/live", streamId, "chat"],
     queryFn: () => fetch(`/api/live/${streamId}/chat`).then(r => r.json()),
@@ -172,22 +243,12 @@ export default function LiveRoom() {
 
   const [displayedMessages, setDisplayedMessages] = useState<LiveChatMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (chatData) setDisplayedMessages(chatData); }, [chatData]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [displayedMessages]);
 
-  useEffect(() => {
-    if (chatData) setDisplayedMessages(chatData);
-  }, [chatData]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayedMessages]);
-
-  // Post chat message
   const sendMutation = useMutation({
-    mutationFn: (message: string) =>
-      apiRequest("POST", `/api/live/${streamId}/chat`, { message }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/live", streamId, "chat"] });
-    },
+    mutationFn: (message: string) => apiRequest("POST", `/api/live/${streamId}/chat`, { message }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/live", streamId, "chat"] }); },
   });
 
   const [liked, setLiked] = useState(false);
@@ -196,14 +257,12 @@ export default function LiveRoom() {
   const heartIdRef = useRef(0);
   const [inputText, setInputText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [showModePanel, setShowModePanel] = useState(false);
 
-  // Increment viewer count on mount, decrement on unmount
   useEffect(() => {
     if (!streamId || !stream) return;
     apiRequest("POST", `/api/live/${streamId}/viewer`).catch(() => {});
-    return () => {
-      apiRequest("DELETE", `/api/live/${streamId}/viewer`).catch(() => {});
-    };
+    return () => { apiRequest("DELETE", `/api/live/${streamId}/viewer`).catch(() => {}); };
   }, [streamId, stream?.id]);
 
   const handleLike = useCallback(() => {
@@ -223,14 +282,8 @@ export default function LiveRoom() {
 
   const handleShare = useCallback(() => {
     const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title, url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
+    if (navigator.share) { navigator.share({ title, url }).catch(() => {}); }
+    else { navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }
   }, [title]);
 
   if (isLoading) {
@@ -253,16 +306,15 @@ export default function LiveRoom() {
           </div>
           <h2 className="text-white font-bold text-lg">配信が見つかりません</h2>
           <p className="text-white/50 text-sm">この配信は終了したか、存在しません</p>
-          <button
-            onClick={() => setLocation("/live")}
-            className="mt-2 bg-pink-500 text-white font-bold px-6 py-2.5 rounded-full text-sm"
-          >
+          <button onClick={() => setLocation("/live")} className="mt-2 bg-pink-500 text-white font-bold px-6 py-2.5 rounded-full text-sm">
             ライブ一覧へ戻る
           </button>
         </div>
       </div>
     );
   }
+
+  const currentRate = activeMode === "party" ? partyRate : activeMode === "twoshot" ? twoshotRate : 0;
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -274,19 +326,16 @@ export default function LiveRoom() {
           <div className="w-full h-full bg-gradient-to-b from-pink-900/60 to-black" />
         )}
 
-        {/* LiveKit video */}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${videoReady ? "opacity-100" : "opacity-0"}`}
-          onContextMenu={(e) => e.preventDefault()}
+          onContextMenu={e => e.preventDefault()}
         />
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-        {/* Waiting: LiveKit connecting / no video yet */}
         {!isEnded && !videoReady && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-4 text-center px-6">
@@ -294,38 +343,27 @@ export default function LiveRoom() {
                 <>
                   <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
                   <p className="text-white/80 text-sm font-medium">配信者の映像を待っています...</p>
-                  <p className="text-white/40 text-xs">配信者が映像を送信すると自動で再生されます</p>
                 </>
               ) : lkStatus === "failed" ? (
                 <>
-                  <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
+                  <div className="h-16 w-16 rounded-full bg-black/40 flex items-center justify-center">
                     <Radio className="h-8 w-8 text-pink-400 animate-pulse" />
                   </div>
                   <p className="text-white font-bold text-lg">配信接続中...</p>
-                  <p className="text-white/60 text-sm">
-                    {!import.meta.env.VITE_LIVEKIT_URL
-                      ? "LiveKit未設定"
-                      : "接続できませんでした"}
-                  </p>
                   <button
                     onClick={() => { setLkStatus("idle"); connectLiveKit(); }}
-                    className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
+                    className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full"
                   >
-                    <RefreshCw className="h-4 w-4" />
-                    再接続する
+                    <RefreshCw className="h-4 w-4" />再接続する
                   </button>
                 </>
               ) : (
-                <>
-                  <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-white/80 text-sm font-medium">接続中...</p>
-                </>
+                <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
               )}
             </div>
           </div>
         )}
 
-        {/* Ended overlay */}
         {isEnded && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-3 text-center px-6">
@@ -333,10 +371,7 @@ export default function LiveRoom() {
                 <Tv className="h-8 w-8 text-white/50" />
               </div>
               <p className="text-white font-bold text-lg">配信が終了しました</p>
-              <button
-                onClick={() => setLocation("/live")}
-                className="mt-1 bg-pink-500 text-white font-bold px-5 py-2 rounded-full text-sm"
-              >
+              <button onClick={() => setLocation("/live")} className="mt-1 bg-pink-500 text-white font-bold px-5 py-2 rounded-full text-sm">
                 ライブ一覧へ
               </button>
             </div>
@@ -385,21 +420,52 @@ export default function LiveRoom() {
         <p className="text-white/90 text-xs drop-shadow line-clamp-1">{title}</p>
       </div>
 
+      {/* Active session banner */}
+      {activeMode && (
+        <div className="relative z-10 mx-4 mt-2">
+          <div className={`rounded-2xl px-4 py-2.5 flex items-center justify-between ${
+            activeMode === "twoshot" ? "bg-purple-500/70 backdrop-blur-md" : "bg-pink-500/70 backdrop-blur-md"
+          }`}>
+            <div className="flex items-center gap-2">
+              {activeMode === "party"
+                ? <PartyPopper className="h-4 w-4 text-white" />
+                : <Zap className="h-4 w-4 text-white" />
+              }
+              <div>
+                <p className="text-white text-xs font-bold">
+                  {activeMode === "party" ? "パーティー中" : "2ショット中"}
+                </p>
+                <div className="flex items-center gap-2 text-white/80 text-[10px]">
+                  <Clock className="h-3 w-3" />{formatTime(sessionSeconds)}
+                  <Coins className="h-3 w-3" />{sessionPoints}pt 消費
+                  <span>({currentRate}pt/分)</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => leaveMutation.mutate()}
+              disabled={leaveMutation.isPending}
+              className="h-8 px-3 rounded-full bg-white/20 flex items-center gap-1 text-white text-xs font-medium"
+            >
+              <LogOut className="h-3 w-3" />退出
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Spacer */}
       <div className="relative z-10 flex-1" />
 
       {/* Chat messages */}
       <div className="relative z-10 flex items-end gap-2 px-3 pb-2">
-        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "30vh" }}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "25vh" }}>
           {displayedMessages.length === 0 && !isEnded && (
             <p className="text-white/30 text-xs text-center py-4">まだコメントはありません</p>
           )}
           {displayedMessages.map(msg => (
             <div key={msg.id} className="flex items-start gap-2">
               <div className="flex items-baseline gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-3 py-1.5 max-w-full">
-                {msg.avatarUrl && (
-                  <img src={msg.avatarUrl} alt="" className="h-4 w-4 rounded-full object-cover flex-shrink-0" />
-                )}
+                {msg.avatarUrl && <img src={msg.avatarUrl} alt="" className="h-4 w-4 rounded-full object-cover flex-shrink-0" />}
                 <span className="text-pink-300 text-xs font-bold whitespace-nowrap">{msg.displayName}</span>
                 <span className="text-white text-xs break-words">{msg.message}</span>
               </div>
@@ -409,7 +475,7 @@ export default function LiveRoom() {
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-col items-center gap-4 pb-1 flex-shrink-0">
+        <div className="flex flex-col items-center gap-3 pb-1 flex-shrink-0">
           {/* Like */}
           <div className="flex flex-col items-center gap-1 relative">
             <AnimatePresence>
@@ -427,31 +493,118 @@ export default function LiveRoom() {
                 </motion.div>
               ))}
             </AnimatePresence>
-            <motion.button
-              whileTap={{ scale: 1.25 }}
-              onClick={handleLike}
+            <motion.button whileTap={{ scale: 1.25 }} onClick={handleLike}
               className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
-              data-testid="button-like-liveroom"
-            >
+              data-testid="button-like-liveroom">
               <Heart className={`h-6 w-6 transition-colors drop-shadow ${liked ? "text-pink-400 fill-pink-400" : "text-white"}`} />
             </motion.button>
             <span className="text-white text-[10px] font-bold drop-shadow">{formatCount(likeCount)}</span>
           </div>
 
+          {/* Party/Twoshot toggle */}
+          {!isEnded && user && (
+            <div className="flex flex-col items-center gap-1">
+              <motion.button whileTap={{ scale: 1.15 }} onClick={() => setShowModePanel(p => !p)}
+                className={`h-11 w-11 rounded-full backdrop-blur-md flex items-center justify-center shadow-lg ${
+                  activeMode ? "bg-pink-500/80" : "bg-black/40"
+                }`}
+                data-testid="button-mode-panel">
+                <PartyPopper className="h-5 w-5 text-white" />
+              </motion.button>
+              <span className="text-white/60 text-[10px]">参加</span>
+            </div>
+          )}
+
           {/* Share */}
           <div className="flex flex-col items-center gap-1">
-            <motion.button
-              whileTap={{ scale: 1.15 }}
-              onClick={handleShare}
+            <motion.button whileTap={{ scale: 1.15 }} onClick={handleShare}
               className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
-              data-testid="button-share-liveroom"
-            >
+              data-testid="button-share-liveroom">
               <Share2 className="h-5 w-5 text-white/80" />
             </motion.button>
             <span className="text-white/60 text-[10px]">{copied ? "コピー済" : "シェア"}</span>
           </div>
         </div>
       </div>
+
+      {/* Mode selection panel */}
+      <AnimatePresence>
+        {showModePanel && !isEnded && (
+          <motion.div
+            className="relative z-10 mx-3 mb-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+              {/* Points balance */}
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-white/60 text-xs">保有ポイント</p>
+                <div className="flex items-center gap-1 bg-yellow-500/20 rounded-full px-2.5 py-1">
+                  <Coins className="h-3.5 w-3.5 text-yellow-400" />
+                  <span className="text-yellow-300 text-sm font-bold">{userPoints.toLocaleString()}pt</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {/* Party button */}
+                <button
+                  onClick={() => { joinMutation.mutate("party"); setShowModePanel(false); }}
+                  disabled={joinMutation.isPending || activeMode === "party" || userPoints < partyRate}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                    activeMode === "party"
+                      ? "bg-pink-500/40 border-pink-400 cursor-default"
+                      : userPoints < partyRate
+                      ? "bg-white/5 border-white/10 opacity-40 cursor-not-allowed"
+                      : "bg-pink-500/20 border-pink-500/40 active:scale-95"
+                  }`}
+                  data-testid="button-join-party"
+                >
+                  <PartyPopper className="h-6 w-6 text-pink-300" />
+                  <div className="text-center">
+                    <p className="text-white text-xs font-bold">パーティー</p>
+                    <p className="text-pink-300 text-[10px]">{partyRate}pt / 分</p>
+                    {activeMode === "party" && <p className="text-green-400 text-[10px] mt-0.5">参加中</p>}
+                    {userPoints < partyRate && <p className="text-red-400 text-[10px] mt-0.5">PT不足</p>}
+                  </div>
+                </button>
+
+                {/* 2shot button */}
+                <button
+                  onClick={() => { joinMutation.mutate("twoshot"); setShowModePanel(false); }}
+                  disabled={joinMutation.isPending || activeMode === "twoshot" || userPoints < twoshotRate}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                    activeMode === "twoshot"
+                      ? "bg-purple-500/40 border-purple-400 cursor-default"
+                      : userPoints < twoshotRate
+                      ? "bg-white/5 border-white/10 opacity-40 cursor-not-allowed"
+                      : "bg-purple-500/20 border-purple-500/40 active:scale-95"
+                  }`}
+                  data-testid="button-join-twoshot"
+                >
+                  <Zap className="h-6 w-6 text-purple-300" />
+                  <div className="text-center">
+                    <p className="text-white text-xs font-bold">2ショット</p>
+                    <p className="text-purple-300 text-[10px]">{twoshotRate}pt / 分</p>
+                    {activeMode === "twoshot" && <p className="text-green-400 text-[10px] mt-0.5">参加中</p>}
+                    {userPoints < twoshotRate && <p className="text-red-400 text-[10px] mt-0.5">PT不足</p>}
+                  </div>
+                </button>
+              </div>
+
+              {userPoints < partyRate && (
+                <button
+                  onClick={() => { setShowModePanel(false); setLocation("/points-purchase"); }}
+                  className="mt-3 w-full py-2 rounded-xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-medium"
+                >
+                  ポイントを購入する →
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Chat input */}
       <div className="relative z-10 px-3 pb-safe pb-5 flex items-center gap-2">
