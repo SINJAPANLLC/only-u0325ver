@@ -102,7 +102,7 @@ function ProductCard({ product, onBuy, onCreatorClick }: { product: ShopProduct;
 
       <div className="absolute bottom-24 left-4 right-20 z-20">
         <p className="text-white/70 text-xs font-medium drop-shadow mb-1">
-          @{product.creatorUsername || product.creatorDisplayName || "creator"}
+          @{product.creatorDisplayName || product.creatorUsername || "creator"}
         </p>
         <p className="text-white font-bold text-base drop-shadow leading-snug mb-2 line-clamp-2">
           {product.name}
