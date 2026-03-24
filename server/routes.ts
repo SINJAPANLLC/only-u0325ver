@@ -3834,9 +3834,9 @@ export async function registerRoutes(
       await db.insert(pointTransactions).values({
         userId,
         amount: points,
-        type: "purchase",
+        type: "purchase_card",
+        balance: newBalance,
         description: `カード決済によるポイント購入 (${points.toLocaleString()} pt)`,
-        balanceAfter: newBalance,
       });
 
       res.json({ 
@@ -4377,18 +4377,21 @@ export async function registerRoutes(
         const userPoints = user.points || 0;
 
         if (userPoints >= price) {
+          const renewalNewBalance = userPoints - price;
+
           // Deduct points and renew subscription
           await db.update(users)
-            .set({ points: userPoints - price })
+            .set({ points: renewalNewBalance })
             .where(eq(users.id, subscription.userId));
 
           // Record transaction
           await db.insert(pointTransactions).values({
             userId: subscription.userId,
             amount: -price,
+            balance: renewalNewBalance,
             type: "spend",
             description: `サブスク自動更新: ${plan?.name || "月額プラン"}`,
-            relatedId: subscription.id,
+            referenceId: subscription.id,
           });
 
           // Extend subscription by 30 days
