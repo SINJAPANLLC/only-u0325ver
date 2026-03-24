@@ -327,7 +327,6 @@ function VideoPage({
             loop
             muted={isMuted}
             playsInline
-            poster={effectiveThumbnail}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleVideoMetadata}
           />
