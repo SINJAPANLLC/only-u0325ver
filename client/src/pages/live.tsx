@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, Radio, Tv } from "lucide-react";
+import { Heart, Radio } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
@@ -247,9 +247,6 @@ export default function Live() {
           ) : streams.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-950 to-black">
               <div className="flex flex-col items-center gap-4 px-8 text-center">
-                <div className="h-20 w-20 rounded-2xl bg-pink-500/20 flex items-center justify-center">
-                  <Tv className="h-10 w-10 text-pink-400" />
-                </div>
                 <h2 className="text-white font-bold text-xl">現在配信中のライブはありません</h2>
                 <p className="text-white/50 text-sm leading-relaxed">
                   クリエイターが配信を開始するとここに表示されます。<br />
