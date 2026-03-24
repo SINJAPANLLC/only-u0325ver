@@ -387,9 +387,9 @@ export default function CreatorShop() {
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5 text-white" />
           </Button>
-          <h1 className="font-bold text-base">ショップ管理</h1>
+          <h1 className="font-bold text-base text-white">ショップ管理</h1>
         </div>
         <Button 
           size="sm"
@@ -412,10 +412,10 @@ export default function CreatorShop() {
             {myProducts.map((product) => (
               <div 
                 key={product.id}
-                className="flex gap-3 p-3 bg-white/5 rounded-lg"
+                className="flex gap-3 p-3 bg-muted/40 rounded-lg"
                 data-testid={`product-item-${product.id}`}
               >
-                <div className="w-20 h-20 bg-white/10 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {product.imageUrl ? (
                     <img 
                       src={product.imageUrl} 
@@ -423,7 +423,7 @@ export default function CreatorShop() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Package className="h-6 w-6 text-white/50" />
+                    <Package className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -464,7 +464,7 @@ export default function CreatorShop() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-60 text-white/50">
+          <div className="flex flex-col items-center justify-center h-60 text-muted-foreground">
             <Package className="h-12 w-12 mb-3 opacity-50" />
             <p>まだ商品がありません</p>
             <p className="text-sm mt-1">商品追加ボタンから商品を登録しましょう</p>
@@ -502,7 +502,7 @@ export default function CreatorShop() {
             <div>
               <Label htmlFor="price">価格（ポイント）*</Label>
               <div className="relative">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="price"
                   type="number"
@@ -524,7 +524,7 @@ export default function CreatorShop() {
                 placeholder="100"
                 data-testid="input-stock"
               />
-              <p className="text-xs text-white/50 mt-1">0の場合は無制限</p>
+              <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
             </div>
             {form.productType === "digital" && (
               <div>
@@ -537,7 +537,7 @@ export default function CreatorShop() {
                   data-testid="input-content-file"
                 />
                 {form.contentUrl || contentFileName ? (
-                  <div className="mt-2 flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                  <div className="mt-2 flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-2">
                       <FileIcon className="h-5 w-5 text-pink-500" />
                       <span className="text-sm truncate max-w-48">{contentFileName || "アップロード済み"}</span>
@@ -560,19 +560,19 @@ export default function CreatorShop() {
                   >
                     {isContentUploading ? (
                       <>
-                        <Loader2 className="h-8 w-8 text-white/50 animate-spin mb-2" />
-                        <p className="text-sm text-white/50">アップロード中...</p>
+                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="h-8 w-8 text-white/50 mb-2" />
-                        <p className="text-sm text-white/50">クリックしてファイルをアップロード</p>
-                        <p className="text-xs text-white/50/70 mt-1">100MB以下</p>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">クリックしてファイルをアップロード</p>
+                        <p className="text-xs text-muted-foreground mt-1">100MB以下</p>
                       </>
                     )}
                   </div>
                 )}
-                <p className="text-xs text-white/50 mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
+                <p className="text-xs text-muted-foreground mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
               </div>
             )}
             <div>
@@ -611,14 +611,14 @@ export default function CreatorShop() {
                 >
                   {isUploading ? (
                     <>
-                      <Loader2 className="h-8 w-8 text-white/50 animate-spin mb-2" />
-                      <p className="text-sm text-white/50">アップロード中...</p>
+                      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
                     </>
                   ) : (
                     <>
-                      <ImageIcon className="h-8 w-8 text-white/50 mb-2" />
-                      <p className="text-sm text-white/50">クリックして画像をアップロード</p>
-                      <p className="text-xs text-white/50/70 mt-1">10MB以下</p>
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">クリックして画像をアップロード</p>
+                      <p className="text-xs text-muted-foreground mt-1">10MB以下</p>
                     </>
                   )}
                 </div>
@@ -700,7 +700,7 @@ export default function CreatorShop() {
             <div>
               <Label htmlFor="edit-price">価格（ポイント）*</Label>
               <div className="relative">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="edit-price"
                   type="number"
@@ -722,7 +722,7 @@ export default function CreatorShop() {
                 placeholder="100"
                 data-testid="edit-input-stock"
               />
-              <p className="text-xs text-white/50 mt-1">0の場合は無制限</p>
+              <p className="text-xs text-muted-foreground mt-1">0の場合は無制限</p>
             </div>
             {editForm.productType === "digital" && (
               <div>
@@ -735,7 +735,7 @@ export default function CreatorShop() {
                   data-testid="edit-input-content-file"
                 />
                 {editForm.contentUrl || editContentFileName ? (
-                  <div className="mt-2 flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                  <div className="mt-2 flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-2">
                       <FileIcon className="h-5 w-5 text-pink-500" />
                       <span className="text-sm truncate max-w-48">{editContentFileName || "アップロード済み"}</span>
@@ -758,19 +758,19 @@ export default function CreatorShop() {
                   >
                     {isEditContentUploading ? (
                       <>
-                        <Loader2 className="h-8 w-8 text-white/50 animate-spin mb-2" />
-                        <p className="text-sm text-white/50">アップロード中...</p>
+                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                        <p className="text-sm text-muted-foreground">アップロード中...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="h-8 w-8 text-white/50 mb-2" />
-                        <p className="text-sm text-white/50">クリックしてファイルをアップロード</p>
-                        <p className="text-xs text-white/50/70 mt-1">100MB以下</p>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">クリックしてファイルをアップロード</p>
+                        <p className="text-xs text-muted-foreground mt-1">100MB以下</p>
                       </>
                     )}
                   </div>
                 )}
-                <p className="text-xs text-white/50 mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
+                <p className="text-xs text-muted-foreground mt-1">購入者にメッセージでダウンロードリンクが送信されます</p>
               </div>
             )}
             <div>
@@ -811,14 +811,14 @@ export default function CreatorShop() {
                 >
                   {isEditUploading ? (
                     <>
-                      <Loader2 className="h-8 w-8 text-white/50 animate-spin mb-2" />
-                      <p className="text-sm text-white/50">アップロード中...</p>
+                      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+                      <p className="text-sm text-muted-foreground">アップロード中...</p>
                     </>
                   ) : (
                     <>
-                      <ImageIcon className="h-8 w-8 text-white/50 mb-2" />
-                      <p className="text-sm text-white/50">クリックして画像をアップロード</p>
-                      <p className="text-xs text-white/50/70 mt-1">10MB以下</p>
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">クリックして画像をアップロード</p>
+                      <p className="text-xs text-muted-foreground mt-1">10MB以下</p>
                     </>
                   )}
                 </div>
