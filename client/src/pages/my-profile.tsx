@@ -455,34 +455,12 @@ export default function MyProfile() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-black/70 text-xs">ユーザーネーム</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
-                    <Input 
-                      id="username" 
-                      value={editUsername} 
-                      onChange={(e) => setEditUsername(e.target.value)}
-                      className="bg-black/5 border-black/10 focus:border-pink-500 text-black h-9 text-sm pl-7"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="bio" className="text-black/70">自己紹介</Label>
                   <Textarea 
                     id="bio" 
                     value={editBio} 
                     onChange={(e) => setEditBio(e.target.value)}
                     className="bg-black/5 border-black/10 focus:border-pink-500 text-black min-h-[100px]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="url" className="text-black/70">ウェブサイトURL</Label>
-                  <Input 
-                    id="url" 
-                    value={editUrl} 
-                    onChange={(e) => setEditUrl(e.target.value)}
-                    className="bg-black/5 border-black/10 focus:border-pink-500 text-black"
-                    placeholder="https://..."
                   />
                 </div>
               </div>
