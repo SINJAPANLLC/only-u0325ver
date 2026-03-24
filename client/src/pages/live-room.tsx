@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/use-auth";
+import { useWebRTC } from "@/hooks/use-webrtc";
 import Hls from "hls.js";
 
 interface LiveChatMessage {
@@ -33,10 +33,9 @@ export default function LiveRoom() {
   const params = useParams<{ streamId: string }>();
   const streamId = params.streamId || "";
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch stream info from API
+  // Fetch stream info
   const { data: stream, isLoading, error } = useQuery<any>({
     queryKey: ["/api/live", streamId, "info"],
     queryFn: () => fetch(`/api/live/${streamId}/info`).then(r => {
@@ -55,8 +54,67 @@ export default function LiveRoom() {
   const creatorAvatarUrl = stream?.creatorAvatarUrl;
   const isEnded = stream?.status === "ended";
 
+  // WebRTC viewer state
+  const [webRTCStream, setWebRTCStream] = useState<MediaStream | null>(null);
+  const [webRTCConnected, setWebRTCConnected] = useState(false);
+  const webRTCVideoRef = useRef<HTMLVideoElement>(null);
+
+  const handleStreamReceived = useCallback((s: MediaStream | null) => {
+    setWebRTCStream(s);
+    setWebRTCConnected(!!s);
+    if (webRTCVideoRef.current && s) {
+      webRTCVideoRef.current.srcObject = s;
+      webRTCVideoRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  const webrtc = useWebRTC({
+    streamId,
+    isBroadcaster: false,
+    onStreamReceived: handleStreamReceived,
+  });
+
+  // Start WebRTC viewing when stream info loaded and no Bunny URL
+  useEffect(() => {
+    if (!stream || bunnyPlaybackUrl || isEnded) return;
+    webrtc.joinAsViewer();
+    return () => {
+      webrtc.stopViewing();
+    };
+  }, [stream?.id, bunnyPlaybackUrl, isEnded]);
+
+  // Attach webRTC stream when video element mounts
+  useEffect(() => {
+    if (webRTCVideoRef.current && webRTCStream) {
+      webRTCVideoRef.current.srcObject = webRTCStream;
+      webRTCVideoRef.current.play().catch(() => {});
+    }
+  }, [webRTCStream]);
+
+  // HLS playback (Bunny)
+  const hlsVideoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+
+  useEffect(() => {
+    const video = hlsVideoRef.current;
+    if (!video || !bunnyPlaybackUrl) return;
+    if (bunnyPlaybackUrl.endsWith(".m3u8") && Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+      hlsRef.current = hls;
+      hls.loadSource(bunnyPlaybackUrl);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.muted = false;
+        video.play().catch(() => {});
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = bunnyPlaybackUrl;
+      video.play().catch(() => {});
+    }
+    return () => { hlsRef.current?.destroy(); hlsRef.current = null; };
+  }, [bunnyPlaybackUrl]);
+
   // Fetch chat messages with polling
-  const lastMessageTimeRef = useRef<string | null>(null);
   const { data: chatData } = useQuery<LiveChatMessage[]>({
     queryKey: ["/api/live", streamId, "chat"],
     queryFn: () => fetch(`/api/live/${streamId}/chat`).then(r => r.json()),
@@ -68,16 +126,14 @@ export default function LiveRoom() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (chatData) {
-      setDisplayedMessages(chatData);
-    }
+    if (chatData) setDisplayedMessages(chatData);
   }, [chatData]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayedMessages]);
 
-  // Post chat message mutation
+  // Post chat message
   const sendMutation = useMutation({
     mutationFn: (message: string) =>
       apiRequest("POST", `/api/live/${streamId}/chat`, { message }),
@@ -91,8 +147,6 @@ export default function LiveRoom() {
   const [floatingHearts, setFloatingHearts] = useState<FloatingHeart[]>([]);
   const heartIdRef = useRef(0);
   const [inputText, setInputText] = useState("");
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
   const [copied, setCopied] = useState(false);
 
   // Increment viewer count on mount, decrement on unmount
@@ -103,28 +157,6 @@ export default function LiveRoom() {
       apiRequest("DELETE", `/api/live/${streamId}/viewer`).catch(() => {});
     };
   }, [streamId, stream?.id]);
-
-  // HLS video setup
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !bunnyPlaybackUrl) return;
-    const url = bunnyPlaybackUrl;
-    if (url.endsWith(".m3u8") && Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-      hlsRef.current = hls;
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.muted = false;
-        video.play().catch(() => {});
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url;
-      video.muted = false;
-      video.play().catch(() => {});
-    }
-    return () => { hlsRef.current?.destroy(); hlsRef.current = null; };
-  }, [bunnyPlaybackUrl]);
 
   const handleLike = useCallback(() => {
     setLiked(prev => { setLikeCount(c => prev ? c - 1 : c + 1); return !prev; });
@@ -184,25 +216,60 @@ export default function LiveRoom() {
     );
   }
 
+  // Determine what video to show
+  const showBunny = !!bunnyPlaybackUrl;
+  const showWebRTC = !bunnyPlaybackUrl && !isEnded;
+  const showThumbnail = !bunnyPlaybackUrl && !webRTCConnected && !!thumbnailUrl;
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Background */}
+      {/* Background / Video */}
       <div className="absolute inset-0">
-        {bunnyPlaybackUrl ? (
+        {/* Bunny HLS player */}
+        {showBunny && (
           <video
-            ref={videoRef}
+            ref={hlsVideoRef}
             className="w-full h-full object-cover"
             playsInline
             poster={thumbnailUrl}
             controlsList="nodownload"
             onContextMenu={(e) => e.preventDefault()}
           />
-        ) : thumbnailUrl ? (
+        )}
+
+        {/* WebRTC player */}
+        {showWebRTC && (
+          <video
+            ref={webRTCVideoRef}
+            className="w-full h-full object-cover"
+            playsInline
+            autoPlay
+            muted={false}
+            controlsList="nodownload"
+            onContextMenu={(e) => e.preventDefault()}
+          />
+        )}
+
+        {/* Thumbnail fallback when WebRTC not yet connected */}
+        {showThumbnail && !showBunny && !webRTCConnected && (
           <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />
-        ) : (
+        )}
+
+        {/* Gradient overlay */}
+        {(!showBunny && !webRTCConnected && !thumbnailUrl) && (
           <div className="w-full h-full bg-gradient-to-b from-pink-900 to-black" />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+
+        {/* Connecting indicator for WebRTC */}
+        {showWebRTC && !webRTCConnected && !isEnded && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-white/70 text-sm font-medium">接続中...</p>
+            </div>
+          </div>
+        )}
 
         {/* Ended overlay */}
         {isEnded && (
@@ -233,7 +300,6 @@ export default function LiveRoom() {
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
 
-        {/* Creator + LIVE badge */}
         <button
           onClick={() => setLocation(`/creator/${stream.creatorId}`)}
           className="flex items-center gap-2 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5"
@@ -254,7 +320,6 @@ export default function LiveRoom() {
           )}
         </button>
 
-        {/* Viewer count */}
         <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
           <Users className="h-3.5 w-3.5 text-white/70" />
           <span className="text-white text-xs font-bold">{formatCount(viewerCount)}</span>
@@ -269,11 +334,10 @@ export default function LiveRoom() {
       {/* Spacer */}
       <div className="relative z-10 flex-1" />
 
-      {/* Bottom: chat + action buttons */}
+      {/* Chat messages */}
       <div className="relative z-10 flex items-end gap-2 px-3 pb-2">
-        {/* Chat messages */}
         <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1.5" style={{ maxHeight: "30vh" }}>
-          {displayedMessages.length === 0 && (
+          {displayedMessages.length === 0 && !isEnded && (
             <p className="text-white/30 text-xs text-center py-4">まだコメントはありません</p>
           )}
           {displayedMessages.map(msg => (
@@ -315,11 +379,7 @@ export default function LiveRoom() {
               className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg"
               data-testid="button-like-liveroom"
             >
-              <Heart
-                className={`h-6 w-6 transition-colors drop-shadow ${
-                  liked ? "text-pink-400 fill-pink-400" : "text-white"
-                }`}
-              />
+              <Heart className={`h-6 w-6 transition-colors drop-shadow ${liked ? "text-pink-400 fill-pink-400" : "text-white"}`} />
             </motion.button>
             <span className="text-white text-[10px] font-bold drop-shadow">{formatCount(likeCount)}</span>
           </div>
