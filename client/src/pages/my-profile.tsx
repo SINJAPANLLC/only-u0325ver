@@ -625,7 +625,7 @@ export default function MyProfile() {
         <TabsList className="w-full bg-transparent border-b border-white/10 rounded-none h-12 justify-start px-2">
           <TabsTrigger 
             value="videos" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-videos"
           >
             <div className="flex items-center gap-1">
@@ -635,14 +635,14 @@ export default function MyProfile() {
           </TabsTrigger>
           <TabsTrigger 
             value="shop" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-shop"
           >
             <ShoppingBag className="h-5 w-5" />
           </TabsTrigger>
           <TabsTrigger 
             value="liked" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-liked"
           >
             <Heart className="h-5 w-5" />
@@ -650,7 +650,7 @@ export default function MyProfile() {
           {creatorProfile && (
             <TabsTrigger 
               value="plans" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
               data-testid="tab-plans"
             >
               <Crown className="h-5 w-5" />
@@ -660,15 +660,15 @@ export default function MyProfile() {
         
         <TabsContent value="videos" className="mt-0">
           {creatorProfile && (
-            <div className="p-4 border-b border-border">
-              <Button onClick={() => setVideoUploadOpen(true)} className="w-full" data-testid="button-upload-video">
+            <div className="p-4 border-b border-white/10">
+              <Button onClick={() => setVideoUploadOpen(true)} className="w-full bg-pink-500 hover:bg-pink-600 text-white" data-testid="button-upload-video">
                 <Upload className="h-4 w-4 mr-2" />
                 動画を投稿
               </Button>
             </div>
           )}
           {!hasVideos ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-16 text-white/40">
               <Grid3X3 className="h-12 w-12 mb-4 opacity-50" />
               <p>コンテンツがありません</p>
             </div>
@@ -692,7 +692,7 @@ export default function MyProfile() {
               return (
                 <div 
                   key={video.id} 
-                  className="aspect-[9/16] relative bg-muted overflow-hidden group cursor-pointer"
+                  className="aspect-[9/16] relative bg-zinc-900 overflow-hidden group cursor-pointer"
                   onClick={handleVideoClick}
                   data-testid={`video-thumbnail-${video.id}`}
                 >
@@ -703,8 +703,8 @@ export default function MyProfile() {
                       className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${isPremium && !isOwner ? 'blur-md' : ''}`}
                     />
                   ) : (
-                    <div className={`absolute inset-0 flex items-center justify-center bg-muted ${isPremium && !isOwner ? 'blur-md' : ''}`}>
-                      <Video className="h-8 w-8 text-muted-foreground" />
+                    <div className={`absolute inset-0 flex items-center justify-center bg-zinc-900 ${isPremium && !isOwner ? 'blur-md' : ''}`}>
+                      <Video className="h-8 w-8 text-white/30" />
                     </div>
                   )}
                   {isPremium && !isOwner && (
@@ -751,8 +751,8 @@ export default function MyProfile() {
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <ShoppingBag className="h-12 w-12 text-muted-foreground opacity-20" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                      <ShoppingBag className="h-12 w-12 text-white/20" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -768,7 +768,7 @@ export default function MyProfile() {
                 </div>
               ))
             ) : (
-              <div className="col-span-2 flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <div className="col-span-2 flex flex-col items-center justify-center py-20 text-white/40">
                 <ShoppingBag className="h-12 w-12 mb-3 opacity-20" />
                 <p className="text-sm">商品がまだありません</p>
               </div>
@@ -800,8 +800,8 @@ export default function MyProfile() {
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <Video className="h-8 w-8 text-muted-foreground" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                      <Video className="h-8 w-8 text-white/30" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -817,7 +817,7 @@ export default function MyProfile() {
                 </div>
               ))
             ) : (
-              <div className="col-span-3 flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <div className="col-span-3 flex flex-col items-center justify-center py-20 text-white/40">
                 <Heart className="h-12 w-12 mb-2 opacity-20" />
                 <p className="text-sm">いいねした動画がありません</p>
               </div>
@@ -841,13 +841,13 @@ export default function MyProfile() {
                   {mySubscriptionPlans.map((plan) => (
                     <div 
                       key={plan.id} 
-                      className="bg-card border border-border rounded-lg p-4"
+                      className="bg-zinc-900 border border-white/10 rounded-lg p-4"
                       data-testid={`plan-card-${plan.id}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="font-bold text-lg">{plan.name}</h4>
-                          <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                          <p className="text-sm text-white/60 mt-1">{plan.description}</p>
                           <p className="text-pink-500 font-bold mt-2 text-lg">{plan.price.toLocaleString()}pt/月</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -883,7 +883,7 @@ export default function MyProfile() {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground bg-muted/50 rounded-lg">
+                <div className="flex flex-col items-center justify-center h-32 text-white/40 bg-zinc-900/50 rounded-lg">
                   <Crown className="h-8 w-8 mb-2 opacity-50" />
                   <p className="text-sm">プランを作成してファンからの収益を得ましょう</p>
                 </div>
