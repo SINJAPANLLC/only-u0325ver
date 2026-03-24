@@ -176,6 +176,7 @@ export const liveStreams = pgTable("live_streams", {
   description: text("description"),
   thumbnailUrl: varchar("thumbnail_url"),
   streamKey: varchar("stream_key"),
+  rtmpServerUrl: varchar("rtmp_server_url"),
   bunnyStreamId: varchar("bunny_stream_id"),
   bunnyPlaybackUrl: varchar("bunny_playback_url"),
   status: liveStatusEnum("status").default("scheduled"),

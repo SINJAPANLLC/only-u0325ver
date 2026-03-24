@@ -24,6 +24,7 @@ import {
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
+import { createWowzaLiveStream, stopWowzaLiveStream, deleteWowzaLiveStream, isWowzaConfigured } from "./services/wowza";
 import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
@@ -587,28 +588,33 @@ export async function registerRoutes(
       }
       let [stream] = await db.insert(liveStreams).values(insertData).returning();
       
-      // 1) Try to auto-create a Bunny live channel via API
-      let bunnyWhipUrl: string | null = null;
-      let bunnyAssigned = false;
+      // 1) Try Wowza Streaming Cloud (fully automatic, supports adult content)
+      let rtmpServerUrl: string | null = null;
+      let rtmpStreamKey: string | null = null;
+      let streamAssigned = false;
 
-      const autoChannel = await createBunnyLiveStream(`only-u-live-${stream.id}`);
-      if (autoChannel) {
-        const [updated] = await db.update(liveStreams)
-          .set({
-            bunnyStreamId: autoChannel.bunnyStreamId,
-            streamKey: autoChannel.streamKey,
-            bunnyPlaybackUrl: autoChannel.playbackUrl,
-          })
-          .where(eq(liveStreams.id, stream.id))
-          .returning();
-        stream = updated;
-        bunnyWhipUrl = autoChannel.whipUrl;
-        bunnyAssigned = true;
-        console.log("Bunny channel auto-created for stream:", stream.id);
+      if (isWowzaConfigured()) {
+        const wowzaStream = await createWowzaLiveStream(`only-u-live-${stream.id}`);
+        if (wowzaStream) {
+          const [updated] = await db.update(liveStreams)
+            .set({
+              bunnyStreamId: wowzaStream.wowzaStreamId,
+              streamKey: wowzaStream.streamKey,
+              rtmpServerUrl: wowzaStream.rtmpServerUrl,
+              bunnyPlaybackUrl: wowzaStream.playbackUrl,
+            })
+            .where(eq(liveStreams.id, stream.id))
+            .returning();
+          stream = updated;
+          rtmpServerUrl = wowzaStream.rtmpServerUrl;
+          rtmpStreamKey = wowzaStream.streamKey;
+          streamAssigned = true;
+          console.log("Wowza stream created:", wowzaStream.wowzaStreamId);
+        }
       }
 
-      // 2) Fall back to pre-registered pool if auto-creation failed
-      if (!bunnyAssigned) {
+      // 2) Fall back to Bunny pre-registered pool
+      if (!streamAssigned) {
         const bunnyChannel = await storage.getAvailableBunnyStreamChannel();
         if (bunnyChannel) {
           await storage.assignBunnyStreamChannel(bunnyChannel.id, stream.id);
@@ -621,10 +627,10 @@ export async function registerRoutes(
             .where(eq(liveStreams.id, stream.id))
             .returning();
           stream = updated;
-          bunnyWhipUrl = bunnyChannel.whipUrl;
+          streamAssigned = true;
           console.log("Bunny pool channel assigned:", bunnyChannel.id, "->", stream.id);
         } else {
-          console.log("No Bunny channel available (neither auto nor pool)");
+          console.log("No streaming channel available (Wowza not configured, Bunny pool empty)");
         }
       }
 
@@ -652,7 +658,7 @@ export async function registerRoutes(
         }).catch(err => console.error("Live stream moderation error:", err));
       }
       
-      res.status(201).json({ ...stream, bunnyWhipUrl });
+      res.status(201).json({ ...stream, rtmpServerUrl, rtmpStreamKey });
     } catch (error) {
       console.error("Error creating live stream:", error);
       res.status(500).json({ message: "Failed to create live stream" });
@@ -1330,10 +1336,20 @@ export async function registerRoutes(
         updateData.status = status;
         if (status === "ended") {
           updateData.endedAt = new Date();
-          // Release Bunny channel back to pool when stream ends
-          storage.releaseBunnyStreamChannel(id).catch(err =>
-            console.error("Failed to release Bunny stream channel:", err)
-          );
+          // Stop and delete Wowza stream (if using Wowza)
+          if (stream.bunnyStreamId && isWowzaConfigured()) {
+            stopWowzaLiveStream(stream.bunnyStreamId).then(() =>
+              deleteWowzaLiveStream(stream.bunnyStreamId!)
+            ).catch(err =>
+              console.error("Failed to stop/delete Wowza stream:", err)
+            );
+          }
+          // Release Bunny channel back to pool (if using Bunny pool)
+          if (!isWowzaConfigured()) {
+            storage.releaseBunnyStreamChannel(id).catch(err =>
+              console.error("Failed to release Bunny stream channel:", err)
+            );
+          }
         }
       }
 
@@ -1364,11 +1380,19 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      // Delete Bunny live stream too (async, non-blocking)
+      // Stop and delete Wowza stream (if configured), otherwise try Bunny
       if (stream.bunnyStreamId) {
-        deleteBunnyLiveStream(stream.bunnyStreamId).catch(err =>
-          console.error("Failed to delete Bunny live stream on deletion:", err)
-        );
+        if (isWowzaConfigured()) {
+          stopWowzaLiveStream(stream.bunnyStreamId).then(() =>
+            deleteWowzaLiveStream(stream.bunnyStreamId!)
+          ).catch(err =>
+            console.error("Failed to stop/delete Wowza stream on deletion:", err)
+          );
+        } else {
+          deleteBunnyLiveStream(stream.bunnyStreamId).catch(err =>
+            console.error("Failed to delete Bunny live stream on deletion:", err)
+          );
+        }
       }
       await db.delete(liveStreams).where(eq(liveStreams.id, id));
       res.json({ message: "Stream deleted" });

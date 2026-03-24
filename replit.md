@@ -160,27 +160,28 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
   - `GET /api/bunny/video/:bunnyVideoId/status` - ビデオエンコード状態確認
   - `PATCH /api/videos/:videoId/bunny` - ビデオにbunnyVideoIdを紐付け
 
-#### ライブ配信（Bunny Stream Channel方式）
-- **仕組み**: Bunny APIはライブチャンネルの動的作成をサポートしないため、管理者がBunnyダッシュボードで手動作成したチャンネルを登録するプール方式を採用
+#### ライブ配信（Wowza Streaming Cloud方式）
+- **サービス**: Wowza Streaming Cloud（アダルトコンテンツ対応・API完全自動化）
+- **仕組み**: クリエイターがライブ開始時にWowza APIで自動チャンネル作成→RTMP接続情報をUIに表示→クリエイターはOBSやLarix BroadcasterでRTMP配信→視聴者はHLSで視聴
 - **フロー**:
-  1. 管理者が Bunnyダッシュボードでライブチャンネルを作成し、Stream KeyとStream IDをコピー
-  2. 管理画面「Bunny Stream」タブからチャンネルを登録
-  3. クリエイターがライブ開始時に空きチャンネルが自動割り当て
-  4. クリエイター側: WHIP (`https://video.bunnycdn.com/live/{LIBRARY_ID}/{STREAM_KEY}/whip`) でブロードキャスト
-  5. 視聴者側: HLS (`https://{CDN_HOSTNAME}/{STREAM_ID}/playlist.m3u8`) で視聴
-  6. 配信終了時にチャンネルはプールに返却（再利用可能）
-- **Admin Routes**:
-  - `GET /api/admin/bunny-channels` - チャンネル一覧
-  - `POST /api/admin/bunny-channels` - チャンネル登録 (name, streamKey, streamId)
-  - `DELETE /api/admin/bunny-channels/:id` - チャンネル削除
-- **Schema**: `bunnyStreamChannels` テーブル (streamKey, streamId, whipUrl, playbackUrl, isAvailable, currentLiveStreamId)
-- **自動登録**: `BUNNY_STREAM_KEY`/`BUNNY_STREAM_ID` 環境変数（または番号付き `BUNNY_STREAM_KEY_1`/`BUNNY_STREAM_ID_1` など）が設定されていれば起動時に自動登録
+  1. クリエイターが「配信開始」をタップしてタイトルを設定
+  2. バックエンドがWowza APIで自動的にライブストリームを作成
+  3. クリエイターUIにRTMPサーバーURL・ストリームキーが表示される
+  4. クリエイターがOBS/Larixに接続情報を入力して配信開始
+  5. 視聴者はHLS（Wowzaが生成）で視聴
+  6. 配信終了時にWowzaストリームを自動停止・削除
+- **配信ツール**: OBS Studio（PC）またはLarix Broadcaster（iOS/Android）を推奨
+- **Service**: `server/services/wowza.ts`
+- **Schema**: `liveStreams`テーブルの`bunnyStreamId`（WowzaストリームID）、`streamKey`（RTMPキー）、`rtmpServerUrl`（RTMPサーバーURL）、`bunnyPlaybackUrl`（HLS再生URL）を利用
 - **Required Env Vars**:
+  - `WOWZA_API_KEY` - Wowza Cloud APIキー（要設定）
+  - `WOWZA_ACCESS_KEY` - Wowza Cloud アクセスキー（要設定）
+- **フォールバック**: Wowza未設定時はBunnyプール方式にフォールバック
+- **Bunny VOD継続**: Bunnyは動画アップロード（VOD）に引き続き利用
+- **Required Env Vars (VOD)**:
   - `BUNNY_LIBRARY_ID` - ビデオライブラリID (設定済み: 623903)
   - `BUNNY_CDN_HOSTNAME` - CDNホスト名 (設定済み: vz-edb8f34c-88a.b-cdn.net)
   - `VITE_BUNNY_CDN_HOSTNAME` - フロントエンド用CDNホスト名 (同じ値)
-  - `BUNNY_STREAM_KEY` - (オプション) デフォルトライブチャンネルのStream Key
-  - `BUNNY_STREAM_ID` - (オプション) デフォルトライブチャンネルのStream ID
 
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
