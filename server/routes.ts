@@ -1487,14 +1487,15 @@ export async function registerRoutes(
       const sdpOffer = Buffer.concat(chunks).toString("utf8");
 
       const whipUrl = `https://livepeer.studio/live/${stream.streamKey}/whip`;
+      console.log(`[WHIP] Proxying to ${whipUrl}, SDP length: ${sdpOffer.length}`);
       const lpRes = await fetch(whipUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/sdp",
-          "Authorization": `Bearer ${LIVEPEER_API_KEY}`,
         },
         body: sdpOffer,
       });
+      console.log(`[WHIP] Livepeer response: ${lpRes.status}`);
 
       const resBody = await lpRes.text();
       const locationHeader = lpRes.headers.get("Location");

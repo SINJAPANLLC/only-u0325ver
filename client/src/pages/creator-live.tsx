@@ -372,7 +372,7 @@ export default function CreatorLive() {
   // ─── STREAMING VIEW ───────────────────────────────────────────────────────
   if (viewMode === "streaming") {
     return (
-      <div className="fixed inset-0 bg-black flex flex-col" style={{ zIndex: 9999 }}>
+      <div className="absolute inset-0 bg-black flex flex-col overflow-hidden" style={{ zIndex: 9999 }}>
         {/* Camera */}
         <video
           ref={videoRef}
