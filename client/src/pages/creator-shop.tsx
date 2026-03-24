@@ -93,30 +93,12 @@ export default function CreatorShop() {
 
     setIsUploading(true);
     try {
-      const response = await fetch("/api/uploads/request-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: file.name,
-          size: file.size,
-          contentType: file.type,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get upload URL");
-
-      const { uploadURL, objectPath } = await response.json();
-
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-
-      if (!uploadResponse.ok) throw new Error("Failed to upload file");
-
-      const imageUrl = objectPath;
-      setForm(prev => ({ ...prev, imageUrl }));
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/uploads/bunny", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Failed to upload");
+      const { url } = await response.json();
+      setForm(prev => ({ ...prev, imageUrl: url }));
       setImagePreview(URL.createObjectURL(file));
       toast({ title: "画像をアップロードしました" });
     } catch (error) {
@@ -146,29 +128,12 @@ export default function CreatorShop() {
 
     setIsContentUploading(true);
     try {
-      const response = await fetch("/api/uploads/request-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: file.name,
-          size: file.size,
-          contentType: file.type,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get upload URL");
-
-      const { uploadURL, objectPath } = await response.json();
-
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-
-      if (!uploadResponse.ok) throw new Error("Failed to upload file");
-
-      setForm(prev => ({ ...prev, contentUrl: objectPath }));
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/uploads/bunny", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Failed to upload");
+      const { url } = await response.json();
+      setForm(prev => ({ ...prev, contentUrl: url }));
       setContentFileName(file.name);
       toast({ title: "ファイルをアップロードしました" });
     } catch (error) {
@@ -198,29 +163,12 @@ export default function CreatorShop() {
 
     setIsEditContentUploading(true);
     try {
-      const response = await fetch("/api/uploads/request-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: file.name,
-          size: file.size,
-          contentType: file.type,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get upload URL");
-
-      const { uploadURL, objectPath } = await response.json();
-
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-
-      if (!uploadResponse.ok) throw new Error("Failed to upload file");
-
-      setEditForm(prev => ({ ...prev, contentUrl: objectPath }));
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/uploads/bunny", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Failed to upload");
+      const { url } = await response.json();
+      setEditForm(prev => ({ ...prev, contentUrl: url }));
       setEditContentFileName(file.name);
       toast({ title: "ファイルをアップロードしました" });
     } catch (error) {
@@ -365,29 +313,12 @@ export default function CreatorShop() {
 
     setIsEditUploading(true);
     try {
-      const response = await fetch("/api/uploads/request-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: file.name,
-          size: file.size,
-          contentType: file.type,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get upload URL");
-
-      const { uploadURL, objectPath } = await response.json();
-
-      const uploadResponse = await fetch(uploadURL, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-
-      if (!uploadResponse.ok) throw new Error("Failed to upload file");
-
-      setEditForm(prev => ({ ...prev, imageUrl: objectPath }));
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/uploads/bunny", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Failed to upload");
+      const { url } = await response.json();
+      setEditForm(prev => ({ ...prev, imageUrl: url }));
       setEditImagePreview(URL.createObjectURL(file));
       toast({ title: "画像をアップロードしました" });
     } catch (error) {

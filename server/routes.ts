@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerEmailAuthRoutes } from "./emailAuth";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { uploadToBunnyStorage, isBunnyStorageConfigured } from "./services/bunny-storage";
+import multer from "multer";
 import { setupWebRTCSignaling } from "./webrtc";
 import { db } from "./db";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -123,7 +125,32 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerEmailAuthRoutes(app);
   registerObjectStorageRoutes(app);
-  
+
+  // Bunny Storage upload endpoint (replaces Replit object storage for new uploads)
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
+  app.post("/api/uploads/bunny", isAuthenticated, upload.single("file"), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+      if (!isBunnyStorageConfigured()) {
+        return res.status(503).json({ error: "Bunny Storage not configured" });
+      }
+      const result = await uploadToBunnyStorage(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+      if (!result) {
+        return res.status(500).json({ error: "Upload failed" });
+      }
+      res.json({ url: result.url, objectPath: result.url });
+    } catch (err) {
+      console.error("Bunny upload error:", err);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  });
+
   // Setup WebRTC signaling for live streaming
   setupWebRTCSignaling(httpServer);
 

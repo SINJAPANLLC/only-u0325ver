@@ -206,7 +206,7 @@ export default function CreatorContent() {
 
     const result = await uploadFile(file);
     if (result) {
-      setForm(prev => ({ ...prev, videoUrl: result.objectPath }));
+      setForm(prev => ({ ...prev, videoUrl: result.url || result.objectPath }));
       toast({ title: "動画をアップロードしました" });
     }
     setIsUploadingVideo(false);
@@ -227,7 +227,7 @@ export default function CreatorContent() {
 
     const result = await uploadFile(file);
     if (result) {
-      setForm(prev => ({ ...prev, thumbnailUrl: result.objectPath }));
+      setForm(prev => ({ ...prev, thumbnailUrl: result.url || result.objectPath }));
       toast({ title: "サムネイルをアップロードしました" });
     }
     setIsUploadingThumbnail(false);
@@ -248,10 +248,11 @@ export default function CreatorContent() {
 
     const result = await uploadFile(file);
     if (result) {
+      const url = result.url || result.objectPath;
       setForm(prev => ({ 
         ...prev, 
-        thumbnailUrl: result.objectPath,
-        videoUrl: result.objectPath 
+        thumbnailUrl: url,
+        videoUrl: url
       }));
       toast({ title: "画像をアップロードしました" });
     }
@@ -326,7 +327,7 @@ export default function CreatorContent() {
 
     const result = await uploadFile(file);
     if (result) {
-      setEditForm(prev => ({ ...prev, videoUrl: result.objectPath }));
+      setEditForm(prev => ({ ...prev, videoUrl: result.url || result.objectPath }));
       toast({ title: "動画をアップロードしました" });
     }
     setIsUploadingEditVideo(false);
@@ -347,7 +348,7 @@ export default function CreatorContent() {
 
     const result = await uploadFile(file);
     if (result) {
-      setEditForm(prev => ({ ...prev, thumbnailUrl: result.objectPath }));
+      setEditForm(prev => ({ ...prev, thumbnailUrl: result.url || result.objectPath }));
       toast({ title: "サムネイルをアップロードしました" });
     }
     setIsUploadingEditThumbnail(false);
