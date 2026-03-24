@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, PlaySquare, Heart, MessageCircle, UserPlus, Check, Loader2, Crown, Coins, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban, Truck, Film } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Share2, Grid3X3, Heart, MessageCircle, Check, Loader2, Crown, Lock, X, ShoppingBag, ChevronDown, Link as LinkIcon, Flag, Ban, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -168,7 +168,13 @@ export default function CreatorProfile() {
     enabled: Boolean(user && isRealCreator),
   });
 
-  const { data: subscriptionStatus } = useQuery<{ isSubscribed: boolean; subscription?: Subscription; subscribedPlanIds?: (string | null)[] }>({
+  const { data: subscriptionStatus } = useQuery<{ 
+    isSubscribed: boolean; 
+    subscription?: Subscription; 
+    subscriptions?: Subscription[];
+    subscribedPlanIds?: (string | null)[];
+    subscriptionDetails?: { planId: string | null; autoRenew: boolean | null; expiresAt: Date | string | null }[];
+  }>({
     queryKey: ["/api/subscription", creatorId],
     enabled: Boolean(user && creatorId),
   });
@@ -387,7 +393,7 @@ export default function CreatorProfile() {
     }
   };
 
-  const isFollowing = isRealCreator ? localIsFollowing : localIsFollowing;
+  const isFollowing = localIsFollowing;
   const isSubscribed = localIsSubscribed;
   const isLoading = followMutation.isPending || unfollowMutation.isPending;
   const isSubscribeLoading = subscribeMutation.isPending;
@@ -657,6 +663,27 @@ export default function CreatorProfile() {
               メッセージ
             </Button>
           </div>
+          <Button
+            variant="outline"
+            className={`w-full rounded-xl ${isFollowing ? "border-pink-500 text-pink-500 hover:bg-pink-500/10" : "border-white/20 text-white hover:bg-white/10"} bg-transparent`}
+            onClick={handleFollowToggle}
+            disabled={isLoading}
+            data-testid="button-follow"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : isFollowing ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                フォロー中
+              </>
+            ) : (
+              <>
+                <Heart className="h-4 w-4 mr-2" />
+                フォロー
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -1125,7 +1152,7 @@ export default function CreatorProfile() {
                   ) : (
                     <Button
                       className="w-full"
-                      onClick={() => setLocation("/login")}
+                      onClick={() => setLocation("/auth")}
                       data-testid="button-login-to-purchase"
                     >
                       ログインして購入
