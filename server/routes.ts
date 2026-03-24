@@ -1,3 +1,4 @@
+import express from "express";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
@@ -1461,7 +1462,7 @@ export async function registerRoutes(
   });
 
   // WHIP proxy: forward browser SDP offer to Livepeer with server-side auth
-  app.post("/api/live/:id/whip", isAuthenticated, async (req: any, res) => {
+  app.post("/api/live/:id/whip", isAuthenticated, express.text({ type: "application/sdp", limit: "1mb" }), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { id } = req.params;
@@ -1480,11 +1481,9 @@ export async function registerRoutes(
         return res.status(500).json({ message: "Livepeer not configured" });
       }
 
-      // Read raw body as text (SDP offer)
-      const chunks: Buffer[] = [];
-      req.on("data", (chunk: Buffer) => chunks.push(chunk));
-      await new Promise<void>((resolve) => req.on("end", resolve));
-      const sdpOffer = Buffer.concat(chunks).toString("utf8");
+      // Body parsed by express.text() middleware
+      const sdpOffer = typeof req.body === "string" ? req.body : String(req.body || "");
+      console.log(`[WHIP] Received SDP body length: ${sdpOffer.length}`);
 
       const whipUrl = `https://livepeer.studio/live/${stream.streamKey}/whip`;
       console.log(`[WHIP] Proxying to ${whipUrl}, SDP length: ${sdpOffer.length}`);

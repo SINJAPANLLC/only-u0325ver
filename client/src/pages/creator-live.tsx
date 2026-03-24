@@ -55,6 +55,8 @@ async function startWhipStream(
   stream: MediaStream,
   signal: AbortSignal
 ): Promise<RTCPeerConnection | null> {
+  console.log("[WHIP] Starting, tracks:", stream.getTracks().map(t => t.kind + ":" + t.enabled));
+
   const pc = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -66,11 +68,12 @@ async function startWhipStream(
 
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
+  console.log("[WHIP] Offer created, ICE gathering state:", pc.iceGatheringState);
 
-  // Wait for ICE gathering
+  // Wait for ICE gathering (max 5 seconds)
   await new Promise<void>((resolve) => {
     if (pc.iceGatheringState === "complete") { resolve(); return; }
-    const timer = setTimeout(resolve, 4000);
+    const timer = setTimeout(() => { console.log("[WHIP] ICE timeout, proceeding"); resolve(); }, 5000);
     pc.addEventListener("icegatheringstatechange", () => {
       if (pc.iceGatheringState === "complete") { clearTimeout(timer); resolve(); }
     });
@@ -79,13 +82,27 @@ async function startWhipStream(
     });
   });
 
-  const res = await fetch(`/api/live/${streamId}/whip`, {
-    method: "POST",
-    headers: { "Content-Type": "application/sdp" },
-    body: pc.localDescription!.sdp,
-    signal,
-  });
+  const sdp = pc.localDescription?.sdp;
+  if (!sdp) {
+    pc.close();
+    throw new Error("SDP is null after ICE gathering");
+  }
+  console.log("[WHIP] Sending SDP to proxy, length:", sdp.length);
 
+  let res: Response;
+  try {
+    res = await fetch(`/api/live/${streamId}/whip`, {
+      method: "POST",
+      headers: { "Content-Type": "application/sdp" },
+      body: sdp,
+      signal,
+    });
+  } catch (fetchErr: any) {
+    pc.close();
+    throw new Error(`Fetch error: ${fetchErr?.message || fetchErr}`);
+  }
+
+  console.log("[WHIP] Proxy response:", res.status);
   if (!res.ok) {
     const txt = await res.text();
     pc.close();
@@ -93,8 +110,10 @@ async function startWhipStream(
   }
 
   const answerSdp = await res.text();
+  console.log("[WHIP] Got answer SDP, length:", answerSdp.length);
   if (answerSdp.trim()) {
     await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+    console.log("[WHIP] Remote description set");
   }
 
   return pc;
@@ -210,8 +229,9 @@ export default function CreatorLive() {
       }
     } catch (err: any) {
       if (err.name !== "AbortError") {
-        console.error("WHIP failed:", err);
+        console.error("WHIP failed:", err?.message || err?.name || String(err), err);
         setWhipStatus("failed");
+        setShowRtmpInfo(true);
       }
     }
   }, []);

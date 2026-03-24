@@ -55,35 +55,55 @@ export default function LiveRoom() {
 
   // HLS readiness state
   const [hlsReady, setHlsReady] = useState(false);
+  const [hlsRetryCount, setHlsRetryCount] = useState(0);
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // HLS playback (Bunny)
   const hlsVideoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  const retryHls = useCallback(() => {
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    setHlsRetryCount(c => c + 1);
+  }, []);
+
   useEffect(() => {
     const video = hlsVideoRef.current;
     if (!video || !bunnyPlaybackUrl) return;
     setHlsReady(false);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+
     if (bunnyPlaybackUrl.endsWith(".m3u8") && Hls.isSupported()) {
       const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
       hlsRef.current = hls;
       hls.loadSource(bunnyPlaybackUrl);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
         video.muted = false;
         video.play().catch(() => {});
         setHlsReady(true);
       });
       hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) setHlsReady(false);
+        if (data.fatal) {
+          setHlsReady(false);
+          retryTimerRef.current = setTimeout(() => {
+            setHlsRetryCount(c => c + 1);
+          }, 15000);
+        }
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = bunnyPlaybackUrl;
       video.play().catch(() => {});
       setHlsReady(true);
     }
-    return () => { hlsRef.current?.destroy(); hlsRef.current = null; setHlsReady(false); };
-  }, [bunnyPlaybackUrl]);
+    return () => {
+      hlsRef.current?.destroy();
+      hlsRef.current = null;
+      setHlsReady(false);
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, [bunnyPlaybackUrl, hlsRetryCount]);
 
   // Fetch chat messages with polling
   const { data: chatData } = useQuery<LiveChatMessage[]>({
@@ -234,9 +254,17 @@ export default function LiveRoom() {
         {/* Waiting overlay: when live but HLS stream not yet ready */}
         {!isEnded && bunnyPlaybackUrl && !hlsReady && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="flex flex-col items-center gap-3 text-center">
+            <div className="flex flex-col items-center gap-4 text-center px-6">
               <div className="h-12 w-12 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/70 text-sm font-medium">配信を読み込み中...</p>
+              <p className="text-white/80 text-sm font-medium">映像を受信するまでお待ちください</p>
+              <p className="text-white/40 text-xs">配信者が映像を送信すると自動で再生されます</p>
+              <button
+                onClick={retryHls}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                今すぐ再読み込み
+              </button>
             </div>
           </div>
         )}
