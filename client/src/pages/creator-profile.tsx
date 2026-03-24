@@ -332,7 +332,7 @@ export default function CreatorProfile() {
     externalLink: (creatorProfile as any).externalLink || "",
     followers: creatorProfile.followerCount || 0,
     following: creatorProfile.followingCount || 0,
-    likes: 0,
+    likes: (creatorVideos || []).reduce((sum, v) => sum + (v.likeCount || 0), 0),
     posts: creatorProfile.postCount || 0,
     isVerified: creatorProfile.isVerified || false,
     videos: (creatorVideos || []).map((v, i) => ({
@@ -604,11 +604,11 @@ export default function CreatorProfile() {
         {/* Handle */}
         <p className="text-white/50 text-sm mt-1">@{creator.name}</p>
 
-        {/* Posts count */}
+        {/* Likes count */}
         <div className="flex items-center justify-center mt-4">
           <div className="text-center">
-            <p className="text-lg font-bold">{creator.posts}</p>
-            <p className="text-xs text-white/50">投稿</p>
+            <p className="text-lg font-bold">{formatCount(creator.likes)}</p>
+            <p className="text-xs text-white/50">いいね</p>
           </div>
         </div>
 
@@ -785,7 +785,7 @@ export default function CreatorProfile() {
         <TabsList className="w-full bg-transparent border-b border-white/10 rounded-none h-12 justify-start px-2">
           <TabsTrigger 
             value="videos" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 data-[state=active]:border-b-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-videos"
           >
             <div className="flex items-center gap-1">
@@ -795,14 +795,14 @@ export default function CreatorProfile() {
           </TabsTrigger>
           <TabsTrigger 
             value="shop" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-shop"
           >
             <ShoppingBag className="h-5 w-5" />
           </TabsTrigger>
           <TabsTrigger 
             value="liked" 
-            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-white text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent"
+            className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-pink-500 text-white/50 data-[state=active]:text-white rounded-none h-full bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             data-testid="tab-liked"
           >
             <Heart className="h-5 w-5" />
