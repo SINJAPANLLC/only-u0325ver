@@ -1460,6 +1460,72 @@ export async function registerRoutes(
     }
   });
 
+  // WHIP proxy: forward browser SDP offer to Livepeer with server-side auth
+  app.post("/api/live/:id/whip", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+
+      const [stream] = await db
+        .select()
+        .from(liveStreams)
+        .where(and(eq(liveStreams.id, id), eq(liveStreams.creatorId, userId)));
+
+      if (!stream || !stream.streamKey) {
+        return res.status(404).json({ message: "Stream not found" });
+      }
+
+      const LIVEPEER_API_KEY = process.env.LIVEPEER_API_KEY;
+      if (!LIVEPEER_API_KEY) {
+        return res.status(500).json({ message: "Livepeer not configured" });
+      }
+
+      // Read raw body as text (SDP offer)
+      const chunks: Buffer[] = [];
+      req.on("data", (chunk: Buffer) => chunks.push(chunk));
+      await new Promise<void>((resolve) => req.on("end", resolve));
+      const sdpOffer = Buffer.concat(chunks).toString("utf8");
+
+      const whipUrl = `https://livepeer.studio/live/${stream.streamKey}/whip`;
+      const lpRes = await fetch(whipUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/sdp",
+          "Authorization": `Bearer ${LIVEPEER_API_KEY}`,
+        },
+        body: sdpOffer,
+      });
+
+      const resBody = await lpRes.text();
+      const locationHeader = lpRes.headers.get("Location");
+
+      res.status(lpRes.status);
+      res.setHeader("Content-Type", "application/sdp");
+      if (locationHeader) res.setHeader("Location", locationHeader);
+      res.send(resBody);
+    } catch (error) {
+      console.error("WHIP proxy error:", error);
+      res.status(500).json({ message: "WHIP proxy failed" });
+    }
+  });
+
+  // WHIP DELETE proxy (cleanup)
+  app.delete("/api/live/:id/whip-resource", isAuthenticated, async (req: any, res) => {
+    try {
+      const { resourcePath } = req.body;
+      const LIVEPEER_API_KEY = process.env.LIVEPEER_API_KEY;
+      if (resourcePath && LIVEPEER_API_KEY) {
+        await fetch(resourcePath, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${LIVEPEER_API_KEY}` },
+        }).catch(() => {});
+      }
+      res.json({ success: true });
+    } catch {
+      res.json({ success: true });
+    }
+  });
+
   // Cleanup stale live streams (called periodically or on demand)
   const cleanupStaleLiveStreams = async () => {
     try {
