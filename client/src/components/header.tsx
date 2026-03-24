@@ -34,7 +34,7 @@ const pageTitles: Record<string, string> = {
 export function Header({ variant = "solid" }: HeaderProps) {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user } = useAuth();
 
   const { data: unreadData } = useQuery<{ count: number }>({
@@ -43,6 +43,12 @@ export function Header({ variant = "solid" }: HeaderProps) {
     refetchInterval: 30000,
   });
   const notificationCount = unreadData?.count || 0;
+
+  const { data: pointsData } = useQuery<{ points: number }>({
+    queryKey: ["/api/user/points"],
+    enabled: !!user,
+    refetchInterval: 60000,
+  });
 
   const pageTitle = pageTitles[location];
   const isOverlay = variant === "overlay";
@@ -83,6 +89,18 @@ export function Header({ variant = "solid" }: HeaderProps) {
           </div>
 
           <div className="flex items-center gap-0.5">
+            {user && pointsData !== undefined && (
+              <button
+                onClick={() => setLocation("/points-purchase")}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-50 hover:bg-pink-100 transition-colors"
+                data-testid="button-points-balance"
+              >
+                <span className="text-pink-500 text-xs font-bold">
+                  {(pointsData.points ?? 0).toLocaleString()}
+                </span>
+                <span className="text-pink-400 text-[10px] font-medium">ポイント</span>
+              </button>
+            )}
             <Button
               variant="ghost"
               size="icon"
