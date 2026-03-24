@@ -20,10 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import type { CreatorProfile as CreatorProfileType, Video, Subscription, SubscriptionPlan, Product } from "@shared/schema";
 
@@ -667,64 +663,70 @@ export default function CreatorProfile() {
       </div>
 
         <Dialog open={showSubscribeDialog} onOpenChange={setShowSubscribeDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>プレミアム登録</DialogTitle>
-              <DialogDescription>
-                {creator.displayName}のプレミアムコンテンツにアクセスできるようになります
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-3">
+          <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl" aria-describedby={undefined}>
+            {/* Header gradient */}
+            <div className="bg-gradient-to-br from-pink-500 to-rose-600 px-6 pt-6 pb-8 text-white relative">
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, white 0%, transparent 60%)" }} />
+              <Crown className="h-7 w-7 mb-2 opacity-90" />
+              <h2 className="text-xl font-bold">プレミアム登録</h2>
+              <p className="text-sm text-white/80 mt-1">{creator.displayName}の限定コンテンツにアクセス</p>
+            </div>
+
+            <div className="px-5 pt-5 pb-3 space-y-2.5">
               {subscriptionPlans && subscriptionPlans.length > 0 ? (
                 subscriptionPlans.map((plan) => {
                   const isAlreadySubscribed = subscriptionStatus?.subscribedPlanIds?.includes(plan.id);
+                  const isSelected = selectedPlanId === plan.id;
                   return (
                     <div
                       key={plan.id}
                       onClick={() => !isAlreadySubscribed && setSelectedPlanId(plan.id)}
-                      className={`flex items-center justify-between p-4 rounded-lg transition-all border-2 ${
+                      className={`relative flex items-center justify-between p-4 rounded-xl transition-all border-2 ${
                         isAlreadySubscribed
-                          ? "border-pink-500 bg-pink-500/10 cursor-default"
-                          : selectedPlanId === plan.id
-                          ? "border-pink-500 bg-pink-500/10 cursor-pointer"
-                          : "border-muted bg-muted hover:border-pink-300 cursor-pointer"
+                          ? "border-pink-400 bg-pink-50 dark:bg-pink-950/30 cursor-default"
+                          : isSelected
+                          ? "border-pink-400 bg-pink-50 dark:bg-pink-950/30 cursor-pointer shadow-sm"
+                          : "border-border bg-muted/40 hover:border-pink-200 hover:bg-pink-50/50 dark:hover:bg-pink-950/10 cursor-pointer"
                       }`}
                       data-testid={`plan-option-${plan.tier}`}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{plan.name}</p>
+                      {isSelected && !isAlreadySubscribed && (
+                        <div className="absolute top-3 right-3 h-4 w-4 rounded-full bg-pink-500 flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5 text-white" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 pr-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-semibold text-sm">{plan.name}</p>
                           {isAlreadySubscribed && (
-                            <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
-                              <Check className="h-3 w-3" />
-                              加入中
+                            <span className="inline-flex items-center gap-1 text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full">
+                              <Check className="h-2.5 w-2.5" />加入中
                             </span>
                           )}
                           {!isAlreadySubscribed && plan.tier === 3 && (
-                            <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-2 py-0.5 rounded">VIP</span>
+                            <span className="text-xs bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-2 py-0.5 rounded-full font-medium">VIP</span>
                           )}
                           {!isAlreadySubscribed && plan.tier === 2 && (
-                            <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded">人気</span>
+                            <span className="text-xs bg-pink-500 text-white px-2 py-0.5 rounded-full font-medium">人気</span>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{plan.description}</p>
+                        {plan.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{plan.description}</p>
+                        )}
                         {isAlreadySubscribed && (() => {
                           const details = subscriptionStatus?.subscriptionDetails?.find((d: any) => d.planId === plan.id);
                           const autoRenew = details?.autoRenew !== false;
                           const expiresAt = details?.expiresAt ? new Date(details.expiresAt) : null;
-                          
                           return (
-                            <div className="mt-2">
+                            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                               {expiresAt && (
-                                <p className="text-xs text-muted-foreground mb-1">
-                                  {autoRenew ? "次回更新日" : "期限"}: {expiresAt.toLocaleDateString('ja-JP')}
+                                <p className="text-xs text-muted-foreground">
+                                  {autoRenew ? "更新日" : "期限"}: {expiresAt.toLocaleDateString('ja-JP')}
                                 </p>
                               )}
                               {autoRenew ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-pink-500 hover:text-pink-600 hover:bg-pink-50 p-0 h-auto"
+                                <button
+                                  className="text-xs text-pink-500 hover:text-pink-600 underline underline-offset-2"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (confirm("このプランの自動更新を停止しますか？期限まで視聴できます。")) {
@@ -735,52 +737,52 @@ export default function CreatorProfile() {
                                   data-testid={`button-cancel-subscription-${plan.tier}`}
                                 >
                                   {cancelSubscriptionMutation.isPending ? "処理中..." : "自動更新を停止"}
-                                </Button>
+                                </button>
                               ) : (
-                                <span className="text-xs text-orange-500">自動更新停止中</span>
+                                <span className="text-xs text-orange-500 font-medium">自動更新停止中</span>
                               )}
                             </div>
                           );
                         })()}
                       </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-pink-500">{plan.price.toLocaleString()}</p>
+                      <div className="text-right shrink-0">
+                        <p className="text-lg font-bold text-pink-500">{plan.price.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">pt/月</p>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl border-2 border-border">
                   <div>
-                    <p className="font-medium">月額プラン</p>
-                    <p className="text-sm text-muted-foreground">30日間のアクセス</p>
+                    <p className="font-semibold text-sm">月額プラン</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">30日間フルアクセス</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-pink-500">{DEFAULT_SUBSCRIPTION_PRICE}</p>
-                    <p className="text-xs text-muted-foreground">ポイント/月</p>
+                    <p className="text-lg font-bold text-pink-500">{DEFAULT_SUBSCRIPTION_PRICE}</p>
+                    <p className="text-xs text-muted-foreground">pt/月</p>
                   </div>
                 </div>
               )}
-              <div className="mt-4 text-sm text-muted-foreground">
-                <p>ポイントが即座に消費されます</p>
-              </div>
+
+              <p className="text-xs text-muted-foreground text-center pt-1">登録するとポイントが即座に消費されます</p>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSubscribeDialog(false)}>
+
+            <div className="px-5 pb-5 flex gap-2.5">
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setShowSubscribeDialog(false)}>
                 キャンセル
               </Button>
-              <Button 
+              <Button
                 onClick={confirmSubscribe}
                 disabled={isSubscribeLoading || (subscriptionPlans && subscriptionPlans.length > 0 && !selectedPlanId)}
-                className="bg-pink-500 hover:bg-pink-600"
+                className="flex-1 rounded-xl bg-pink-500 hover:bg-pink-600 text-white"
               >
                 {isSubscribeLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                 ) : null}
-                登録する（{getSubscriptionPrice().toLocaleString()}pt）
+                {getSubscriptionPrice().toLocaleString()}pt で登録
               </Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
         
@@ -984,162 +986,168 @@ export default function CreatorProfile() {
 
       {/* Product Detail Modal with Purchase */}
       <Dialog open={productDetailOpen} onOpenChange={setProductDetailOpen}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-sm p-0 overflow-hidden rounded-2xl max-h-[92vh]" aria-describedby={undefined}>
           {selectedProduct && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedProduct.name}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="aspect-square relative rounded-lg overflow-hidden">
-                  <img 
-                    src={selectedProduct.imageUrl || img1} 
-                    alt={selectedProduct.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <span className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs font-bold text-white">
-                      {selectedProduct.productType === "digital" ? "デジタル" : "物販"}
-                    </span>
-                  </div>
+            <div className="flex flex-col max-h-[92vh]">
+              {/* Product image */}
+              <div className="relative w-full aspect-[4/3] shrink-0">
+                <img
+                  src={selectedProduct.imageUrl || img1}
+                  alt={selectedProduct.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute top-3 left-3">
+                  <span className="px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-xs font-semibold text-white">
+                    {selectedProduct.productType === "digital" ? "デジタル" : "物販"}
+                  </span>
                 </div>
-                
+                <div className="absolute bottom-3 left-4 right-4">
+                  <h2 className="text-white font-bold text-lg leading-snug drop-shadow">{selectedProduct.name}</h2>
+                  <p className="text-pink-300 font-bold text-xl mt-0.5">{selectedProduct.price.toLocaleString()}<span className="text-sm font-normal text-white/70 ml-1">pt</span></p>
+                </div>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="overflow-y-auto flex-1 px-5 pt-4 pb-2 space-y-4">
                 {selectedProduct.description && (
-                  <p className="text-sm text-muted-foreground">{selectedProduct.description}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{selectedProduct.description}</p>
                 )}
-                
-                <div className="bg-muted rounded-lg p-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">現在の保有ポイント</span>
-                    <span className="font-medium">{userPoints.toLocaleString()}pt</span>
+
+                {/* Point summary */}
+                <div className="rounded-xl bg-muted/50 border border-border p-3.5 space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">保有ポイント</span>
+                    <span className="font-semibold">{userPoints.toLocaleString()}pt</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="border-t border-border/60 pt-2 flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">購入後の残高</span>
-                    <span className={`font-medium ${userPoints < selectedProduct.price ? "text-destructive" : ""}`}>
+                    <span className={`font-semibold ${userPoints < selectedProduct.price ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`}>
                       {(userPoints - selectedProduct.price).toLocaleString()}pt
                     </span>
                   </div>
                 </div>
-                
+
                 {userPoints < selectedProduct.price && (
-                  <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
-                    ポイントが不足しています。ポイントをチャージしてください。
+                  <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-3 text-sm">
+                    ポイントが不足しています。チャージしてから購入してください。
                   </div>
                 )}
 
                 {selectedProduct.productType === "physical" && userPoints >= selectedProduct.price && (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Truck className="h-4 w-4" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
                       配送先情報
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       <div>
-                        <Label htmlFor="shipping-name-creator" className="text-xs">お名前 *</Label>
+                        <Label htmlFor="shipping-name-creator" className="text-xs text-muted-foreground mb-1 block">お名前 *</Label>
                         <Input
                           id="shipping-name-creator"
                           value={shippingInfo.name}
                           onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
                           placeholder="山田 太郎"
-                          className="h-9"
+                          className="h-9 rounded-lg"
                           data-testid="input-shipping-name"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="shipping-postal-creator" className="text-xs">郵便番号 *</Label>
+                        <Label htmlFor="shipping-postal-creator" className="text-xs text-muted-foreground mb-1 block">郵便番号 *</Label>
                         <Input
                           id="shipping-postal-creator"
                           value={shippingInfo.postalCode}
                           onChange={(e) => setShippingInfo({ ...shippingInfo, postalCode: e.target.value })}
                           placeholder="123-4567"
-                          className="h-9"
+                          className="h-9 rounded-lg"
                           data-testid="input-shipping-postal"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="shipping-address-creator" className="text-xs">住所 *</Label>
+                        <Label htmlFor="shipping-address-creator" className="text-xs text-muted-foreground mb-1 block">住所 *</Label>
                         <Input
                           id="shipping-address-creator"
                           value={shippingInfo.address}
                           onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
                           placeholder="東京都渋谷区..."
-                          className="h-9"
+                          className="h-9 rounded-lg"
                           data-testid="input-shipping-address"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="shipping-phone-creator" className="text-xs">電話番号 *</Label>
+                        <Label htmlFor="shipping-phone-creator" className="text-xs text-muted-foreground mb-1 block">電話番号 *</Label>
                         <Input
                           id="shipping-phone-creator"
                           value={shippingInfo.phone}
                           onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
                           placeholder="090-1234-5678"
-                          className="h-9"
+                          className="h-9 rounded-lg"
                           data-testid="input-shipping-phone"
                         />
                       </div>
                     </div>
                   </div>
                 )}
-                
-                <DialogFooter className="flex-col gap-2 sm:flex-col">
-                  {user ? (
-                    <>
-                      <Button
-                        className="w-full bg-pink-500 hover:bg-pink-600"
-                        disabled={userPoints < selectedProduct.price || purchaseMutation.isPending || (selectedProduct.productType === "physical" && (!shippingInfo.name || !shippingInfo.postalCode || !shippingInfo.address || !shippingInfo.phone))}
-                        onClick={() => {
-                          if (selectedProduct.productType === "physical") {
-                            purchaseMutation.mutate({
-                              productId: selectedProduct.id,
-                              shipping: {
-                                shippingName: shippingInfo.name,
-                                shippingPostalCode: shippingInfo.postalCode,
-                                shippingAddress: shippingInfo.address,
-                                shippingPhone: shippingInfo.phone,
-                              },
-                            });
-                          } else {
-                            purchaseMutation.mutate({ productId: selectedProduct.id });
-                          }
-                        }}
-                        data-testid="button-purchase"
-                      >
-                        {purchaseMutation.isPending ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            購入中...
-                          </>
-                        ) : (
-                          `${selectedProduct.price.toLocaleString()}pt で購入`
-                        )}
-                      </Button>
-                      {userPoints < selectedProduct.price && (
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            setProductDetailOpen(false);
-                            setLocation("/points-purchase");
-                          }}
-                          data-testid="button-buy-points"
-                        >
-                          ポイントを購入する
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <Button
-                      className="w-full"
-                      onClick={() => setLocation("/auth")}
-                      data-testid="button-login-to-purchase"
-                    >
-                      ログインして購入
-                    </Button>
-                  )}
-                </DialogFooter>
               </div>
-            </>
+
+              {/* Footer */}
+              <div className="px-5 py-4 border-t border-border/60 space-y-2.5">
+                {user ? (
+                  <>
+                    <Button
+                      className="w-full rounded-xl bg-pink-500 hover:bg-pink-600 text-white h-11"
+                      disabled={userPoints < selectedProduct.price || purchaseMutation.isPending || (selectedProduct.productType === "physical" && (!shippingInfo.name || !shippingInfo.postalCode || !shippingInfo.address || !shippingInfo.phone))}
+                      onClick={() => {
+                        if (selectedProduct.productType === "physical") {
+                          purchaseMutation.mutate({
+                            productId: selectedProduct.id,
+                            shipping: {
+                              shippingName: shippingInfo.name,
+                              shippingPostalCode: shippingInfo.postalCode,
+                              shippingAddress: shippingInfo.address,
+                              shippingPhone: shippingInfo.phone,
+                            },
+                          });
+                        } else {
+                          purchaseMutation.mutate({ productId: selectedProduct.id });
+                        }
+                      }}
+                      data-testid="button-purchase"
+                    >
+                      {purchaseMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          購入中...
+                        </>
+                      ) : (
+                        `${selectedProduct.price.toLocaleString()}pt で購入`
+                      )}
+                    </Button>
+                    {userPoints < selectedProduct.price && (
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-xl h-10"
+                        onClick={() => {
+                          setProductDetailOpen(false);
+                          setLocation("/points-purchase");
+                        }}
+                        data-testid="button-buy-points"
+                      >
+                        ポイントをチャージする
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Button
+                    className="w-full rounded-xl h-11 bg-pink-500 hover:bg-pink-600 text-white"
+                    onClick={() => setLocation("/auth")}
+                    data-testid="button-login-to-purchase"
+                  >
+                    ログインして購入
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
