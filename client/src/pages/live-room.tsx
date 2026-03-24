@@ -5,7 +5,7 @@ import {
   Coins, PartyPopper, Zap, LogOut, Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useLocation, useParams } from "wouter";
+import { useLocation, useParams, useSearch } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -42,6 +42,8 @@ function formatTime(s: number) {
 export default function LiveRoom() {
   const params = useParams<{ streamId: string }>();
   const streamId = params.streamId || "";
+  const search = useSearch();
+  const urlMode = new URLSearchParams(search).get("mode") as "party" | "twoshot" | null;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -232,6 +234,15 @@ export default function LiveRoom() {
       toast({ title: "セッションを終了しました" });
     },
   });
+
+  // Auto-join from URL mode param (set when entering from live list)
+  const autoJoinDone = useRef(false);
+  useEffect(() => {
+    if (autoJoinDone.current) return;
+    if (!urlMode || !stream || !user || activeMode) return;
+    autoJoinDone.current = true;
+    joinMutation.mutate(urlMode);
+  }, [urlMode, stream?.id, user?.id]);
 
   // Chat
   const { data: chatData } = useQuery<LiveChatMessage[]>({

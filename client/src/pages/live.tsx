@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Heart, Radio } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, Radio, Users, Zap, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
@@ -28,7 +28,7 @@ interface StreamData {
   twoshotRatePerMinute?: number;
 }
 
-function StreamCard({ stream }: { stream: StreamData }) {
+function StreamCard({ stream, onEnterClick }: { stream: StreamData; onEnterClick: (s: StreamData) => void }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(stream.likeCount);
   const [, setLocation] = useLocation();
@@ -76,7 +76,7 @@ function StreamCard({ stream }: { stream: StreamData }) {
 
   const handleEnter = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLocation(`/live-room/${stream.id}`);
+    onEnterClick(stream);
   };
 
   const handleProfile = (e: React.MouseEvent) => {
@@ -185,6 +185,8 @@ export default function Live() {
   const [index, setIndex] = useState(0);
   const locked = useRef(false);
   const startY = useRef(0);
+  const [modeSheet, setModeSheet] = useState<StreamData | null>(null);
+  const [, setLocation] = useLocation();
 
   const { data: liveStreamsData, isLoading } = useQuery<any[]>({
     queryKey: ["/api/live/active"],
@@ -204,6 +206,16 @@ export default function Live() {
     partyRatePerMinute: s.partyRatePerMinute,
     twoshotRatePerMinute: s.twoshotRatePerMinute,
   }));
+
+  const handleEnterClick = (stream: StreamData) => {
+    const hasParty = stream.partyRatePerMinute != null;
+    const hasTwoshot = stream.twoshotRatePerMinute != null;
+    // If both modes available, show choice sheet
+    if (hasParty && hasTwoshot) { setModeSheet(stream); return; }
+    // If only one mode, navigate directly
+    const mode = hasParty ? "party" : hasTwoshot ? "twoshot" : null;
+    setLocation(mode ? `/live-room/${stream.id}?mode=${mode}` : `/live-room/${stream.id}`);
+  };
 
   const navigate = (dir: 1 | -1) => {
     if (locked.current) return;
@@ -283,7 +295,7 @@ export default function Live() {
             >
               {streams.map((stream) => (
                 <div key={stream.id} style={{ height: "100%", width: "100%", position: "relative" }}>
-                  <StreamCard stream={stream} />
+                  <StreamCard stream={stream} onEnterClick={handleEnterClick} />
                 </div>
               ))}
             </div>
@@ -291,6 +303,78 @@ export default function Live() {
         </div>
       </div>
       <BottomNavigation />
+
+      {/* Mode selection bottom sheet */}
+      <AnimatePresence>
+        {modeSheet && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50"
+              onClick={() => setModeSheet(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 rounded-t-3xl p-6 pb-10 max-w-[480px] mx-auto"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-white font-bold text-base">{modeSheet.title}</p>
+                  <p className="text-white/50 text-xs mt-0.5">入室モードを選択してください</p>
+                </div>
+                <button onClick={() => setModeSheet(null)} className="h-8 w-8 flex items-center justify-center rounded-full bg-white/10">
+                  <X className="h-4 w-4 text-white" />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {modeSheet.partyRatePerMinute != null && (
+                  <button
+                    onClick={() => { setLocation(`/live-room/${modeSheet.id}?mode=party`); setModeSheet(null); }}
+                    className="w-full flex items-center gap-4 bg-pink-500/15 border border-pink-500/30 rounded-2xl p-4 active:bg-pink-500/25 transition-colors"
+                    data-testid="button-mode-party"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-pink-500/20 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-pink-400" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="text-white font-bold text-sm">パーティー</p>
+                      <p className="text-white/50 text-xs mt-0.5">複数人で一緒に視聴 · {modeSheet.partyRatePerMinute}pt/分</p>
+                    </div>
+                    <span className="text-pink-400 text-xs font-bold bg-pink-500/20 px-2.5 py-1 rounded-full">
+                      {modeSheet.partyRatePerMinute}pt/分
+                    </span>
+                  </button>
+                )}
+
+                {modeSheet.twoshotRatePerMinute != null && (
+                  <button
+                    onClick={() => { setLocation(`/live-room/${modeSheet.id}?mode=twoshot`); setModeSheet(null); }}
+                    className="w-full flex items-center gap-4 bg-violet-500/15 border border-violet-500/30 rounded-2xl p-4 active:bg-violet-500/25 transition-colors"
+                    data-testid="button-mode-twoshot"
+                  >
+                    <div className="h-12 w-12 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                      <Zap className="h-6 w-6 text-violet-400" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="text-white font-bold text-sm">2ショット</p>
+                      <p className="text-white/50 text-xs mt-0.5">クリエイターと1対1 · {modeSheet.twoshotRatePerMinute}pt/分</p>
+                    </div>
+                    <span className="text-violet-400 text-xs font-bold bg-violet-500/20 px-2.5 py-1 rounded-full">
+                      {modeSheet.twoshotRatePerMinute}pt/分
+                    </span>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
