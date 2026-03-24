@@ -152,7 +152,7 @@ export default function Messages() {
                 placeholder="検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 rounded-xl bg-white/8 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/30 text-sm text-white placeholder:text-white/30"
+                className="pl-9 h-9 rounded-xl bg-zinc-800 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/30 text-sm text-white placeholder:text-white/30"
                 data-testid="input-search-messages"
               />
             </div>
