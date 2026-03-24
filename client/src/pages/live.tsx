@@ -24,6 +24,8 @@ interface StreamData {
   viewerCount: number;
   thumbnailUrl?: string;
   bunnyPlaybackUrl?: string;
+  partyRatePerMinute?: number;
+  twoshotRatePerMinute?: number;
 }
 
 function StreamCard({ stream }: { stream: StreamData }) {
@@ -153,13 +155,27 @@ function StreamCard({ stream }: { stream: StreamData }) {
           <span className="text-white font-bold text-sm drop-shadow">{stream.creatorName}</span>
         </button>
         <p className="text-white/90 text-sm drop-shadow leading-snug mb-3 line-clamp-2">{stream.title}</p>
-        <button
-          onClick={handleEnter}
-          className="bg-pink-500 active:bg-pink-700 text-white text-sm font-bold px-5 py-2 rounded-full shadow-lg"
-          data-testid={`button-enter-${stream.id}`}
-        >
-          入室する
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleEnter}
+            className="bg-pink-500 active:bg-pink-700 text-white text-sm font-bold px-5 py-2 rounded-full shadow-lg"
+            data-testid={`button-enter-${stream.id}`}
+          >
+            入室する
+          </button>
+          {stream.partyRatePerMinute != null && (
+            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              <span className="text-yellow-300 text-[10px] font-bold">パーティー</span>
+              <span className="text-white text-[10px] font-bold">{stream.partyRatePerMinute}pt/分</span>
+            </div>
+          )}
+          {stream.twoshotRatePerMinute != null && (
+            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              <span className="text-pink-300 text-[10px] font-bold">2ショット</span>
+              <span className="text-white text-[10px] font-bold">{stream.twoshotRatePerMinute}pt/分</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -185,6 +201,8 @@ export default function Live() {
     viewerCount: s.viewerCount || 0,
     thumbnailUrl: s.thumbnailUrl,
     bunnyPlaybackUrl: s.bunnyPlaybackUrl,
+    partyRatePerMinute: s.partyRatePerMinute,
+    twoshotRatePerMinute: s.twoshotRatePerMinute,
   }));
 
   const navigate = (dir: 1 | -1) => {
