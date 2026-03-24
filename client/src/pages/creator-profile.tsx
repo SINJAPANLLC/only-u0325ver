@@ -601,8 +601,6 @@ export default function CreatorProfile() {
           </h1>
         </div>
 
-        {/* Handle */}
-        <p className="text-white/50 text-sm mt-1">@{creator.name}</p>
 
         {/* Likes count */}
         <div className="flex items-center justify-center mt-4">
