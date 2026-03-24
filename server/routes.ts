@@ -2844,14 +2844,23 @@ export async function registerRoutes(
         price = SUBSCRIPTION_PRICES[planName];
       }
 
-      const [creator] = await db
+      let [creator] = await db
         .select()
         .from(creatorProfiles)
         .where(eq(creatorProfiles.userId, creatorId));
 
       if (!creator) {
+        [creator] = await db
+          .select()
+          .from(creatorProfiles)
+          .where(eq(creatorProfiles.id, creatorId));
+      }
+
+      if (!creator) {
         return res.status(404).json({ message: "Creator not found" });
       }
+
+      const creatorUserId = creator.userId;
 
       // Check if already subscribed to this specific plan
       if (planId) {
@@ -2891,11 +2900,11 @@ export async function registerRoutes(
           totalEarnings: sql`COALESCE(${creatorProfiles.totalEarnings}, 0) + ${price}`,
           availableBalance: sql`COALESCE(${creatorProfiles.availableBalance}, 0) + ${price}`,
         })
-        .where(eq(creatorProfiles.userId, creatorId));
+        .where(eq(creatorProfiles.userId, creatorUserId));
 
       // Record subscription transaction for creator
       await db.insert(pointTransactions).values({
-        userId: creatorId,
+        userId: creatorUserId,
         type: "bonus",
         amount: price,
         description: `サブスク収益: ${planName}`,
