@@ -11,48 +11,6 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import type { Message, Conversation } from "@shared/schema";
 
-import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
-import img2 from "@assets/generated_images/nude_bath_2.jpg";
-import img3 from "@assets/generated_images/lingerie_bed_3.jpg";
-import img4 from "@assets/generated_images/nude_shower_4.jpg";
-import img5 from "@assets/generated_images/bunny_girl_5.jpg";
-import logoImage from "@assets/IMG_9769_1768973936225.PNG";
-
-const demoCreators: Record<string, { name: string; avatar: string }> = {
-  "demo-1": { name: "れいな💋", avatar: img1 },
-  "demo-2": { name: "ゆあ🌙", avatar: img2 },
-  "demo-3": { name: "みお", avatar: img3 },
-  "demo-4": { name: "さき💜", avatar: img4 },
-  "demo-5": { name: "ひな🐰", avatar: img5 },
-};
-
-const demoMessages: Record<string, { id: string; senderId: string; content: string; createdAt: Date }[]> = {
-  "demo-1": [
-    { id: "m1", senderId: "creator", content: "こんにちは！フォローありがとう💕", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) },
-    { id: "m2", senderId: "user", content: "いつも配信楽しみにしてます！", createdAt: new Date(Date.now() - 1000 * 60 * 60) },
-    { id: "m3", senderId: "creator", content: "嬉しい！今夜も配信するね", createdAt: new Date(Date.now() - 1000 * 60 * 30) },
-    { id: "m4", senderId: "creator", content: "今夜の配信楽しみにしててね💕", createdAt: new Date(Date.now() - 1000 * 60 * 5) },
-  ],
-  "demo-2": [
-    { id: "m1", senderId: "creator", content: "新しい写真集出したよ🌙", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3) },
-    { id: "m2", senderId: "user", content: "買いました！すごく良かったです", createdAt: new Date(Date.now() - 1000 * 60 * 60) },
-    { id: "m3", senderId: "creator", content: "写真集見てくれた？感想聞かせて♡", createdAt: new Date(Date.now() - 1000 * 60 * 30) },
-  ],
-  "demo-3": [
-    { id: "m1", senderId: "user", content: "ASMRの新作最高でした！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3) },
-    { id: "m2", senderId: "creator", content: "ありがとう！嬉しい😊", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) },
-  ],
-  "demo-4": [
-    { id: "m1", senderId: "creator", content: "いつもありがとう💜", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6) },
-    { id: "m2", senderId: "creator", content: "2ショットでお話しよう？", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5) },
-  ],
-  "demo-5": [
-    { id: "m1", senderId: "creator", content: "バニーコスプレどうだった？🐰", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 25) },
-    { id: "m2", senderId: "user", content: "めっちゃ可愛かったです！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24.5) },
-    { id: "m3", senderId: "creator", content: "新しいコスプレ写真撮ったよ！", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-  ],
-};
-
 const AUTO_REPLY_PREFIXES = ["【ご購入ありがとうございます】", "【自動返信】"];
 
 function isAutoReply(content: string) {
@@ -64,24 +22,18 @@ export default function ConversationPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
   const [messageText, setMessageText] = useState("");
-  const [localDemoMessages, setLocalDemoMessages] = useState<{ id: string; senderId: string; content: string; createdAt: Date }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const isDemo = params.id?.startsWith("demo-");
-  const demoCreator = isDemo ? demoCreators[params.id || ""] : null;
 
   const { data: conversation } = useQuery<Conversation>({
     queryKey: ["/api/conversations", params.id],
-    enabled: !!params.id && !isDemo,
+    enabled: !!params.id,
   });
 
   const { data: messages, isLoading } = useQuery<Message[]>({
     queryKey: ["/api/conversations", params.id, "messages"],
-    enabled: !!params.id && !isDemo,
+    enabled: !!params.id,
     refetchInterval: 5000,
   });
-
-  const userId = user?.id;
 
   const sendMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -95,56 +47,29 @@ export default function ConversationPage() {
   });
 
   useEffect(() => {
-    if (isDemo && params.id) {
-      setLocalDemoMessages(demoMessages[params.id] || []);
-    }
-  }, [isDemo, params.id]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, localDemoMessages]);
+  }, [messages]);
 
-  const participantName = isDemo 
-    ? (demoCreator?.name || "クリエイター") 
-    : ((conversation as any)?.participantDisplayName || "ユーザー");
-  const participantAvatar = isDemo 
-    ? demoCreator?.avatar 
-    : ((conversation as any)?.participantAvatarUrl || undefined);
+  const userId = user?.id;
+  const participantName = (conversation as any)?.participantDisplayName || "ユーザー";
+  const participantAvatar = (conversation as any)?.participantAvatarUrl || undefined;
   const participantId = (conversation as any)?.participantId;
 
   const handleParticipantClick = () => {
-    if (isDemo) return;
-    if (participantId) {
-      setLocation(`/creator/${participantId}`);
-    }
+    if (participantId) setLocation(`/creator/${participantId}`);
   };
 
   const handleSend = () => {
-    if (!messageText.trim()) return;
-    
-    if (isDemo) {
-      const newMsg = {
-        id: `user-${Date.now()}`,
-        senderId: "user",
-        content: messageText.trim(),
-        createdAt: new Date(),
-      };
-      setLocalDemoMessages(prev => [...prev, newMsg]);
-      setMessageText("");
-    } else if (!sendMutation.isPending) {
-      sendMutation.mutate(messageText.trim());
-    }
+    if (!messageText.trim() || sendMutation.isPending) return;
+    sendMutation.mutate(messageText.trim());
   };
 
-  const displayMessages = isDemo 
-    ? localDemoMessages
-    : [...(messages || [])].sort(
-        (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
-      );
+  const displayMessages = [...(messages || [])].sort(
+    (a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+  );
 
   return (
     <div className="h-full flex flex-col bg-black text-white">
-      {/* Header */}
       <header className="sticky top-0 z-20 bg-black border-b border-white/10 flex-shrink-0">
         <div className="flex items-center h-14 px-3 gap-2">
           <Button
@@ -162,7 +87,7 @@ export default function ConversationPage() {
             data-testid="link-participant-profile"
           >
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+              <AvatarImage src={participantAvatar} className="object-cover" />
               <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-sm font-bold">
                 {participantName.charAt(0)}
               </AvatarFallback>
@@ -174,23 +99,22 @@ export default function ConversationPage() {
         </div>
       </header>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5 overflow-x-hidden">
-        {isLoading && !isDemo ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : displayMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-pink-500/20 flex items-center justify-center mb-3">
-              <Send className="h-8 w-8 text-pink-400" />
+            <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+              <Send className="h-8 w-8 text-white/20" />
             </div>
             <p className="font-semibold text-sm mb-1 text-white">会話を始めよう</p>
-            <p className="text-xs text-white/50">メッセージを送信してみよう</p>
+            <p className="text-xs text-white/40">メッセージを送信してみよう</p>
           </div>
         ) : (
           displayMessages.map((msg) => {
-            const isOwn = isDemo ? msg.senderId === "user" : msg.senderId === userId;
+            const isOwn = msg.senderId === userId;
             const autoReply = !isOwn && isAutoReply(msg.content);
 
             return (
@@ -201,7 +125,7 @@ export default function ConversationPage() {
               >
                 {!isOwn && (
                   <Avatar className="h-7 w-7 flex-shrink-0 mt-auto">
-                    <AvatarImage src={participantAvatar || logoImage} className="object-cover" />
+                    <AvatarImage src={participantAvatar} className="object-cover" />
                     <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-xs">
                       {participantName.charAt(0)}
                     </AvatarFallback>
@@ -209,7 +133,6 @@ export default function ConversationPage() {
                 )}
                 <div className={`max-w-[72%] min-w-0 ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}>
                   {autoReply ? (
-                    /* 自動返信メッセージ */
                     <div className="rounded-2xl rounded-bl-sm border border-pink-500/30 bg-pink-500/5 overflow-hidden">
                       <div className="flex items-center gap-1.5 px-3 pt-2 pb-1 border-b border-pink-500/20">
                         <Zap className="h-3 w-3 text-pink-400 flex-shrink-0" />
@@ -241,25 +164,24 @@ export default function ConversationPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
       <div className="bg-black border-t border-white/10 px-3 py-2.5 pb-[max(env(safe-area-inset-bottom),12px)] flex-shrink-0">
         <div className="flex items-center gap-2">
           <Input
             placeholder="メッセージを入力..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
             className="flex-1 rounded-2xl bg-white/10 border-0 focus-visible:ring-1 focus-visible:ring-pink-500/40 text-sm h-10 text-white placeholder:text-white/40"
             data-testid="input-message"
           />
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!messageText.trim() || (!isDemo && sendMutation.isPending)}
+            disabled={!messageText.trim() || sendMutation.isPending}
             className="h-10 w-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-sm flex-shrink-0"
             data-testid="button-send"
           >
-            {!isDemo && sendMutation.isPending ? (
+            {sendMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />
