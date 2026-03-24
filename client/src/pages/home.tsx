@@ -245,11 +245,6 @@ function VideoPage({
 
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (id.startsWith("demo-")) {
-      setLocation(`/creator/${creatorName}`);
-      return;
-    }
-    
     if (creatorId === user?.id) {
       setLocation("/my-profile");
     } else if (creatorId) {
@@ -345,10 +340,6 @@ function VideoPage({
               </div>
               <Button
                 onClick={() => {
-                  if (id.startsWith("demo-")) {
-                    setLocation(`/creator/${creatorName}`);
-                    return;
-                  }
                   if (creatorId === user?.id) {
                     setLocation("/my-profile");
                   } else if (creatorId) {
@@ -485,10 +476,6 @@ function VideoPage({
           {isPremium && !hasAccess && (
             <button
               onClick={() => {
-                if (id.startsWith("demo-")) {
-                  setLocation(`/creator/${creatorName}`);
-                  return;
-                }
                 if (creatorId === user?.id) {
                   setLocation("/my-profile");
                 } else if (creatorId) {

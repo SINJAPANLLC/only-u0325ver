@@ -42,32 +42,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
-import img1 from "@assets/generated_images/nude_bedroom_1.jpg";
-import img2 from "@assets/generated_images/nude_bath_2.jpg";
-import img3 from "@assets/generated_images/nude_shower_4.jpg";
-import img4 from "@assets/generated_images/lingerie_bed_3.jpg";
-
-const demoProducts = [
-  { id: "p1", name: "限定デジタル写真集 Vol.1", price: 3000, imageUrl: img1, productType: "digital" },
-  { id: "p2", name: "サイン入りチェキ", price: 5000, imageUrl: img2, productType: "physical" },
-  { id: "p3", name: "おやすみボイスメッセージ", price: 2000, imageUrl: img3, productType: "digital" },
-  { id: "p4", name: "オリジナルTシャツ", price: 4500, imageUrl: img4, productType: "physical" },
-];
-
-const demoLikedVideos = [
-  { id: "liked1", thumbnail: img2, views: 456000, likes: 38200, creatorName: "ゆあ" },
-  { id: "liked2", thumbnail: img3, views: 198000, likes: 16700, creatorName: "みお" },
-  { id: "liked3", thumbnail: img1, views: 285000, likes: 24800, creatorName: "りさ" },
-];
-
-const demoVideos = [
-  { id: "v1", thumbnailUrl: img1, videoUrl: "https://cdn.pixabay.com/video/2020/05/25/40130-424930032_large.mp4", viewCount: 28500, likeCount: 1250, title: "縦型動画", isVertical: true },
-  { id: "v2", thumbnailUrl: img2, videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", viewCount: 15600, likeCount: 890, title: "横型動画", isVertical: false },
-  { id: "v3", thumbnailUrl: img3, viewCount: 9800, likeCount: 456, title: "画像のみ", isVertical: true },
-  { id: "v4", thumbnailUrl: img4, viewCount: 5400, likeCount: 234, title: "画像のみ2", isVertical: false },
-  { id: "v5", thumbnailUrl: img2, viewCount: 3200, likeCount: 178, title: "画像のみ3", isVertical: true },
-  { id: "v6", thumbnailUrl: img3, viewCount: 2100, likeCount: 98, title: "画像のみ4", isVertical: true },
-];
 
 export default function MyProfile() {
   const [, setLocation] = useLocation();
@@ -147,7 +121,7 @@ export default function MyProfile() {
   const [newVideoIsVertical, setNewVideoIsVertical] = useState(true);
   
   // Product purchase
-  const [selectedProduct, setSelectedProduct] = useState<Product | typeof demoProducts[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productDetailOpen, setProductDetailOpen] = useState(false);
 
   const { data: myProducts } = useQuery<Product[]>({
