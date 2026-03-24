@@ -105,6 +105,34 @@ export default function CreatorLive() {
     enabled: !!currentStreamId && viewMode === "streaming",
   });
 
+  // 2ショット申請一覧（ポーリング）
+  const { data: twoshotRequests, refetch: refetchRequests } = useQuery<any[]>({
+    queryKey: ["/api/live", currentStreamId, "twoshot-requests"],
+    queryFn: () => fetch(`/api/live/${currentStreamId}/twoshot-requests`).then(r => r.json()),
+    enabled: !!currentStreamId && viewMode === "streaming",
+    refetchInterval: 5000,
+  });
+
+  const acceptRequestMutation = useMutation({
+    mutationFn: (requestId: string) =>
+      apiRequest("POST", `/api/live/${currentStreamId}/twoshot-request/${requestId}/accept`).then(r => r.json()),
+    onSuccess: () => {
+      refetchRequests();
+      toast({ title: "2ショット申請を承認しました" });
+    },
+    onError: () => toast({ title: "承認に失敗しました", variant: "destructive" }),
+  });
+
+  const declineRequestMutation = useMutation({
+    mutationFn: (requestId: string) =>
+      apiRequest("POST", `/api/live/${currentStreamId}/twoshot-request/${requestId}/decline`).then(r => r.json()),
+    onSuccess: () => {
+      refetchRequests();
+      toast({ title: "申請を断りました" });
+    },
+    onError: () => toast({ title: "操作に失敗しました", variant: "destructive" }),
+  });
+
   // Connect to LiveKit room as creator/publisher
   const connectLiveKit = useCallback(async (streamId: string) => {
     const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
@@ -401,6 +429,49 @@ export default function CreatorLive() {
             {endLiveMutation.isPending ? "終了中..." : "終了"}
           </Button>
         </div>
+
+        {/* 2ショット申請通知 */}
+        {twoshotRequests && twoshotRequests.length > 0 && (
+          <div className="relative z-10 mx-3 mt-2 space-y-2">
+            {twoshotRequests.map((req: any) => (
+              <motion.div
+                key={req.id}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-violet-900/80 backdrop-blur-md border border-violet-500/50 rounded-2xl p-3 flex items-center gap-3"
+              >
+                <div className="h-9 w-9 rounded-full bg-violet-500/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {req.requesterAvatarUrl
+                    ? <img src={req.requesterAvatarUrl} className="w-full h-full object-cover" />
+                    : <span className="text-white text-sm font-bold">{(req.requesterName || "？")[0]}</span>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-xs font-bold truncate">{req.requesterName || "ユーザー"}</p>
+                  <p className="text-violet-300 text-[10px]">2ショットをリクエスト中</p>
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => acceptRequestMutation.mutate(req.id)}
+                    disabled={acceptRequestMutation.isPending}
+                    className="bg-green-500 active:bg-green-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-full"
+                    data-testid={`button-accept-twoshot-${req.id}`}
+                  >
+                    承認
+                  </button>
+                  <button
+                    onClick={() => declineRequestMutation.mutate(req.id)}
+                    disabled={declineRequestMutation.isPending}
+                    className="bg-white/10 active:bg-white/20 text-white/70 text-[10px] font-bold px-2.5 py-1.5 rounded-full"
+                    data-testid={`button-decline-twoshot-${req.id}`}
+                  >
+                    断る
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Camera controls */}
         <div className="relative z-10 flex items-center justify-center gap-3 mt-1">

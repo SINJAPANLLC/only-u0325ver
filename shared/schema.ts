@@ -219,6 +219,21 @@ export const insertLiveViewingSessionSchema = createInsertSchema(liveViewingSess
   isActive: true,
 });
 
+// 2ショット申請ステータス
+export const twoshotRequestStatusEnum = pgEnum("twoshot_request_status", ["pending", "accepted", "declined"]);
+
+// 2ショット申請テーブル
+export const liveTwoshotRequests = pgTable("live_twoshot_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  liveStreamId: varchar("live_stream_id").notNull(),
+  requesterId: varchar("requester_id").notNull(),
+  requesterName: varchar("requester_name"),
+  requesterAvatarUrl: varchar("requester_avatar_url"),
+  status: twoshotRequestStatusEnum("status").default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
 // Products
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

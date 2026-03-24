@@ -21,7 +21,8 @@ import {
   bunnyStreamChannels, insertBunnyStreamChannelSchema,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
-  insertSubscriptionPlanSchema, insertLiveChatMessageSchema
+  insertSubscriptionPlanSchema, insertLiveChatMessageSchema,
+  liveTwoshotRequests,
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
@@ -778,6 +779,160 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error joining live session:", error);
       res.status(500).json({ message: "Failed to join session" });
+    }
+  });
+
+  // --- 2ショット申請 API ---
+
+  // 視聴者: 2ショット申請を送信
+  app.post("/api/live/:streamId/request-twoshot", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+
+      // ストリームの存在確認
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream) return res.status(404).json({ message: "Stream not found" });
+
+      // 既に pending の申請があれば再利用
+      const [existing] = await db
+        .select()
+        .from(liveTwoshotRequests)
+        .where(and(
+          eq(liveTwoshotRequests.liveStreamId, streamId),
+          eq(liveTwoshotRequests.requesterId, userId),
+          eq(liveTwoshotRequests.status, "pending"),
+        ));
+      if (existing) return res.json(existing);
+
+      // ユーザープロフィール取得 (名前・アバター用)
+      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+
+      const [request] = await db
+        .insert(liveTwoshotRequests)
+        .values({
+          liveStreamId: streamId,
+          requesterId: userId,
+          requesterName: profile?.displayName || "ユーザー",
+          requesterAvatarUrl: profile?.avatarUrl || null,
+          status: "pending",
+        })
+        .returning();
+
+      res.json(request);
+    } catch (error) {
+      console.error("Error requesting twoshot:", error);
+      res.status(500).json({ message: "Failed to create request" });
+    }
+  });
+
+  // 視聴者: 自分の申請状態を確認
+  app.get("/api/live/:streamId/my-twoshot-request", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+
+      const [request] = await db
+        .select()
+        .from(liveTwoshotRequests)
+        .where(and(
+          eq(liveTwoshotRequests.liveStreamId, streamId),
+          eq(liveTwoshotRequests.requesterId, userId),
+        ))
+        .orderBy(desc(liveTwoshotRequests.createdAt))
+        .limit(1);
+
+      res.json(request || null);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch request" });
+    }
+  });
+
+  // クリエイター: pending な申請一覧を取得
+  app.get("/api/live/:streamId/twoshot-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId } = req.params;
+
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream || stream.creatorId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      const requests = await db
+        .select()
+        .from(liveTwoshotRequests)
+        .where(and(
+          eq(liveTwoshotRequests.liveStreamId, streamId),
+          eq(liveTwoshotRequests.status, "pending"),
+        ))
+        .orderBy(liveTwoshotRequests.createdAt);
+
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch requests" });
+    }
+  });
+
+  // クリエイター: 申請を承認
+  app.post("/api/live/:streamId/twoshot-request/:requestId/accept", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId, requestId } = req.params;
+
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream || stream.creatorId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      // 既存の2ショットセッションがあれば終了
+      await db
+        .update(liveViewingSessions)
+        .set({ isActive: false, endedAt: new Date() })
+        .where(and(
+          eq(liveViewingSessions.liveStreamId, streamId),
+          eq(liveViewingSessions.mode, "twoshot"),
+          eq(liveViewingSessions.isActive, true),
+        ));
+
+      // 他の pending 申請を decline
+      await db
+        .update(liveTwoshotRequests)
+        .set({ status: "declined", respondedAt: new Date() })
+        .where(and(
+          eq(liveTwoshotRequests.liveStreamId, streamId),
+          eq(liveTwoshotRequests.status, "pending"),
+          ne(liveTwoshotRequests.id, requestId),
+        ));
+
+      // 申請を承認
+      const [updated] = await db
+        .update(liveTwoshotRequests)
+        .set({ status: "accepted", respondedAt: new Date() })
+        .where(eq(liveTwoshotRequests.id, requestId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error accepting twoshot request:", error);
+      res.status(500).json({ message: "Failed to accept request" });
+    }
+  });
+
+  // クリエイター: 申請を拒否
+  app.post("/api/live/:streamId/twoshot-request/:requestId/decline", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { streamId, requestId } = req.params;
+
+      const [stream] = await db.select().from(liveStreams).where(eq(liveStreams.id, streamId));
+      if (!stream || stream.creatorId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      const [updated] = await db
+        .update(liveTwoshotRequests)
+        .set({ status: "declined", respondedAt: new Date() })
+        .where(eq(liveTwoshotRequests.id, requestId))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to decline request" });
     }
   });
 

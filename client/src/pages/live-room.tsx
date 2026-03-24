@@ -235,13 +235,55 @@ export default function LiveRoom() {
     },
   });
 
+  // 2ショット申請
+  const [twoshotRequestStatus, setTwoshotRequestStatus] = useState<"idle" | "pending" | "accepted" | "declined">("idle");
+  const [twoshotRequestId, setTwoshotRequestId] = useState<string | null>(null);
+
+  const requestTwoshotMutation = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/live/${streamId}/request-twoshot`).then(r => r.json()),
+    onSuccess: (data) => {
+      setTwoshotRequestId(data.id);
+      setTwoshotRequestStatus("pending");
+      toast({ title: "2ショットを申請しました。クリエイターの承認をお待ちください。" });
+    },
+    onError: () => toast({ title: "申請に失敗しました", variant: "destructive" }),
+  });
+
+  // 申請ステータスをポーリング
+  useEffect(() => {
+    if (twoshotRequestStatus !== "pending" || !streamId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/live/${streamId}/my-twoshot-request`);
+        const data = await res.json();
+        if (!data) return;
+        if (data.status === "accepted") {
+          clearInterval(interval);
+          setTwoshotRequestStatus("accepted");
+          toast({ title: "2ショットが承認されました！" });
+          joinMutation.mutate("twoshot");
+        } else if (data.status === "declined") {
+          clearInterval(interval);
+          setTwoshotRequestStatus("declined");
+          toast({ title: "2ショット申請が断られました", variant: "destructive" });
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [twoshotRequestStatus, streamId]);
+
   // Auto-join from URL mode param (set when entering from live list)
   const autoJoinDone = useRef(false);
   useEffect(() => {
     if (autoJoinDone.current) return;
     if (!urlMode || !stream || !user || activeMode) return;
     autoJoinDone.current = true;
-    joinMutation.mutate(urlMode);
+    if (urlMode === "twoshot") {
+      // 2ショットは申請制 - 自動申請
+      requestTwoshotMutation.mutate();
+    } else {
+      joinMutation.mutate(urlMode);
+    }
   }, [urlMode, stream?.id, user?.id]);
 
   // Chat
@@ -588,13 +630,20 @@ export default function LiveRoom() {
                   </div>
                 </button>
 
-                {/* 2shot button */}
+                {/* 2shot button - 申請制 */}
                 <button
-                  onClick={() => { joinMutation.mutate("twoshot"); setShowModePanel(false); }}
-                  disabled={joinMutation.isPending || activeMode === "twoshot" || userPoints < twoshotRate}
+                  onClick={() => {
+                    if (activeMode === "twoshot") return;
+                    if (twoshotRequestStatus === "pending") return;
+                    requestTwoshotMutation.mutate();
+                    setShowModePanel(false);
+                  }}
+                  disabled={requestTwoshotMutation.isPending || activeMode === "twoshot" || userPoints < twoshotRate || twoshotRequestStatus === "pending"}
                   className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
                     activeMode === "twoshot"
                       ? "bg-purple-500/40 border-purple-400 cursor-default"
+                      : twoshotRequestStatus === "pending"
+                      ? "bg-yellow-500/20 border-yellow-500/40 cursor-default"
                       : userPoints < twoshotRate
                       ? "bg-white/5 border-white/10 opacity-40 cursor-not-allowed"
                       : "bg-purple-500/20 border-purple-500/40 active:scale-95"
@@ -606,7 +655,10 @@ export default function LiveRoom() {
                     <p className="text-white text-xs font-bold">2ショット</p>
                     <p className="text-purple-300 text-[10px]">{twoshotRate}pt / 分</p>
                     {activeMode === "twoshot" && <p className="text-green-400 text-[10px] mt-0.5">参加中</p>}
-                    {userPoints < twoshotRate && <p className="text-red-400 text-[10px] mt-0.5">PT不足</p>}
+                    {twoshotRequestStatus === "pending" && <p className="text-yellow-300 text-[10px] mt-0.5">申請中...</p>}
+                    {twoshotRequestStatus === "declined" && <p className="text-red-400 text-[10px] mt-0.5">再申請する</p>}
+                    {userPoints < twoshotRate && twoshotRequestStatus === "idle" && <p className="text-red-400 text-[10px] mt-0.5">PT不足</p>}
+                    {activeMode !== "twoshot" && twoshotRequestStatus === "idle" && userPoints >= twoshotRate && <p className="text-purple-300 text-[10px] mt-0.5">タップで申請</p>}
                   </div>
                 </button>
               </div>
