@@ -283,7 +283,7 @@ export default function PointsPurchase() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-bold text-base">カード決済</h1>
+            <h1 className="font-bold text-base text-white">カード決済</h1>
           </div>
         </header>
 
@@ -345,7 +345,7 @@ export default function PointsPurchase() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-bold text-base">購入完了</h1>
+            <h1 className="font-bold text-base text-white">購入完了</h1>
           </div>
         </header>
 
@@ -402,7 +402,7 @@ export default function PointsPurchase() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-bold text-base">振込情報</h1>
+            <h1 className="font-bold text-base text-white">振込情報</h1>
           </div>
         </header>
 
@@ -555,7 +555,7 @@ export default function PointsPurchase() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-bold text-base">お支払い方法</h1>
+            <h1 className="font-bold text-base text-white">お支払い方法</h1>
           </div>
         </header>
 
@@ -661,7 +661,7 @@ export default function PointsPurchase() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="font-bold text-base">ポイント購入</h1>
+          <h1 className="font-bold text-base text-white">ポイント購入</h1>
         </div>
       </header>
 
@@ -692,7 +692,7 @@ export default function PointsPurchase() {
           <span>1ポイント = 1.2円（税込）</span>
         </div>
 
-        <h2 className="font-bold text-lg">ポイントパッケージを選択</h2>
+        <h2 className="font-bold text-lg text-white">ポイントパッケージを選択</h2>
 
         <div className="grid grid-cols-2 gap-3">
           {displayPackages.map((pkg, index) => (
@@ -721,12 +721,12 @@ export default function PointsPurchase() {
           ))}
         </div>
 
-        <Card className="p-4 bg-white/5">
-          <h3 className="font-medium mb-2 flex items-center gap-2">
-            <Info className="h-4 w-4" />
+        <Card className="p-4 bg-zinc-900 border-white/10">
+          <h3 className="font-medium mb-2 flex items-center gap-2 text-white">
+            <Info className="h-4 w-4 text-white/70" />
             ご利用について
           </h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
+          <ul className="text-sm text-white/60 space-y-1">
             <li>• ポイントは購入後すぐにご利用いただけます（銀行振込を除く）</li>
             <li>• 銀行振込の場合、入金確認後にポイントが付与されます</li>
             <li>• ポイントの有効期限は最終利用日から1年間です</li>
