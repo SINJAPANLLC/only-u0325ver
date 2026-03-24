@@ -765,7 +765,6 @@ export default function CreatorProfile() {
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground text-center pt-1">登録するとポイントが即座に消費されます</p>
             </div>
 
             <div className="px-5 pb-5 flex gap-2.5">

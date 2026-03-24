@@ -2885,13 +2885,32 @@ export async function registerRoutes(
         .where(eq(userProfiles.userId, userId));
 
       if (!userProfile || (userProfile.points || 0) < price) {
-        return res.status(400).json({ message: "Insufficient points" });
+        return res.status(400).json({ message: "ポイントが不足しています" });
       }
+
+      const userNewBalance = (userProfile.points || 0) - price;
 
       await db
         .update(userProfiles)
-        .set({ points: (userProfile.points || 0) - price })
+        .set({ points: userNewBalance })
         .where(eq(userProfiles.userId, userId));
+
+      // Record user's point deduction transaction
+      await db.insert(pointTransactions).values({
+        userId,
+        type: "spend",
+        amount: -price,
+        balance: userNewBalance,
+        description: `サブスク購入: ${planName}`,
+      });
+
+      // Get creator's current points for balance calculation
+      const [creatorUserProfile] = await db
+        .select()
+        .from(userProfiles)
+        .where(eq(userProfiles.userId, creatorUserId));
+
+      const creatorNewBalance = (creatorUserProfile?.points || 0) + price;
 
       // Update creator's earnings
       await db
@@ -2907,6 +2926,7 @@ export async function registerRoutes(
         userId: creatorUserId,
         type: "bonus",
         amount: price,
+        balance: creatorNewBalance,
         description: `サブスク収益: ${planName}`,
       });
 
