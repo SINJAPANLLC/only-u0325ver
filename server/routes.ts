@@ -1485,14 +1485,21 @@ export async function registerRoutes(
       const sdpOffer = typeof req.body === "string" ? req.body : String(req.body || "");
       console.log(`[WHIP] Received SDP body length: ${sdpOffer.length}`);
 
-      // Extract playbackId from bunnyPlaybackUrl: https://livepeercdn.studio/hls/{playbackId}/index.m3u8
+      // Try WHIP with playbackId first, then streamKey as fallback
       const playbackId = stream.bunnyPlaybackUrl?.match(/hls\/([^/]+)\/index\.m3u8/)?.[1];
-      if (!playbackId) {
-        return res.status(400).json({ message: "Stream playbackId not found" });
+      const streamKeyVal = stream.streamKey;
+
+      if (!playbackId && !streamKeyVal) {
+        return res.status(400).json({ message: "Stream playbackId and streamKey not found" });
       }
-      const whipUrl = `https://livepeer.studio/webrtc/${playbackId}`;
+
+      // Try playbackId URL first
+      const whipUrl = playbackId
+        ? `https://livepeer.studio/webrtc/${playbackId}`
+        : `https://livepeer.studio/webrtc/${streamKeyVal}`;
       console.log(`[WHIP] Proxying to ${whipUrl}, SDP length: ${sdpOffer.length}`);
-      const lpRes = await fetch(whipUrl, {
+
+      let lpRes = await fetch(whipUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/sdp",
@@ -1500,9 +1507,39 @@ export async function registerRoutes(
         },
         body: sdpOffer,
       });
-      console.log(`[WHIP] Livepeer response: ${lpRes.status}`);
+      console.log(`[WHIP] Livepeer response (playbackId): ${lpRes.status}`);
+
+      // If playbackId failed and we have streamKey, try streamKey URL
+      if (!lpRes.ok && playbackId && streamKeyVal) {
+        const altWhipUrl = `https://livepeer.studio/webrtc/${streamKeyVal}`;
+        console.log(`[WHIP] Retrying with streamKey URL: ${altWhipUrl}`);
+        lpRes = await fetch(altWhipUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/sdp",
+            "Authorization": `Bearer ${LIVEPEER_API_KEY}`,
+          },
+          body: sdpOffer,
+        });
+        console.log(`[WHIP] Livepeer response (streamKey): ${lpRes.status}`);
+      }
+
+      // If still failed, try without Authorization header
+      if (!lpRes.ok) {
+        const noAuthUrl = playbackId
+          ? `https://livepeer.studio/webrtc/${playbackId}`
+          : `https://livepeer.studio/webrtc/${streamKeyVal}`;
+        console.log(`[WHIP] Retrying without Authorization header`);
+        lpRes = await fetch(noAuthUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/sdp" },
+          body: sdpOffer,
+        });
+        console.log(`[WHIP] Livepeer response (no auth): ${lpRes.status}`);
+      }
 
       const resBody = await lpRes.text();
+      console.log(`[WHIP] Final response body: ${resBody.substring(0, 200)}`);
       const locationHeader = lpRes.headers.get("Location");
 
       res.status(lpRes.status);

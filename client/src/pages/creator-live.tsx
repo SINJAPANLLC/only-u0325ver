@@ -522,14 +522,14 @@ export default function CreatorLive() {
           )}
         </div>
 
-        {/* Stats + RTMP info (optional, collapsed) */}
+        {/* Stats */}
         <div className="relative z-10 px-4 mt-2">
           <div className="flex items-center gap-2 justify-center">
             <div className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5">
               <Coins className="h-3.5 w-3.5 text-yellow-400" />
               <span className="text-white text-xs">{earnedPoints.toLocaleString()}pt</span>
             </div>
-            {rtmpStreamKey && (
+            {rtmpStreamKey && whipStatus !== "failed" && (
               <button
                 onClick={() => setShowRtmpInfo((p) => !p)}
                 className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5"
@@ -539,7 +539,7 @@ export default function CreatorLive() {
               </button>
             )}
           </div>
-          {showRtmpInfo && rtmpStreamKey && (
+          {showRtmpInfo && rtmpStreamKey && whipStatus !== "failed" && (
             <div className="mt-2 bg-black/60 backdrop-blur rounded-xl border border-white/10 p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-white/40 text-xs w-16 flex-shrink-0">サーバー</span>
@@ -563,6 +563,56 @@ export default function CreatorLive() {
             </div>
           )}
         </div>
+
+        {/* RTMP Fallback Panel - shown prominently when WHIP fails */}
+        {whipStatus === "failed" && rtmpStreamKey && (
+          <div className="relative z-10 mx-3 mt-2 bg-black/80 backdrop-blur rounded-2xl border border-orange-500/40 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <WifiOff className="h-4 w-4 text-orange-400 flex-shrink-0" />
+              <p className="text-orange-300 text-xs font-medium">ブラウザ配信未対応のため、外部アプリで配信してください</p>
+            </div>
+            <p className="text-white/50 text-xs mb-3">OBS Studio または Larix Broadcaster に以下を設定：</p>
+            <div className="space-y-2">
+              <div className="bg-white/5 rounded-lg px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-white/40 text-[10px] mb-0.5">RTMPサーバー</p>
+                    <p className="text-white text-xs font-mono truncate">{rtmpServerUrl || "rtmp://rtmp.livepeer.com/live"}</p>
+                  </div>
+                  <button onClick={() => copyText(rtmpServerUrl || "rtmp://rtmp.livepeer.com/live", "srv")} className="flex-shrink-0 h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
+                    {copiedField === "srv" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/60" />}
+                  </button>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-lg px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white/40 text-[10px] mb-0.5">ストリームキー</p>
+                    <p className="text-white text-xs font-mono truncate">
+                      {showStreamKey ? rtmpStreamKey : "•".repeat(Math.min(rtmpStreamKey.length, 24))}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => setShowStreamKey((p) => !p)} className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
+                      {showStreamKey ? <EyeOff className="h-3.5 w-3.5 text-white/60" /> : <Eye className="h-3.5 w-3.5 text-white/60" />}
+                    </button>
+                    <button onClick={() => copyText(rtmpStreamKey, "key")} className="h-7 w-7 rounded-lg bg-white/10 flex items-center justify-center">
+                      {copiedField === "key" ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/60" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {currentStreamId && (
+              <button
+                onClick={() => { setWhipStatus("idle"); connectWhip(currentStreamId); }}
+                className="mt-3 w-full py-2 rounded-lg bg-white/10 text-white/60 text-xs"
+              >
+                ブラウザ配信を再試行
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Chat overlay */}
         <div className="relative z-10 flex-1 flex flex-col justify-end px-3 pb-3">
