@@ -159,6 +159,8 @@ export default function LiveRoom() {
             muted
             playsInline
             poster={thumbnailUrl}
+            controlsList="nodownload"
+            onContextMenu={(e) => e.preventDefault()}
           />
         ) : thumbnailUrl ? (
           <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />

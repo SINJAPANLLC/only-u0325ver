@@ -1081,6 +1081,8 @@ export default function MyProfile() {
                 controls
                 autoPlay
                 playsInline
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
                 data-testid="fullscreen-video"
               />
             ) : (

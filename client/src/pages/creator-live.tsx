@@ -593,6 +593,8 @@ export default function CreatorLive() {
           muted
           style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+          controlsList="nodownload"
+          onContextMenu={(e) => e.preventDefault()}
         />
         <canvas ref={canvasRef} className="hidden" />
         
@@ -1047,6 +1049,8 @@ export default function CreatorLive() {
           muted
           style={{ filter: getVideoFilters() }}
           className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : ""}`}
+          controlsList="nodownload"
+          onContextMenu={(e) => e.preventDefault()}
         />
         <canvas ref={canvasRef} className="hidden" />
         

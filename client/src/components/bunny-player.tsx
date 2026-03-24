@@ -134,6 +134,8 @@ export function BunnyPlayer({
       poster={effectiveThumbnail}
       onTimeUpdate={handleTimeUpdate}
       onLoadedMetadata={handleLoadedMetadata}
+      controlsList="nodownload"
+      onContextMenu={(e) => e.preventDefault()}
     />
   );
 }

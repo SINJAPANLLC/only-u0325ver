@@ -329,6 +329,8 @@ function VideoPage({
             playsInline
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleVideoMetadata}
+            controlsList="nodownload"
+            onContextMenu={(e) => e.preventDefault()}
           />
         ) : effectiveThumbnail ? (
           <img 

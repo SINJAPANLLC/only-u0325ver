@@ -967,6 +967,8 @@ export default function CreatorProfile() {
                 controls
                 autoPlay
                 playsInline
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
                 data-testid="video-player"
               />
             ) : (
