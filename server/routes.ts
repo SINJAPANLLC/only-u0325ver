@@ -540,6 +540,8 @@ export async function registerRoutes(
           startedAt: liveStreams.startedAt,
           endedAt: liveStreams.endedAt,
           createdAt: liveStreams.createdAt,
+          bunnyPlaybackUrl: liveStreams.bunnyPlaybackUrl,
+          bunnyStreamId: liveStreams.bunnyStreamId,
           creatorDisplayName: userProfiles.displayName,
           creatorAvatar: userProfiles.avatarUrl,
         })
@@ -579,7 +581,11 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid stream data", errors: validation.error.flatten() });
       }
 
-      let [stream] = await db.insert(liveStreams).values(validation.data).returning();
+      const insertData: any = { ...validation.data };
+      if (insertData.status === "live" && !insertData.startedAt) {
+        insertData.startedAt = new Date();
+      }
+      let [stream] = await db.insert(liveStreams).values(insertData).returning();
       
       // Assign an available Bunny stream channel (pre-registered by admin)
       let bunnyWhipUrl: string | null = null;
