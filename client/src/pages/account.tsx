@@ -405,7 +405,7 @@ export default function Account() {
           <div className="space-y-4 py-4">
             {isLoadingSubscriptions ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-white/50" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : userSubscriptions && userSubscriptions.length > 0 ? (
               userSubscriptions.map((subscription) => (
@@ -448,7 +448,7 @@ export default function Account() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-white/50 border-t pt-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
                     <div className="space-y-1">
                       <p>
                         有効期限: {subscription.expiresAt
@@ -500,9 +500,9 @@ export default function Account() {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Crown className="h-12 w-12 text-white/50/50 mb-3" />
-                <p className="text-white/50">加入中のプランはありません</p>
-                <p className="text-xs text-white/50 mt-1">クリエイターのプロフィールから登録できます</p>
+                <Crown className="h-12 w-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">加入中のプランはありません</p>
+                <p className="text-xs text-muted-foreground mt-1">クリエイターのプロフィールから登録できます</p>
               </div>
             )}
           </div>
