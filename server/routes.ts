@@ -1515,6 +1515,8 @@ export async function registerRoutes(
       }
 
       const updateData: any = {};
+      const { thumbnailUrl } = req.body;
+      if (thumbnailUrl !== undefined) updateData.thumbnailUrl = thumbnailUrl;
       if (status) {
         updateData.status = status;
         if (status === "ended") {

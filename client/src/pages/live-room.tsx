@@ -217,7 +217,7 @@ export default function LiveRoom() {
       setSessionSeconds(0);
       setSessionPoints(0);
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({ title: mode === "party" ? "パーティーに参加しました 🎉" : "2ショットに参加しました ✨" });
+      toast({ title: mode === "party" ? "パーティーに参加しました" : "2ショットに参加しました" });
     },
     onError: (e: any) => {
       toast({ title: e?.message || "参加に失敗しました", variant: "destructive" });
@@ -368,6 +368,64 @@ export default function LiveRoom() {
   }
 
   const currentRate = activeMode === "party" ? partyRate : activeMode === "twoshot" ? twoshotRate : 0;
+
+  // 2ショット申請中の待機画面（ライブ画面への入室をブロック）
+  if (urlMode === "twoshot" && twoshotRequestStatus !== "accepted" && activeMode !== "twoshot") {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center px-8 text-center">
+        {thumbnailUrl ? (
+          <div className="absolute inset-0">
+            <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-black/70" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-violet-900/40 to-black" />
+        )}
+        <div className="relative z-10 flex flex-col items-center gap-5">
+          <div className={`h-16 w-16 rounded-full flex items-center justify-center ${
+            twoshotRequestStatus === "declined"
+              ? "bg-red-500/20 border border-red-500/40"
+              : "bg-violet-500/20 border border-violet-500/40"
+          }`}>
+            {twoshotRequestStatus === "pending" ? (
+              <div className="h-8 w-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+            ) : twoshotRequestStatus === "declined" ? (
+              <LogOut className="h-8 w-8 text-red-400" />
+            ) : (
+              <Zap className="h-8 w-8 text-violet-400" />
+            )}
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-xl mb-1">
+              {twoshotRequestStatus === "declined" ? "申請が断られました" : "2ショット申請中"}
+            </h2>
+            <p className="text-white/60 text-sm">
+              {twoshotRequestStatus === "pending"
+                ? "クリエイターの承認をお待ちください"
+                : twoshotRequestStatus === "declined"
+                ? "クリエイターが現在対応できません"
+                : "申請を送信しています..."}
+            </p>
+          </div>
+          {stream && (
+            <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5">
+              <div className="h-6 w-6 rounded-full overflow-hidden bg-white/10">
+                {stream.creatorAvatar && <img src={stream.creatorAvatar} className="w-full h-full object-cover" />}
+              </div>
+              <span className="text-white/80 text-xs">{stream.creatorDisplayName || "クリエイター"}</span>
+            </div>
+          )}
+          <button
+            onClick={() => setLocation("/live")}
+            className="mt-2 text-white/40 text-sm underline underline-offset-2"
+            data-testid="button-cancel-twoshot-request"
+          >
+            キャンセルしてライブ一覧へ戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
