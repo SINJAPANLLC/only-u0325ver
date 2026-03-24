@@ -6,6 +6,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import { uploadToBunnyStorage, isBunnyStorageConfigured } from "./services/bunny-storage";
 import multer from "multer";
 import { setupWebRTCSignaling } from "./webrtc";
+import { storage } from "./storage";
 import { db } from "./db";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import nodemailer from "nodemailer";
@@ -16,6 +17,7 @@ import {
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   premiumPlans, adminUsers, siteSettings, adminNotifications, liveChatMessages,
+  bunnyStreamChannels, insertBunnyStreamChannelSchema,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema, insertLiveChatMessageSchema
@@ -579,27 +581,24 @@ export async function registerRoutes(
 
       let [stream] = await db.insert(liveStreams).values(validation.data).returning();
       
-      // Auto-create Bunny live stream for WebRTC-to-HLS broadcasting
+      // Assign an available Bunny stream channel (pre-registered by admin)
       let bunnyWhipUrl: string | null = null;
-      if (isBunnyConfigured()) {
-        try {
-          const bunnyLive = await createBunnyLiveStream(stream.title || "Live Stream");
-          if (bunnyLive) {
-            const [updated] = await db.update(liveStreams)
-              .set({
-                bunnyStreamId: bunnyLive.bunnyStreamId,
-                streamKey: bunnyLive.streamKey,
-                bunnyPlaybackUrl: bunnyLive.playbackUrl,
-              })
-              .where(eq(liveStreams.id, stream.id))
-              .returning();
-            stream = updated;
-            bunnyWhipUrl = bunnyLive.whipUrl;
-            console.log("Bunny live stream created:", bunnyLive.bunnyStreamId);
-          }
-        } catch (err) {
-          console.error("Bunny live stream creation error (non-fatal):", err);
-        }
+      const bunnyChannel = await storage.getAvailableBunnyStreamChannel();
+      if (bunnyChannel) {
+        await storage.assignBunnyStreamChannel(bunnyChannel.id, stream.id);
+        const [updated] = await db.update(liveStreams)
+          .set({
+            bunnyStreamId: bunnyChannel.streamId,
+            streamKey: bunnyChannel.streamKey,
+            bunnyPlaybackUrl: bunnyChannel.playbackUrl,
+          })
+          .where(eq(liveStreams.id, stream.id))
+          .returning();
+        stream = updated;
+        bunnyWhipUrl = bunnyChannel.whipUrl;
+        console.log("Bunny channel assigned:", bunnyChannel.id, "->", stream.id);
+      } else {
+        console.log("No Bunny stream channel available, stream will be without CDN");
       }
 
       // AI content moderation for thumbnail (async, don't block response)
@@ -1304,12 +1303,10 @@ export async function registerRoutes(
         updateData.status = status;
         if (status === "ended") {
           updateData.endedAt = new Date();
-          // Delete Bunny live stream when stream ends (async, non-blocking)
-          if (stream.bunnyStreamId) {
-            deleteBunnyLiveStream(stream.bunnyStreamId).catch(err =>
-              console.error("Failed to delete Bunny live stream:", err)
-            );
-          }
+          // Release Bunny channel back to pool when stream ends
+          storage.releaseBunnyStreamChannel(id).catch(err =>
+            console.error("Failed to release Bunny stream channel:", err)
+          );
         }
       }
 
@@ -6386,6 +6383,50 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
     } catch (error) {
       console.error("Update settings error:", error);
       res.status(500).json({ message: "設定の更新に失敗しました" });
+    }
+  });
+
+  // ===== Bunny Stream Channel Management (Admin) =====
+  app.get("/api/admin/bunny-channels", isAdminSession, async (req, res) => {
+    try {
+      const channels = await storage.getAllBunnyStreamChannels();
+      res.json(channels);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch channels" });
+    }
+  });
+
+  app.post("/api/admin/bunny-channels", isAdminSession, async (req, res) => {
+    try {
+      const { name, streamKey, streamId } = req.body;
+      if (!name || !streamKey || !streamId) {
+        return res.status(400).json({ message: "name, streamKey, streamId は必須です" });
+      }
+      const BUNNY_CDN_HOSTNAME = process.env.BUNNY_CDN_HOSTNAME || "";
+      const BUNNY_LIBRARY_ID = process.env.BUNNY_LIBRARY_ID || "";
+      const whipUrl = `https://video.bunnycdn.com/live/${BUNNY_LIBRARY_ID}/${streamKey}/whip`;
+      const playbackUrl = `https://${BUNNY_CDN_HOSTNAME}/${streamId}/playlist.m3u8`;
+      const channel = await storage.createBunnyStreamChannel({
+        name,
+        streamKey,
+        streamId,
+        whipUrl,
+        playbackUrl,
+        isAvailable: true,
+        currentLiveStreamId: null,
+      });
+      res.status(201).json(channel);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create channel" });
+    }
+  });
+
+  app.delete("/api/admin/bunny-channels/:id", isAdminSession, async (req, res) => {
+    try {
+      await storage.deleteBunnyStreamChannel(req.params.id);
+      res.json({ message: "Deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete channel" });
     }
   });
 

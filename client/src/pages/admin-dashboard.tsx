@@ -78,7 +78,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
+type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "bunny" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -294,6 +294,150 @@ interface NotificationsData {
   }[];
 }
 
+// ===== Bunny Stream Channel Manager =====
+function BunnyChannelManager({ channels, onRefresh }: { channels: any[]; onRefresh: () => void }) {
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [streamKey, setStreamKey] = useState("");
+  const [streamId, setStreamId] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleAdd = async () => {
+    if (!name || !streamKey || !streamId) {
+      toast({ title: "すべての項目を入力してください", variant: "destructive" });
+      return;
+    }
+    setIsAdding(true);
+    try {
+      const res = await fetch("/api/admin/bunny-channels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name, streamKey, streamId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed");
+      }
+      toast({ title: "チャンネルを追加しました" });
+      setName(""); setStreamKey(""); setStreamId("");
+      onRefresh();
+    } catch (e: any) {
+      toast({ title: e.message, variant: "destructive" });
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`/api/admin/bunny-channels/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      toast({ title: "削除しました" });
+      onRefresh();
+    } catch {
+      toast({ title: "削除に失敗しました", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Bunny Streamチャンネル管理</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Bunnyダッシュボードで作成したライブストリームチャンネルを登録します。
+            クリエイターがライブを開始すると、空きチャンネルが自動的に割り当てられます。
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-1">
+            <p className="font-medium">Bunnyダッシュボードでの確認方法：</p>
+            <p className="text-muted-foreground">1. video.bunnycdn.com → Stream → ライブラリ → チャンネル作成</p>
+            <p className="text-muted-foreground">2. 「Stream Key」（インジェストキー）をコピー</p>
+            <p className="text-muted-foreground">3. 「Stream ID」（チャンネルのGUID）をコピー</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">チャンネル名</label>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm bg-background"
+                placeholder="例: Channel-1"
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Stream Key（インジェストキー）</label>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm bg-background font-mono"
+                placeholder="例: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                value={streamKey}
+                onChange={e => setStreamKey(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Stream ID（チャンネルID）</label>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm bg-background font-mono"
+                placeholder="例: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                value={streamId}
+                onChange={e => setStreamId(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={handleAdd} disabled={isAdding} className="w-full">
+            {isAdding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            チャンネルを追加
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>登録済みチャンネル（{channels.length}件）</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {channels.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8 text-sm">チャンネルが登録されていません</p>
+          ) : (
+            <div className="space-y-3">
+              {channels.map((ch: any) => (
+                <div key={ch.id} className="flex items-center justify-between border rounded-lg p-3">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{ch.name}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ch.isAvailable ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}`}>
+                        {ch.isAvailable ? "空き" : "使用中"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono truncate">Key: {ch.streamKey}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">ID: {ch.streamId}</p>
+                    {ch.currentLiveStreamId && (
+                      <p className="text-xs text-orange-600 dark:text-orange-400 truncate">配信ID: {ch.currentLiveStreamId}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 ml-2 flex-shrink-0"
+                    onClick={() => handleDelete(ch.id)}
+                    disabled={!ch.isAvailable}
+                  >
+                    削除
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -449,6 +593,12 @@ export default function AdminDashboard() {
   const { data: siteSettingsData, isLoading: isLoadingSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
     enabled: authStatus?.authenticated && activeTab === "settings",
+  });
+
+  const { data: bunnyChannels, refetch: refetchBunnyChannels } = useQuery<any[]>({
+    queryKey: ["/api/admin/bunny-channels"],
+    queryFn: () => fetch("/api/admin/bunny-channels", { credentials: "include" }).then(r => r.json()),
+    enabled: authStatus?.authenticated && activeTab === "bunny",
   });
 
   const logoutMutation = useMutation({
@@ -824,6 +974,7 @@ export default function AdminDashboard() {
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "moderation" as Tab, label: "AI審査", icon: ShieldAlert, badge: moderationUnreadCount?.count },
+    { id: "bunny" as Tab, label: "Bunny Stream", icon: Radio },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -3242,6 +3393,14 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {/* Bunny Stream Channels */}
+          {activeTab === "bunny" && (
+            <BunnyChannelManager
+              channels={bunnyChannels || []}
+              onRefresh={refetchBunnyChannels}
+            />
           )}
 
           {/* Settings */}

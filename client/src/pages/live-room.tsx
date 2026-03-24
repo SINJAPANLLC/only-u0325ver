@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, Share2, Radio, Send, Users, Tv, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useWebRTC } from "@/hooks/use-webrtc";
 import Hls from "hls.js";
 
 interface LiveChatMessage {
@@ -56,39 +55,6 @@ export default function LiveRoom() {
 
   // HLS readiness state
   const [hlsReady, setHlsReady] = useState(false);
-
-  // WebRTC viewer state (fallback when no Bunny HLS)
-  const [webRTCStream, setWebRTCStream] = useState<MediaStream | null>(null);
-  const [webRTCConnected, setWebRTCConnected] = useState(false);
-  const webRTCVideoRef = useRef<HTMLVideoElement>(null);
-
-  const handleStreamReceived = useCallback((s: MediaStream | null) => {
-    setWebRTCStream(s);
-    setWebRTCConnected(!!s);
-    if (webRTCVideoRef.current && s) {
-      webRTCVideoRef.current.srcObject = s;
-      webRTCVideoRef.current.play().catch(() => {});
-    }
-  }, []);
-
-  const webrtc = useWebRTC({
-    streamId,
-    isBroadcaster: false,
-    onStreamReceived: handleStreamReceived,
-  });
-
-  useEffect(() => {
-    if (!stream || bunnyPlaybackUrl || isEnded) return;
-    webrtc.joinAsViewer();
-    return () => { webrtc.stopViewing(); };
-  }, [stream?.id, bunnyPlaybackUrl, isEnded]);
-
-  useEffect(() => {
-    if (webRTCVideoRef.current && webRTCStream) {
-      webRTCVideoRef.current.srcObject = webRTCStream;
-      webRTCVideoRef.current.play().catch(() => {});
-    }
-  }, [webRTCStream]);
 
   // HLS playback (Bunny)
   const hlsVideoRef = useRef<HTMLVideoElement>(null);
@@ -242,37 +208,24 @@ export default function LiveRoom() {
           onContextMenu={(e) => e.preventDefault()}
         />
 
-        {/* WebRTC video player (fallback when no Bunny HLS) */}
-        {!bunnyPlaybackUrl && (
-          <video
-            ref={webRTCVideoRef}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${webRTCConnected ? "opacity-100" : "opacity-0"}`}
-            playsInline
-            autoPlay
-            muted={false}
-            controlsList="nodownload"
-            onContextMenu={(e) => e.preventDefault()}
-          />
-        )}
-
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-        {/* Connecting spinner: WebRTC not yet connected */}
-        {!isEnded && !bunnyPlaybackUrl && !webRTCConnected && (
+        {/* No Bunny channel: live but no HLS playback URL */}
+        {!isEnded && !bunnyPlaybackUrl && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-4 text-center px-6">
               <div className="h-16 w-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
                 <Radio className="h-8 w-8 text-pink-400 animate-pulse" />
               </div>
-              <p className="text-white font-bold text-lg">配信接続中...</p>
-              <p className="text-white/60 text-sm">クリエイターの配信に接続しています</p>
+              <p className="text-white font-bold text-lg">配信準備中</p>
+              <p className="text-white/60 text-sm">配信チャンネルが設定されるまでお待ちください</p>
               <button
-                onClick={() => { webrtc.stopViewing(); setTimeout(() => webrtc.joinAsViewer(), 500); }}
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/live", streamId, "info"] })}
                 className="flex items-center gap-2 mt-1 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full transition-colors"
               >
                 <RefreshCw className="h-4 w-4" />
-                再接続する
+                更新する
               </button>
             </div>
           </div>

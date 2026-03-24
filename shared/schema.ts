@@ -536,7 +536,23 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
-// Live chat messages (for real-time chat in live rooms)
+// Bunny Stream Channels (pre-created in Bunny dashboard, managed by admin)
+export const bunnyStreamChannels = pgTable("bunny_stream_channels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  streamKey: varchar("stream_key").notNull().unique(),
+  streamId: varchar("stream_id").notNull(),
+  whipUrl: varchar("whip_url").notNull(),
+  playbackUrl: varchar("playback_url").notNull(),
+  isAvailable: boolean("is_available").default(true),
+  currentLiveStreamId: varchar("current_live_stream_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBunnyStreamChannelSchema = createInsertSchema(bunnyStreamChannels).omit({ id: true, createdAt: true });
+export type BunnyStreamChannel = typeof bunnyStreamChannels.$inferSelect;
+export type InsertBunnyStreamChannel = z.infer<typeof insertBunnyStreamChannelSchema>;
+
 export const liveChatMessages = pgTable("live_chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   streamId: varchar("stream_id").notNull(),

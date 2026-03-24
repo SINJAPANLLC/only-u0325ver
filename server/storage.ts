@@ -1,12 +1,14 @@
 import { 
   videos, liveStreams, products, creatorProfiles,
+  bunnyStreamChannels,
   type Video, type InsertVideo,
   type LiveStream, type InsertLiveStream,
   type Product, type InsertProduct,
-  type CreatorProfile, type InsertCreatorProfile
+  type CreatorProfile, type InsertCreatorProfile,
+  type BunnyStreamChannel, type InsertBunnyStreamChannel,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, isNull, or } from "drizzle-orm";
 
 export interface IStorage {
   getVideo(id: string): Promise<Video | undefined>;
@@ -17,6 +19,13 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   getCreatorProfile(id: string): Promise<CreatorProfile | undefined>;
   createCreatorProfile(profile: InsertCreatorProfile): Promise<CreatorProfile>;
+  // Bunny stream channels
+  getAllBunnyStreamChannels(): Promise<BunnyStreamChannel[]>;
+  createBunnyStreamChannel(channel: InsertBunnyStreamChannel): Promise<BunnyStreamChannel>;
+  deleteBunnyStreamChannel(id: string): Promise<void>;
+  getAvailableBunnyStreamChannel(): Promise<BunnyStreamChannel | undefined>;
+  assignBunnyStreamChannel(channelId: string, liveStreamId: string): Promise<void>;
+  releaseBunnyStreamChannel(liveStreamId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -58,6 +67,42 @@ export class DatabaseStorage implements IStorage {
   async createCreatorProfile(insertProfile: InsertCreatorProfile): Promise<CreatorProfile> {
     const [profile] = await db.insert(creatorProfiles).values(insertProfile).returning();
     return profile;
+  }
+
+  async getAllBunnyStreamChannels(): Promise<BunnyStreamChannel[]> {
+    return db.select().from(bunnyStreamChannels).orderBy(bunnyStreamChannels.createdAt);
+  }
+
+  async createBunnyStreamChannel(channel: InsertBunnyStreamChannel): Promise<BunnyStreamChannel> {
+    const [created] = await db.insert(bunnyStreamChannels).values(channel).returning();
+    return created;
+  }
+
+  async deleteBunnyStreamChannel(id: string): Promise<void> {
+    await db.delete(bunnyStreamChannels).where(eq(bunnyStreamChannels.id, id));
+  }
+
+  async getAvailableBunnyStreamChannel(): Promise<BunnyStreamChannel | undefined> {
+    const [channel] = await db
+      .select()
+      .from(bunnyStreamChannels)
+      .where(eq(bunnyStreamChannels.isAvailable, true))
+      .limit(1);
+    return channel;
+  }
+
+  async assignBunnyStreamChannel(channelId: string, liveStreamId: string): Promise<void> {
+    await db
+      .update(bunnyStreamChannels)
+      .set({ isAvailable: false, currentLiveStreamId: liveStreamId })
+      .where(eq(bunnyStreamChannels.id, channelId));
+  }
+
+  async releaseBunnyStreamChannel(liveStreamId: string): Promise<void> {
+    await db
+      .update(bunnyStreamChannels)
+      .set({ isAvailable: true, currentLiveStreamId: null })
+      .where(eq(bunnyStreamChannels.currentLiveStreamId, liveStreamId));
   }
 }
 

@@ -148,22 +148,36 @@ Users can subscribe to multiple plans from the same creator simultaneously. Each
 - `/my-purchases`: User's purchase history with digital content access
 - `/creator-orders`: Creator's order management for physical products
 
-### Bunny Stream Integration (実装済み・APIキー待ち)
-- **Service**: Bunny.net Stream CDN for video hosting and live streaming
-- **Home page**: `bunnyVideoId` フィールドがあればHLS (.m3u8) ストリームで自動再生、なければ従来のvideoUrl/サムネイル画像にフォールバック
-- **Live page**: `bunnyPlaybackUrl` があればHLS低遅延ライブストリーム再生、なければサムネイル表示
+### Bunny Stream Integration (実装済み)
+
+#### VOD（動画アップロード）
+- **Service**: Bunny.net Stream CDN for video hosting
+- **Home page**: `bunnyVideoId` フィールドがあればHLS (.m3u8) ストリームで自動再生
 - **Player**: hls.js でHLS再生 (Safariはネイティブ対応)
 - **API Routes**:
   - `GET /api/bunny/status` - Bunny設定状態確認
   - `POST /api/bunny/create-video` - Bunny上にビデオを作成してTUSアップロードURLを返す
   - `GET /api/bunny/video/:bunnyVideoId/status` - ビデオエンコード状態確認
   - `PATCH /api/videos/:videoId/bunny` - ビデオにbunnyVideoIdを紐付け
-- **Required Env Vars** (設定まだ):
-  - `BUNNY_API_KEY` - アカウントレベルAPIキー
-  - `BUNNY_LIBRARY_ID` - ビデオライブラリID
-  - `BUNNY_CDN_HOSTNAME` - CDNホスト名 (vz-xxxxxx.b-cdn.net)
+
+#### ライブ配信（Bunny Stream Channel方式）
+- **仕組み**: Bunny APIはライブチャンネルの動的作成をサポートしないため、管理者がBunnyダッシュボードで手動作成したチャンネルを登録するプール方式を採用
+- **フロー**:
+  1. 管理者が Bunnyダッシュボードでライブチャンネルを作成し、Stream KeyとStream IDをコピー
+  2. 管理画面「Bunny Stream」タブからチャンネルを登録
+  3. クリエイターがライブ開始時に空きチャンネルが自動割り当て
+  4. クリエイター側: WHIP (`https://video.bunnycdn.com/live/{LIBRARY_ID}/{STREAM_KEY}/whip`) でブロードキャスト
+  5. 視聴者側: HLS (`https://{CDN_HOSTNAME}/{STREAM_ID}/playlist.m3u8`) で視聴
+  6. 配信終了時にチャンネルはプールに返却（再利用可能）
+- **Admin Routes**:
+  - `GET /api/admin/bunny-channels` - チャンネル一覧
+  - `POST /api/admin/bunny-channels` - チャンネル登録 (name, streamKey, streamId)
+  - `DELETE /api/admin/bunny-channels/:id` - チャンネル削除
+- **Schema**: `bunnyStreamChannels` テーブル (streamKey, streamId, whipUrl, playbackUrl, isAvailable, currentLiveStreamId)
+- **Required Env Vars**:
+  - `BUNNY_LIBRARY_ID` - ビデオライブラリID (設定済み: 623903)
+  - `BUNNY_CDN_HOSTNAME` - CDNホスト名 (設定済み: vz-edb8f34c-88a.b-cdn.net)
   - `VITE_BUNNY_CDN_HOSTNAME` - フロントエンド用CDNホスト名 (同じ値)
-- **Schema fields**: `videos.bunnyVideoId`, `liveStreams.bunnyStreamId`, `liveStreams.bunnyPlaybackUrl`
 
 ### Pending Integrations
 - **Stripe**: Card payment integration dismissed by user. To enable card payments later, set up Stripe integration through Replit's integration system or provide STRIPE_SECRET_KEY manually.
