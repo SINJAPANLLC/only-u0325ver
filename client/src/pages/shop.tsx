@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Loader2, Check, Truck, Heart, Package } from "lucide-react";
 import logoImage from "@assets/IMG_9769_1768108334555.PNG";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import type { UserProfile } from "@shared/schema";
 
 interface ShopProduct {
   id: string;
+  creatorId: string;
   name: string;
   description: string | null;
   price: number;
@@ -30,10 +32,11 @@ interface ShopProduct {
   imageUrl: string | null;
   isAvailable: boolean;
   creatorDisplayName: string | null;
+  creatorAvatarUrl: string | null;
   stock: number | null;
 }
 
-function ProductCard({ product, onBuy }: { product: ShopProduct; onBuy: () => void }) {
+function ProductCard({ product, onBuy, onCreatorClick }: { product: ShopProduct; onBuy: () => void; onCreatorClick: () => void }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
@@ -59,11 +62,18 @@ function ProductCard({ product, onBuy }: { product: ShopProduct; onBuy: () => vo
       )}
 
       <div className="absolute right-3 bottom-[110px] z-20 flex flex-col items-center gap-5">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center ring-2 ring-white shadow-xl">
-          <span className="text-white font-bold text-sm">
-            {(product.creatorDisplayName || "?").charAt(0)}
-          </span>
-        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onCreatorClick(); }}
+          className="flex flex-col items-center gap-1"
+          data-testid={`button-creator-${product.id}`}
+        >
+          <Avatar className="h-12 w-12 ring-2 ring-white shadow-xl">
+            <AvatarImage src={product.creatorAvatarUrl || undefined} className="object-cover" />
+            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
+              {(product.creatorDisplayName || "?").charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -96,19 +106,9 @@ function ProductCard({ product, onBuy }: { product: ShopProduct; onBuy: () => vo
         <p className="text-white font-bold text-base drop-shadow leading-snug mb-2 line-clamp-2">
           {product.name}
         </p>
-        <div className="flex items-center gap-2">
-          <span className="text-pink-400 font-bold text-lg drop-shadow">
-            {product.price.toLocaleString()}pt
-          </span>
-          <Badge
-            variant="outline"
-            className={`text-[10px] border-white/20 text-white/60 ${
-              product.productType === "digital" ? "bg-blue-500/20" : "bg-green-500/20"
-            }`}
-          >
-            {product.productType === "digital" ? "デジタル" : "物販"}
-          </Badge>
-        </div>
+        <span className="text-pink-400 font-bold text-lg drop-shadow">
+          {product.price.toLocaleString()}pt
+        </span>
       </div>
     </div>
   );
@@ -282,21 +282,14 @@ export default function Shop() {
                   style={{ height: "100%", width: "100%", position: "relative" }}
                   data-testid={`card-product-${product.id}`}
                 >
-                  <ProductCard product={product} onBuy={() => handleBuy(product)} />
+                  <ProductCard
+                    product={product}
+                    onBuy={() => handleBuy(product)}
+                    onCreatorClick={() => setLocation(`/creator/${product.creatorId}`)}
+                  />
                 </div>
               ))}
             </div>
-
-            {displayProducts.length > 1 && (
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1">
-                {displayProducts.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-1 rounded-full transition-all ${i === index ? "h-4 bg-white" : "h-1.5 bg-white/30"}`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>

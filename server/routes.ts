@@ -1290,9 +1290,11 @@ export async function registerRoutes(
           isAvailable: products.isAvailable,
           createdAt: products.createdAt,
           creatorDisplayName: creatorProfiles.displayName,
+          creatorAvatarUrl: userProfiles.avatarUrl,
         })
         .from(products)
         .leftJoin(creatorProfiles, eq(products.creatorId, creatorProfiles.userId))
+        .leftJoin(userProfiles, eq(products.creatorId, userProfiles.userId))
         .where(eq(products.isAvailable, true))
         .orderBy(desc(products.createdAt))
         .limit(20);
