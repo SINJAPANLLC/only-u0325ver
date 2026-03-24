@@ -229,9 +229,9 @@ export default function CreatorWithdrawal() {
         </header>
         <div className="p-4">
           <Card className="p-8 text-center">
-            <Wallet className="h-12 w-12 mx-auto mb-3 text-white/50" />
-            <p className="text-white/50">データを取得できませんでした</p>
-            <p className="text-sm text-white/50 mt-1">クリエイター登録が必要です</p>
+            <Wallet className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">データを取得できませんでした</p>
+            <p className="text-sm text-muted-foreground mt-1">クリエイター登録が必要です</p>
           </Card>
         </div>
       </div>
@@ -266,11 +266,11 @@ export default function CreatorWithdrawal() {
                 <Wallet className="h-6 w-6 text-pink-400" />
               </div>
               <div>
-                <p className="text-sm text-white/50">振込可能残高</p>
-                <p className="text-3xl font-bold text-foreground">{formatPoints(availableBalance)}<span className="text-lg ml-1">pt</span></p>
+                <p className="text-sm text-muted-foreground">振込可能残高</p>
+                <p className="text-3xl font-bold text-white">{formatPoints(availableBalance)}<span className="text-lg ml-1">pt</span></p>
               </div>
             </div>
-            <div className="text-sm text-white/50 bg-background/50 rounded-lg p-3 space-y-1">
+            <div className="text-sm text-white/70 bg-black/20 rounded-lg p-3 space-y-1">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
                 <span>最低振込額: 10,000pt</span>
@@ -291,17 +291,17 @@ export default function CreatorWithdrawal() {
             {hasBankInfo ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-white/50" />
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">{bankInfo.bankName}</p>
-                    <p className="text-sm text-white/50">{bankInfo.bankBranchName}</p>
+                    <p className="text-sm text-muted-foreground">{bankInfo.bankBranchName}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-white/50" />
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">{bankInfo.bankAccountType} {bankInfo.bankAccountNumber}</p>
-                    <p className="text-sm text-white/50">{bankInfo.bankAccountHolder}</p>
+                    <p className="text-sm text-muted-foreground">{bankInfo.bankAccountHolder}</p>
                   </div>
                 </div>
                 <Button 
@@ -315,8 +315,8 @@ export default function CreatorWithdrawal() {
               </div>
             ) : (
               <div className="text-center py-4">
-                <Building2 className="h-12 w-12 mx-auto mb-3 text-white/50" />
-                <p className="text-white/50 mb-3">振込先口座が登録されていません</p>
+                <Building2 className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-muted-foreground mb-3">振込先口座が登録されていません</p>
                 <Button 
                   onClick={openBankDialog}
                   data-testid="button-register-bank"
@@ -355,7 +355,7 @@ export default function CreatorWithdrawal() {
                     max={availableBalance}
                     data-testid="input-withdraw-amount"
                   />
-                  <p className="text-xs text-white/50 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     最低 10,000pt 〜 最大 {formatPoints(availableBalance)}pt
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export default function CreatorWithdrawal() {
                       data-testid="option-normal-transfer"
                     >
                       <p className="font-medium text-sm">通常振込</p>
-                      <p className="text-xs text-white/50">末締め翌々5日払い</p>
+                      <p className="text-xs text-muted-foreground">末締め翌々5日払い</p>
                     </Card>
                     <Card 
                       className={`p-3 cursor-pointer border-2 transition-colors ${withdrawType === "express" ? "border-pink-500 bg-pink-500/10" : "border-transparent"}`}
@@ -377,28 +377,28 @@ export default function CreatorWithdrawal() {
                       data-testid="option-express-transfer"
                     >
                       <p className="font-medium text-sm">早払い</p>
-                      <p className="text-xs text-white/50">申請後3営業日以内</p>
+                      <p className="text-xs text-muted-foreground">申請後3営業日以内</p>
                       <p className="text-xs text-pink-400">+8.8%（税込）</p>
                     </Card>
                   </div>
                 </div>
                 
                 {withdrawAmountNum >= 10000 && (
-                  <div className="bg-white/5 rounded-lg p-3 space-y-2">
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>振込金額</span>
                       <span>{formatPoints(withdrawAmountNum)} pt</span>
                     </div>
-                    <div className="flex justify-between text-sm text-white/50">
+                    <div className="flex justify-between text-sm text-muted-foreground">
                       <span>システム利用料（16.5%）</span>
                       <span>-{formatPoints(systemFee)} pt</span>
                     </div>
-                    <div className="flex justify-between text-sm text-white/50">
+                    <div className="flex justify-between text-sm text-muted-foreground">
                       <span>振込手数料</span>
                       <span>-{formatPoints(transferFee)} pt</span>
                     </div>
                     {withdrawType === "express" && (
-                      <div className="flex justify-between text-sm text-white/50">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>早払い手数料（8.8%）</span>
                         <span>-{formatPoints(expressFee)} pt</span>
                       </div>
@@ -443,8 +443,8 @@ export default function CreatorWithdrawal() {
                 <Card key={withdrawal.id} className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4 text-white/50" />
-                      <span className="text-sm text-white/50">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
                         {withdrawal.createdAt ? format(new Date(withdrawal.createdAt), "yyyy/MM/dd", { locale: ja }) : "-"}
                       </span>
                     </div>
@@ -452,11 +452,11 @@ export default function CreatorWithdrawal() {
                   </div>
                   <div className="flex justify-between items-end">
                     <div>
-                      <p className="text-sm text-white/50">{withdrawal.bankName} {withdrawal.bankAccountNumber}</p>
+                      <p className="text-sm text-muted-foreground">{withdrawal.bankName} {withdrawal.bankAccountNumber}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold">{formatPoints(withdrawal.netAmount)} 円</p>
-                      <p className="text-xs text-white/50">手数料 {withdrawal.fee}pt</p>
+                      <p className="text-xs text-muted-foreground">手数料 {withdrawal.fee}pt</p>
                     </div>
                   </div>
                 </Card>
@@ -464,8 +464,8 @@ export default function CreatorWithdrawal() {
             </div>
           ) : (
             <Card className="p-8 text-center">
-              <Clock className="h-12 w-12 mx-auto mb-3 text-white/50" />
-              <p className="text-white/50">振込履歴はありません</p>
+              <Clock className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-muted-foreground">振込履歴はありません</p>
             </Card>
           )}
         </motion.div>
@@ -562,28 +562,28 @@ export default function CreatorWithdrawal() {
           </DialogHeader>
           <div className="space-y-3 py-4">
             <div className="flex justify-between">
-              <span className="text-white/50">振込先</span>
+              <span className="text-muted-foreground">振込先</span>
               <span>{bankInfo?.bankName} {bankInfo?.bankAccountNumber}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">振込タイプ</span>
+              <span className="text-muted-foreground">振込タイプ</span>
               <span>{withdrawType === "express" ? "早払い" : "通常振込"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">振込金額</span>
+              <span className="text-muted-foreground">振込金額</span>
               <span>{formatPoints(withdrawAmountNum)} pt</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">システム利用料（16.5%）</span>
+              <span className="text-muted-foreground">システム利用料（16.5%）</span>
               <span>-{formatPoints(systemFee)} pt</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">振込手数料</span>
+              <span className="text-muted-foreground">振込手数料</span>
               <span>-{formatPoints(transferFee)} pt</span>
             </div>
             {withdrawType === "express" && (
               <div className="flex justify-between">
-                <span className="text-white/50">早払い手数料（8.8%）</span>
+                <span className="text-muted-foreground">早払い手数料（8.8%）</span>
                 <span>-{formatPoints(expressFee)} pt</span>
               </div>
             )}
