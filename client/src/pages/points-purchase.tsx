@@ -281,7 +281,7 @@ export default function PointsPurchase() {
               onClick={handlePaymentCancel}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
             <h1 className="font-bold text-base text-white">カード決済</h1>
           </div>
@@ -343,7 +343,7 @@ export default function PointsPurchase() {
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
             <h1 className="font-bold text-base text-white">購入完了</h1>
           </div>
@@ -400,7 +400,7 @@ export default function PointsPurchase() {
               onClick={() => setLocation("/account")}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
             <h1 className="font-bold text-base text-white">振込情報</h1>
           </div>
@@ -553,7 +553,7 @@ export default function PointsPurchase() {
               onClick={() => setStep("select")}
               data-testid="button-back"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
             <h1 className="font-bold text-base text-white">お支払い方法</h1>
           </div>
@@ -658,7 +658,7 @@ export default function PointsPurchase() {
         <div className="flex items-center h-14 px-4 gap-3">
           <Link href="/account">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" data-testid="button-back">
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </Button>
           </Link>
           <h1 className="font-bold text-base text-white">ポイント購入</h1>
