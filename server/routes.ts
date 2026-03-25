@@ -7037,6 +7037,51 @@ export async function registerRoutes(
   // MARKETING APIs
   // ============================================================
 
+  // Sitemap
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const baseUrl = "https://only-u.fun";
+      const articles = await db
+        .select({ slug: columnArticles.slug, publishedAt: columnArticles.publishedAt, updatedAt: columnArticles.updatedAt })
+        .from(columnArticles)
+        .where(eq(columnArticles.published, true))
+        .orderBy(desc(columnArticles.publishedAt));
+
+      const staticPages = [
+        { url: "/", priority: "1.0", changefreq: "daily" },
+        { url: "/column", priority: "0.8", changefreq: "daily" },
+        { url: "/contact", priority: "0.5", changefreq: "monthly" },
+      ];
+
+      const urlEntries = [
+        ...staticPages.map(p => `
+    <url>
+      <loc>${baseUrl}${p.url}</loc>
+      <priority>${p.priority}</priority>
+      <changefreq>${p.changefreq}</changefreq>
+    </url>`),
+        ...articles.map(a => `
+    <url>
+      <loc>${baseUrl}/column/${a.slug}</loc>
+      <lastmod>${(a.updatedAt || a.publishedAt || new Date()).toISOString().split("T")[0]}</lastmod>
+      <priority>0.7</priority>
+      <changefreq>weekly</changefreq>
+    </url>`),
+      ].join("");
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlEntries}
+</urlset>`;
+
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.send(xml);
+    } catch (e) {
+      console.error("Sitemap error:", e);
+      res.status(500).send("Failed to generate sitemap");
+    }
+  });
+
   // Public: list published column articles
   app.get("/api/columns", async (req, res) => {
     try {
