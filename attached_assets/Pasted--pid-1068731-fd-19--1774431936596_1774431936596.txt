@@ -1,0 +1,150 @@
+,pid=1068731,fd=19))                                                                                                                
+LISTEN 0      511          0.0.0.0:5005       0.0.0.0:*    users:(("node /var/www/o",pid=1068734,fd=19))                                                                                                                
+LISTEN 0      511                *:3010             *:*    users:(("node /opt/sinja",pid=1348383,fd=20))                                                                                                                
+LISTEN 0      511                *:4111             *:*    users:(("node /var/www/s",pid=1392684,fd=20))                                                                                                                
+root@srv1087935:~# pm2 env 4
+cat /var/www/onlyu/.env 2>/dev/null || echo "no .env file"
+node_version: 20.20.0
+version: 1.0.0
+unique_id: 9387b1dc-340c-490c-a91e-9dda27aa7c6e
+SHELL: /bin/bash
+REDIS_URL: redis://localhost:6379/0
+FRONTEND_URL: https://sinjapan-worknow.com
+SQUARE_APPLICATION_ID: sq0idp-Oz8fajLDYE80_4K6fLVQAQ
+VITE_FIREBASE_MEASUREMENT_ID: G-MG8G98GS3G
+STRIPE_API_KEY: sk_test_dummy
+NVM_INC: /root/.nvm/versions/node/v20.20.0/include/node
+YOUTUBE_OAUTH_REFRESH_TOKEN: 1//04kxof3Ozywv2CgYIARAAGAQSNwF-L9IrPoBk9sOIoAYCigKPhoFohUWIMLJaNcxcGSynS7BJHB79kBUb3hBOubBtq8_YWvkTKS8
+VITE_FIREBASE_API_KEY: AIzaSyACWkCVGsqeilFQgzazXzGIf1Cw_3Uu3NE
+DATABASE_URL: postgresql://worknow_user:Change_This_Password_123!@localhost:5432/worknow_production
+LOG_LEVEL: info
+PGPORT: 5432
+ALLOWED_ORIGINS: https://sinjapan-worknow.com,https://www.sinjapan-worknow.com
+STRIPE_WEBHOOK_SECRET: whsec_dummy
+GEMINI_API_KEY: AIzaSyAT2PYYddaLZ84wcjVvVQlh6jhLr1btJpg
+PGPASSWORD: Change_This_Password_123!
+OPENAI_API_KEY: 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
+MAX_UPLOAD_SIZE: 10485760
+PWD: /var/www/onlyu
+LOGNAME: root
+XDG_SESSION_TYPE: tty
+DOMAIN: sinjapan-worknow.com
+SQUARE_ACCESS_TOKEN: EAAAl6njOsBNQU0kLNsEwP_-50GrmF-Nta9TVi0kFTPEVbZ9snQNXkjiorXI_TTy
+PORT: 5005
+BUNNY_STORAGE_REGION: de
+FIREBASE_KEY: dummy
+STRIPE_SECRET_KEY: pioA8o+nNR+8Zpp+a+QBn6PcKBSQ5unzUFVr6YTTGML557q2o1kt4Sf/eyuUDlj6
+SUPABASE_URL: https://dummy.supabase.co
+VITE_FIREBASE_PROJECT_ID: school-ec82e
+YOUTUBE_API_KEY: AIzaSyBNduV5ru0zA2mzROmUt3WGZoZw8yOVsCc
+NODE_ENV: production
+API_KEY: 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
+ADMIN_EMAIL: admin@sinjapan-worknow.com
+HOME: /root
+FIREBASE_CLIENT_X509_CERT_URL: https://dummy.com
+LANG: C.UTF-8
+STORAGE_PROVIDER: local
+BUNNY_STORAGE_API_KEY: 1805c3ed-4ad9-4784-8070c0b282ef-c75b-460e
+BUNNY_STORAGE_ZONE_NAME: onlyu-videos
+LS_COLORS: rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+ALGORITHM: HS256
+SMTP_PASS: @Kazuya8008
+STRIPE_PUBLISHABLE_KEY: pk_test_dummy
+MODELSLAB_API_KEY: CjCekHxI4Tt1yKhDCcMFrX4XabhuSO6G7rRnqYXITsenEOceMj2czJpwnFUA
+NEXT_PUBLIC_APP_URL: https://sinjapan-poker.com
+VIRTUAL_ENV: /var/www/worknow/venv
+PUBLIC_URL_BASE: /uploads
+SECRET_KEY: pioA8o+nNR+8Zpp+a+QBn6PcKBSQ5unzUFVr6YTTGML557q2o1kt4Sf/eyuUDlj6
+ADMIN_PASSWORD: Kazuya8008
+PGUSER: worknow_user
+SQUARE_LOCATION_ID: LD95R63AEZZRH
+CORS_ORIGINS: https://sinjapan-worknow.com,https://www.sinjapan-worknow.com
+SSH_CONNECTION: 59.132.69.114 57650 212.85.24.206 22
+SMTP_PORT: 465
+BACKEND_URL: https://sinjapan-worknow.com/api
+SQUARE_ENVIRONMENT: production
+YOUTUBE_OAUTH_CLIENT_SECRET: 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
+GOOGLE_PLACES_API_KEY: AIzaSyCYvwYVDyycyguRdtzpcmglOam-sxXEsmw
+VITE_FIREBASE_STORAGE_BUCKET: school-ec82e.firebasestorage.app
+NEXT_PUBLIC_SOCKET_URL: https://sinjapan-poker.com
+NVM_DIR: /root/.nvm
+VITE_FIREBASE_DATABASE_URL: https://school-ec82e-default-rtdb.firebaseio.com/
+LESSCLOSE: /usr/bin/lesspipe %s %s
+XDG_SESSION_CLASS: user
+TERM: xterm-256color
+LESSOPEN: | /usr/bin/lesspipe %s
+FIREBASE_PROJECT_ID: dummy
+USER: root
+VITE_SQUARE_APP_ID: sq0idp-JLcsaievW9J9bC8OXbRr5g
+SESSION_SECRET: jWyIs4Bs1ypDPriZESb54PdoaXoI7K55gVAc+dN7QZCoUAQDjKLORebsVYeHd0W+kBPfnX2UCH7SggbDuq6YSw==
+VITE_SQUARE_ENVIRONMENT: production
+VITE_FIREBASE_MESSAGING_SENDER_ID: 415312790339
+NEON_DATABASE_URL: postgresql://neondb_owner:npg_ZOBp5n6RymGd@ep-wispy-sky-ai3gvzlm-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
+FIREBASE_PRIVATE_KEY: dummy
+SHLVL: 1
+NVM_CD_FLAGS: 
+STRIPE_CONNECT_CLIENT_ID: ca_dummy
+PGDATABASE: worknow_production
+SUPABASE_KEY: dummy_key_replace_later
+VITE_FIREBASE_AUTH_DOMAIN: school-ec82e.firebaseapp.com
+XDG_SESSION_ID: 14480
+VIRTUAL_ENV_PROMPT: (venv) 
+YOUTUBE_CHANNEL_ID: UCWXDTsh_-YDUGrT24LIjrUg
+SMTP_PASSWORD: dummy
+VITE_STRIPE_PUBLIC_KEY: pk_live_51SJLZVQXzSGbl6lJ6uiGIHc5dIir5GbtrS0I9g4S3SokXhDuH3eXcK3F7KD4RjdWGtwtuBzcqMyT50pBV1GB1tOs00WNjwwGnW
+FIREBASE_CLIENT_ID: dummy
+SMTP_USER: info@tramatch-sinjapan.com
+XDG_RUNTIME_DIR: /run/user/0
+PS1: (venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ 
+SSH_CLIENT: 59.132.69.114 57650 22
+UPLOAD_DIR: /var/www/worknow/backend/uploads
+PGHOST: localhost
+YOUTUBE_OAUTH_CLIENT_ID: 4578726576-8010lnmh3kqjgvfnufhve7nj34jg75ca.apps.googleusercontent.com
+SMTP_FROM: info@tramatch-sinjapan.com
+XDG_DATA_DIRS: /usr/local/share:/usr/share:/var/lib/snapd/desktop
+PYTHON_ENV: production
+PATH: /var/www/worknow/venv/bin:/root/.nvm/versions/node/v20.20.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+VITE_SQUARE_LOCATION_ID: LD95R63AEZZRH
+ACCESS_TOKEN_EXPIRE_MINUTES: 30
+DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/0/bus
+JWT_SECRET: pioA8o+nNR+8Zpp+a+QBn6PcKBSQ5unzUFVr6YTTGML557q2o1kt4Sf/eyuUDlj6
+NVM_BIN: /root/.nvm/versions/node/v20.20.0/bin
+SSH_TTY: /dev/pts/1
+FIREBASE_PRIVATE_KEY_ID: dummy
+SMTP_HOST: smtp.hostinger.com
+MINIMAX_API_KEY: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLlpKfosLflkozlk4kiLCJVc2VyTmFtZSI6IlNJTiBKQVBBTiBMTEMiLCJBY2NvdW50IjoiIiwiU3ViamVjdElEIjoiMTk5NzMwNTcwNDQ1NjY1NTgzMCIsIlBob25lIjoiIiwiR3JvdXBJRCI6IjE5OTczMDU3MDQ0NDgyNzEzMTgiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiJzaW4ubGxjLndvcmtAZ21haWwuY29tIiwiQ3JlYXRlVGltZSI6IjIwMjUtMTItMDcgMDY6NTY6NDYiLCJUb2tlblR5cGUiOjQsImlzcyI6Im1pbmltYXgifQ.KJofZ_36jTB3RwUVHRdKFOnIEi1Dhv5y9P1apPeKgim1gYOIIV_MmZq4nxoeCtblkBWLZzfUokEsAwxeaGYTMx3I-NBArCd3oTvfwl8NZgnPjMNhb4i5FNSDxytfL6e-eF2R5dpoCpleYlpX2qWTR1DkwO6hiVoHJyn_zO7PH9JlZqfcD1nOpy5kp1YrZ1XEXPjMzLnnqGzTqaMRfxkx-W26hUpbWvbB8XdQIxPhU0nPmuc8qzGcSxf1lSZXNnf2E4p_KauTff8EdWyKscPY0nn2pH6jWwscPcrzzKCLeXrFuTopP5gilPF5Fbr0HATDcfzy3p45x-cuA9Fan-M7oQ
+BUNNY_CDN_HOSTNAME: only-u.fun
+BUNNY_STREAM_API_KEY: 75c6117c-fa36-44d7-98e0befaa366-27d7-4b7e
+VITE_FIREBASE_APP_ID: 1:415312790339:web:3938fb482f78b4768525f6
+BUNNY_STREAM_LIBRARY_ID: 524827
+OLDPWD: /var/www/tramatch
+FIREBASE_CLIENT_EMAIL: dummy@dummy.com
+_: /usr/bin/pm2
+PM2_USAGE: CLI
+PM2_JSON_PROCESSING: true
+PM2_HOME: /root/.pm2
+onlyu: {}
+NODE_APP_INSTANCE: 0
+vizion_running: false
+km_link: false
+cwd: /var/www/onlyu
+max_memory_restart: 314572800
+namespace: default
+NODE_ENV=production
+PORT=5000
+
+SESSION_SECRET=9vHQi2cMMBXBqBuNivF47kJKOJ8nvzRlxDSKFQK6fm5Fc0LqIbUK495zyKPivf1BLn/Sfko16iOmUqGvS3QcQw==
+
+ADMIN_EMAIL=info@sinjapan.jp
+ADMIN_PASSWORD=Kazuya8008
+
+STRIPE_SECRET_KEY=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
+VITE_STRIPE_PUBLIC_KEY=pk_live_51SJLZVQXzSGbl6lJ6uiGIHc5dIir5GbtrS0I9g4S3SokXhDuH3eXcK3F7KD4RjdWGtwtuBzcqMyT50pBV1GB1tOs00WNjwwGnW
+
+BUNNY_CDN_HOSTNAME=only-u.fun
+BUNNY_STREAM_API_KEY=75c6117c-fa36-44d7-98e0befaa366-27d7-4b7e
+BUNNY_STREAM_LIBRARY_ID=524827
+BUNNY_STORAGE_API_KEY=1805c3ed-4ad9-4784-8070c0b282ef-c75b-460e
+BUNNY_STORAGE_ZONE_NAME=onlyu-videos
+BUNNY_STORAGE_REGION=de
+root@srv1087935:~# 
