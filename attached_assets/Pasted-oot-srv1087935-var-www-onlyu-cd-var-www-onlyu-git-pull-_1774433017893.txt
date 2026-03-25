@@ -1,0 +1,93 @@
+oot@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+
+# 最新コードを取得
+git pull origin main
+
+# パッケージインストール & ビルド
+npm install
+npm run build
+
+# 今度はdist/index.cjsが生成されるのでPM2を更新
+pm2 delete onlyu
+set -a; source /var/www/onlyu/.env; set +a
+pm2 start dist/index.cjs --name onlyu
+pm2 save
+
+# ログ確認
+sleep 3
+pm2 logs onlyu --lines 20
+remote: Enumerating objects: 5806, done.
+remote: Counting objects: 100% (5806/5806), done.
+remote: Compressing objects: 100% (1142/1142), done.
+remote: Total 5806 (delta 4647), reused 5806 (delta 4647), pack-reused 0 (from 0)
+Receiving objects: 100% (5806/5806), 82.37 MiB | 16.82 MiB/s, done.
+Resolving deltas: 100% (4647/4647), done.
+From https://github.com/SINJAPANLLC/only-u0325ver
+ * branch            main       -> FETCH_HEAD
+ + 2801c4c...724b7f4 main       -> origin/main  (forced update)
+hint: You have divergent branches and need to specify how to reconcile them.
+hint: You can do so by running one of the following commands sometime before
+hint: your next pull:
+hint: 
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
+hint:   git config pull.ff only       # fast-forward only
+hint: 
+hint: You can replace "git config" with "git config --global" to set a default
+hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+hint: or --ff-only on the command line to override the configured default per
+hint: invocation.
+fatal: Need to specify how to reconcile divergent branches.
+
+up to date, audited 989 packages in 8s
+
+155 packages are looking for funding
+  run `npm fund` for details
+
+34 vulnerabilities (14 low, 6 moderate, 13 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+failed to load config from /var/www/onlyu/vite.config.ts
+error during build:
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@vitejs/plugin-react' imported from /var/www/onlyu/vite.config.ts.timestamp-1774433003958-98f2b0e0af5db.mjs
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:168:49)
+[PM2] Applying action deleteProcessId on app [onlyu](ids: [ 32 ])
+[PM2] [onlyu](32) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 235.7mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 315.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.7mb  │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.4mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 98.8mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 113.0mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.3mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.5mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2][ERROR] Script not found: /var/www/onlyu/dist/index.cjs
+[1]+  Done                    DATABASE_URL=postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 20 lines for [onlyu] process (change the value with --lines option)
+
