@@ -979,35 +979,38 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
+    <div className="min-h-screen bg-[#080810] flex text-white">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
-        transform transition-transform duration-200 ease-in-out
+        fixed lg:static inset-y-0 left-0 z-50 w-60 bg-[#0d0d1a] border-r border-white/[0.06]
+        transform transition-transform duration-200 ease-in-out flex-shrink-0
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
         <div className="h-full flex flex-col">
           {/* Logo */}
-          <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="px-4 py-5 border-b border-white/[0.06]">
             <div className="flex items-center gap-3">
-              <img src={logoImage} alt="Only-U" className="h-10 w-10 object-contain" />
+              <div className="relative">
+                <img src={logoImage} alt="Only-U" className="h-9 w-9 object-contain rounded-xl" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-[#0d0d1a]" />
+              </div>
               <div>
-                <h1 className="font-bold text-lg">Only-U</h1>
-                <p className="text-xs text-muted-foreground">管理パネル</p>
+                <h1 className="font-bold text-sm text-white">Only-U Admin</h1>
+                <p className="text-[10px] text-white/40 mt-0.5">管理コンソール</p>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -1016,62 +1019,69 @@ export default function AdminDashboard() {
                   setSidebarOpen(false);
                 }}
                 className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
+                  w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all text-sm
                   ${activeTab === item.id 
-                    ? "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400" 
-                    : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                    ? "bg-gradient-to-r from-pink-500/20 to-rose-500/10 text-pink-400 border border-pink-500/20" 
+                    : "text-white/50 hover:text-white/80 hover:bg-white/[0.04] border border-transparent"
                   }
                 `}
                 data-testid={`nav-${item.id}`}
               >
-                <item.icon className="h-5 w-5" />
-                <span className="flex-1">{item.label}</span>
+                <item.icon className={`h-4 w-4 flex-shrink-0 ${activeTab === item.id ? "text-pink-400" : ""}`} />
+                <span className="flex-1 font-medium">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <Badge variant="secondary" className="bg-pink-500 text-white text-xs">
+                  <span className="bg-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                     {item.badge}
-                  </Badge>
+                  </span>
                 )}
               </button>
             ))}
           </nav>
 
           {/* Logout */}
-          <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-slate-600 dark:text-slate-300"
+          <div className="p-3 border-t border-white/[0.06]">
+            <button
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all"
               onClick={() => logoutMutation.mutate()}
               data-testid="button-logout"
             >
-              <LogOut className="h-5 w-5 mr-3" />
+              <LogOut className="h-4 w-4 flex-shrink-0" />
               ログアウト
-            </Button>
+            </button>
           </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-h-screen">
+      <main className="flex-1 min-h-screen flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 lg:px-6 py-4">
+        <header className="sticky top-0 z-30 bg-[#080810]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 lg:px-6 py-3.5 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
+            <button
+              className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/[0.06] transition-all"
               onClick={() => setSidebarOpen(true)}
               data-testid="button-menu"
             >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h2 className="text-xl font-bold">
-              {navItems.find(n => n.id === activeTab)?.label}
-            </h2>
+              <Menu className="h-4.5 w-4.5" />
+            </button>
+            <div className="flex items-center gap-2">
+              {(() => {
+                const current = navItems.find(n => n.id === activeTab);
+                return current ? (
+                  <>
+                    <div className="h-6 w-6 rounded-md bg-gradient-to-br from-pink-500/30 to-rose-500/20 flex items-center justify-center">
+                      <current.icon className="h-3.5 w-3.5 text-pink-400" />
+                    </div>
+                    <h2 className="text-sm font-semibold text-white">{current.label}</h2>
+                  </>
+                ) : null;
+              })()}
+            </div>
           </div>
         </header>
 
         {/* Content */}
-        <div className="p-4 lg:p-6">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
           {/* Dashboard */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
@@ -1083,319 +1093,172 @@ export default function AdminDashboard() {
                 <>
                   {/* Alert Section - Pending Actions */}
                   {((stats?.pendingApplications || 0) > 0 || (stats?.pendingTransfers || 0) > 0 || (stats?.pendingWithdrawals || 0) > 0) && (
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-3 flex items-center gap-2">
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                      <h3 className="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
                         <Clock className="h-4 w-4" />
                         対応が必要な項目
                       </h3>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-2">
                         {(stats?.pendingApplications || 0) > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-white dark:bg-background"
+                          <button
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-sm text-white transition-all"
                             onClick={() => setActiveTab("creators")}
                             data-testid="quick-link-applications"
                           >
-                            <FileCheck className="h-4 w-4 mr-2 text-amber-600" />
+                            <FileCheck className="h-3.5 w-3.5 text-amber-400" />
                             クリエイター申請 {stats?.pendingApplications}件
-                          </Button>
+                          </button>
                         )}
                         {(stats?.pendingTransfers || 0) > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-white dark:bg-background"
+                          <button
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-sm text-white transition-all"
                             onClick={() => setActiveTab("transfers")}
                             data-testid="quick-link-transfers"
                           >
-                            <Wallet className="h-4 w-4 mr-2 text-amber-600" />
+                            <Wallet className="h-3.5 w-3.5 text-amber-400" />
                             振込確認待ち {stats?.pendingTransfers}件
-                          </Button>
+                          </button>
                         )}
                         {(stats?.pendingWithdrawals || 0) > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-white dark:bg-background"
+                          <button
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-sm text-white transition-all"
                             onClick={() => setActiveTab("withdrawals")}
                             data-testid="quick-link-withdrawals"
                           >
-                            <DollarSign className="h-4 w-4 mr-2 text-amber-600" />
+                            <DollarSign className="h-3.5 w-3.5 text-amber-400" />
                             出金申請 {stats?.pendingWithdrawals}件
-                          </Button>
+                          </button>
                         )}
                       </div>
                     </div>
                   )}
 
                   {/* Main Stats Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("users")}
-                      data-testid="card-stat-users"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">ユーザー</CardTitle>
-                        <Users className="h-4 w-4 text-pink-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalUsers.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground mt-1">登録ユーザー数</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("creators")}
-                      data-testid="card-stat-creators"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">クリエイター</CardTitle>
-                        <FileCheck className="h-4 w-4 text-purple-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalCreators.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground mt-1">承認済みクリエイター</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("content")}
-                      data-testid="card-stat-videos"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">コンテンツ</CardTitle>
-                        <Video className="h-4 w-4 text-blue-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalVideos.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground mt-1">動画コンテンツ数</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("shop")}
-                      data-testid="card-stat-products"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">ショップ</CardTitle>
-                        <ShoppingBag className="h-4 w-4 text-green-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalProducts.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground mt-1">出品商品数</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("livestreams")}
-                      data-testid="card-stat-live"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">ライブ配信</CardTitle>
-                        <Radio className="h-4 w-4 text-red-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-red-600">{stats?.activeLiveStreams || 0}</div>
-                        <p className="text-xs text-muted-foreground mt-1">現在配信中</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("transfers")}
-                      data-testid="card-stat-transfers"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">ポイント振込</CardTitle>
-                        <CreditCard className="h-4 w-4 text-amber-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-amber-600">{stats?.pendingTransfers || 0}</div>
-                        <p className="text-xs text-muted-foreground mt-1">確認待ち</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("withdrawals")}
-                      data-testid="card-stat-withdrawals"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">出金申請</CardTitle>
-                        <DollarSign className="h-4 w-4 text-emerald-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-emerald-600">{stats?.pendingWithdrawals || 0}</div>
-                        <p className="text-xs text-muted-foreground mt-1">処理待ち</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card 
-                      className="cursor-pointer hover-elevate" 
-                      onClick={() => setActiveTab("creators")}
-                      data-testid="card-stat-applications"
-                    >
-                      <CardHeader className="flex flex-row items-center justify-between gap-1 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">申請審査</CardTitle>
-                        <Clock className="h-4 w-4 text-orange-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-orange-600">{stats?.pendingApplications || 0}</div>
-                        <p className="text-xs text-muted-foreground mt-1">審査待ち</p>
-                      </CardContent>
-                    </Card>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {[
+                      { tab: "users" as Tab, label: "ユーザー", icon: Users, value: stats?.totalUsers, sub: "登録ユーザー数", color: "text-pink-400", bg: "from-pink-500/20 to-pink-500/5" },
+                      { tab: "creators" as Tab, label: "クリエイター", icon: FileCheck, value: stats?.totalCreators, sub: "承認済み", color: "text-purple-400", bg: "from-purple-500/20 to-purple-500/5" },
+                      { tab: "content" as Tab, label: "コンテンツ", icon: Video, value: stats?.totalVideos, sub: "動画本数", color: "text-blue-400", bg: "from-blue-500/20 to-blue-500/5" },
+                      { tab: "shop" as Tab, label: "ショップ", icon: ShoppingBag, value: stats?.totalProducts, sub: "出品商品数", color: "text-green-400", bg: "from-green-500/20 to-green-500/5" },
+                      { tab: "livestreams" as Tab, label: "ライブ配信", icon: Radio, value: stats?.activeLiveStreams || 0, sub: "配信中", color: "text-red-400", bg: "from-red-500/20 to-red-500/5" },
+                      { tab: "transfers" as Tab, label: "ポイント振込", icon: CreditCard, value: stats?.pendingTransfers || 0, sub: "確認待ち", color: "text-amber-400", bg: "from-amber-500/20 to-amber-500/5" },
+                      { tab: "withdrawals" as Tab, label: "出金申請", icon: DollarSign, value: stats?.pendingWithdrawals || 0, sub: "処理待ち", color: "text-emerald-400", bg: "from-emerald-500/20 to-emerald-500/5" },
+                      { tab: "creators" as Tab, label: "申請審査", icon: Clock, value: stats?.pendingApplications || 0, sub: "審査待ち", color: "text-orange-400", bg: "from-orange-500/20 to-orange-500/5" },
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        className="bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl p-4 text-left transition-all group"
+                        onClick={() => setActiveTab(item.tab)}
+                        data-testid={`card-stat-${item.tab}`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs text-white/40 font-medium">{item.label}</span>
+                          <div className={`h-7 w-7 rounded-lg bg-gradient-to-br ${item.bg} flex items-center justify-center`}>
+                            <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-white">{(item.value ?? 0).toLocaleString()}</div>
+                        <p className="text-xs text-white/30 mt-1">{item.sub}</p>
+                      </button>
+                    ))}
                   </div>
 
                   {/* Quick Actions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">クイックアクション</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <Button
-                          variant="outline"
-                          className="h-auto py-4 flex flex-col items-center gap-2"
-                          onClick={() => setActiveTab("notifications")}
-                          data-testid="quick-action-notification"
+                  <div>
+                    <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">クイックアクション</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { tab: "notifications" as Tab, icon: Bell, label: "通知を送信", color: "text-pink-400", bg: "from-pink-500/20 to-pink-500/5" },
+                        { tab: "marketing" as Tab, icon: Megaphone, label: "マーケティング", color: "text-purple-400", bg: "from-purple-500/20 to-purple-500/5" },
+                        { tab: "sales" as Tab, icon: BarChart3, label: "売上確認", color: "text-blue-400", bg: "from-blue-500/20 to-blue-500/5" },
+                        { tab: "settings" as Tab, icon: Settings, label: "設定", color: "text-white/60", bg: "from-white/10 to-white/5" },
+                      ].map(item => (
+                        <button
+                          key={item.tab}
+                          className="flex flex-col items-center gap-2 py-4 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] transition-all"
+                          onClick={() => setActiveTab(item.tab)}
+                          data-testid={`quick-action-${item.tab}`}
                         >
-                          <Bell className="h-5 w-5 text-pink-500" />
-                          <span className="text-sm">通知を送信</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-auto py-4 flex flex-col items-center gap-2"
-                          onClick={() => setActiveTab("marketing")}
-                          data-testid="quick-action-marketing"
-                        >
-                          <Megaphone className="h-5 w-5 text-purple-500" />
-                          <span className="text-sm">マーケティング</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-auto py-4 flex flex-col items-center gap-2"
-                          onClick={() => setActiveTab("sales")}
-                          data-testid="quick-action-sales"
-                        >
-                          <BarChart3 className="h-5 w-5 text-blue-500" />
-                          <span className="text-sm">売上確認</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-auto py-4 flex flex-col items-center gap-2"
-                          onClick={() => setActiveTab("settings")}
-                          data-testid="quick-action-settings"
-                        >
-                          <Settings className="h-5 w-5 text-gray-500" />
-                          <span className="text-sm">設定</span>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                          <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${item.bg} flex items-center justify-center`}>
+                            <item.icon className={`h-4.5 w-4.5 ${item.color}`} />
+                          </div>
+                          <span className="text-xs text-white/70 font-medium">{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Management Sections Overview */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-lg">ユーザー管理</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("users")}>
-                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">総ユーザー</span>
-                          <span className="font-medium">{stats?.totalUsers.toLocaleString()}</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {[
+                      {
+                        tab: "users" as Tab, title: "ユーザー管理",
+                        rows: [
+                          { label: "総ユーザー", value: stats?.totalUsers.toLocaleString() },
+                          { label: "クリエイター", value: stats?.totalCreators.toLocaleString() },
+                          { label: "審査待ち申請", badge: stats?.pendingApplications || 0, urgent: !!(stats?.pendingApplications) },
+                        ]
+                      },
+                      {
+                        tab: "content" as Tab, title: "コンテンツ管理",
+                        rows: [
+                          { label: "動画コンテンツ", value: stats?.totalVideos.toLocaleString() },
+                          { label: "商品", value: stats?.totalProducts.toLocaleString() },
+                          { label: "ライブ配信中", badge: stats?.activeLiveStreams || 0, urgent: !!(stats?.activeLiveStreams), pulse: true },
+                        ]
+                      },
+                      {
+                        tab: "transfers" as Tab, title: "ポイント・出金",
+                        rows: [
+                          { label: "振込確認待ち", badge: stats?.pendingTransfers || 0, urgent: !!(stats?.pendingTransfers) },
+                          { label: "出金申請待ち", badge: stats?.pendingWithdrawals || 0, urgent: !!(stats?.pendingWithdrawals) },
+                        ]
+                      },
+                      {
+                        tab: "notifications" as Tab, title: "コミュニケーション",
+                        actions: [
+                          { label: "通知送信", tab: "notifications" as Tab, icon: Send },
+                          { label: "マーケティング", tab: "marketing" as Tab, icon: Mail },
+                        ]
+                      },
+                    ].map(section => (
+                      <div key={section.tab} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-white">{section.title}</h4>
+                          <button
+                            className="text-xs text-white/40 hover:text-white/70 flex items-center gap-1 transition-colors"
+                            onClick={() => setActiveTab(section.tab)}
+                          >
+                            詳細 <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">クリエイター</span>
-                          <span className="font-medium">{stats?.totalCreators.toLocaleString()}</span>
+                        <div className="space-y-2">
+                          {section.rows?.map((row) => (
+                            <div key={row.label} className="flex items-center justify-between">
+                              <span className="text-xs text-white/40">{row.label}</span>
+                              {row.badge !== undefined ? (
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${row.urgent ? "bg-pink-500/20 text-pink-400" : "bg-white/10 text-white/50"} ${row.pulse ? "animate-pulse" : ""}`}>
+                                  {row.badge}
+                                </span>
+                              ) : (
+                                <span className="text-xs font-semibold text-white">{row.value}</span>
+                              )}
+                            </div>
+                          ))}
+                          {section.actions?.map((action) => (
+                            <div key={action.label} className="flex items-center justify-between">
+                              <span className="text-xs text-white/40">{action.label}</span>
+                              <button
+                                className="flex items-center gap-1 text-xs text-white/60 hover:text-white px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] transition-all"
+                                onClick={() => setActiveTab(action.tab)}
+                              >
+                                <action.icon className="h-3 w-3" /> 開く
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">審査待ち申請</span>
-                          <Badge variant={stats?.pendingApplications ? "destructive" : "secondary"}>
-                            {stats?.pendingApplications || 0}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-lg">コンテンツ管理</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("content")}>
-                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">動画コンテンツ</span>
-                          <span className="font-medium">{stats?.totalVideos.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">商品</span>
-                          <span className="font-medium">{stats?.totalProducts.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">ライブ配信中</span>
-                          <Badge variant={stats?.activeLiveStreams ? "destructive" : "secondary"} className={stats?.activeLiveStreams ? "animate-pulse" : ""}>
-                            {stats?.activeLiveStreams || 0}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-lg">ポイント・出金</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("transfers")}>
-                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">振込確認待ち</span>
-                          <Badge variant={stats?.pendingTransfers ? "destructive" : "secondary"}>
-                            {stats?.pendingTransfers || 0}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">出金申請待ち</span>
-                          <Badge variant={stats?.pendingWithdrawals ? "destructive" : "secondary"}>
-                            {stats?.pendingWithdrawals || 0}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-lg">コミュニケーション</CardTitle>
-                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("notifications")}>
-                          詳細 <ChevronRight className="h-4 w-4 ml-1" />
-                        </Button>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">通知送信</span>
-                          <Button size="sm" variant="outline" onClick={() => setActiveTab("notifications")}>
-                            <Send className="h-3 w-3 mr-1" /> 送信
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">マーケティング</span>
-                          <Button size="sm" variant="outline" onClick={() => setActiveTab("marketing")}>
-                            <Mail className="h-3 w-3 mr-1" /> メール
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
