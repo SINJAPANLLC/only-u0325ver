@@ -42,11 +42,10 @@ async function getCredentialsFromConnector() {
 }
 
 async function getCredentials() {
-  if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PUBLISHABLE_KEY) {
-    return {
-      secretKey: process.env.STRIPE_SECRET_KEY,
-      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-    };
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLIC_KEY;
+  if (secretKey && publishableKey) {
+    return { secretKey, publishableKey };
   }
   return getCredentialsFromConnector();
 }

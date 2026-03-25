@@ -1,0 +1,88 @@
+
+# HTTPSブロックも確認・同様に修正
+grep -n "5000\|5005" /etc/nginx/sites-available/onlyu
+
+# Nginx設定テスト & 再起動
+nginx -t && systemctl reload nginx
+18:        proxy_pass http://127.0.0.1:5005;
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@srv1087935:/var/www/onlyu# pm2 logs onlyu --lines 10
+[TAILING] Tailing last 10 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-error.log last 10 lines:
+34|onlyu   |     at new Configuration (file:///var/www/onlyu/node_modules/openid-client/build/index.js:463:19)
+34|onlyu   |     at Object.discovery (file:///var/www/onlyu/node_modules/openid-client/build/index.js:244:22)
+34|onlyu   |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu   |     at async nM.maxAge (/var/www/onlyu/dist/index.cjs:138:117719)
+34|onlyu   |     at async g_ (/var/www/onlyu/dist/index.cjs:138:118523)
+34|onlyu   |     at async L$ (/var/www/onlyu/dist/index.cjs:300:3198)
+34|onlyu   |     at async /var/www/onlyu/dist/index.cjs:373:2878 {
+34|onlyu   |   code: 'ERR_INVALID_ARG_TYPE',
+34|onlyu   |   [cause]: undefined
+34|onlyu   | }
+
+/root/.pm2/logs/onlyu-out.log last 10 lines:
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+
+34|onlyu  | Stripe schema ready
+34|onlyu  | Failed to initialize Stripe: Error: Replit connector not available
+34|onlyu  |     at yfe (/var/www/onlyu/dist/index.cjs:237:23491)
+34|onlyu  |     at yE (/var/www/onlyu/dist/index.cjs:237:24256)
+34|onlyu  |     at xfe (/var/www/onlyu/dist/index.cjs:237:24466)
+34|onlyu  |     at Jg (/var/www/onlyu/dist/index.cjs:237:24581)
+34|onlyu  |     at async Wme (/var/www/onlyu/dist/index.cjs:373:1266)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:373:2866
+34|onlyu  | TypeError: "clientId" must be a non-empty string
+34|onlyu  |     at CodedTypeError (file:///var/www/onlyu/node_modules/openid-client/build/index.js:89:17)
+34|onlyu  |     at new Configuration (file:///var/www/onlyu/node_modules/openid-client/build/index.js:463:19)
+34|onlyu  |     at Object.discovery (file:///var/www/onlyu/node_modules/openid-client/build/index.js:244:22)
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async nM.maxAge (/var/www/onlyu/dist/index.cjs:138:117719)
+34|onlyu  |     at async g_ (/var/www/onlyu/dist/index.cjs:138:118523)
+34|onlyu  |     at async L$ (/var/www/onlyu/dist/index.cjs:300:3198)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:373:2878 {
+34|onlyu  |   code: 'ERR_INVALID_ARG_TYPE',
+34|onlyu  |   [cause]: undefined
+34|onlyu  | }
+34|onlyu  | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu  | Initializing Stripe schema...
+34|onlyu  | Stripe schema ready
+34|onlyu  | Failed to initialize Stripe: Error: Replit connector not available
+34|onlyu  |     at yfe (/var/www/onlyu/dist/index.cjs:237:23491)
+34|onlyu  |     at yE (/var/www/onlyu/dist/index.cjs:237:24256)
+34|onlyu  |     at xfe (/var/www/onlyu/dist/index.cjs:237:24466)
+34|onlyu  |     at Jg (/var/www/onlyu/dist/index.cjs:237:24581)
+34|onlyu  |     at async Wme (/var/www/onlyu/dist/index.cjs:373:1266)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:373:2866
+34|onlyu  | TypeError: "clientId" must be a non-empty string
+34|onlyu  |     at CodedTypeError (file:///var/www/onlyu/node_modules/openid-client/build/index.js:89:17)
+34|onlyu  |     at new Configuration (file:///var/www/onlyu/node_modules/openid-client/build/index.js:463:19)
+34|onlyu  |     at Object.discovery (file:///var/www/onlyu/node_modules/openid-client/build/index.js:244:22)
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async nM.maxAge (/var/www/onlyu/dist/index.cjs:138:117719)
+34|onlyu  |     at async g_ (/var/www/onlyu/dist/index.cjs:138:118523)
+34|onlyu  |     at async L$ (/var/www/onlyu/dist/index.cjs:300:3198)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:373:2878 {
+34|onlyu  |   code: 'ERR_INVALID_ARG_TYPE',
+34|onlyu  |   [cause]: undefined
+34|onlyu  | }
+34|onlyu  | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu  | Initializing Stripe schema...
+34|onlyu  | Stripe schema ready
+34|onlyu  | Failed to initialize Stripe: Error: Replit connector not available
+34|onlyu  |     at yfe (/var/www/onlyu/dist/index.cjs:237:23491)
+34|onlyu  |     at yE (/var/www/onlyu/dist/index.cjs:237:24256)
+34|onlyu  |     at xfe (/var/www/onlyu/dist/index.cjs:237:24466)
+34|onlyu  |     at Jg (/var/www/onlyu/dist/index.cjs:237:24581)
+34|onlyu  |     at async Wme (/var/www/onlyu/dist/index.cjs:373:1266)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:373:2866
+3
