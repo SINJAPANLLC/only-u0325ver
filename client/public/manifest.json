@@ -4,19 +4,19 @@
   "description": "クリエイターと繋がる、新しいプラットフォーム",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#18181b",
-  "theme_color": "#18181b",
+  "background_color": "#ffffff",
+  "theme_color": "#e91e8c",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/favicon.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "/favicon.png",
+      "src": "/favicon.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }
