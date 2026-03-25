@@ -5,7 +5,6 @@ import {
   Grid3X3, 
   PlaySquare, 
   Heart, 
-  Link as LinkIcon,
   ShoppingBag,
   ChevronDown,
   BadgeCheck,
@@ -89,12 +88,11 @@ export default function MyProfile() {
   const username = profile?.username || user?.email?.split("@")[0] || "user";
   const defaultAvatarUrl = profile?.avatarUrl || user?.profileImageUrl || logoImage;
   const bio = profile?.bio || creatorProfile?.bio || "プロフィールを編集してください";
-  const websiteUrl = creatorProfile?.externalLink || profile?.location || "";
+
 
   const [editName, setEditName] = useState(displayName);
   const [editUsername, setEditUsername] = useState(username);
   const [editBio, setEditBio] = useState(bio);
-  const [editUrl, setEditUrl] = useState(websiteUrl);
   const [editAvatar, setEditAvatar] = useState(defaultAvatarUrl);
   const [currentAvatar, setCurrentAvatar] = useState(defaultAvatarUrl);
   const [editOpen, setEditOpen] = useState(false);
@@ -472,8 +470,6 @@ export default function MyProfile() {
                       displayName: editName, 
                       username: editUsername,
                       bio: editBio, 
-                      location: editUrl,
-                      externalLink: editUrl,
                       ...(avatarChanged && { avatarUrl: editAvatar })
                     });
                   }}
@@ -504,14 +500,6 @@ export default function MyProfile() {
         {/* Bio Section */}
         <div className="w-full mt-4 text-center">
           <p className="text-sm font-medium">{bio}</p>
-          {websiteUrl && (
-            <div className="flex items-center justify-center gap-1 mt-1 text-sm">
-              <LinkIcon className="h-3 w-3" />
-              <a href={websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:underline">
-                {websiteUrl.replace("https://", "").replace("http://", "")}
-              </a>
-            </div>
-          )}
         </div>
 
         {/* Subscription Plans */}
