@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Heart, Share2, Radio, Send, Users, Tv, RefreshCw,
-  Coins, PartyPopper, Zap, LogOut, Clock,
+  PartyPopper, Zap, LogOut, Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation, useParams, useSearch } from "wouter";
@@ -555,7 +555,7 @@ export default function LiveRoom() {
                 </p>
                 <div className="flex items-center gap-2 text-white/80 text-[10px]">
                   <Clock className="h-3 w-3" />{formatTime(sessionSeconds)}
-                  <Coins className="h-3 w-3" />{sessionPoints}pt 消費
+                  {sessionPoints}pt 消費
                   <span>({currentRate}pt/分)</span>
                 </div>
               </div>
@@ -660,7 +660,6 @@ export default function LiveRoom() {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-white/60 text-xs">保有ポイント</p>
                 <div className="flex items-center gap-1 bg-yellow-500/20 rounded-full px-2.5 py-1">
-                  <Coins className="h-3.5 w-3.5 text-yellow-400" />
                   <span className="text-yellow-300 text-sm font-bold">{userPoints.toLocaleString()}pt</span>
                 </div>
               </div>
