@@ -1,0 +1,86 @@
+srv1087935:~# pm2 list
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 236.0mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 313.8mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.4mb  │
+│ 4  │ onlyu              │ fork     │ 0    │ online    │ 0%       │ 99.8mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 61.2mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 98.6mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.9mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.1mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 327.0mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@srv1087935:~# pm2 show onlyu
+ Describing process with id 4 - name onlyu 
+┌───────────────────┬─────────────────────────────────┐
+│ status            │ online                          │
+│ name              │ onlyu                           │
+│ namespace         │ default                         │
+│ version           │ 1.0.0                           │
+│ restarts          │ 0                               │
+│ uptime            │ 27D                             │
+│ script path       │ /var/www/onlyu/dist/index.js    │
+│ script args       │ N/A                             │
+│ error log path    │ /root/.pm2/logs/onlyu-error.log │
+│ out log path      │ /root/.pm2/logs/onlyu-out.log   │
+│ pid path          │ /root/.pm2/pids/onlyu-4.pid     │
+│ interpreter       │ node                            │
+│ interpreter args  │ N/A                             │
+│ script id         │ 4                               │
+│ exec cwd          │ /var/www/onlyu                  │
+│ exec mode         │ fork_mode                       │
+│ node.js version   │ 20.20.0                         │
+│ node env          │ production                      │
+│ watch & reload    │ ✘                               │
+│ unstable restarts │ 0                               │
+│ created at        │ 2026-02-25T17:34:21.986Z        │
+└───────────────────┴─────────────────────────────────┘
+ Actions available 
+┌────────────────────────┐
+│ km:heapdump            │
+│ km:cpu:profiling:start │
+│ km:cpu:profiling:stop  │
+│ km:heap:sampling:start │
+│ km:heap:sampling:stop  │
+└────────────────────────┘
+ Trigger via: pm2 trigger onlyu <action_name>
+
+ Code metrics value 
+┌────────────────────────┬───────────┐
+│ Used Heap Size         │ 32.98 MiB │
+│ Heap Usage             │ 96.6 %    │
+│ Heap Size              │ 34.14 MiB │
+│ Event Loop Latency p95 │ 1.52 ms   │
+│ Event Loop Latency     │ 0.64 ms   │
+│ Active handles         │ 5         │
+│ Active requests        │ 0         │
+└────────────────────────┴───────────┘
+ Divergent env variables from local env 
+┌────────────────┬──────────────────────┐
+│ PWD            │ /var/www/onlyu       │
+│ SSH_CONNECTION │ 59.132.69.114 57650  │
+│ XDG_SESSION_ID │ 14480                │
+│ SSH_CLIENT     │ 59.132.69.114 57650  │
+│ PATH           │ /var/www/worknow/ven │
+│ SSH_TTY        │ /dev/pts/1           │
+│ _              │ /usr/bin/pm2         │
+└────────────────┴──────────────────────┘
+
+ Add your own code metrics: http://bit.ly/code-metrics
+ Use `pm2 logs onlyu [--lines 1000]` to display logs
+ Use `pm2 env 4` to display environment variables
+ Use `pm2 monit` to monitor CPU and Memory usage onlyu
+root@srv1087935:~# ss -tlnp | grep node
+LISTEN 0      511          0.0.0.0:20000      0.0.0.0:*    users:(("node",pid=1069101,fd=18))                                                                                                                           
+LISTEN 0      511          0.0.0.0:3009       0.0.0.0:*    users:(("node /var/www/a",pid=1393644,fd=20))                                                                                                                
+LISTEN 0      511          0.0.0.0:3001       0.0.0.0:*    users:(("node",pid=1137355,fd=20))                                                                                                                           
+LISTEN 0      511          0.0.0.0:5050       0.0.0.0:*    users:(("node /var/www/t",pid=1089522,fd=20))                                                                                                                
+LISTEN 0      511          0.0.0.0:5002       0.0.0.0:*    users:(("node /var/www/s",pid=1068713,fd=19))                                                                                                                
+LISTEN 0      511          0.0.0.0:5003       0.0.0.0:*    users:(("node /var/www/s",pid=1068719,fd=19))                                                                                                                
+LISTEN 0      511          0.0.0.0:5004       0.0.0.0:*    users:(("node /var/www/m",pid=1068731,fd=19))                                                                                                                
+LISTEN 0      511          0.0.0.0:5005       0.0.0.0:*    users:(("node /var/www/o",pid=1068734,fd=19))                                                                                                                
+LISTEN 0      511                *:3010             *:*    users:(("node /opt/sinja",pid=1348383,fd=20))                                                                                                                
+LISTEN 0      511                *:4111             *:*    users:(("node /var/www/s",pid=1392684,fd=20))                                                                                                                
+root@srv1087935:~# 
