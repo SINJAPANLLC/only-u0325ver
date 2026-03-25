@@ -1,0 +1,81 @@
+~/workspace$ git remote add github https://github.com/SINJAPANLLC/only-u0325ver.git
+git add -A
+git commit -m "Latest code from Replit"
+git push github main
+On branch main
+nothing to commit, working tree clean
+Enumerating objects: 5798, done.
+Counting objects: 100% (5798/5798), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5781/5781), done.
+Writing objects: 100% (5798/5798), 82.24 MiB | 5.58 MiB/s, done.
+Total 5798 (delta 4643), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4643/4643), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— Google OAuth Refresh Token ————————————————————————
+remote:        locations:
+remote:          - commit: 2868cb1990c02e57fee5f9eceffb6f720244e7b4
+remote:            path: attached_assets/Pasted--pid-1068731-fd-19--1774431936596_1774431936596.txt:17
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/SINJAPANLLC/only-u0325ver/security/secret-scanning/unblock-secret/3BQsiGdihAMXN8JtMVrtBbLR0gq
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 2868cb1990c02e57fee5f9eceffb6f720244e7b4
+remote:            path: attached_assets/Pasted--pid-1068731-fd-19--1774431936596_1774431936596.txt:26
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/SINJAPANLLC/only-u0325ver/security/secret-scanning/unblock-secret/3BQsiGDrCEwXoGIHwlVG2qpYksF
+remote:     
+remote:     
+remote:       —— Stripe API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: df88a41ae30ec6998ec117bb65560880f7cdd594
+remote:            path: attached_assets/Pasted-link-false-cwd-var-www-onlyu-max-memory-restart-3145728_1774432336541.txt:32
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/SINJAPANLLC/only-u0325ver/security/secret-scanning/unblock-secret/3BQsiGlghfVyi5Trnp9nMNGbtrB
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 2868cb1990c02e57fee5f9eceffb6f720244e7b4
+remote:            path: attached_assets/Pasted--pid-1068731-fd-19--1774431936596_1774431936596.txt:41
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/SINJAPANLLC/only-u0325ver/security/secret-scanning/unblock-secret/3BQsiFGjAm4rznPXXpUTiYpJ2kq
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: df88a41ae30ec6998ec117bb65560880f7cdd594
+remote:            path: attached_assets/Pasted-link-false-cwd-var-www-onlyu-max-memory-restart-3145728_1774432336541.txt:53
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/SINJAPANLLC/only-u0325ver/security/secret-scanning/unblock-secret/3BQsiFTYzHhCoE3RsOWA3PBOixg
+remote:     
+remote:     
+remote:     ——[ WARNING ]—————————————————————————————————————————
+remote:      3 more secrets detected. Remove each secret from your commit history to view more detections.
+remote:      https://docs.github.com/code-security/secret-scanning/using-advanced-secret-scanning-and-push-protection-features/excluding-folders-and-files-from-secret-scanning
+remote:     ——————————————————————————————————————————————————————
+remote: 
+remote: 
+To https://github.com/SINJAPANLLC/only-u0325ver.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/SINJAPANLLC/only-u0325ver.git'
+~/workspace$ 
