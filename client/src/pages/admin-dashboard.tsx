@@ -66,6 +66,10 @@ import {
   Send,
   Crown,
   ShieldAlert,
+  MapPin,
+  Phone,
+  Calendar,
+  Activity,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -78,7 +82,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
+type Tab = "dashboard" | "sales" | "users" | "user-audit" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -509,6 +513,12 @@ export default function AdminDashboard() {
     enabled: authStatus?.authenticated && (activeTab === "users" || activeTab === "notifications"),
   });
 
+  const [auditSearch, setAuditSearch] = useState("");
+  const { data: auditUsers, isLoading: isLoadingAudit } = useQuery<any[]>({
+    queryKey: ["/api/admin/user-audit"],
+    enabled: authStatus?.authenticated && activeTab === "user-audit",
+  });
+
   const { data: allVideos, isLoading: isLoadingVideos } = useQuery<VideoData[]>({
     queryKey: ["/api/admin/videos"],
     enabled: authStatus?.authenticated && activeTab === "content",
@@ -906,6 +916,7 @@ export default function AdminDashboard() {
     { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
     { id: "withdrawals" as Tab, label: "出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
+    { id: "user-audit" as Tab, label: "ユーザー監査", icon: Search },
     { id: "creators" as Tab, label: "申請管理", icon: FileCheck, badge: stats?.pendingApplications },
     { id: "livestreams" as Tab, label: "ライブ管理", icon: Radio, badge: stats?.activeLiveStreams },
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
@@ -960,16 +971,16 @@ export default function AdminDashboard() {
                 className={`
                   w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all text-sm
                   ${activeTab === item.id 
-                    ? "bg-gradient-to-r from-pink-500/20 to-rose-500/10 text-pink-400 border border-pink-500/20" 
+                    ? "bg-white/10 text-white border border-white/20" 
                     : "text-white/50 hover:text-white/80 hover:bg-white/[0.04] border border-transparent"
                   }
                 `}
                 data-testid={`nav-${item.id}`}
               >
-                <item.icon className={`h-4 w-4 flex-shrink-0 ${activeTab === item.id ? "text-pink-400" : ""}`} />
+                <item.icon className={`h-4 w-4 flex-shrink-0 ${activeTab === item.id ? "text-white" : ""}`} />
                 <span className="flex-1 font-medium">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="bg-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  <span className="bg-white text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                     {item.badge}
                   </span>
                 )}
@@ -1008,8 +1019,8 @@ export default function AdminDashboard() {
                 const current = navItems.find(n => n.id === activeTab);
                 return current ? (
                   <>
-                    <div className="h-6 w-6 rounded-md bg-gradient-to-br from-pink-500/30 to-rose-500/20 flex items-center justify-center">
-                      <current.icon className="h-3.5 w-3.5 text-pink-400" />
+                    <div className="h-6 w-6 rounded-md bg-white/15 flex items-center justify-center">
+                      <current.icon className="h-3.5 w-3.5 text-white" />
                     </div>
                     <h2 className="text-sm font-semibold text-white">{current.label}</h2>
                   </>
@@ -1075,7 +1086,7 @@ export default function AdminDashboard() {
                   {/* Main Stats Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {[
-                      { tab: "users" as Tab, label: "ユーザー", icon: Users, value: stats?.totalUsers, sub: "登録ユーザー数", color: "text-pink-400", bg: "from-pink-500/20 to-pink-500/5" },
+                      { tab: "users" as Tab, label: "ユーザー", icon: Users, value: stats?.totalUsers, sub: "登録ユーザー数", color: "text-white", bg: "from-white/15 to-white/5" },
                       { tab: "creators" as Tab, label: "クリエイター", icon: FileCheck, value: stats?.totalCreators, sub: "承認済み", color: "text-purple-400", bg: "from-purple-500/20 to-purple-500/5" },
                       { tab: "content" as Tab, label: "コンテンツ", icon: Video, value: stats?.totalVideos, sub: "動画本数", color: "text-blue-400", bg: "from-blue-500/20 to-blue-500/5" },
                       { tab: "shop" as Tab, label: "ショップ", icon: ShoppingBag, value: stats?.totalProducts, sub: "出品商品数", color: "text-green-400", bg: "from-green-500/20 to-green-500/5" },
@@ -1107,7 +1118,7 @@ export default function AdminDashboard() {
                     <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">クイックアクション</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { tab: "notifications" as Tab, icon: Bell, label: "通知を送信", color: "text-pink-400", bg: "from-pink-500/20 to-pink-500/5" },
+                        { tab: "notifications" as Tab, icon: Bell, label: "通知を送信", color: "text-white", bg: "from-white/15 to-white/5" },
                         { tab: "sales" as Tab, icon: BarChart3, label: "売上確認", color: "text-blue-400", bg: "from-blue-500/20 to-blue-500/5" },
                         { tab: "settings" as Tab, icon: Settings, label: "設定", color: "text-white/60", bg: "from-white/10 to-white/5" },
                       ].map(item => (
@@ -1174,7 +1185,7 @@ export default function AdminDashboard() {
                             <div key={row.label} className="flex items-center justify-between">
                               <span className="text-xs text-white/40">{row.label}</span>
                               {row.badge !== undefined ? (
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${row.urgent ? "bg-pink-500/20 text-pink-400" : "bg-white/10 text-white/50"} ${row.pulse ? "animate-pulse" : ""}`}>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${row.urgent ? "bg-white/20 text-white" : "bg-white/10 text-white/50"} ${row.pulse ? "animate-pulse" : ""}`}>
                                   {row.badge}
                                 </span>
                               ) : (
@@ -1501,12 +1512,12 @@ export default function AdminDashboard() {
               ) : salesData ? (
                 <>
                   {/* 純利益サマリー */}
-                  <Card className="border-2 border-pink-500" data-testid="card-net-profit">
+                  <Card className="border-2 border-white/30" data-testid="card-net-profit">
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                           <p className="text-sm text-muted-foreground">プラットフォーム純利益</p>
-                          <p className="text-4xl font-bold text-pink-600" data-testid="text-net-profit">
+                          <p className="text-4xl font-bold text-white" data-testid="text-net-profit">
                             ¥{salesData.netProfit.toLocaleString()}
                           </p>
                         </div>
@@ -1546,26 +1557,6 @@ export default function AdminDashboard() {
                         <div className="flex justify-between items-center py-2 bg-slate-100 dark:bg-slate-800 rounded px-2">
                           <span className="font-bold">クリエイター総売上</span>
                           <span className="font-bold text-lg" data-testid="text-creator-total-revenue">¥{salesData.creatorRevenue.total.toLocaleString()}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* 自社サブスク（プラットフォームサブスク） */}
-                    <Card data-testid="card-platform-subscription">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Crown className="h-5 w-5" />
-                          自社サブスク
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground">（高画質プラン等）</p>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between items-center py-2 border-b">
-                          <span className="text-muted-foreground">売上</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium" data-testid="text-platform-sub-revenue">¥{(salesData.platformSubscription?.total || 0).toLocaleString()}</span>
-                            <span className="text-xs text-muted-foreground">({salesData.platformSubscription?.count || 0}件)</span>
-                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -1679,9 +1670,9 @@ export default function AdminDashboard() {
                           <span className="text-muted-foreground">ポイント手数料収入</span>
                           <span className="font-medium text-green-600" data-testid="text-summary-point">+¥{salesData.pointPurchase.revenue.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center py-3 bg-pink-100 dark:bg-pink-900/30 rounded px-3">
-                          <span className="font-bold text-pink-700 dark:text-pink-400">純利益</span>
-                          <span className="font-bold text-2xl text-pink-700 dark:text-pink-400" data-testid="text-summary-net-profit">¥{salesData.netProfit.toLocaleString()}</span>
+                        <div className="flex justify-between items-center py-3 bg-white/10 rounded px-3">
+                          <span className="font-bold text-white">純利益</span>
+                          <span className="font-bold text-2xl text-white" data-testid="text-summary-net-profit">¥{salesData.netProfit.toLocaleString()}</span>
                         </div>
                       </CardContent>
                     </Card>
@@ -1713,7 +1704,7 @@ export default function AdminDashboard() {
                                     <Badge 
                                       variant="secondary" 
                                       className={
-                                        tx.category === "platform_subscription" ? "bg-pink-500/10 text-pink-600" :
+                                        tx.category === "platform_subscription" ? "bg-white/10 text-white" :
                                         tx.category === "subscription" ? "bg-purple-500/10 text-purple-600" :
                                         tx.category === "live" ? "bg-red-500/10 text-red-600" :
                                         tx.category === "shop" ? "bg-blue-500/10 text-blue-600" :
@@ -1790,7 +1781,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium text-sm" data-testid={`text-sender-${msg.id}`}>{msg.senderName}</span>
                                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-sm text-pink-600" data-testid={`text-recipient-${msg.id}`}>{msg.recipientName}</span>
+                                  <span className="font-medium text-sm" data-testid={`text-recipient-${msg.id}`}>{msg.recipientName}</span>
                                 </div>
                                 <span className="text-xs text-muted-foreground">{formatDate(msg.createdAt)}</span>
                               </div>
@@ -1957,7 +1948,7 @@ export default function AdminDashboard() {
                     <Card data-testid="card-unread-notifications">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground">未読通知</p>
-                        <p className="text-2xl font-bold text-pink-600" data-testid="text-unread-notifications">{notificationsData?.unreadNotifications.toLocaleString() || 0}</p>
+                        <p className="text-2xl font-bold text-white" data-testid="text-unread-notifications">{notificationsData?.unreadNotifications.toLocaleString() || 0}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -2059,9 +2050,9 @@ export default function AdminDashboard() {
 
                       <Separator />
 
-                      <div className="space-y-3 p-4 border rounded-lg bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+                      <div className="space-y-3 p-4 border border-white/10 rounded-lg bg-white/5">
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <Sparkles className="h-4 w-4 text-pink-500" />
+                          <Sparkles className="h-4 w-4 text-white" />
                           AI文章生成
                         </div>
                         <div className="space-y-2">
@@ -2391,11 +2382,11 @@ export default function AdminDashboard() {
                         <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800" data-testid={`row-user-${user.id}`}>
                           <td className="p-3">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center">
+                              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
                                 {user.avatarUrl ? (
                                   <img src={user.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
                                 ) : (
-                                  <span className="text-sm font-medium text-pink-600">
+                                  <span className="text-sm font-medium text-white">
                                     {(user.displayName || user.username || "U").charAt(0).toUpperCase()}
                                   </span>
                                 )}
@@ -2469,6 +2460,139 @@ export default function AdminDashboard() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   ユーザーが見つかりません
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* User Audit */}
+          {activeTab === "user-audit" && (
+            <div className="space-y-4">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="メール・ユーザー名・IDで検索..."
+                  value={auditSearch}
+                  onChange={(e) => setAuditSearch(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-audit-search"
+                />
+              </div>
+
+              {isLoadingAudit ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {(auditUsers || [])
+                    .filter((u: any) => {
+                      if (!auditSearch) return true;
+                      const s = auditSearch.toLowerCase();
+                      return (
+                        u.email?.toLowerCase().includes(s) ||
+                        u.username?.toLowerCase().includes(s) ||
+                        u.displayName?.toLowerCase().includes(s) ||
+                        u.id?.toLowerCase().includes(s)
+                      );
+                    })
+                    .map((u: any) => (
+                      <Card key={u.id} className="bg-[#0d0d1a] border-white/10" data-testid={`card-audit-user-${u.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {u.avatarUrl ? (
+                                <img src={u.avatarUrl} alt={u.displayName || u.username || u.email} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-white font-bold text-sm">{(u.displayName || u.username || u.email || "?")[0].toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-white" data-testid={`text-audit-name-${u.id}`}>{u.displayName || u.username || "未設定"}</span>
+                                {u.username && <span className="text-xs text-white/50">@{u.username}</span>}
+                                {u.isCreator && (
+                                  <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">クリエイター</span>
+                                )}
+                              </div>
+                              <div className="text-xs text-white/60 mt-0.5" data-testid={`text-audit-email-${u.id}`}>{u.email || "メールなし"}</div>
+                              <div className="text-xs text-white/40 font-mono" data-testid={`text-audit-id-${u.id}`}>ID: {u.id}</div>
+
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                                <div className="bg-white/5 rounded p-2 text-center">
+                                  <div className="text-lg font-bold text-white" data-testid={`text-audit-points-${u.id}`}>{(u.points || 0).toLocaleString()}</div>
+                                  <div className="text-xs text-white/50">ポイント</div>
+                                </div>
+                                <div className="bg-white/5 rounded p-2 text-center">
+                                  <div className="text-lg font-bold text-white" data-testid={`text-audit-tx-${u.id}`}>{u.transactionCount}</div>
+                                  <div className="text-xs text-white/50">取引回数</div>
+                                </div>
+                                <div className="bg-white/5 rounded p-2 text-center">
+                                  <div className="text-lg font-bold text-white" data-testid={`text-audit-purchases-${u.id}`}>{u.purchaseCount}</div>
+                                  <div className="text-xs text-white/50">購入数</div>
+                                </div>
+                                <div className="bg-white/5 rounded p-2 text-center">
+                                  <div className="text-lg font-bold text-white" data-testid={`text-audit-follows-${u.id}`}>{u.followCount}</div>
+                                  <div className="text-xs text-white/50">フォロー数</div>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 text-xs text-white/50">
+                                {u.location && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" />
+                                    <span data-testid={`text-audit-location-${u.id}`}>{u.location}</span>
+                                  </div>
+                                )}
+                                {u.phoneNumber && (
+                                  <div className="flex items-center gap-1">
+                                    <Phone className="h-3 w-3" />
+                                    <span data-testid={`text-audit-phone-${u.id}`}>{u.phoneNumber}</span>
+                                  </div>
+                                )}
+                                {u.birthdate && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    <span data-testid={`text-audit-birth-${u.id}`}>{new Date(u.birthdate).toLocaleDateString("ja-JP")}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  <span data-testid={`text-audit-created-${u.id}`}>登録: {u.createdAt ? new Date(u.createdAt).toLocaleDateString("ja-JP") : "不明"}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Activity className="h-3 w-3" />
+                                  <span data-testid={`text-audit-updated-${u.id}`}>更新: {u.updatedAt ? new Date(u.updatedAt).toLocaleDateString("ja-JP") : "不明"}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <ShoppingBag className="h-3 w-3" />
+                                  <span>サブスク {u.subscriptionCount}件</span>
+                                </div>
+                              </div>
+
+                              {u.recentTransactions && u.recentTransactions.length > 0 && (
+                                <div className="mt-3 border-t border-white/10 pt-3">
+                                  <div className="text-xs text-white/40 mb-2">直近の取引</div>
+                                  <div className="space-y-1">
+                                    {u.recentTransactions.slice(0, 3).map((tx: any) => (
+                                      <div key={tx.id} className="flex items-center justify-between text-xs" data-testid={`row-audit-tx-${tx.id}`}>
+                                        <span className="text-white/60 truncate max-w-[60%]">{tx.description || tx.type}</span>
+                                        <span className={tx.amount > 0 ? "text-white font-medium" : "text-white/50"}>
+                                          {tx.amount > 0 ? "+" : ""}{tx.amount}pt
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  {(auditUsers || []).length === 0 && !isLoadingAudit && (
+                    <div className="text-center py-12 text-white/50">ユーザーが見つかりません</div>
+                  )}
                 </div>
               )}
             </div>

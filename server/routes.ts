@@ -5232,7 +5232,93 @@ export async function registerRoutes(
       res.status(500).json({ message: "ユーザー削除に失敗しました" });
     }
   });
-  
+
+  // User Audit - detailed user activity and info
+  app.get("/api/admin/user-audit", isAdminSession, async (req, res) => {
+    try {
+      const { search } = req.query;
+
+      const baseQuery = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          username: userProfiles.username,
+          displayName: userProfiles.displayName,
+          avatarUrl: userProfiles.avatarUrl,
+          location: userProfiles.location,
+          birthdate: userProfiles.birthdate,
+          phoneNumber: userProfiles.phoneNumber,
+          points: userProfiles.points,
+          bio: userProfiles.bio,
+          isCreator: creatorProfiles.id,
+        })
+        .from(users)
+        .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+        .leftJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
+        .orderBy(desc(users.createdAt));
+
+      // Enrich with activity counts
+      const enriched = await Promise.all(
+        baseQuery.map(async (user) => {
+          const [txCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(pointTransactions)
+            .where(eq(pointTransactions.userId, user.id));
+
+          const [purchaseCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(purchases)
+            .where(eq(purchases.userId, user.id));
+
+          const [subCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(subscriptions)
+            .where(eq(subscriptions.userId, user.id));
+
+          const [followCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(follows)
+            .where(eq(follows.followerId, user.id));
+
+          const recentTx = await db
+            .select()
+            .from(pointTransactions)
+            .where(eq(pointTransactions.userId, user.id))
+            .orderBy(desc(pointTransactions.createdAt))
+            .limit(5);
+
+          return {
+            ...user,
+            isCreator: !!user.isCreator,
+            transactionCount: txCount?.count || 0,
+            purchaseCount: purchaseCount?.count || 0,
+            subscriptionCount: subCount?.count || 0,
+            followCount: followCount?.count || 0,
+            recentTransactions: recentTx,
+          };
+        })
+      );
+
+      const filtered = search
+        ? enriched.filter(u =>
+            u.email?.toLowerCase().includes((search as string).toLowerCase()) ||
+            u.username?.toLowerCase().includes((search as string).toLowerCase()) ||
+            u.displayName?.toLowerCase().includes((search as string).toLowerCase()) ||
+            u.id.toLowerCase().includes((search as string).toLowerCase())
+          )
+        : enriched;
+
+      res.json(filtered);
+    } catch (error) {
+      console.error("User audit error:", error);
+      res.status(500).json({ message: "ユーザー監査データの取得に失敗しました" });
+    }
+  });
+
   // Creator applications (admin session)
   app.get("/api/admin/applications", isAdminSession, async (req, res) => {
     try {
