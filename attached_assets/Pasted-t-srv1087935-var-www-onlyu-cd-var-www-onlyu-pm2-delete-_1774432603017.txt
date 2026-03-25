@@ -1,0 +1,91 @@
+t@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+
+# 現在のプロセスを削除
+pm2 delete onlyu
+
+# .envを読み込んでからPM2を起動
+set -a; source /var/www/onlyu/.env; set +a
+pm2 start dist/index.js --name onlyu
+pm2 save
+
+# ログ確認
+sleep 3
+pm2 logs onlyu --lines 20
+[PM2] Applying action deleteProcessId on app [onlyu](ids: [ 31 ])
+[PM2] [onlyu](31) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 235.7mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 319.5mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.8mb  │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.6mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.0mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 8.3%     │ 112.3mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.4mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Starting /var/www/onlyu/dist/index.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 235.7mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 319.5mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.8mb  │
+│ 32 │ onlyu              │ fork     │ 0    │ online    │ 0%       │ 15.8mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.6mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.0mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.3mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.9mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[1]+  Done                    DATABASE_URL=postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 20 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-error.log last 20 lines:
+32|onlyu   |   syscall: 'listen',
+32|onlyu   |   address: '0.0.0.0',
+32|onlyu   |   port: 5050
+32|onlyu   | }
+32|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+32|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+32|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+32|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+32|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+32|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+32|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+32|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+32|onlyu   | ⚠️  Bunny Stream not configured. Set BUNNY_STREAM_API_KEY and BUNNY_STREAM_LIBRARY_ID
+32|onlyu   | Error: Missing required environment variable: SESSION_SECRET. Admin authentication requires this for secure token signing.
+32|onlyu   |     at file:///var/www/onlyu/dist/index.js:679:9
+32|onlyu   |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+32|onlyu   |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+32|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+32|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+32|onlyu   | ⚠️  Bunny Stream not configured. Set BUNNY_STREAM_API_KEY and BUNNY_STREAM_LIBRARY_ID
+
+/root/.pm2/logs/onlyu-out.log last 20 lines:
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | 5:21:25 PM [express] serving on port 5005
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | 5:29:37 PM [express] serving on port 5005
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | 5:34:23 PM [express] serving on port 5005
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: firebase
+32|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+32|onlyu   | 📦 Using storage provider: bunny
+32|onlyu   | 9:56:35 AM [express] serving on port 5005
+
+
