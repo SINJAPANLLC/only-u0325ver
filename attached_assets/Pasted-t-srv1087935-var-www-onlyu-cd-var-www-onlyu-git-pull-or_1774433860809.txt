@@ -1,0 +1,218 @@
+t@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+git pull origin main
+npm run build
+pm2 restart onlyu
+sleep 5
+pm2 logs onlyu --lines 15
+remote: Enumerating objects: 33, done.
+remote: Counting objects: 100% (33/33), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 33 (delta 27), reused 33 (delta 27), pack-reused 0 (from 0)
+Unpacking objects: 100% (33/33), 611.01 KiB | 5.05 MiB/s, done.
+From https://github.com/SINJAPANLLC/only-u0325ver
+ * branch            main       -> FETCH_HEAD
+   724b7f4..8a2083c  main       -> origin/main
+Updating 724b7f4..8a2083c
+Fast-forward
+ ...c-nginx-sites-available-onlyu_1774433582544.txt |  88 ++++++++++++++++
+ ...onlyu-cd-var-www-onlyu-devDep_1774433137344.txt |  59 +++++++++++
+ ...ProcessId-on-app-onlyu-ids-32_1774433093711.txt |  87 ++++++++++++++++
+ ...n-695ms-index-cjs-public-root_1774433165162.txt |  94 +++++++++++++++++
+ ...yu-cd-var-www-onlyu-git-pull-_1774433017893.txt |  93 +++++++++++++++++
+ ...-pm2-delete-onlyu-cat-var-www_1774433242821.txt | 116 +++++++++++++++++++++
+ ...\203\210_2026-03-25_19.08.22_1774433311113.png" | Bin 0 -> 620378 bytes
+ server/replit_integrations/auth/replitAuth.ts      |   6 ++
+ server/stripeClient.ts                             |   9 +-
+ 9 files changed, 547 insertions(+), 5 deletions(-)
+ create mode 100644 attached_assets/Pasted--HTTPS-grep-n-5000-5005-etc-nginx-sites-available-onlyu_1774433582544.txt
+ create mode 100644 attached_assets/Pasted-C-root-srv1087935-var-www-onlyu-cd-var-www-onlyu-devDep_1774433137344.txt
+ create mode 100644 attached_assets/Pasted-PM2-Applying-action-deleteProcessId-on-app-onlyu-ids-32_1774433093711.txt
+ create mode 100644 attached_assets/Pasted-ist-index-cjs-1-8mb-Done-in-695ms-index-cjs-public-root_1774433165162.txt
+ create mode 100644 attached_assets/Pasted-oot-srv1087935-var-www-onlyu-cd-var-www-onlyu-git-pull-_1774433017893.txt
+ create mode 100644 attached_assets/Pasted-t-srv1087935-var-www-onlyu-pm2-delete-onlyu-cat-var-www_1774433242821.txt
+ create mode 100644 "attached_assets/\343\202\271\343\202\257\343\203\252\343\203\274\343\203\263\343\202\267\343\203\247\343\203\203\343\203\210_2026-03-25_19.08.22_1774433311113.png"
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+transforming (23) src/pages/account.tsx
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+transforming (99) ../attached_assets/スクリーンショット_2026-03-23_22.39.41_1774✓ 2977 modules transformed.
+../dist/public/index.html                                                           1.42 kB │ gzip:   0.74 kB
+../dist/public/assets/IMG_9769_1768108334555-DBidn5qy.PNG                         109.72 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.30_1774273237701-C8h16fj9.png    268.14 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.18_1774273237693-DNxFAo-6.png    285.81 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.41_1774273237678-BAZmHXga.png    286.00 kB
+../dist/public/assets/nude_bedroom_1-TdmLPh1z.jpg                                 447.73 kB
+../dist/public/assets/lingerie_bed_3-CuToe3Lq.jpg                                 482.99 kB
+../dist/public/assets/nude_bath_2-XyNc0DeT.jpg                                    483.37 kB
+../dist/public/assets/nude_shower_4-C9DV9le3.jpg                                  506.46 kB
+../dist/public/assets/index-Bgm5CmKQ.css                                          164.43 kB │ gzip:  24.19 kB
+../dist/public/assets/index-Sb_bNLxS.js                                         2,155.16 kB │ gzip: 599.16 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.20s
+building server...
+
+  dist/index.cjs  1.8mb ⚠️
+
+⚡ Done in 268ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [onlyu](ids: [ 34 ])
+[PM2] [onlyu](34) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 236.0mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 314.9mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.5mb  │
+│ 34 │ onlyu              │ fork     │ 74   │ online    │ 0%       │ 18.5mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.9mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 98.7mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.9mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 327.3mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 15 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-error.log last 15 lines:
+34|onlyu   | }
+34|onlyu   | Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/www/onlyu/dist/index.cjs' imported from /usr/lib/node_modules/pm2/lib/ProcessContainerFork.js
+34|onlyu   |     at finalizeResolution (node:internal/modules/esm/resolve:283:11)
+34|onlyu   |     at moduleResolve (node:internal/modules/esm/resolve:952:10)
+34|onlyu   |     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+34|onlyu   |     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)
+34|onlyu   |     at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)
+34|onlyu   |     at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)
+34|onlyu   |     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)
+34|onlyu   |     at ModuleLoader.import (node:internal/modules/esm/loader:605:34)
+34|onlyu   |     at defaultImportModuleDynamicallyForScript (node:internal/modules/esm/utils:234:31)
+34|onlyu   |     at importModuleDynamicallyCallback (node:internal/modules/esm/utils:256:12) {
+34|onlyu   |   code: 'ERR_MODULE_NOT_FOUND',
+34|onlyu   |   url: 'file:///var/www/onlyu/dist/index.cjs'
+34|onlyu   | }
+
+/root/.pm2/logs/onlyu-out.log last 15 lines:
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | { autoExpandLists: undefined, stripeApiVersion: undefined } StripeSync initialized
+34|onlyu   | Setting up managed webhook...
+
+34|onlyu  | {
+34|onlyu  |   webhookId: 'we_1TEfIkQXzSGbl6lJNiv3Ffgr',
+34|onlyu  |   url: 'https://951efb95-ddc1-4ab1-a289-8de812b4984b-00-17r5eut12iwl1.janeway.replit.dev/api/stripe/webhook'
+34|onlyu  | } Found orphaned managed webhook in Stripe, deleting
+34|onlyu  | Webhook configured: https://undefined/api/stripe/webhook
+34|onlyu  | Syncing Stripe data...
+34|onlyu  | Stripe data synced
+34|onlyu  | WebRTC signaling server started on /ws/live
+34|onlyu  | [ColumnGenerator] Daily scheduler started (first run in 2 minutes).
+34|onlyu  | 10:16:45 AM [express] serving on port 5005
+34|onlyu  | Failed to seed admin account or settings: error: relation "admin_users" does not exist
+34|onlyu  |     at /var/www/onlyu/dist/index.cjs:70:13356
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:138:33822
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:348:3517 {
+34|onlyu  |   length: 111,
+34|onlyu  |   severity: 'ERROR',
+34|onlyu  |   code: '42P01',
+34|onlyu  |   detail: undefined,
+34|onlyu  |   hint: undefined,
+34|onlyu  |   position: '110',
+34|onlyu  |   internalPosition: undefined,
+34|onlyu  |   internalQuery: undefined,
+34|onlyu  |   where: undefined,
+34|onlyu  |   schema: undefined,
+34|onlyu  |   table: undefined,
+34|onlyu  |   column: undefined,
+34|onlyu  |   dataType: undefined,
+34|onlyu  |   constraint: undefined,
+34|onlyu  |   file: 'parse_relation.c',
+34|onlyu  |   line: '1449',
+34|onlyu  |   routine: 'parserOpenTable'
+34|onlyu  | }
+34|onlyu  | Error cleaning up stale streams: error: relation "live_streams" does not exist
+34|onlyu  |     at /var/www/onlyu/dist/index.cjs:70:13356
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:138:33822
+34|onlyu  |     at async Timeout._onTimeout (/var/www/onlyu/dist/index.cjs:300:32623) {
+34|onlyu  |   length: 112,
+34|onlyu  |   severity: 'ERROR',
+34|onlyu  |   code: '42P01',
+34|onlyu  |   detail: undefined,
+34|onlyu  |   hint: undefined,
+34|onlyu  |   position: '299',
+34|onlyu  |   internalPosition: undefined,
+34|onlyu  |   internalQuery: undefined,
+34|onlyu  |   where: undefined,
+34|onlyu  |   schema: undefined,
+34|onlyu  |   table: undefined,
+34|onlyu  |   column: undefined,
+34|onlyu  |   dataType: undefined,
+34|onlyu  |   constraint: undefined,
+34|onlyu  |   file: 'parse_relation.c',
+34|onlyu  |   line: '1449',
+34|onlyu  |   routine: 'parserOpenTable'
+34|onlyu  | }
+34|onlyu  | Error cleaning up stale streams: error: relation "live_streams" does not exist
+34|onlyu  |     at /var/www/onlyu/dist/index.cjs:70:13356
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:138:33822
+34|onlyu  |     at async Timeout._onTimeout (/var/www/onlyu/dist/index.cjs:300:32623) {
+34|onlyu  |   length: 112,
+34|onlyu  |   severity: 'ERROR',
+34|onlyu  |   code: '42P01',
+34|onlyu  |   detail: undefined,
+34|onlyu  |   hint: undefined,
+34|onlyu  |   position: '299',
+34|onlyu  |   internalPosition: undefined,
+34|onlyu  |   internalQuery: undefined,
+34|onlyu  |   where: undefined,
+34|onlyu  |   schema: undefined,
+34|onlyu  |   table: undefined,
+34|onlyu  |   column: undefined,
+34|onlyu  |   dataType: undefined,
+34|onlyu  |   constraint: undefined,
+34|onlyu  |   file: 'parse_relation.c',
+34|onlyu  |   line: '1449',
+34|onlyu  |   routine: 'parserOpenTable'
+34|onlyu  | }
+34|onlyu  | Error processing subscription renewals: error: relation "subscriptions" does not exist
+34|onlyu  |     at /var/www/onlyu/dist/index.cjs:70:13356
+34|onlyu  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+34|onlyu  |     at async /var/www/onlyu/dist/index.cjs:138:33822
+34|onlyu  |     at async Timeout.s [as _onTimeout] (/var/www/onlyu/dist/index.cjs:336:1071) {
+34|onlyu  |   length: 113,
+34|onlyu  |   severity: 'ERROR',
+34|onlyu  |   code: '42P01',
+34|onlyu  |   detail: undefined,
+34|onlyu  |   hint: undefined,
+34|onlyu  |   position: '577',
+34|onlyu  |   internalPosition: undefined,
+34|onlyu  |   internalQuery: undefined,
+34|onlyu  |   where: undefined,
+34|onlyu  |   schema: undefined,
+34|onlyu  |   table: undefined,
+34|onlyu  |   column: undefined,
+34|onlyu  |   dataType: undefined,
+34|onlyu  |   constraint: undefined,
+34|onlyu  |   file: 'parse_relation.c',
+34|onlyu  |   line: '1449',
+34|onlyu  |   routine: 'parserOpenTable'
+34|onlyu  | }
+3
