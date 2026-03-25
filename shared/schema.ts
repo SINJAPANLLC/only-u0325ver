@@ -26,6 +26,8 @@ export const userProfiles = pgTable("user_profiles", {
   birthdate: timestamp("birthdate"),
   phoneNumber: varchar("phone_number"),
   points: integer("points").default(0).notNull(),
+  lastSeenAt: timestamp("last_seen_at"),
+  lastIpAddress: varchar("last_ip_address"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

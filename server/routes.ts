@@ -18,7 +18,7 @@ import {
   videoLikes, liveViewingSessions, withdrawalRequests,
   bankTransferRequests, pointPackages, pointTransactions, purchases, comments,
   premiumPlans, adminUsers, siteSettings, adminNotifications, liveChatMessages,
-  bunnyStreamChannels, insertBunnyStreamChannelSchema,
+  bunnyStreamChannels, sessions, insertBunnyStreamChannelSchema,
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema, insertLiveChatMessageSchema,
@@ -3587,6 +3587,13 @@ export async function registerRoutes(
       if (!profile) {
         return res.json(null);
       }
+
+      // Track last seen time and IP
+      const ipAddress = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || req.socket?.remoteAddress || null;
+      await db.update(userProfiles)
+        .set({ lastSeenAt: new Date(), lastIpAddress: ipAddress })
+        .where(eq(userProfiles.userId, userId));
+
       res.json(profile);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -5254,12 +5261,28 @@ export async function registerRoutes(
           phoneNumber: userProfiles.phoneNumber,
           points: userProfiles.points,
           bio: userProfiles.bio,
+          lastSeenAt: userProfiles.lastSeenAt,
+          lastIpAddress: userProfiles.lastIpAddress,
           isCreator: creatorProfiles.id,
         })
         .from(users)
         .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
         .leftJoin(creatorProfiles, eq(users.id, creatorProfiles.userId))
         .orderBy(desc(users.createdAt));
+
+      // Get all active sessions at once for efficiency
+      const now = new Date();
+      const activeSessions = await db
+        .select({ sess: sessions.sess })
+        .from(sessions)
+        .where(sql`${sessions.expire} > ${now}`);
+
+      const onlineUserIds = new Set<string>();
+      for (const s of activeSessions) {
+        const sess = s.sess as any;
+        const userId = sess?.passport?.user?.userId || sess?.passport?.user?.claims?.sub;
+        if (userId) onlineUserIds.add(userId);
+      }
 
       // Enrich with activity counts
       const enriched = await Promise.all(
@@ -5294,6 +5317,7 @@ export async function registerRoutes(
           return {
             ...user,
             isCreator: !!user.isCreator,
+            isOnline: onlineUserIds.has(user.id),
             transactionCount: txCount?.count || 0,
             purchaseCount: purchaseCount?.count || 0,
             subscriptionCount: subCount?.count || 0,

@@ -2500,17 +2500,28 @@ export default function AdminDashboard() {
                       <Card key={u.id} className="bg-[#0d0d1a] border-white/10" data-testid={`card-audit-user-${u.id}`}>
                         <CardContent className="p-4">
                           <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
-                              {u.avatarUrl ? (
-                                <img src={u.avatarUrl} alt={u.displayName || u.username || u.email} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-white font-bold text-sm">{(u.displayName || u.username || u.email || "?")[0].toUpperCase()}</span>
-                              )}
+                            <div className="relative w-10 h-10 flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                                {u.avatarUrl ? (
+                                  <img src={u.avatarUrl} alt={u.displayName || u.username || u.email} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-white font-bold text-sm">{(u.displayName || u.username || u.email || "?")[0].toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0d0d1a] ${u.isOnline ? "bg-green-500" : "bg-white/20"}`} data-testid={`status-online-${u.id}`} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-white" data-testid={`text-audit-name-${u.id}`}>{u.displayName || u.username || "未設定"}</span>
                                 {u.username && <span className="text-xs text-white/50">@{u.username}</span>}
+                                {u.isOnline ? (
+                                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1" data-testid={`badge-online-${u.id}`}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block animate-pulse" />
+                                    オンライン
+                                  </span>
+                                ) : (
+                                  <span className="text-xs bg-white/10 text-white/40 px-2 py-0.5 rounded-full" data-testid={`badge-offline-${u.id}`}>オフライン</span>
+                                )}
                                 {u.isCreator && (
                                   <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">クリエイター</span>
                                 )}
@@ -2537,36 +2548,58 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 text-xs text-white/50">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3 text-xs">
+                                {u.lastIpAddress && (
+                                  <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                    <Activity className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <div className="text-white/40 text-[10px]">最終IPアドレス</div>
+                                      <div className="text-white font-mono truncate" data-testid={`text-audit-ip-${u.id}`}>{u.lastIpAddress}</div>
+                                    </div>
+                                  </div>
+                                )}
+                                {u.lastSeenAt && (
+                                  <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                    <Clock className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <div className="text-white/40 text-[10px]">最終ログイン</div>
+                                      <div className="text-white" data-testid={`text-audit-lastseen-${u.id}`}>{new Date(u.lastSeenAt).toLocaleString("ja-JP")}</div>
+                                    </div>
+                                  </div>
+                                )}
                                 {u.location && (
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" />
-                                    <span data-testid={`text-audit-location-${u.id}`}>{u.location}</span>
+                                  <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                    <MapPin className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <div className="text-white/40 text-[10px]">所在地（自己申告）</div>
+                                      <div className="text-white" data-testid={`text-audit-location-${u.id}`}>{u.location}</div>
+                                    </div>
                                   </div>
                                 )}
                                 {u.phoneNumber && (
-                                  <div className="flex items-center gap-1">
-                                    <Phone className="h-3 w-3" />
-                                    <span data-testid={`text-audit-phone-${u.id}`}>{u.phoneNumber}</span>
+                                  <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                    <Phone className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <div className="text-white/40 text-[10px]">電話番号</div>
+                                      <div className="text-white" data-testid={`text-audit-phone-${u.id}`}>{u.phoneNumber}</div>
+                                    </div>
                                   </div>
                                 )}
                                 {u.birthdate && (
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    <span data-testid={`text-audit-birth-${u.id}`}>{new Date(u.birthdate).toLocaleDateString("ja-JP")}</span>
+                                  <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                    <Calendar className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                    <div className="min-w-0">
+                                      <div className="text-white/40 text-[10px]">生年月日</div>
+                                      <div className="text-white" data-testid={`text-audit-birth-${u.id}`}>{new Date(u.birthdate).toLocaleDateString("ja-JP")}</div>
+                                    </div>
                                   </div>
                                 )}
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span data-testid={`text-audit-created-${u.id}`}>登録: {u.createdAt ? new Date(u.createdAt).toLocaleDateString("ja-JP") : "不明"}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Activity className="h-3 w-3" />
-                                  <span data-testid={`text-audit-updated-${u.id}`}>更新: {u.updatedAt ? new Date(u.updatedAt).toLocaleDateString("ja-JP") : "不明"}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <ShoppingBag className="h-3 w-3" />
-                                  <span>サブスク {u.subscriptionCount}件</span>
+                                <div className="flex items-center gap-1.5 bg-white/5 rounded px-2 py-1.5">
+                                  <Users className="h-3 w-3 text-white/40 flex-shrink-0" />
+                                  <div className="min-w-0">
+                                    <div className="text-white/40 text-[10px]">登録日</div>
+                                    <div className="text-white" data-testid={`text-audit-created-${u.id}`}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString("ja-JP") : "不明"}</div>
+                                  </div>
                                 </div>
                               </div>
 
@@ -3122,34 +3155,34 @@ export default function AdminDashboard() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">SNSリンク</CardTitle>
+                      <CardTitle className="text-lg">アプリDLリンク</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="twitter_url">Twitter/X URL</Label>
+                          <Label htmlFor="apple_store_url">App Store URL（iOS）</Label>
                           <Input
-                            id="twitter_url"
-                            placeholder="https://twitter.com/..."
-                            value={settingsForm.twitter_url || ""}
+                            id="apple_store_url"
+                            placeholder="https://apps.apple.com/..."
+                            value={settingsForm.apple_store_url || ""}
                             onChange={(e) => {
-                              setSettingsForm(prev => ({ ...prev, twitter_url: e.target.value }));
+                              setSettingsForm(prev => ({ ...prev, apple_store_url: e.target.value }));
                               setSettingsChanged(true);
                             }}
-                            data-testid="input-twitter-url"
+                            data-testid="input-apple-store-url"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="instagram_url">Instagram URL</Label>
+                          <Label htmlFor="google_play_url">Google Play URL（Android）</Label>
                           <Input
-                            id="instagram_url"
-                            placeholder="https://instagram.com/..."
-                            value={settingsForm.instagram_url || ""}
+                            id="google_play_url"
+                            placeholder="https://play.google.com/..."
+                            value={settingsForm.google_play_url || ""}
                             onChange={(e) => {
-                              setSettingsForm(prev => ({ ...prev, instagram_url: e.target.value }));
+                              setSettingsForm(prev => ({ ...prev, google_play_url: e.target.value }));
                               setSettingsChanged(true);
                             }}
-                            data-testid="input-instagram-url"
+                            data-testid="input-google-play-url"
                           />
                         </div>
                       </div>
@@ -3317,6 +3350,32 @@ export default function AdminDashboard() {
                               setSettingsChanged(true);
                             }}
                             data-testid="input-privacy-url"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="tokusho_registration_number">特商法 許認可番号</Label>
+                          <Input
+                            id="tokusho_registration_number"
+                            placeholder="例: 第〇〇号"
+                            value={settingsForm.tokusho_registration_number || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, tokusho_registration_number: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-tokusho-number"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="tokusho_authority">許認可機関名</Label>
+                          <Input
+                            id="tokusho_authority"
+                            placeholder="例: 神奈川県公安委員会"
+                            value={settingsForm.tokusho_authority || ""}
+                            onChange={(e) => {
+                              setSettingsForm(prev => ({ ...prev, tokusho_authority: e.target.value }));
+                              setSettingsChanged(true);
+                            }}
+                            data-testid="input-tokusho-authority"
                           />
                         </div>
                       </div>
