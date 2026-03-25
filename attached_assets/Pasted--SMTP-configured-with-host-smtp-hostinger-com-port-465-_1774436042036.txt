@@ -1,0 +1,112 @@
+  | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | { autoExpandLists: undefined, stripeApiVersion: undefined } StripeSync initialized
+34|onlyu   | Setting up managed webhook...
+
+34|onlyu  | Webhook configured: https://undefined/api/stripe/webhook
+34|onlyu  | Syncing Stripe data...
+34|onlyu  | WebRTC signaling server started on /ws/live
+34|onlyu  | [ColumnGenerator] Daily scheduler started (first run in 2 minutes).
+34|onlyu  | 10:45:09 AM [express] serving on port 5005
+34|onlyu  | Stripe data synced
+^C
+root@srv1087935:/var/www/onlyu# grep -r "only-u.fun" /etc/nginx/sites-enabled/
+root@srv1087935:/var/www/onlyu# # 1. nginx sites-enabled確認
+ls -la /etc/nginx/sites-enabled/ | grep onlyu
+
+# 2. HTTPからHTTPSのリダイレクト確認
+curl -I http://only-u.fun 2>/dev/null | grep -i location
+
+# 3. 管理者アカウントのシード結果確認
+pm2 logs onlyu --lines 50 2>/dev/null | grep -i "admin\|seed\|Admin"
+lrwxrwxrwx 1 root root   32 Mar 25 10:29 onlyu -> /etc/nginx/sites-available/onlyu
+Location: https://only-u.fun/
+34|onlyu   | 10:36:41 AM [express] POST /api/admin/auth/logout 200 in 491ms :: {"success":true}
+34|onlyu   | 10:36:42 AM [express] GET /api/admin/auth/me 200 in 489ms :: {"authenticated":false}
+34|onlyu   | Default settings seeded
+^C
+root@srv1087935:/var/www/onlyu# cd /var/www/onlyu && git pull origin main && npm run build && pm2 restart onlyu
+remote: Enumerating objects: 46, done.
+remote: Counting objects: 100% (46/46), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 40 (delta 31), reused 40 (delta 31), pack-reused 0 (from 0)
+Unpacking objects: 100% (40/40), 1.09 MiB | 7.73 MiB/s, done.
+From https://github.com/SINJAPANLLC/only-u0325ver
+ * branch            main       -> FETCH_HEAD
+   8a2083c..419c050  main       -> origin/main
+Updating 8a2083c..419c050
+Fast-forward
+ attached_assets/IMG_0486_1774435796702.jpg         | Bin 0 -> 61930 bytes
+ ...tulations-all-r-1774435523964_1774435523964.txt |  59 ++++++
+ ...rwxrwxrwx-1-root-root-52-Nov-_1774434583333.txt |  65 ++++++
+ ...-cd-var-www-onlyu-git-pull-or_1774433860809.txt | 218 +++++++++++++++++++++
+ ...erated-1-10-articles-C-root-s_1774434476116.txt | 175 +++++++++++++++++
+ ...\203\210_2026-03-25_19.20.52_1774434061444.png" | Bin 0 -> 77172 bytes
+ ...\203\210_2026-03-25_19.22.24_1774434153147.png" | Bin 0 -> 81536 bytes
+ ...\203\210_2026-03-25_19.26.39_1774434408269.png" | Bin 0 -> 345877 bytes
+ ...\203\210_2026-03-25_19.31.28_1774434697007.png" | Bin 0 -> 629774 bytes
+ client/index.html                                  |  17 +-
+ client/public/favicon.jpg                          | Bin 0 -> 61930 bytes
+ client/public/manifest.json                        |  14 +-
+ client/public/og-image.jpg                         | Bin 0 -> 61930 bytes
+ 13 files changed, 539 insertions(+), 9 deletions(-)
+ create mode 100644 attached_assets/IMG_0486_1774435796702.jpg
+ create mode 100644 attached_assets/Pasted--Congratulations-all-r-1774435523964_1774435523964.txt
+ create mode 100644 attached_assets/Pasted-ailable-sinjapan-manager-lrwxrwxrwx-1-root-root-52-Nov-_1774434583333.txt
+ create mode 100644 attached_assets/Pasted-t-srv1087935-var-www-onlyu-cd-var-www-onlyu-git-pull-or_1774433860809.txt
+ create mode 100644 attached_assets/Pasted-u-ColumnGenerator-Done-Generated-1-10-articles-C-root-s_1774434476116.txt
+ create mode 100644 "attached_assets/\343\202\271\343\202\257\343\203\252\343\203\274\343\203\263\343\202\267\343\203\247\343\203\203\343\203\210_2026-03-25_19.20.52_1774434061444.png"
+ create mode 100644 "attached_assets/\343\202\271\343\202\257\343\203\252\343\203\274\343\203\263\343\202\267\343\203\247\343\203\203\343\203\210_2026-03-25_19.22.24_1774434153147.png"
+ create mode 100644 "attached_assets/\343\202\271\343\202\257\343\203\252\343\203\274\343\203\263\343\202\267\343\203\247\343\203\203\343\203\210_2026-03-25_19.26.39_1774434408269.png"
+ create mode 100644 "attached_assets/\343\202\271\343\202\257\343\203\252\343\203\274\343\203\263\343\202\267\343\203\247\343\203\203\343\203\210_2026-03-25_19.31.28_1774434697007.png"
+ create mode 100644 client/public/favicon.jpg
+ create mode 100644 client/public/og-image.jpg
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2977 modules transformed.
+../dist/public/index.html                                                           2.47 kB │ gzip:   0.90 kB
+../dist/public/assets/IMG_9769_1768108334555-DBidn5qy.PNG                         109.72 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.30_1774273237701-C8h16fj9.png    268.14 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.18_1774273237693-DNxFAo-6.png    285.81 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.41_1774273237678-BAZmHXga.png    286.00 kB
+../dist/public/assets/nude_bedroom_1-TdmLPh1z.jpg                                 447.73 kB
+../dist/public/assets/lingerie_bed_3-CuToe3Lq.jpg                                 482.99 kB
+../dist/public/assets/nude_bath_2-XyNc0DeT.jpg                                    483.37 kB
+../dist/public/assets/nude_shower_4-C9DV9le3.jpg                                  506.46 kB
+../dist/public/assets/index-Bgm5CmKQ.css                                          164.43 kB │ gzip:  24.19 kB
+../dist/public/assets/index-Sb_bNLxS.js                                         2,155.16 kB │ gzip: 599.16 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 10.20s
+building server...
+
+  dist/index.cjs  1.8mb ⚠️
+
+⚡ Done in 206ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [onlyu](ids: [ 34 ])
+[PM2] [onlyu](34) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 271.2mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 320.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 144.1mb  │
+│ 34 │ onlyu              │ fork     │ 77   │ online    │ 0%       │ 19.6mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.9mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.7mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.6mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 327.3mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@srv1087935:/var/www/onlyu# 
