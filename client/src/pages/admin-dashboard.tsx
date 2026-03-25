@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AdminMarketing from "./admin-marketing";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -82,7 +83,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "users" | "user-audit" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
+type Tab = "dashboard" | "sales" | "users" | "user-audit" | "creators" | "livestreams" | "content" | "shop" | "marketing" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -921,6 +922,7 @@ export default function AdminDashboard() {
     { id: "livestreams" as Tab, label: "ライブ管理", icon: Radio, badge: stats?.activeLiveStreams },
     { id: "content" as Tab, label: "コンテンツ管理", icon: Video },
     { id: "shop" as Tab, label: "ショップ管理", icon: ShoppingBag },
+    { id: "marketing" as Tab, label: "マーケティング", icon: Megaphone },
     { id: "messages" as Tab, label: "メッセージ管理", icon: MessageSquare },
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
@@ -3079,6 +3081,9 @@ export default function AdminDashboard() {
               </Card>
             </div>
           )}
+
+          {/* Marketing */}
+          {activeTab === "marketing" && <AdminMarketing />}
 
           {/* Settings */}
           {activeTab === "settings" && (

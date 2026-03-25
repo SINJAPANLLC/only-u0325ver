@@ -39,6 +39,8 @@ Preferred communication style: Simple, everyday language.
 - **Video Content (VOD)**: Integrated with Bunny.net Stream for video hosting and HLS streaming.
 - **Live Streaming**: Utilizes LiveKit for low-latency, browser-based live broadcasts, mirroring platforms like TikTok Live.
 - **AI Content Moderation**: Uses OpenAI's Vision API (GPT-4o) to asynchronously analyze uploaded content for violations, notifying admins for review.
+- **Marketing System**: Admin marketing tab with AI-powered SNS post generation, SEO column article management (published at `/column`), and HTML email template editor with bulk sending capability.
+- **Column/Blog**: Public SEO column pages at `/column` (list) and `/column/:slug` (detail), managed from admin marketing tab.
 
 ## External Dependencies
 

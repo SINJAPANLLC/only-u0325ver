@@ -47,6 +47,8 @@ import PrivacySettings from "@/pages/privacy-settings";
 import Help from "@/pages/help";
 import NotFound from "@/pages/not-found";
 import LiveRoom from "@/pages/live-room";
+import ColumnList from "@/pages/column-list";
+import ColumnDetail from "@/pages/column-detail";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -231,6 +233,16 @@ function AuthenticatedApp() {
             <Help />
           </div>
         </Route>
+        <Route path="/column">
+          <div className="min-h-[100svh] overflow-y-auto">
+            <ColumnList />
+          </div>
+        </Route>
+        <Route path="/column/:slug">
+          <div className="min-h-[100svh] overflow-y-auto">
+            <ColumnDetail />
+          </div>
+        </Route>
         <Route component={NotFound} />
       </Switch>
     </div>
@@ -311,6 +323,16 @@ function AppContent() {
         </Route>
         <Route path="/reset-password">
           <ResetPassword />
+        </Route>
+        <Route path="/column">
+          <div className="min-h-screen overflow-y-auto">
+            <ColumnList />
+          </div>
+        </Route>
+        <Route path="/column/:slug">
+          <div className="min-h-screen overflow-y-auto">
+            <ColumnDetail />
+          </div>
         </Route>
         <Route>
           <Landing onRegisterClick={handleRegisterClick} />

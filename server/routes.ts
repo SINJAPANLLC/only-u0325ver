@@ -22,7 +22,7 @@ import {
   insertVideoSchema, insertProductSchema, insertLiveStreamSchema,
   insertUserProfileSchema, insertCreatorApplicationSchema, insertMessageSchema, insertCommentSchema,
   insertSubscriptionPlanSchema, insertLiveChatMessageSchema,
-  liveTwoshotRequests,
+  liveTwoshotRequests, columnArticles, emailTemplates,
 } from "@shared/schema";
 import { moderateImage, createModerationNotification } from "./services/content-moderation";
 import { createBunnyVideo, getBunnyVideoStatus, getBunnyVideoUrl, getBunnyThumbnailUrl, isBunnyConfigured, createBunnyLiveStream, deleteBunnyLiveStream } from "./services/bunny";
@@ -7026,6 +7026,224 @@ ${additionalInfo ? `追加情報: ${additionalInfo}` : ""}
       console.error("Failed to seed admin account or settings:", error);
     }
   })();
+
+  // ============================================================
+  // MARKETING APIs
+  // ============================================================
+
+  // Public: list published column articles
+  app.get("/api/columns", async (req, res) => {
+    try {
+      const articles = await db.select().from(columnArticles)
+        .where(eq(columnArticles.published, true))
+        .orderBy(desc(columnArticles.publishedAt));
+      res.json(articles);
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Public: single column article by slug
+  app.get("/api/columns/:slug", async (req, res) => {
+    try {
+      const [article] = await db.select().from(columnArticles)
+        .where(and(eq(columnArticles.slug, req.params.slug), eq(columnArticles.published, true)));
+      if (!article) return res.status(404).json({ message: "Not found" });
+      res.json(article);
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Admin: list all column articles
+  app.get("/api/admin/marketing/columns", isAdminSession, async (req, res) => {
+    try {
+      const articles = await db.select().from(columnArticles).orderBy(desc(columnArticles.createdAt));
+      res.json(articles);
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Admin: create column article
+  app.post("/api/admin/marketing/columns", isAdminSession, async (req, res) => {
+    try {
+      const { title, slug, excerpt, content, metaDescription, metaKeywords, category, published } = req.body;
+      const [article] = await db.insert(columnArticles).values({
+        title, slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+        excerpt, content, metaDescription, metaKeywords, category: category || "general",
+        published: published || false,
+        publishedAt: published ? new Date() : null,
+      }).returning();
+      res.json(article);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error" });
+    }
+  });
+
+  // Admin: update column article
+  app.put("/api/admin/marketing/columns/:id", isAdminSession, async (req, res) => {
+    try {
+      const { title, slug, excerpt, content, metaDescription, metaKeywords, category, published } = req.body;
+      const [existing] = await db.select().from(columnArticles).where(eq(columnArticles.id, req.params.id));
+      const [article] = await db.update(columnArticles).set({
+        title, slug, excerpt, content, metaDescription, metaKeywords, category,
+        published,
+        publishedAt: published && !existing?.publishedAt ? new Date() : existing?.publishedAt,
+        updatedAt: new Date(),
+      }).where(eq(columnArticles.id, req.params.id)).returning();
+      res.json(article);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error" });
+    }
+  });
+
+  // Admin: delete column article
+  app.delete("/api/admin/marketing/columns/:id", isAdminSession, async (req, res) => {
+    try {
+      await db.delete(columnArticles).where(eq(columnArticles.id, req.params.id));
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Admin: AI generate SNS post
+  app.post("/api/admin/marketing/generate-sns", isAdminSession, async (req, res) => {
+    try {
+      const { platform, topic, tone, language } = req.body;
+      const platMap: Record<string, string> = {
+        twitter: "Twitter/X（140字以内）",
+        instagram: "Instagram（ハッシュタグ多め）",
+        line: "LINE公式アカウント（親しみやすい口調）",
+        tiktok: "TikTok（若者向け、トレンド意識）",
+      };
+      const completion = await getOpenAI().chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: `あなたはSNSマーケティングの専門家です。${language === "ja" ? "日本語" : "英語"}で投稿文を作成してください。` },
+          { role: "user", content: `プラットフォーム: ${platMap[platform] || platform}\nトピック: ${topic}\nトーン: ${tone || "フレンドリー"}\n\n上記の条件で${platMap[platform] || platform}向けの投稿文を3パターン作成してください。番号付きで出力してください。` },
+        ],
+      });
+      res.json({ text: completion.choices[0].message.content });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "AI error" });
+    }
+  });
+
+  // Admin: AI generate column article
+  app.post("/api/admin/marketing/generate-column", isAdminSession, async (req, res) => {
+    try {
+      const { keyword, targetAudience, tone, wordCount } = req.body;
+      const completion = await getOpenAI().chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "あなたはSEOライターです。SEOに強い日本語のコラム記事をHTML形式で作成します。" },
+          { role: "user", content: `キーワード: ${keyword}\nターゲット読者: ${targetAudience || "一般ユーザー"}\nトーン: ${tone || "フレンドリー・専門的"}\n文字数目安: ${wordCount || 1500}字\n\n以下のJSON形式で返してください:\n{\n  "title": "記事タイトル",\n  "excerpt": "120字以内の要約",\n  "content": "<p>HTML形式の本文...</p>",\n  "metaDescription": "160字以内のメタディスクリプション",\n  "metaKeywords": "キーワード1,キーワード2,キーワード3",\n  "slug": "url-friendly-slug"\n}` },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const data = JSON.parse(completion.choices[0].message.content || "{}");
+      res.json(data);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "AI error" });
+    }
+  });
+
+  // Admin: list email templates
+  app.get("/api/admin/marketing/email-templates", isAdminSession, async (req, res) => {
+    try {
+      const templates = await db.select().from(emailTemplates).orderBy(desc(emailTemplates.createdAt));
+      res.json(templates);
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Admin: save email template
+  app.post("/api/admin/marketing/email-templates", isAdminSession, async (req, res) => {
+    try {
+      const { name, subject, htmlContent, type } = req.body;
+      const [tmpl] = await db.insert(emailTemplates).values({ name, subject, htmlContent, type: type || "marketing" }).returning();
+      res.json(tmpl);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error" });
+    }
+  });
+
+  // Admin: update email template
+  app.put("/api/admin/marketing/email-templates/:id", isAdminSession, async (req, res) => {
+    try {
+      const { name, subject, htmlContent, type } = req.body;
+      const [tmpl] = await db.update(emailTemplates).set({ name, subject, htmlContent, type, updatedAt: new Date() })
+        .where(eq(emailTemplates.id, req.params.id)).returning();
+      res.json(tmpl);
+    } catch (e: any) {
+      res.status(400).json({ message: e.message || "Error" });
+    }
+  });
+
+  // Admin: delete email template
+  app.delete("/api/admin/marketing/email-templates/:id", isAdminSession, async (req, res) => {
+    try {
+      await db.delete(emailTemplates).where(eq(emailTemplates.id, req.params.id));
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ message: "Error" });
+    }
+  });
+
+  // Admin: send bulk email
+  app.post("/api/admin/marketing/send-email", isAdminSession, async (req, res) => {
+    try {
+      const { subject, htmlContent, targetType } = req.body;
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "465"),
+        secure: true,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      });
+      // Get target emails
+      let targetUsers: { email: string }[] = [];
+      if (targetType === "all") {
+        targetUsers = await db.select({ email: users.email }).from(users).where(sql`email IS NOT NULL`);
+      } else if (targetType === "creators") {
+        const creators = await db.select({ userId: creatorProfiles.userId }).from(creatorProfiles);
+        const ids = creators.map(c => c.userId);
+        if (ids.length > 0) targetUsers = await db.select({ email: users.email }).from(users).where(inArray(users.id, ids));
+      }
+      const emails = targetUsers.map(u => u.email).filter(Boolean);
+      let sent = 0;
+      for (const email of emails.slice(0, 200)) {
+        try {
+          await transporter.sendMail({ from: process.env.SMTP_USER, to: email, subject, html: htmlContent });
+          sent++;
+        } catch {}
+      }
+      res.json({ success: true, sent, total: emails.length });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "Error" });
+    }
+  });
+
+  // Admin: AI generate email HTML
+  app.post("/api/admin/marketing/generate-email", isAdminSession, async (req, res) => {
+    try {
+      const { purpose, tone, callToAction } = req.body;
+      const completion = await getOpenAI().chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "あなたはHTMLメールの専門家です。モダンで読みやすいHTMLメールを作成します。インラインCSSを使ってください。" },
+          { role: "user", content: `目的: ${purpose}\nトーン: ${tone || "フレンドリー"}\nCTA: ${callToAction || "今すぐ登録"}\n\n上記の条件でHTMLメールを作成してください。JSON形式で返してください:\n{\n  "subject": "件名",\n  "html": "HTMLコード"\n}` },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const data = JSON.parse(completion.choices[0].message.content || "{}");
+      res.json(data);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message || "AI error" });
+    }
+  });
 
   return httpServer;
 }
