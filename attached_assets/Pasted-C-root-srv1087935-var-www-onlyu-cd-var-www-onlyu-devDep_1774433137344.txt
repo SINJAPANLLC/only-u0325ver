@@ -1,0 +1,59 @@
+C
+root@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+
+# devDependenciesも含めてインストール
+npm install --include=dev
+
+# ビルド
+npm run build
+
+# 確認
+ls dist/
+
+added 98 packages, and audited 771 packages in 3s
+
+114 packages are looking for funding
+  run `npm fund` for details
+
+34 vulnerabilities (8 low, 2 moderate, 23 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+transforming (28) ../node_modules/react/jsx-runtime.js
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2977 modules transformed.
+../dist/public/index.html                                                           1.42 kB │ gzip:   0.74 kB
+../dist/public/assets/IMG_9769_1768108334555-DBidn5qy.PNG                         109.72 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.30_1774273237701-C8h16fj9.png    268.14 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.18_1774273237693-DNxFAo-6.png    285.81 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.41_1774273237678-BAZmHXga.png    286.00 kB
+../dist/public/assets/nude_bedroom_1-TdmLPh1z.jpg                                 447.73 kB
+../dist/public/assets/lingerie_bed_3-CuToe3Lq.jpg                                 482.99 kB
+../dist/public/assets/nude_bath_2-XyNc0DeT.jpg                                    483.37 kB
+../dist/public/assets/nude_shower_4-C9DV9le3.jpg                                  506.46 kB
+../dist/public/assets/index-Bgm5CmKQ.css                                          164.43 kB │ gzip:  24.19 kB
+../dist/public/assets/index-Sb_bNLxS.js                                         2,155.16 kB │ gzip: 599.16 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 16.01s
+building server...
+
+  dist/index.cjs  1.8mb ⚠️
+
+⚡ Done in 695ms
+index.cjs  public
+root@srv1087935:/var/www/onlyu# 
