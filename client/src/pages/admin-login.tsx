@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -36,7 +33,6 @@ export default function AdminLogin() {
     },
     onSuccess: () => {
       toast({ title: "ログイン成功" });
-      // Use full page navigation to ensure session cookie is recognized
       window.location.href = "/admin/dashboard";
     },
     onError: (error: Error) => {
@@ -52,8 +48,8 @@ export default function AdminLogin() {
 
   if (isCheckingAuth || authStatus?.authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
       </div>
     );
   }
@@ -64,70 +60,85 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50 p-4">
-      <Card className="w-full max-w-md bg-white shadow-xl border border-pink-100">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <img src={logoImage} alt="Only-U" className="h-20 w-20 object-contain" />
+    <div className="min-h-screen flex items-center justify-center bg-[#080810] p-4 relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/[0.04] rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-rose-500/[0.03] rounded-full blur-2xl" />
+      </div>
+
+      <div className="relative w-full max-w-sm">
+        {/* Card */}
+        <div className="bg-[#0d0d1a] border border-white/[0.06] rounded-2xl p-8 shadow-2xl">
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative mb-4">
+              <img src={logoImage} alt="Only-U" className="h-14 w-14 object-contain rounded-2xl" />
+              <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                <Shield className="h-2.5 w-2.5 text-white" />
+              </div>
+            </div>
+            <h1 className="text-xl font-bold text-white">Only-U Admin</h1>
+            <p className="text-xs text-white/40 mt-1">管理コンソール</p>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold text-gray-800">管理者ログイン</CardTitle>
-            <p className="text-sm text-pink-500 mt-1">Only-U 管理パネル</p>
-          </div>
-        </CardHeader>
-        <CardContent>
+
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-white/50">メールアドレス</label>
               <Input
-                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@example.com"
                 required
+                className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 focus:border-pink-500/50 focus:bg-white/[0.06] h-11 rounded-xl"
                 data-testid="input-admin-email"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700">パスワード</Label>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-white/50">パスワード</label>
               <div className="relative">
                 <Input
-                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/20 focus:border-pink-500/50 focus:bg-white/[0.06] h-11 rounded-xl pr-10"
                   data-testid="input-admin-password"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+                </button>
               </div>
             </div>
-            <Button
+
+            <button
               type="submit"
-              className="w-full bg-pink-600 hover:bg-pink-700"
+              className="w-full h-11 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
               disabled={loginMutation.isPending}
               data-testid="button-admin-login"
             >
               {loginMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Shield className="h-4 w-4 mr-2" />
+                <Shield className="h-4 w-4" />
               )}
               ログイン
-            </Button>
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+
+        <p className="text-center text-xs text-white/20 mt-6">
+          Only-U 管理パネル © 2024
+        </p>
+      </div>
     </div>
   );
 }
