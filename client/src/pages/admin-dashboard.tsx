@@ -3384,6 +3384,63 @@ export default function AdminDashboard() {
                           />
                         </div>
                       </div>
+
+                      <div className="border-t pt-4 mt-2">
+                        <p className="text-sm font-medium mb-3">性風俗・古物商 届出番号</p>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="eizou_fuuei_number">映像送信型性風俗特殊営業届出</Label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">神奈川県公安委員会第</span>
+                              <Input
+                                id="eizou_fuuei_number"
+                                placeholder="〇〇〇〇"
+                                value={settingsForm.eizou_fuuei_number || ""}
+                                onChange={(e) => {
+                                  setSettingsForm(prev => ({ ...prev, eizou_fuuei_number: e.target.value }));
+                                  setSettingsChanged(true);
+                                }}
+                                data-testid="input-eizou-fuuei-number"
+                              />
+                              <span className="text-sm text-muted-foreground">号</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="muten_fuuei_number">無店舗型性風俗特殊営業届出</Label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">神奈川県公安委員会第</span>
+                              <Input
+                                id="muten_fuuei_number"
+                                placeholder="〇〇〇〇"
+                                value={settingsForm.muten_fuuei_number || ""}
+                                onChange={(e) => {
+                                  setSettingsForm(prev => ({ ...prev, muten_fuuei_number: e.target.value }));
+                                  setSettingsChanged(true);
+                                }}
+                                data-testid="input-muten-fuuei-number"
+                              />
+                              <span className="text-sm text-muted-foreground">号</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="kobutsu_number">古物商許可</Label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground whitespace-nowrap">神奈川県公安委員会第</span>
+                              <Input
+                                id="kobutsu_number"
+                                placeholder="〇〇〇〇"
+                                value={settingsForm.kobutsu_number || ""}
+                                onChange={(e) => {
+                                  setSettingsForm(prev => ({ ...prev, kobutsu_number: e.target.value }));
+                                  setSettingsChanged(true);
+                                }}
+                                data-testid="input-kobutsu-number"
+                              />
+                              <span className="text-sm text-muted-foreground">号</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
 
