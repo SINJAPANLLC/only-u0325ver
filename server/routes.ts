@@ -5071,6 +5071,14 @@ export async function registerRoutes(
     }
   });
   
+  // User logout (GET redirect)
+  app.get("/api/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) console.error("Session destroy error:", err);
+      res.redirect("/");
+    });
+  });
+
   // Admin logout
   app.post("/api/admin/auth/logout", (req, res) => {
     (req.session as any).adminId = null;
