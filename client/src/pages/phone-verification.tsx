@@ -74,7 +74,7 @@ export default function PhoneVerificationPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="p-4 space-y-4 bg-white/5 border border-white/10">
+            <Card className="p-4 space-y-4 bg-white/5 border border-white/10 text-white">
               <div className="flex items-center gap-2 mb-2">
                 <Phone className="h-5 w-5 text-white/50" />
                 <h2 className="font-semibold">電話番号を登録</h2>
