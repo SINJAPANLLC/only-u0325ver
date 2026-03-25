@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Megaphone, Sparkles, FileText, Mail, Plus, Trash2, Edit3, Eye, Send,
   Globe, CheckCircle, Clock, Loader2, Copy, RefreshCw, ExternalLink,
-  Zap, Bot, Lock, HelpCircle,
+  Zap, Bot,
 } from "lucide-react";
 
 interface ColumnArticle {
@@ -41,82 +41,7 @@ interface EmailTemplate {
   createdAt: string;
 }
 
-const PASSWORD_RESET_PREVIEW_HTML = `<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#fff0f5;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fff0f5;padding:32px 16px;">
-  <tr><td align="center">
-    <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #fce4ec;box-shadow:0 4px 24px rgba(236,64,122,0.08);">
-      <tr><td style="background:linear-gradient(135deg,#f48fb1 0%,#f06292 50%,#ec407a 100%);padding:32px;text-align:center;">
-        <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50px;padding:6px 20px;margin-bottom:12px;">
-          <span style="font-size:18px;font-weight:900;color:#fff;letter-spacing:3px;font-style:italic;">Only-U 💕</span>
-        </div>
-      </td></tr>
-      <tr><td style="padding:40px 40px 32px;text-align:center;">
-        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#fce4ec,#f8bbd0);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:36px;line-height:72px;border:2px solid #f48fb1;">🔑</div>
-        <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#c2185b;">パスワードのリセット</h1>
-        <p style="margin:0 0 28px;font-size:14px;color:#ad1457;line-height:1.8;opacity:0.8;">パスワードリセットのリクエストを受け付けました。✨<br>下のボタンから新しいパスワードを設定してください。</p>
-        <a href="#" style="display:inline-block;background:linear-gradient(135deg,#f06292,#ec407a);color:#fff;text-decoration:none;font-size:14px;font-weight:800;padding:14px 40px;border-radius:50px;box-shadow:0 4px 12px rgba(236,64,122,0.3);">パスワードをリセット ✨</a>
-        <p style="margin:24px 0 0;font-size:12px;color:#f48fb1;">⏰ このリンクは1時間後に無効になります</p>
-      </td></tr>
-      <tr><td style="background:#fff0f5;padding:20px;text-align:center;border-top:1px solid #fce4ec;">
-        <p style="margin:0;font-size:11px;color:#f48fb1;">© 2025 Only-U 💗 | 合同会社SIN JAPAN KANAGAWA</p>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
 
-const CONTACT_EMAIL_PREVIEW_HTML = `<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#fff0f5;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff0f5;padding:24px;">
-  <tr><td align="center">
-    <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border-radius:24px;overflow:hidden;border:1px solid #fce4ec;box-shadow:0 4px 24px rgba(236,64,122,0.08);">
-      <tr><td style="background:linear-gradient(135deg,#f48fb1 0%,#f06292 50%,#ec407a 100%);padding:24px;text-align:center;">
-        <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:50px;padding:6px 20px;">
-          <span style="font-size:16px;font-weight:900;color:#fff;letter-spacing:2px;">Only-U 📩 お問い合わせ</span>
-        </div>
-      </td></tr>
-      <tr><td style="padding:28px;">
-        <div style="background:#fff0f5;border-radius:12px;padding:16px;border:1px solid #fce4ec;margin-bottom:16px;">
-          <p style="margin:0 0 10px;font-size:13px;"><span style="background:#f8bbd0;color:#c2185b;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">カテゴリ</span> <span style="margin-left:6px;color:#555;">アカウントについて</span></p>
-          <p style="margin:0 0 10px;font-size:13px;"><span style="background:#f8bbd0;color:#c2185b;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">送信者</span> <span style="margin-left:6px;color:#555;">user@example.com</span></p>
-          <p style="margin:0;font-size:13px;"><span style="background:#f8bbd0;color:#c2185b;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">件名</span> <span style="margin-left:6px;color:#555;">ログインできない</span></p>
-        </div>
-        <hr style="border:none;border-top:1px solid #fce4ec;margin:16px 0;">
-        <p style="margin:0;font-size:14px;color:#666;line-height:1.8;">お問い合わせ内容がここに表示されます。</p>
-      </td></tr>
-      <tr><td style="background:#fff0f5;padding:16px;text-align:center;border-top:1px solid #fce4ec;">
-        <p style="margin:0;font-size:11px;color:#f48fb1;">© 2025 Only-U 💗 | 合同会社SIN JAPAN KANAGAWA</p>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-
-const AUTO_EMAIL_TEMPLATES = [
-  {
-    id: "password-reset",
-    name: "パスワードリセット",
-    subject: "【Only-U】パスワードをリセットしてください",
-    trigger: "ユーザーがパスワードリセットをリクエストした時",
-    icon: Lock,
-    htmlContent: PASSWORD_RESET_PREVIEW_HTML,
-  },
-  {
-    id: "contact-confirm",
-    name: "お問い合わせ受付確認",
-    subject: "[Only-U お問い合わせ] カテゴリ: 件名",
-    trigger: "ユーザーがお問い合わせフォームを送信した時（管理者宛）",
-    icon: HelpCircle,
-    htmlContent: CONTACT_EMAIL_PREVIEW_HTML,
-  },
-];
 
 export default function AdminMarketing() {
   const { toast } = useToast();
@@ -588,37 +513,72 @@ export default function AdminMarketing() {
           <Card className="border-pink-200 shadow-sm overflow-hidden">
             <div className="h-1.5 bg-gradient-to-r from-pink-400 via-rose-300 to-pink-400" />
             <CardHeader className="bg-gradient-to-br from-pink-50 to-white pb-3">
-              <CardTitle className="text-base flex items-center gap-2 text-pink-700">
-                <Bot className="h-4 w-4 text-pink-500" /> 自動送信メール（システム）
-              </CardTitle>
-              <CardDescription className="text-pink-400">ユーザーアクションに応じて自動送信されます。プレビューのみ可能。</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2 text-pink-700">
+                    <Bot className="h-4 w-4 text-pink-500" /> 自動送信メール（システム）
+                  </CardTitle>
+                  <CardDescription className="text-pink-400 mt-1">ユーザーアクションに応じて自動送信されます。追加・編集・削除が可能です。</CardDescription>
+                </div>
+                <Button size="sm" className="bg-pink-500 hover:bg-pink-600 text-white rounded-full shadow-sm shrink-0" onClick={() => {
+                  setEditingEmail(null);
+                  setEmailForm({ name: "", subject: "", htmlContent: getDefaultEmailHtml(), type: "automated" });
+                  setEmailPreview(false);
+                  setEmailDialog(true);
+                }} data-testid="button-auto-email-new">
+                  <Plus className="h-4 w-4 mr-1" /> 追加
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-3">
-              <div className="space-y-2">
-                {AUTO_EMAIL_TEMPLATES.map(tmpl => (
-                  <div key={tmpl.id} className="flex items-center justify-between p-3 border border-pink-100 rounded-xl gap-3 bg-white hover:bg-pink-50 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                          <tmpl.icon className="h-3.5 w-3.5 text-pink-500" />
-                        </div>
-                        <span className="font-semibold text-sm text-pink-800">{tmpl.name}</span>
-                        <Badge className="text-xs rounded-full bg-pink-100 text-pink-600 border-pink-200" variant="outline">自動 ✨</Badge>
-                      </div>
-                      <p className="text-xs text-pink-400 mt-0.5 ml-9">件名: {tmpl.subject}</p>
-                      <p className="text-xs text-pink-300 ml-9">トリガー: {tmpl.trigger}</p>
+              {emailLoading ? (
+                <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-pink-400" /></div>
+              ) : (
+                <div className="space-y-2">
+                  {emailTemplates.filter(t => t.type === "automated").length === 0 ? (
+                    <div className="text-center py-6 text-pink-300">
+                      <Bot className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">自動メールがありません</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-pink-400 hover:text-pink-600 hover:bg-pink-100 rounded-full" onClick={() => {
-                      setEditingEmail(null);
-                      setEmailForm({ name: tmpl.name, subject: tmpl.subject, htmlContent: tmpl.htmlContent, type: "automated" });
-                      setEmailPreview(true);
-                      setEmailDialog(true);
-                    }} data-testid={`button-auto-preview-${tmpl.id}`}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  ) : (
+                    emailTemplates.filter(t => t.type === "automated").map(tmpl => (
+                      <div key={tmpl.id} className="flex items-center justify-between p-3 border border-pink-100 rounded-xl gap-3 bg-white hover:bg-pink-50 transition-colors" data-testid={`card-auto-email-${tmpl.id}`}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
+                              <Bot className="h-3.5 w-3.5 text-pink-500" />
+                            </div>
+                            <span className="font-semibold text-sm text-pink-800">{tmpl.name}</span>
+                            <Badge className="text-xs rounded-full bg-pink-100 text-pink-600 border-pink-200" variant="outline">自動 ✨</Badge>
+                          </div>
+                          <p className="text-xs text-pink-400 mt-0.5 ml-9">件名: {tmpl.subject}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" className="text-pink-400 hover:text-pink-600 hover:bg-pink-100 rounded-full" onClick={() => {
+                            setEditingEmail(null);
+                            setEmailForm({ name: tmpl.name, subject: tmpl.subject, htmlContent: tmpl.htmlContent, type: "automated" });
+                            setEmailPreview(true);
+                            setEmailDialog(true);
+                          }} data-testid={`button-auto-preview-${tmpl.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="hover:text-pink-500 hover:bg-pink-100 rounded-full" onClick={() => {
+                            setEditingEmail(tmpl);
+                            setEmailForm({ name: tmpl.name, subject: tmpl.subject, htmlContent: tmpl.htmlContent, type: "automated" });
+                            setEmailPreview(false);
+                            setEmailDialog(true);
+                          }} data-testid={`button-auto-edit-${tmpl.id}`}>
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-500 hover:bg-red-50 rounded-full" onClick={() => setDeleteEmailId(tmpl.id)} data-testid={`button-auto-delete-${tmpl.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -632,14 +592,14 @@ export default function AdminMarketing() {
             <CardContent>
               {emailLoading ? (
                 <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-pink-400" /></div>
-              ) : emailTemplates.length === 0 ? (
+              ) : emailTemplates.filter(t => t.type !== "automated").length === 0 ? (
                 <div className="text-center py-8 text-pink-300">
                   <Mail className="h-10 w-10 mx-auto mb-2 opacity-40" />
                   <p>テンプレートがありません</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {emailTemplates.map(tmpl => (
+                  {emailTemplates.filter(t => t.type !== "automated").map(tmpl => (
                     <div key={tmpl.id} className="flex items-center justify-between p-3 border border-pink-100 rounded-xl gap-3 bg-white hover:bg-pink-50 transition-colors" data-testid={`card-email-${tmpl.id}`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
