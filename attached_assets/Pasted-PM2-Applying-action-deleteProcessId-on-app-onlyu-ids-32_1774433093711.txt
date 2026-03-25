@@ -1,0 +1,87 @@
+PM2] Applying action deleteProcessId on app [onlyu](ids: [ 32 ])
+[PM2] [onlyu](32) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 235.7mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 315.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.7mb  │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.4mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 98.8mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 113.0mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.3mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.5mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2][ERROR] Script not found: /var/www/onlyu/dist/index.cjs
+[1]+  Done                    DATABASE_URL=postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 20 lines for [onlyu] process (change the value with --lines option)
+^C
+root@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+
+# 強制的にGitHubのコードで上書き
+git fetch origin
+git reset --hard origin/main
+
+# 依存パッケージを完全に再インストール
+rm -rf node_modules
+npm install
+
+# ビルド
+npm run build
+
+# 確認
+ls dist/
+HEAD is now at 724b7f4 Remove sensitive information from assets folder
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 672 packages, and audited 673 packages in 14s
+
+99 packages are looking for funding
+  run `npm fund` for details
+
+33 vulnerabilities (8 low, 2 moderate, 22 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /var/www/onlyu/script/build.ts
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at nextResolve (node:internal/modules/esm/hooks:864:28)
+    at resolveBase (file:///usr/lib/node_modules/tsx/dist/esm/index.mjs?1774433078842:2:3744)
+    at resolveDirectory (file:///usr/lib/node_modules/tsx/dist/esm/index.mjs?1774433078842:2:4243)
+    at resolveTsPaths (file:///usr/lib/node_modules/tsx/dist/esm/index.mjs?1774433078842:2:4984)
+    at async resolve (file:///usr/lib/node_modules/tsx/dist/esm/index.mjs?1774433078842:2:5355)
+    at async nextResolve (node:internal/modules/esm/hooks:864:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:306:24) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.20.0
+index.js  public
+root@srv1087935:/var/www/onlyu# set -a; source /var/www/onlyu/.env; set +a
+pm2 start dist/index.cjs --name onlyu
+pm2 save
+sleep 3
+pm2 logs onlyu --lines 20
+[PM2][ERROR] Script not found: /var/www/onlyu/dist/index.cjs
+[1]+  Done                    DATABASE_URL=postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 20 lines for [onlyu] process (change the value with --lines option)
+
