@@ -1,0 +1,65 @@
+ Applying action restartProcessId on app [onlyu](ids: [ 34 ])
+[PM2] [onlyu](34) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 271.2mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 320.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 144.1mb  │
+│ 34 │ onlyu              │ fork     │ 77   │ online    │ 0%       │ 19.6mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.9mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.7mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.6mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 327.3mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@srv1087935:/var/www/onlyu# nginx -T 2>/dev/null | grep -A3 "server_name only-u.fun" | head -20
+    server_name only-u.fun www.only-u.fun;
+    return 301 https://$host$request_uri;
+}
+
+--
+    server_name only-u.fun www.only-u.fun;
+
+    ssl_certificate /etc/letsencrypt/live/only-u.fun/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/only-u.fun/privkey.pem;
+root@srv1087935:/var/www/onlyu# cat > /etc/nginx/sites-available/onlyu << 'EOF'
+server {
+    listen 80;
+    server_name only-u.fun www.only-u.fun;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name only-u.fun www.only-u.fun;
+
+    ssl_certificate /etc/letsencrypt/live/only-u.fun/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/only-u.fun/privkey.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://127.0.0.1:5005;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 600;
+        proxy_send_timeout 600;
+        proxy_read_timeout 600;
+        send_timeout 600;
+    }
+}
+EOF
+
+nginx -t && systemctl reload nginx
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@srv1087935:/var/www/onlyu# 
