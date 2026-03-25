@@ -1889,16 +1889,17 @@ export async function registerRoutes(
               // Fall back to users table
               const [userInfo] = await db
                 .select({
-                  username: users.username,
-                  avatarUrl: users.avatarUrl,
+                  firstName: users.firstName,
+                  email: users.email,
+                  profileImageUrl: users.profileImageUrl,
                 })
                 .from(users)
                 .where(eq(users.id, otherParticipantId))
                 .limit(1);
               
               if (userInfo) {
-                participantName = userInfo.username || "ユーザー";
-                participantAvatar = userInfo.avatarUrl;
+                participantName = userInfo.firstName || userInfo.email || "ユーザー";
+                participantAvatar = userInfo.profileImageUrl;
               }
             }
           }
@@ -1926,8 +1927,9 @@ export async function registerRoutes(
       const [userData] = await db
         .select({
           id: users.id,
-          username: users.username,
-          avatarUrl: users.avatarUrl,
+          firstName: users.firstName,
+          email: users.email,
+          profileImageUrl: users.profileImageUrl,
         })
         .from(users)
         .where(eq(users.id, id))
@@ -2008,16 +2010,17 @@ export async function registerRoutes(
           // Fall back to users table
           const [userData] = await db
             .select({
-              username: users.username,
-              avatarUrl: users.avatarUrl,
+              firstName: users.firstName,
+              email: users.email,
+              profileImageUrl: users.profileImageUrl,
             })
             .from(users)
             .where(eq(users.id, otherParticipantId))
             .limit(1);
           
           participantInfo = {
-            displayName: userData?.username || "ユーザー",
-            avatarUrl: profileInfo?.avatarUrl || userData?.avatarUrl || null,
+            displayName: userData?.firstName || userData?.email || "ユーザー",
+            avatarUrl: profileInfo?.avatarUrl || userData?.profileImageUrl || null,
             isCreator: false,
           };
         }
