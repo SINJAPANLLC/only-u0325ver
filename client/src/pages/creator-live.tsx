@@ -158,10 +158,14 @@ export default function CreatorLive() {
         adaptiveStream: true,
         dynacast: true,
         videoCaptureDefaults: {
-          resolution: VideoPresets.h720.resolution,
+          resolution: VideoPresets.h1080.resolution,
           facingMode,
         },
-        audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true },
+        videoEncoding: {
+          maxBitrate: 5_000_000,
+          maxFramerate: 30,
+        },
+        audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
       });
       roomRef.current = room;
 
