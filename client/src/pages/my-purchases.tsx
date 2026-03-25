@@ -78,8 +78,8 @@ export default function MyPurchasesPage() {
   ) || [];
 
   return (
-    <div className="min-h-screen bg-black text-white pb-8">
-      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
+    <div className="flex flex-col h-full bg-black text-white">
+      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10 flex-shrink-0">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
@@ -94,7 +94,7 @@ export default function MyPurchasesPage() {
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-8">
         {isLoading ? (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
