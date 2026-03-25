@@ -1,0 +1,94 @@
+ist/index.cjs  1.8mb ⚠️
+
+⚡ Done in 695ms
+index.cjs  public
+root@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+set -a; source /var/www/onlyu/.env; set +a
+pm2 start dist/index.cjs --name onlyu
+pm2 save
+sleep 3
+pm2 logs onlyu --lines 30
+[PM2] Starting /var/www/onlyu/dist/index.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 235.7mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 315.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.3mb  │
+│ 33 │ onlyu              │ fork     │ 0    │ online    │ 0%       │ 17.6mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.7mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.0mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.7mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 116.9mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.6mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[1]+  Done                    DATABASE_URL=postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 30 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-out.log last 30 lines:
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | 5:21:25 PM [express] serving on port 5005
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | 5:29:37 PM [express] serving on port 5005
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | 5:34:23 PM [express] serving on port 5005
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: firebase
+33|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+33|onlyu   | 📦 Using storage provider: bunny
+33|onlyu   | 9:56:35 AM [express] serving on port 5005
+
+/root/.pm2/logs/onlyu-error.log last 30 lines:
+33|onlyu   |   address: '0.0.0.0',
+33|onlyu   |   port: 5050
+33|onlyu   | }
+33|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+33|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+33|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+33|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+33|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+33|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+33|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+33|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+33|onlyu   | ⚠️  Bunny Stream not configured. Set BUNNY_STREAM_API_KEY and BUNNY_STREAM_LIBRARY_ID
+33|onlyu   | Error: Missing required environment variable: SESSION_SECRET. Admin authentication requires this for secure token signing.
+33|onlyu   |     at file:///var/www/onlyu/dist/index.js:679:9
+33|onlyu   |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+33|onlyu   |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+33|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+33|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+33|onlyu   | ⚠️  Bunny Stream not configured. Set BUNNY_STREAM_API_KEY and BUNNY_STREAM_LIBRARY_ID
+33|onlyu   | Error: DATABASE_URL must be set. Did you forget to provision a database?
+33|onlyu   |     at Object.<anonymous> (/var/www/onlyu/dist/index.cjs:138:117286)
+33|onlyu   |     at Module._compile (node:internal/modules/cjs/loader:1521:14)
+33|onlyu   |     at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+33|onlyu   |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+33|onlyu   |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+33|onlyu   |     at cjsLoader (node:internal/modules/esm/translators:298:15)
+33|onlyu   |     at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:240:7)
+33|onlyu   |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+33|onlyu   |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|onlyu   |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+
+
