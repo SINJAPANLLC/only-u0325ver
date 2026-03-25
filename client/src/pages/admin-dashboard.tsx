@@ -78,7 +78,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "marketing" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "bunny" | "settings";
+type Tab = "dashboard" | "sales" | "users" | "creators" | "livestreams" | "content" | "shop" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -455,15 +455,6 @@ export default function AdminDashboard() {
   const [pointAdjustment, setPointAdjustment] = useState(0);
   const [pointReason, setPointReason] = useState("");
   
-  // Marketing email state
-  const [emailTargetAudience, setEmailTargetAudience] = useState("");
-  const [emailPurpose, setEmailPurpose] = useState("");
-  const [emailTone, setEmailTone] = useState("フレンドリー");
-  const [emailAdditionalInfo, setEmailAdditionalInfo] = useState("");
-  const [emailSubject, setEmailSubject] = useState("");
-  const [emailBody, setEmailBody] = useState("");
-  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
-  
   // Notification management state
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
@@ -548,11 +539,6 @@ export default function AdminDashboard() {
     enabled: authStatus?.authenticated && activeTab === "sales",
   });
 
-  const { data: marketingData, isLoading: isLoadingMarketing } = useQuery<MarketingData>({
-    queryKey: ["/api/admin/marketing"],
-    enabled: authStatus?.authenticated && activeTab === "marketing",
-  });
-
   const { data: messagesData, isLoading: isLoadingMessages } = useQuery<MessagesData>({
     queryKey: ["/api/admin/messages"],
     enabled: authStatus?.authenticated && activeTab === "messages",
@@ -593,12 +579,6 @@ export default function AdminDashboard() {
   const { data: siteSettingsData, isLoading: isLoadingSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
     enabled: authStatus?.authenticated && activeTab === "settings",
-  });
-
-  const { data: bunnyChannels, refetch: refetchBunnyChannels } = useQuery<any[]>({
-    queryKey: ["/api/admin/bunny-channels"],
-    queryFn: () => fetch("/api/admin/bunny-channels", { credentials: "include" }).then(r => r.json()),
-    enabled: authStatus?.authenticated && activeTab === "bunny",
   });
 
   const logoutMutation = useMutation({
@@ -796,45 +776,6 @@ export default function AdminDashboard() {
     },
   });
 
-  // Marketing users query
-  const { data: marketingUsers, isLoading: isLoadingMarketingUsers } = useQuery<Array<{id: string; displayName: string | null; email: string | null; createdAt: Date | null}>>({
-    queryKey: ["/api/admin/marketing/users"],
-    enabled: authStatus?.authenticated && activeTab === "marketing",
-  });
-
-  // Generate email mutation
-  const generateEmail = useMutation({
-    mutationFn: async (data: { targetAudience: string; purpose: string; tone: string; additionalInfo: string }) => {
-      const res = await apiRequest("POST", "/api/admin/marketing/generate-email", data);
-      return res.json();
-    },
-    onSuccess: (data: { subject: string; body: string }) => {
-      setEmailSubject(data.subject || "");
-      setEmailBody(data.body || "");
-      toast({ title: "メールを生成しました" });
-    },
-    onError: () => {
-      toast({ title: "メール生成に失敗しました", variant: "destructive" });
-    },
-  });
-
-  // Send email mutation
-  const sendEmail = useMutation({
-    mutationFn: async (data: { recipients: string[]; subject: string; body: string }) => {
-      const res = await apiRequest("POST", "/api/admin/marketing/send-email", data);
-      return res.json();
-    },
-    onSuccess: (data: { message: string }) => {
-      toast({ title: data.message || "送信しました" });
-      setSelectedRecipients([]);
-      setEmailSubject("");
-      setEmailBody("");
-    },
-    onError: () => {
-      toast({ title: "メール送信に失敗しました", variant: "destructive" });
-    },
-  });
-
   // Broadcast notification mutation
   const broadcastNotification = useMutation({
     mutationFn: async (data: { title: string; message: string; type: string; userIds?: string[]; sendEmail?: boolean; emailSubject?: string; emailBody?: string }) => {
@@ -964,7 +905,6 @@ export default function AdminDashboard() {
     { id: "sales" as Tab, label: "売上管理", icon: TrendingUp },
     { id: "transfers" as Tab, label: "ポイント管理", icon: Wallet, badge: stats?.pendingTransfers },
     { id: "withdrawals" as Tab, label: "出金管理", icon: CreditCard, badge: stats?.pendingWithdrawals },
-    { id: "marketing" as Tab, label: "マーケティング", icon: Megaphone },
     { id: "users" as Tab, label: "ユーザー管理", icon: Users },
     { id: "creators" as Tab, label: "申請管理", icon: FileCheck, badge: stats?.pendingApplications },
     { id: "livestreams" as Tab, label: "ライブ管理", icon: Radio, badge: stats?.activeLiveStreams },
@@ -974,7 +914,6 @@ export default function AdminDashboard() {
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "moderation" as Tab, label: "AI審査", icon: ShieldAlert, badge: moderationUnreadCount?.count },
-    { id: "bunny" as Tab, label: "Bunny Stream", icon: Radio },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -1169,7 +1108,6 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
                         { tab: "notifications" as Tab, icon: Bell, label: "通知を送信", color: "text-pink-400", bg: "from-pink-500/20 to-pink-500/5" },
-                        { tab: "marketing" as Tab, icon: Megaphone, label: "マーケティング", color: "text-purple-400", bg: "from-purple-500/20 to-purple-500/5" },
                         { tab: "sales" as Tab, icon: BarChart3, label: "売上確認", color: "text-blue-400", bg: "from-blue-500/20 to-blue-500/5" },
                         { tab: "settings" as Tab, icon: Settings, label: "設定", color: "text-white/60", bg: "from-white/10 to-white/5" },
                       ].map(item => (
@@ -1218,7 +1156,6 @@ export default function AdminDashboard() {
                         tab: "notifications" as Tab, title: "コミュニケーション",
                         actions: [
                           { label: "通知送信", tab: "notifications" as Tab, icon: Send },
-                          { label: "マーケティング", tab: "marketing" as Tab, icon: Mail },
                         ]
                       },
                     ].map(section => (
@@ -1808,278 +1745,6 @@ export default function AdminDashboard() {
                       ) : (
                         <div className="text-center py-8 text-muted-foreground">取引履歴がありません</div>
                       )}
-                    </CardContent>
-                  </Card>
-                </>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">データの読み込みに失敗しました</div>
-              )}
-            </div>
-          )}
-
-          {/* Marketing */}
-          {activeTab === "marketing" && (
-            <div className="space-y-6">
-              {isLoadingMarketing ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : marketingData ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <Card data-testid="card-total-users">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">総ユーザー数</p>
-                        <p className="text-2xl font-bold" data-testid="text-total-users">{marketingData.totalUsers.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                    <Card data-testid="card-new-users">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">今月の新規登録</p>
-                        <p className="text-2xl font-bold text-green-600" data-testid="text-new-users">{marketingData.newUsersThisMonth.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                    <Card data-testid="card-total-follows">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">フォロー総数</p>
-                        <p className="text-2xl font-bold" data-testid="text-total-follows">{marketingData.totalFollows.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                    <Card data-testid="card-active-subscriptions">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">アクティブサブスクリプション</p>
-                        <p className="text-2xl font-bold text-pink-600" data-testid="text-active-subscriptions">{marketingData.activeSubscriptions.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                    <Card data-testid="card-video-views">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">動画総再生数</p>
-                        <p className="text-2xl font-bold" data-testid="text-video-views">{marketingData.totalVideoViews.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                    <Card data-testid="card-video-likes">
-                      <CardContent className="p-4">
-                        <p className="text-sm text-muted-foreground">動画総いいね数</p>
-                        <p className="text-2xl font-bold" data-testid="text-video-likes">{marketingData.totalVideoLikes.toLocaleString()}</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* AI Marketing Email Section */}
-                  <Card data-testid="card-marketing-email">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Mail className="h-5 w-5" />
-                        AI営業メール作成
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* AI Generation Form */}
-                      <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                        <h4 className="font-medium flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-yellow-500" />
-                          AIでメール内容を生成
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>ターゲット</Label>
-                            <Input
-                              data-testid="input-email-target"
-                              placeholder="例: 新規登録ユーザー、休眠ユーザー"
-                              value={emailTargetAudience}
-                              onChange={(e) => setEmailTargetAudience(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>目的</Label>
-                            <Input
-                              data-testid="input-email-purpose"
-                              placeholder="例: 新機能のお知らせ、キャンペーン告知"
-                              value={emailPurpose}
-                              onChange={(e) => setEmailPurpose(e.target.value)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>トーン</Label>
-                            <Select value={emailTone} onValueChange={setEmailTone}>
-                              <SelectTrigger data-testid="select-email-tone">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="フレンドリー">フレンドリー</SelectItem>
-                                <SelectItem value="フォーマル">フォーマル</SelectItem>
-                                <SelectItem value="カジュアル">カジュアル</SelectItem>
-                                <SelectItem value="緊急">緊急</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>追加情報（任意）</Label>
-                            <Input
-                              data-testid="input-email-additional"
-                              placeholder="例: 期間限定50%オフ"
-                              value={emailAdditionalInfo}
-                              onChange={(e) => setEmailAdditionalInfo(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <Button
-                          data-testid="button-generate-email"
-                          onClick={() => generateEmail.mutate({
-                            targetAudience: emailTargetAudience,
-                            purpose: emailPurpose,
-                            tone: emailTone,
-                            additionalInfo: emailAdditionalInfo,
-                          })}
-                          disabled={generateEmail.isPending}
-                          className="w-full"
-                        >
-                          {generateEmail.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              生成中...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              AIでメールを生成
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
-                      {/* Email Content */}
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>件名</Label>
-                          <Input
-                            data-testid="input-email-subject"
-                            placeholder="メールの件名"
-                            value={emailSubject}
-                            onChange={(e) => setEmailSubject(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>本文</Label>
-                          <Textarea
-                            data-testid="textarea-email-body"
-                            placeholder="メールの本文"
-                            value={emailBody}
-                            onChange={(e) => setEmailBody(e.target.value)}
-                            rows={10}
-                            className="resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Recipients Selection */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label>送信先を選択</Label>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-select-all"
-                              onClick={() => {
-                                if (marketingUsers) {
-                                  setSelectedRecipients(marketingUsers.map(u => u.email!).filter(Boolean));
-                                }
-                              }}
-                            >
-                              全て選択
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid="button-deselect-all"
-                              onClick={() => setSelectedRecipients([])}
-                            >
-                              選択解除
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {isLoadingMarketingUsers ? (
-                          <div className="flex justify-center py-4">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                          </div>
-                        ) : marketingUsers && marketingUsers.length > 0 ? (
-                          <div className="border rounded-lg max-h-60 overflow-y-auto">
-                            <table className="w-full text-sm">
-                              <thead className="bg-muted sticky top-0">
-                                <tr>
-                                  <th className="p-2 text-left w-10">
-                                    <Checkbox
-                                      checked={selectedRecipients.length === marketingUsers.filter(u => u.email).length && selectedRecipients.length > 0}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setSelectedRecipients(marketingUsers.map(u => u.email!).filter(Boolean));
-                                        } else {
-                                          setSelectedRecipients([]);
-                                        }
-                                      }}
-                                    />
-                                  </th>
-                                  <th className="p-2 text-left">表示名</th>
-                                  <th className="p-2 text-left">メールアドレス</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {marketingUsers.filter(u => u.email).map((user) => (
-                                  <tr key={user.id} className="border-t hover-elevate">
-                                    <td className="p-2">
-                                      <Checkbox
-                                        data-testid={`checkbox-recipient-${user.id}`}
-                                        checked={selectedRecipients.includes(user.email!)}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            setSelectedRecipients([...selectedRecipients, user.email!]);
-                                          } else {
-                                            setSelectedRecipients(selectedRecipients.filter(e => e !== user.email));
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2">{user.displayName || "-"}</td>
-                                    <td className="p-2 font-mono text-xs">{user.email}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4 text-muted-foreground">送信可能なユーザーがいません</div>
-                        )}
-                        
-                        <p className="text-sm text-muted-foreground">
-                          選択中: {selectedRecipients.length}件
-                        </p>
-                      </div>
-
-                      {/* Send Button */}
-                      <Button
-                        data-testid="button-send-email"
-                        onClick={() => sendEmail.mutate({
-                          recipients: selectedRecipients,
-                          subject: emailSubject,
-                          body: emailBody,
-                        })}
-                        disabled={sendEmail.isPending || selectedRecipients.length === 0 || !emailSubject || !emailBody}
-                        className="w-full"
-                      >
-                        {sendEmail.isPending ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            送信中...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            {selectedRecipients.length}件にメールを送信
-                          </>
-                        )}
-                      </Button>
                     </CardContent>
                   </Card>
                 </>
@@ -3256,14 +2921,6 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-          )}
-
-          {/* Bunny Stream Channels */}
-          {activeTab === "bunny" && (
-            <BunnyChannelManager
-              channels={bunnyChannels || []}
-              onRefresh={refetchBunnyChannels}
-            />
           )}
 
           {/* Settings */}
