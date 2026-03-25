@@ -1,0 +1,175 @@
+u  | [ColumnGenerator] Done! Generated 1/10 articles.
+^C
+root@srv1087935:/var/www/onlyu# cat /etc/nginx/sites-available/onlyu
+server {
+    if ($host = www.only-u.fun) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = only-u.fun) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name only-u.fun www.only-u.fun;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://127.0.0.1:5005;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        proxy_connect_timeout 600;
+        proxy_send_timeout 600;
+        proxy_read_timeout 600;
+        send_timeout 600;
+    }
+
+
+
+
+}
+root@srv1087935:/var/www/onlyu# ls /etc/nginx/sites-available/
+certbot certificates
+ad-aiagent          only-u.fun                 sinjapanai
+ad-aiagent-certbot  onlyu                      sinjapanailive
+ad-aiagent-ssl      poker                      sinjapanailive.bak
+ad-aiagent.site     shortmovie-aiagent         tramatch
+aiagent-api         sinjapan-logimatch         worknow
+default             sinjapan-manager           worknow.backup
+keimatch            sinjapan-onlineschool.com  youtube-ai
+menz-esthe-town     sinjapan-poker.com
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Found the following certs:
+  Certificate Name: ad-aiagent.site
+    Serial Number: 64f9430c63a20c2d5251ccd839520cd393d
+    Key Type: ECDSA
+    Domains: ad-aiagent.site www.ad-aiagent.site
+    Expiry Date: 2026-05-24 09:09:11+00:00 (VALID: 59 days)
+    Certificate Path: /etc/letsencrypt/live/ad-aiagent.site/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/ad-aiagent.site/privkey.pem
+  Certificate Name: app.sinjapanailive.site
+    Serial Number: 6468a4dff02b4499e4b117bcbf13dbfdf03
+    Key Type: ECDSA
+    Domains: app.sinjapanailive.site
+    Expiry Date: 2026-06-19 16:13:15+00:00 (VALID: 86 days)
+    Certificate Path: /etc/letsencrypt/live/app.sinjapanailive.site/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/app.sinjapanailive.site/privkey.pem
+  Certificate Name: keimatch-sinjapan.com
+    Serial Number: 65b4f5344b8eaf7580b71bd94e07bca70b8
+    Key Type: ECDSA
+    Domains: keimatch-sinjapan.com www.keimatch-sinjapan.com
+    Expiry Date: 2026-05-31 10:42:58+00:00 (VALID: 67 days)
+    Certificate Path: /etc/letsencrypt/live/keimatch-sinjapan.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/keimatch-sinjapan.com/privkey.pem
+  Certificate Name: menz-esthe-town.com
+    Serial Number: 634e0317a407bfc796e6fc55adefb39c342
+    Key Type: ECDSA
+    Domains: menz-esthe-town.com
+    Expiry Date: 2026-04-26 18:41:45+00:00 (VALID: 32 days)
+    Certificate Path: /etc/letsencrypt/live/menz-esthe-town.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/menz-esthe-town.com/privkey.pem
+  Certificate Name: only-u.fun
+    Serial Number: 638a7ded584ae671dda687fc6579751b246
+    Key Type: ECDSA
+    Domains: only-u.fun www.only-u.fun
+    Expiry Date: 2026-03-26 13:18:46+00:00 (VALID: 1 day)
+    Certificate Path: /etc/letsencrypt/live/only-u.fun/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/only-u.fun/privkey.pem
+  Certificate Name: shortmovie-aiagent-sinjapan.site
+    Serial Number: 5f12e02883307c1139369dadc1e9579ca41
+    Key Type: ECDSA
+    Domains: shortmovie-aiagent-sinjapan.site
+    Expiry Date: 2026-06-08 05:58:56+00:00 (VALID: 74 days)
+    Certificate Path: /etc/letsencrypt/live/shortmovie-aiagent-sinjapan.site/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/shortmovie-aiagent-sinjapan.site/privkey.pem
+  Certificate Name: sinjapan-logimatch.com
+    Serial Number: 68c827a865747c45684b6fab2a1b0e408f2
+    Key Type: ECDSA
+    Domains: sinjapan-logimatch.com www.sinjapan-logimatch.com
+    Expiry Date: 2026-06-06 18:51:02+00:00 (VALID: 73 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-logimatch.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-logimatch.com/privkey.pem
+  Certificate Name: sinjapan-manager.com-0001
+    Serial Number: 5c8f40ad5eb379fafd0f3661a808d9e1ba8
+    Key Type: ECDSA
+    Domains: *.sinjapan-manager.com sinjapan-manager.com
+    Expiry Date: 2026-03-07 22:31:09+00:00 (INVALID: EXPIRED)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-manager.com-0001/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-manager.com-0001/privkey.pem
+  Certificate Name: sinjapan-manager.com
+    Serial Number: 5e60953832897a5bf0c3242eb8f0a37d8a0
+    Key Type: ECDSA
+    Domains: sinjapan-manager.com www.sinjapan-manager.com
+    Expiry Date: 2026-06-06 18:51:14+00:00 (VALID: 73 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-manager.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-manager.com/privkey.pem
+  Certificate Name: sinjapan-onlineschool.com
+    Serial Number: 6d9fdb3b22a1f550b6dd32ab1b09626c48c
+    Key Type: ECDSA
+    Domains: sinjapan-onlineschool.com www.sinjapan-onlineschool.com
+    Expiry Date: 2026-06-06 18:51:28+00:00 (VALID: 73 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-onlineschool.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-onlineschool.com/privkey.pem
+  Certificate Name: sinjapan-poker.com
+    Serial Number: 50015d9ee51e0c40b4d6d2dab13a8edc761
+    Key Type: ECDSA
+    Domains: sinjapan-poker.com www.sinjapan-poker.com
+    Expiry Date: 2026-02-01 12:06:44+00:00 (INVALID: EXPIRED)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-poker.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-poker.com/privkey.pem
+  Certificate Name: sinjapan-worknow.com
+    Serial Number: 640efd2c18cf1d7f1c1223884a3ec76738c
+    Key Type: ECDSA
+    Domains: sinjapan-worknow.com www.sinjapan-worknow.com
+    Expiry Date: 2026-06-07 20:42:42+00:00 (VALID: 74 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapan-worknow.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapan-worknow.com/privkey.pem
+  Certificate Name: sinjapanai.com
+    Serial Number: 5c369fae59373da889563e9b90f9e200405
+    Key Type: ECDSA
+    Domains: sinjapanai.com www.sinjapanai.com
+    Expiry Date: 2026-06-16 04:54:31+00:00 (VALID: 82 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapanai.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapanai.com/privkey.pem
+  Certificate Name: sinjapanailive.site
+    Serial Number: 6c5bfa28659c92856f43f1ec6e808dab1e6
+    Key Type: ECDSA
+    Domains: sinjapanailive.site www.sinjapanailive.site
+    Expiry Date: 2026-06-19 16:11:52+00:00 (VALID: 86 days)
+    Certificate Path: /etc/letsencrypt/live/sinjapanailive.site/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/sinjapanailive.site/privkey.pem
+  Certificate Name: tramatch-sinjapan.com
+    Serial Number: 59cd6fa4a570242969f431591f43d4c557d
+    Key Type: ECDSA
+    Domains: tramatch-sinjapan.com www.tramatch-sinjapan.com
+    Expiry Date: 2026-05-19 16:19:28+00:00 (VALID: 55 days)
+    Certificate Path: /etc/letsencrypt/live/tramatch-sinjapan.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/tramatch-sinjapan.com/privkey.pem
+  Certificate Name: www.menz-esthe-town.com
+    Serial Number: 52f325ce0b69c4fef5d35a9d97115b2270b
+    Key Type: ECDSA
+    Domains: www.menz-esthe-town.com
+    Expiry Date: 2026-04-26 18:41:58+00:00 (VALID: 32 days)
+    Certificate Path: /etc/letsencrypt/live/www.menz-esthe-town.com/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/www.menz-esthe-town.com/privkey.pem
+  Certificate Name: youtube-aiagent-sinjapan.fun
+    Serial Number: 5f4305aa0e5e5901072932895ba4f1e6afc
+    Key Type: ECDSA
+    Domains: youtube-aiagent-sinjapan.fun
+    Expiry Date: 2026-06-04 08:20:16+00:00 (VALID: 70 days)
+    Certificate Path: /etc/letsencrypt/live/youtube-aiagent-sinjapan.fun/fullchain.pem
+    Private Key Path: /etc/letsencrypt/live/youtube-aiagent-sinjapan.fun/privkey.pem
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+root@srv1087935:/var/www/onlyu# 
