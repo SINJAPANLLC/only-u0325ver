@@ -1,0 +1,100 @@
+ILING] Tailing last 20 lines for [onlyu] process (change the value with --lines option)
+^C
+root@srv1087935:/var/www/onlyu# ls /var/www/onlyu/dist/
+index.js  public
+root@srv1087935:/var/www/onlyu# cd /var/www/onlyu
+PORT=5005 pm2 start dist/index.js --name onlyu
+pm2 save
+pm2 logs onlyu --lines 30
+[PM2] Starting /var/www/onlyu/dist/index.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 236.1mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 313.9mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.5mb  │
+│ 31 │ onlyu              │ fork     │ 0    │ online    │ 0%       │ 18.5mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 61.2mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 98.4mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.6mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.3mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.3mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 30 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-error.log last 30 lines:
+31|onlyu   | Error: listen EADDRINUSE: address already in use 0.0.0.0:5050
+31|onlyu   |     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+31|onlyu   |     at listenInCluster (node:net:1965:12)
+31|onlyu   |     at doListen (node:net:2139:7)
+31|onlyu   |     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+31|onlyu   |   code: 'EADDRINUSE',
+31|onlyu   |   errno: -98,
+31|onlyu   |   syscall: 'listen',
+31|onlyu   |   address: '0.0.0.0',
+31|onlyu   |   port: 5050
+31|onlyu   | }
+31|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+31|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+31|onlyu   | Error: listen EADDRINUSE: address already in use 0.0.0.0:5050
+31|onlyu   |     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+31|onlyu   |     at listenInCluster (node:net:1965:12)
+31|onlyu   |     at doListen (node:net:2139:7)
+31|onlyu   |     at process.processTicksAndRejections (node:internal/process/task_queues:83:21) {
+31|onlyu   |   code: 'EADDRINUSE',
+31|onlyu   |   errno: -98,
+31|onlyu   |   syscall: 'listen',
+31|onlyu   |   address: '0.0.0.0',
+31|onlyu   |   port: 5050
+31|onlyu   | }
+31|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+31|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+31|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+31|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+31|onlyu   | ⚠️  No Firebase credentials found - running without Storage access
+31|onlyu   | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+
+/root/.pm2/logs/onlyu-out.log last 30 lines:
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | 5:21:25 PM [express] serving on port 5005
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | 5:29:37 PM [express] serving on port 5005
+31|onlyu   | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu   | 📦 Using storage provider: bunny
+31|onlyu   | 5:34:23 PM [express] serving on port 5005
+
+31|onlyu  | ⚠️  No Firebase credentials found - running without Storage access
+31|onlyu  | ⚠️  Set FIREBASE_SERVICE_ACCOUNT environment variable or provide firebase-admin-key.json
+31|onlyu  | ✅ Firebase initialized (Auth/Firestore only - Storage will fail)
+31|onlyu  | 📦 Using storage provider: firebase
+31|onlyu  | ⚠️  Bunny Stream not configured. Set BUNNY_STREAM_API_KEY and BUNNY_STREAM_LIBRARY_ID
+31|onlyu  | Error: Missing required environment variable: SESSION_SECRET. Admin authentication requires this for secure token signing.
+31|onlyu  |     at file:///var/www/onlyu/dist/index.js:679:9
+31|onlyu  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+31|onlyu  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+
