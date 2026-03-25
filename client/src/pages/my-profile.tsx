@@ -93,6 +93,7 @@ export default function MyProfile() {
   const [editName, setEditName] = useState(displayName);
   const [editUsername, setEditUsername] = useState(username);
   const [editBio, setEditBio] = useState(bio);
+  const [editUrl, setEditUrl] = useState("");
   const [editAvatar, setEditAvatar] = useState(defaultAvatarUrl);
   const [currentAvatar, setCurrentAvatar] = useState(defaultAvatarUrl);
   const [editOpen, setEditOpen] = useState(false);

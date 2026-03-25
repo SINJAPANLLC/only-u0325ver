@@ -306,7 +306,7 @@ export default function CreatorContent() {
       videoUrl: video.videoUrl || "",
       videoPreview: video.videoUrl || "",
       requiredTier: video.requiredTier || 0,
-      tags: video.tags || "",
+      tags: (video as any).tags || "",
       isPublished: video.isPublished !== false,
     });
     setIsEditDialogOpen(true);

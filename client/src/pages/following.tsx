@@ -37,7 +37,7 @@ export default function Following() {
       id: f.followingId,
       displayName: creator?.displayName || "クリエイター",
       bio: creator?.bio || "",
-      avatarUrl: creator?.avatarUrl || undefined,
+      avatarUrl: (creator as any)?.avatarUrl || undefined,
       followerCount: creator?.followerCount || 0,
       isVerified: creator?.isVerified || false,
     };

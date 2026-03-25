@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
 interface LegalPageProps {
   title: string;

@@ -1208,7 +1208,7 @@ export async function registerRoutes(
 
       if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
         userId = req.user.claims.sub;
-        const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId));
+        const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId as string));
         displayName = profile?.displayName || "ユーザー";
         avatarUrl = profile?.avatarUrl || null;
       }
@@ -2959,15 +2959,15 @@ export async function registerRoutes(
           return res.json({
             id: userData.id,
             userId: userData.id,
-            displayName: userData.username || "ユーザー",
+            displayName: userData.firstName || userData.lastName || "ユーザー",
             bio: "",
             coverImageUrl: null,
             isVerified: false,
             followerCount: 0,
             followingCount: 0,
             postCount: 0,
-            avatarUrl: userData.avatarUrl,
-            username: userData.username,
+            avatarUrl: userData.profileImageUrl,
+            username: null,
             isCreator: false,
           });
         }
@@ -3340,7 +3340,7 @@ export async function registerRoutes(
       
       // Get the highest tier subscription for backward compatibility
       const subscription = userSubscriptions.length > 0 
-        ? userSubscriptions.reduce((max, sub) => sub.tier > max.tier ? sub : max, userSubscriptions[0])
+        ? userSubscriptions.reduce((max, sub) => (sub.tier ?? 0) > (max.tier ?? 0) ? sub : max, userSubscriptions[0])
         : null;
       
       res.json({ 
@@ -4038,8 +4038,6 @@ export async function registerRoutes(
       const [updated] = await db
         .update(creatorApplications)
         .set({
-          phoneVerified: true,
-          phoneVerifiedAt: new Date(),
           currentStep: "document_submission",
         })
         .where(eq(creatorApplications.userId, userId))
@@ -4633,7 +4631,7 @@ export async function registerRoutes(
           city,
           address,
           building,
-          status: "draft",
+          status: "pending",
         });
       } else {
         await db
@@ -4679,7 +4677,7 @@ export async function registerRoutes(
         await db.insert(creatorApplications).values({
           userId,
           phoneNumber,
-          status: "draft",
+          status: "pending",
         });
       }
       
@@ -4707,8 +4705,6 @@ export async function registerRoutes(
         .update(creatorApplications)
         .set({ 
           phoneNumber,
-          phoneVerified: true,
-          phoneVerifiedAt: new Date()
         })
         .where(eq(creatorApplications.userId, userId));
       
@@ -4927,19 +4923,19 @@ export async function registerRoutes(
       for (const { subscription, plan } of expiredSubscriptions) {
         const price = plan?.price || 500;
         
-        // Get user's point balance
-        const [user] = await db.select().from(users).where(eq(users.id, subscription.userId));
-        if (!user) continue;
+        // Get user's point balance from userProfiles
+        const [userProfile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, subscription.userId));
+        if (!userProfile) continue;
 
-        const userPoints = user.points || 0;
+        const userPoints = userProfile.points || 0;
 
         if (userPoints >= price) {
           const renewalNewBalance = userPoints - price;
 
           // Deduct points and renew subscription
-          await db.update(users)
+          await db.update(userProfiles)
             .set({ points: renewalNewBalance })
-            .where(eq(users.id, subscription.userId));
+            .where(eq(userProfiles.userId, subscription.userId));
 
           // Record transaction
           await db.insert(pointTransactions).values({
@@ -4971,7 +4967,7 @@ export async function registerRoutes(
             userId: subscription.userId,
             type: "subscription",
             title: "サブスク更新失敗",
-            message: `ポイント不足のため「${plan?.name || "月額プラン"}」の自動更新ができませんでした。`,
+            body: `ポイント不足のため「${plan?.name || "月額プラン"}」の自動更新ができませんでした。`,
           });
 
           console.log(`Subscription ${subscription.id} expired due to insufficient points`);
@@ -5434,10 +5430,7 @@ export async function registerRoutes(
           });
         }
         
-        // Update user role
-        await db.update(users)
-          .set({ role: "creator" })
-          .where(eq(users.id, application.userId));
+        // Creator status is determined by existence of creatorProfile (no role column needed)
       }
       
       res.json({ success: true });
@@ -5457,7 +5450,7 @@ export async function registerRoutes(
         transfers = await db
           .select()
           .from(bankTransferRequests)
-          .where(eq(bankTransferRequests.status, status as string))
+          .where(eq(bankTransferRequests.status, status as "pending" | "confirmed" | "rejected" | "cancelled" | "expired"))
           .orderBy(desc(bankTransferRequests.createdAt));
       } else {
         transfers = await db
@@ -5537,7 +5530,7 @@ export async function registerRoutes(
         amount: request.points,
         balance: newPoints,
         type: "purchase_bank",
-        description: `銀行振込: ${request.transferName}`,
+        description: `銀行振込: ${request.accountName || request.accountNumber || ""}`,
       });
       
       res.json({ success: true, newPoints });
@@ -5556,7 +5549,7 @@ export async function registerRoutes(
       await db.update(bankTransferRequests)
         .set({
           status: "rejected",
-          rejectionReason: reason,
+          adminNotes: reason,
         })
         .where(eq(bankTransferRequests.id, id));
       
@@ -6238,6 +6231,7 @@ export async function registerRoutes(
           id: subscriptions.id,
           userId: subscriptions.userId,
           creatorId: subscriptions.creatorId,
+          planId: subscriptions.planId,
           planType: subscriptions.planType,
           tier: subscriptions.tier,
           createdAt: subscriptions.startedAt,
@@ -6496,12 +6490,13 @@ export async function registerRoutes(
     try {
       const allUsers = await db
         .select({
-          id: userProfiles.userId,
+          id: users.id,
           displayName: userProfiles.displayName,
-          email: userProfiles.email,
+          email: users.email,
           createdAt: userProfiles.createdAt,
         })
-        .from(userProfiles)
+        .from(users)
+        .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
         .orderBy(desc(userProfiles.createdAt));
       
       res.json(allUsers.filter(u => u.email));
@@ -6632,7 +6627,7 @@ export async function registerRoutes(
           userId: notifications.userId,
           type: notifications.type,
           title: notifications.title,
-          message: notifications.message,
+          body: notifications.body,
           isRead: notifications.isRead,
           createdAt: notifications.createdAt,
         })
@@ -6665,7 +6660,7 @@ export async function registerRoutes(
           userId: user.id,
           type: type || "system",
           title,
-          message,
+          body: message,
         });
       }
       
@@ -6755,7 +6750,7 @@ export async function registerRoutes(
           userId: user.id,
           type: type || "system",
           title,
-          message,
+          body: message,
         });
         notificationCount++;
       }
@@ -7207,7 +7202,7 @@ export async function registerRoutes(
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
       // Get target emails
-      let targetUsers: { email: string }[] = [];
+      let targetUsers: { email: string | null }[] = [];
       if (targetType === "all") {
         targetUsers = await db.select({ email: users.email }).from(users).where(sql`email IS NOT NULL`);
       } else if (targetType === "creators") {
@@ -7215,7 +7210,7 @@ export async function registerRoutes(
         const ids = creators.map(c => c.userId);
         if (ids.length > 0) targetUsers = await db.select({ email: users.email }).from(users).where(inArray(users.id, ids));
       }
-      const emails = targetUsers.map(u => u.email).filter(Boolean);
+      const emails = targetUsers.map(u => u.email).filter((e): e is string => Boolean(e));
       let sent = 0;
       for (const email of emails.slice(0, 200)) {
         try {
