@@ -473,7 +473,7 @@ export default function CreatorShop() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>新規商品を登録</DialogTitle>
           </DialogHeader>

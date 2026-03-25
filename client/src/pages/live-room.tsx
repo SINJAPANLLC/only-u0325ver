@@ -279,12 +279,17 @@ export default function LiveRoom() {
     if (!urlMode || !stream || !user || activeMode) return;
     autoJoinDone.current = true;
     if (urlMode === "twoshot") {
-      // 2ショットは申請制 - 自動申請
       requestTwoshotMutation.mutate();
+    } else if (urlMode === "party") {
+      if (userPoints < partyRate) {
+        toast({ title: "ポイント不足", description: `パーティー参加には${partyRate}pt以上必要です`, variant: "destructive" });
+        return;
+      }
+      joinMutation.mutate(urlMode);
     } else {
       joinMutation.mutate(urlMode);
     }
-  }, [urlMode, stream?.id, user?.id]);
+  }, [urlMode, stream?.id, user?.id, userPoints, partyRate]);
 
   // Chat
   const { data: chatData } = useQuery<LiveChatMessage[]>({

@@ -4805,7 +4805,7 @@ export async function registerRoutes(
   });
 
   // Contact form submission
-  app.post("/api/contact", isAuthenticated, async (req: any, res) => {
+  app.post("/api/contact", async (req: any, res) => {
     try {
       const { category, email, subject, message } = req.body;
       
@@ -4821,39 +4821,44 @@ export async function registerRoutes(
         bug: "不具合・バグ報告",
         other: "その他",
       };
-      
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || "465"),
-        secure: true,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
+
+      // Save to DB
+      const categoryLabel = categoryLabels[category] || category;
+      const fullSubject = subject ? `[${categoryLabel}] ${subject}` : `[${categoryLabel}]`;
+      await db.insert(contactInquiries).values({
+        name: email,
+        email,
+        subject: fullSubject,
+        message,
       });
       
-      const mailOptions = {
-        from: process.env.SMTP_USER,
-        to: "info@only-u.fun",
-        replyTo: email,
-        subject: `[Only-U お問い合わせ] ${categoryLabels[category] || category}${subject ? `: ${subject}` : ""}`,
-        text: `カテゴリ: ${categoryLabels[category] || category}\n送信者: ${email}\n件名: ${subject || "なし"}\n\n${message}`,
-        html: `
-          <h3>Only-U お問い合わせ</h3>
-          <p><strong>カテゴリ:</strong> ${categoryLabels[category] || category}</p>
-          <p><strong>送信者:</strong> ${email}</p>
-          <p><strong>件名:</strong> ${subject || "なし"}</p>
-          <hr />
-          <p>${message.replace(/\n/g, "<br />")}</p>
-        `,
-      };
-      
-      await transporter.sendMail(mailOptions);
-      console.log("Contact email sent successfully to info@only-u.fun");
+      // Send notification email to admin
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || "465"),
+          secure: true,
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+        
+        await transporter.sendMail({
+          from: process.env.SMTP_USER,
+          to: "info@only-u.fun",
+          replyTo: email,
+          subject: `[Only-U お問い合わせ] ${categoryLabels[category] || category}${subject ? `: ${subject}` : ""}`,
+          text: `カテゴリ: ${categoryLabels[category] || category}\n送信者: ${email}\n件名: ${subject || "なし"}\n\n${message}`,
+          html: `<h3>Only-U お問い合わせ</h3><p><strong>カテゴリ:</strong> ${categoryLabels[category] || category}</p><p><strong>送信者:</strong> ${email}</p><p><strong>件名:</strong> ${subject || "なし"}</p><hr /><p>${message.replace(/\n/g, "<br />")}</p>`,
+        });
+      } catch (mailErr) {
+        console.error("Contact notification email failed:", mailErr);
+      }
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error sending contact email:", error);
+      console.error("Error saving contact inquiry:", error);
       res.status(500).json({ message: "送信に失敗しました" });
     }
   });
