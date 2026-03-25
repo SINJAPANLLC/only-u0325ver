@@ -1,0 +1,65 @@
+ailable/sinjapan-manager
+lrwxrwxrwx 1 root root   52 Nov  8 03:33 sinjapan-onlineschool.com -> /etc/nginx/sites-available/sinjapan-onlineschool.com
+lrwxrwxrwx 1 root root   37 Mar 18 05:41 sinjapanai -> /etc/nginx/sites-available/sinjapanai
+lrwxrwxrwx 1 root root   41 Mar 21 17:07 sinjapanailive -> /etc/nginx/sites-available/sinjapanailive
+lrwxrwxrwx 1 root root   35 Feb 23 15:04 tramatch -> /etc/nginx/sites-available/tramatch
+-rw-r--r-- 1 root root  938 Feb 25 17:40 worknow
+lrwxrwxrwx 1 root root   37 Mar  6 09:17 youtube-ai -> /etc/nginx/sites-available/youtube-ai
+root@srv1087935:/var/www/onlyu# # 完全なnginx設定を書き直す
+cat > /etc/nginx/sites-available/onlyu << 'EOF'
+server {
+    listen 80;
+    server_name only-u.fun www.only-u.fun;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name only-u.fun www.only-u.fun;
+
+    ssl_certificate /etc/letsencrypt/live/only-u.fun/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/only-u.fun/privkey.pem;
+
+    client_max_body_size 500M;
+
+    location / {
+        proxy_pass http://127.0.0.1:5005;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_connect_timeout 600;
+        proxy_send_timeout 600;
+        proxy_read_timeout 600;
+        send_timeout 600;
+    }
+}
+EOF
+
+# sites-enabledにリンク（まだなければ）
+ln -sf /etc/nginx/sites-available/onlyu /etc/nginx/sites-enabled/onlyu
+
+# SSL証明書を更新（明日期限切れなので）
+certbot renew --cert-name only-u.fun --force-renewal
+
+# nginx設定テスト＆リロード
+nginx -t && systemctl reload nginx
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Processing /etc/letsencrypt/renewal/only-u.fun.conf
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Renewing an existing certificate for only-u.fun and www.only-u.fun
+Reloading nginx server after certificate renewal
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations, all renewals succeeded: 
+  /etc/letsencrypt/live/only-u.fun/fullchain.pem (success)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@srv1087935:/var/www/onlyu# 
