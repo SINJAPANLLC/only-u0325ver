@@ -1,0 +1,59 @@
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations, all renewals succeeded: 
+  /etc/letsencrypt/live/only-u.fun/fullchain.pem (success)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+root@srv1087935:/var/www/onlyu# pm2 restart onlyu
+sleep 5
+pm2 logs onlyu --lines 10
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [onlyu](ids: [ 34 ])
+[PM2] [onlyu](34) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 19   │ online    │ 0%       │ 271.1mb  │
+│ 20 │ keimatch           │ fork     │ 0    │ online    │ 0%       │ 320.6mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.3mb  │
+│ 34 │ onlyu              │ fork     │ 76   │ online    │ 0%       │ 19.1mb   │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.8mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 99.4mb   │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.8mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 116.9mb  │
+│ 13 │ tramatch           │ fork     │ 3    │ online    │ 0%       │ 326.4mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 10 lines for [onlyu] process (change the value with --lines option)
+/root/.pm2/logs/onlyu-error.log last 10 lines:
+34|onlyu   |   error: {
+34|onlyu   |     message: 'Incorrect API key provided: sk-proj-********************************************************************************************************************************************************iqcA. You can find your API key at https://platform.openai.com/account/api-keys.',
+34|onlyu   |     type: 'invalid_request_error',
+34|onlyu   |     code: 'invalid_api_key',
+34|onlyu   |     param: null
+34|onlyu   |   },
+34|onlyu   |   code: 'invalid_api_key',
+34|onlyu   |   param: null,
+34|onlyu   |   type: 'invalid_request_error'
+34|onlyu   | }
+
+/root/.pm2/logs/onlyu-out.log last 10 lines:
+34|onlyu   | 10:36:41 AM [express] POST /api/admin/auth/logout 200 in 491ms :: {"success":true}
+34|onlyu   | 10:36:42 AM [express] GET /api/admin/auth/me 200 in 489ms :: {"authenticated":false}
+34|onlyu   | 10:36:53 AM [express] GET /api/auth/user 401 in 504ms :: {"message":"Unauthorized"}
+34|onlyu   | 10:40:00 AM [express] GET /api/auth/user 401 in 497ms :: {"message":"Unauthorized"}
+34|onlyu   | 10:40:06 AM [express] GET /api/auth/user 401 in 497ms :: {"message":"Unauthorized"}
+34|onlyu   | SMTP configured with: { host: 'smtp.hostinger.com', port: '465', user: 'noreply@only-u.fun' }
+34|onlyu   | Initializing Stripe schema...
+34|onlyu   | Stripe schema ready
+34|onlyu   | { autoExpandLists: undefined, stripeApiVersion: undefined } StripeSync initialized
+34|onlyu   | Setting up managed webhook...
+
+34|onlyu  | Webhook configured: https://undefined/api/stripe/webhook
+34|onlyu  | Syncing Stripe data...
+34|onlyu  | WebRTC signaling server started on /ws/live
+34|onlyu  | [ColumnGenerator] Daily scheduler started (first run in 2 minutes).
+34|onlyu  | 10:45:09 AM [express] serving on port 5005
+34|onlyu  | Stripe data synced
+^C
+root@srv1087935:/var/www/onlyu# grep -r "only-u.fun" /etc/nginx/sites-enabled/
+root@srv1087935:/var/www/onlyu# 
