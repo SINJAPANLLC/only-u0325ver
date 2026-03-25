@@ -33,6 +33,7 @@ import bcrypt from "bcryptjs";
 import { eq, desc, and, or, sql, gt, lt, isNull, inArray, ne } from "drizzle-orm";
 import { generateImage } from "./modelslab";
 import OpenAI from "openai";
+import { startDailyColumnScheduler, generateDailyColumns } from "./services/column-generator";
 
 function getOpenAI(): OpenAI {
   return new OpenAI({
@@ -4985,6 +4986,16 @@ export async function registerRoutes(
   setInterval(processSubscriptionRenewals, 60 * 60 * 1000);
   // Also run once on startup after a short delay
   setTimeout(processSubscriptionRenewals, 30 * 1000);
+
+  // ==================== DAILY COLUMN AUTO-GENERATION ====================
+  startDailyColumnScheduler();
+
+  // Manual trigger for admin
+  app.post("/api/admin/marketing/generate-daily-columns", isAdminSession, async (req, res) => {
+    res.json({ success: true, message: "バックグラウンドで生成を開始しました（約3〜5分かかります）" });
+    // Run async without blocking response
+    generateDailyColumns().catch(err => console.error("[ColumnGenerator] Manual trigger error:", err));
+  });
 
   // ==================== ADMIN AUTHENTICATION ====================
   

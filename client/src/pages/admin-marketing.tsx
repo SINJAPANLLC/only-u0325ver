@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Megaphone, Sparkles, FileText, Mail, Plus, Trash2, Edit3, Eye, Send,
   Globe, CheckCircle, Clock, Loader2, Copy, RefreshCw, ExternalLink,
+  Zap, Bot, Lock, HelpCircle,
 } from "lucide-react";
 
 interface ColumnArticle {
@@ -40,6 +41,77 @@ interface EmailTemplate {
   createdAt: string;
 }
 
+const PASSWORD_RESET_PREVIEW_HTML = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:#13131f;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
+      <tr><td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);padding:32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <span style="font-size:20px;font-weight:900;color:#fff;letter-spacing:3px;font-style:italic;">Only-U</span>
+      </td></tr>
+      <tr><td style="padding:40px 40px 32px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:20px;">🔑</div>
+        <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#fff;">パスワードのリセット</h1>
+        <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.6);line-height:1.7;">パスワードリセットのリクエストを受け付けました。<br>下のボタンから新しいパスワードを設定してください。</p>
+        <a href="#" style="display:inline-block;background:#fff;color:#0a0a0f;text-decoration:none;font-size:14px;font-weight:800;padding:14px 40px;border-radius:50px;">パスワードをリセット →</a>
+        <p style="margin:24px 0 0;font-size:12px;color:rgba(255,255,255,0.35);">⏰ このリンクは1時間後に無効になります</p>
+      </td></tr>
+      <tr><td style="background:rgba(0,0,0,0.3);padding:20px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);">
+        <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.2);">© 2025 Only-U | 合同会社SIN JAPAN KANAGAWA</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+const CONTACT_EMAIL_PREVIEW_HTML = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+      <tr><td style="background:#13131f;padding:20px;text-align:center;">
+        <span style="font-size:18px;font-weight:900;color:#fff;letter-spacing:2px;">Only-U お問い合わせ</span>
+      </td></tr>
+      <tr><td style="padding:28px;">
+        <p style="margin:0 0 16px;font-size:14px;"><strong>カテゴリ:</strong> アカウントについて</p>
+        <p style="margin:0 0 16px;font-size:14px;"><strong>送信者:</strong> user@example.com</p>
+        <p style="margin:0 0 16px;font-size:14px;"><strong>件名:</strong> ログインできない</p>
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:16px 0;">
+        <p style="margin:0;font-size:14px;color:#555;line-height:1.7;">お問い合わせ内容がここに表示されます。</p>
+      </td></tr>
+      <tr><td style="background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #f3f4f6;">
+        <p style="margin:0;font-size:11px;color:#999;">© 2025 Only-U | 合同会社SIN JAPAN KANAGAWA</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+const AUTO_EMAIL_TEMPLATES = [
+  {
+    id: "password-reset",
+    name: "パスワードリセット",
+    subject: "【Only-U】パスワードをリセットしてください",
+    trigger: "ユーザーがパスワードリセットをリクエストした時",
+    icon: Lock,
+    htmlContent: PASSWORD_RESET_PREVIEW_HTML,
+  },
+  {
+    id: "contact-confirm",
+    name: "お問い合わせ受付確認",
+    subject: "[Only-U お問い合わせ] カテゴリ: 件名",
+    trigger: "ユーザーがお問い合わせフォームを送信した時（管理者宛）",
+    icon: HelpCircle,
+    htmlContent: CONTACT_EMAIL_PREVIEW_HTML,
+  },
+];
+
 export default function AdminMarketing() {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -58,6 +130,7 @@ export default function AdminMarketing() {
   const [colAudience, setColAudience] = useState("一般ユーザー");
   const [colWordCount, setColWordCount] = useState("1500");
   const [colGenerating, setColGenerating] = useState(false);
+  const [dailyGenerating, setDailyGenerating] = useState(false);
   const [colForm, setColForm] = useState({
     title: "", slug: "", excerpt: "", content: "",
     metaDescription: "", metaKeywords: "", category: "general", published: false,
@@ -102,6 +175,23 @@ export default function AdminMarketing() {
       toast({ title: "生成エラー", variant: "destructive" });
     } finally {
       setSnsLoading(false);
+    }
+  };
+
+  // ===== Daily Auto-Generation =====
+  const handleDailyGenerate = async () => {
+    setDailyGenerating(true);
+    try {
+      const res = await apiRequest("POST", "/api/admin/marketing/generate-daily-columns", {});
+      const data = await res.json();
+      toast({ title: data.message || "バックグラウンドで生成開始しました" });
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["/api/admin/marketing/columns"] });
+      }, 5 * 60 * 1000); // refresh after 5min
+    } catch {
+      toast({ title: "エラーが発生しました", variant: "destructive" });
+    } finally {
+      setDailyGenerating(false);
     }
   };
 
@@ -348,10 +438,10 @@ export default function AdminMarketing() {
                   </Select>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={handleColGenerate} disabled={colGenerating} data-testid="button-col-generate">
                   {colGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                  AI記事生成
+                  AI記事生成（1件）
                 </Button>
                 <Button variant="outline" onClick={() => {
                   setEditingColumn(null);
@@ -360,6 +450,19 @@ export default function AdminMarketing() {
                 }} data-testid="button-col-new">
                   <Plus className="h-4 w-4 mr-2" /> 手動で作成
                 </Button>
+              </div>
+
+              <div className="border-t pt-4 mt-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium flex items-center gap-2"><Bot className="h-4 w-4" /> 毎日10記事 自動生成</p>
+                    <p className="text-xs text-muted-foreground mt-1">毎日深夜に自動でSEOコラムを10記事生成・公開します。今すぐ実行することも可能です（約3〜5分かかります）。</p>
+                  </div>
+                  <Button size="sm" variant="default" onClick={handleDailyGenerate} disabled={dailyGenerating} data-testid="button-daily-generate">
+                    {dailyGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                    今すぐ10件生成
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -464,6 +567,40 @@ export default function AdminMarketing() {
                 }} data-testid="button-email-new">
                   <Plus className="h-4 w-4 mr-2" /> 手動で作成
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Bot className="h-4 w-4" /> 自動送信メール（システム）
+              </CardTitle>
+              <CardDescription>ユーザーアクションに応じて自動送信されます。プレビューのみ可能。</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {AUTO_EMAIL_TEMPLATES.map(tmpl => (
+                  <div key={tmpl.id} className="flex items-center justify-between p-3 border rounded-lg gap-3 bg-muted/30">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <tmpl.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium text-sm">{tmpl.name}</span>
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">自動</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 ml-6">件名: {tmpl.subject}</p>
+                      <p className="text-xs text-muted-foreground ml-6">トリガー: {tmpl.trigger}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setEditingEmail(null);
+                      setEmailForm({ name: tmpl.name, subject: tmpl.subject, htmlContent: tmpl.htmlContent, type: "automated" });
+                      setEmailPreview(true);
+                      setEmailDialog(true);
+                    }} data-testid={`button-auto-preview-${tmpl.id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -724,27 +861,82 @@ function getDefaultEmailHtml(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Only-U</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5;padding:20px 0;">
+<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;padding:32px 16px;">
   <tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-      <tr><td style="background-color:#000000;padding:24px;text-align:center;">
-        <h1 style="color:#ffffff;margin:0;font-size:28px;letter-spacing:2px;">Only-U</h1>
+    <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;background-color:#13131f;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
+
+      <!-- Header with gradient -->
+      <tr><td style="background:linear-gradient(135deg,#1a1a2e 0%,#0f0f1a 100%);padding:36px 48px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="display:inline-block;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:8px 20px;margin-bottom:16px;">
+          <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:3px;font-style:italic;">Only-U</span>
+        </div>
+        <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;">クリエイターとファンをつなぐ</p>
       </td></tr>
-      <tr><td style="padding:32px 40px;">
-        <h2 style="color:#333333;margin:0 0 16px;">件名をここに</h2>
-        <p style="color:#555555;line-height:1.7;margin:0 0 24px;">本文をここに書いてください。</p>
-        <table cellpadding="0" cellspacing="0"><tr><td>
-          <a href="https://only-u.fun" style="background-color:#000000;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">今すぐ見る</a>
-        </td></tr></table>
+
+      <!-- Hero Section -->
+      <tr><td style="padding:48px 48px 32px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.1);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:32px;line-height:72px;">
+          ✨
+        </div>
+        <h1 style="margin:0 0 16px;font-size:26px;font-weight:800;color:#ffffff;line-height:1.3;">
+          ここにタイトルを入れてください
+        </h1>
+        <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.8;max-width:400px;margin:0 auto;">
+          ここに本文を書いてください。ユーザーへの価値あるメッセージを届けましょう。
+        </p>
       </td></tr>
-      <tr><td style="background-color:#f9f9f9;padding:20px;text-align:center;border-top:1px solid #eeeeee;">
-        <p style="color:#999999;font-size:12px;margin:0;">© 2025 Only-U | 合同会社SIN JAPAN KANAGAWA</p>
-        <p style="color:#999999;font-size:12px;margin:4px 0 0;"><a href="https://only-u.fun" style="color:#999999;">配信停止はこちら</a></p>
+
+      <!-- CTA Button -->
+      <tr><td style="padding:0 48px 48px;text-align:center;">
+        <a href="https://only-u.fun"
+           style="display:inline-block;background:#ffffff;color:#0a0a0f;text-decoration:none;font-size:15px;font-weight:800;padding:16px 48px;border-radius:50px;letter-spacing:0.5px;">
+          今すぐOnly-Uを見る →
+        </a>
       </td></tr>
+
+      <!-- Divider -->
+      <tr><td style="padding:0 48px;"><hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0;" /></td></tr>
+
+      <!-- Feature Highlights -->
+      <tr><td style="padding:32px 48px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="33%" style="text-align:center;padding:12px 8px;">
+              <div style="font-size:28px;margin-bottom:8px;">🎬</div>
+              <p style="margin:0;font-size:12px;font-weight:700;color:#ffffff;">限定動画</p>
+              <p style="margin:4px 0 0;font-size:11px;color:rgba(255,255,255,0.4);">独占コンテンツ</p>
+            </td>
+            <td width="33%" style="text-align:center;padding:12px 8px;border-left:1px solid rgba(255,255,255,0.06);border-right:1px solid rgba(255,255,255,0.06);">
+              <div style="font-size:28px;margin-bottom:8px;">📡</div>
+              <p style="margin:0;font-size:12px;font-weight:700;color:#ffffff;">LIVE配信</p>
+              <p style="margin:4px 0 0;font-size:11px;color:rgba(255,255,255,0.4);">リアルタイム体験</p>
+            </td>
+            <td width="33%" style="text-align:center;padding:12px 8px;">
+              <div style="font-size:28px;margin-bottom:8px;">💎</div>
+              <p style="margin:0;font-size:12px;font-weight:700;color:#ffffff;">限定特典</p>
+              <p style="margin:4px 0 0;font-size:11px;color:rgba(255,255,255,0.4);">メンバー専用</p>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:rgba(0,0,0,0.3);padding:24px 48px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);">
+        <p style="margin:0 0 6px;font-size:12px;color:rgba(255,255,255,0.25);">
+          © 2025 Only-U &nbsp;|&nbsp; 合同会社SIN JAPAN KANAGAWA
+        </p>
+        <p style="margin:0;font-size:11px;">
+          <a href="https://only-u.fun" style="color:rgba(255,255,255,0.25);text-decoration:none;">配信停止はこちら</a>
+          &nbsp;·&nbsp;
+          <a href="https://only-u.fun/privacy" style="color:rgba(255,255,255,0.25);text-decoration:none;">プライバシーポリシー</a>
+        </p>
+      </td></tr>
+
     </table>
   </td></tr>
 </table>
 </body>
 </html>`;
 }
+
