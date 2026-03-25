@@ -134,13 +134,13 @@ export default function HelpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-8">
-      <header className="sticky top-0 z-20 bg-black/95 backdrop-blur-xl border-b border-white/10">
+    <div className="min-h-screen bg-white text-gray-900 pb-8">
+      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="flex items-center h-14 px-4 gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl text-white hover:bg-white/10"
+            className="h-9 w-9 rounded-xl text-gray-700 hover:bg-gray-100"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
@@ -160,11 +160,11 @@ export default function HelpPage() {
             <h2 className="font-bold text-sm" data-testid="heading-faq">よくある質問</h2>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden divide-y divide-white/10">
+          <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden divide-y divide-gray-100">
             {faqItems.map((item, index) => (
               <div key={index}>
                 <button
-                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-gray-50 transition-colors"
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                   data-testid={`button-faq-${index}`}
                 >
@@ -182,7 +182,7 @@ export default function HelpPage() {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <p className="px-4 pb-4 text-sm text-white/50 leading-relaxed" data-testid={`text-faq-answer-${index}`}>
+                      <p className="px-4 pb-4 text-sm text-gray-500 leading-relaxed" data-testid={`text-faq-answer-${index}`}>
                         {item.answer}
                       </p>
                     </motion.div>
@@ -202,7 +202,7 @@ export default function HelpPage() {
             <h2 className="font-bold text-sm" data-testid="heading-contact">お問い合わせ</h2>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -210,7 +210,7 @@ export default function HelpPage() {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white/50">カテゴリ</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">カテゴリ</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="rounded-xl" data-testid="select-category">
@@ -236,7 +236,7 @@ export default function HelpPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white/50">メールアドレス</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">メールアドレス</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="example@email.com" className="rounded-xl" data-testid="input-email" {...field} />
                       </FormControl>
@@ -250,7 +250,7 @@ export default function HelpPage() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white/50">件名（任意）</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">件名（任意）</FormLabel>
                       <FormControl>
                         <Input placeholder="お問い合わせの件名" className="rounded-xl" data-testid="input-subject" {...field} />
                       </FormControl>
@@ -264,7 +264,7 @@ export default function HelpPage() {
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-white/50">お問い合わせ内容</FormLabel>
+                      <FormLabel className="text-xs text-gray-500">お問い合わせ内容</FormLabel>
                       <FormControl>
                         <Textarea placeholder="お問い合わせ内容を入力してください" rows={5} className="rounded-xl resize-none" data-testid="textarea-message" {...field} />
                       </FormControl>
@@ -289,12 +289,12 @@ export default function HelpPage() {
 
         {/* Other contact */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <Mail className="h-4 w-4 text-pink-400" />
               <h2 className="text-sm font-bold" data-testid="heading-other-contact">メールでのお問い合わせ</h2>
             </div>
-            <p className="text-xs text-white/50 mb-2" data-testid="text-other-contact-desc">
+            <p className="text-xs text-gray-500 mb-2" data-testid="text-other-contact-desc">
               フォームで解決しない場合はメールでもお問い合わせいただけます。
             </p>
             <a href="mailto:info@only-u.fun" className="text-sm text-pink-500 hover:underline font-medium" data-testid="link-email">
@@ -306,7 +306,7 @@ export default function HelpPage() {
         {/* Delete account */}
         <div className="pt-2 text-center">
           <button
-            className="text-xs text-white/50/50 hover:text-red-400 transition-colors flex items-center gap-1 mx-auto"
+            className="text-xs text-gray-400 hover:text-red-400 transition-colors flex items-center gap-1 mx-auto"
             onClick={() => setShowDeleteDialog(true)}
             data-testid="button-delete-account"
           >

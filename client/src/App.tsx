@@ -207,16 +207,24 @@ function AuthenticatedApp() {
           </div>
         </Route>
         <Route path="/terms">
-          <LegalPage title="利用規約" type="terms" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="利用規約" type="terms" />
+          </div>
         </Route>
         <Route path="/privacy">
-          <LegalPage title="プライバシーポリシー" type="privacy" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="プライバシーポリシー" type="privacy" />
+          </div>
         </Route>
         <Route path="/legal">
-          <LegalPage title="特定商取引法に基づく表記" type="legal" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="特定商取引法に基づく表記" type="legal" />
+          </div>
         </Route>
         <Route path="/guidelines">
-          <LegalPage title="コンテンツガイドライン" type="guidelines" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="コンテンツガイドライン" type="guidelines" />
+          </div>
         </Route>
         <Route path="/help">
           <div className="h-[100svh] flex flex-col overflow-y-auto">
@@ -274,19 +282,29 @@ function AppContent() {
           <Auth />
         </Route>
         <Route path="/terms">
-          <LegalPage title="利用規約" type="terms" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="利用規約" type="terms" />
+          </div>
         </Route>
         <Route path="/privacy">
-          <LegalPage title="プライバシーポリシー" type="privacy" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="プライバシーポリシー" type="privacy" />
+          </div>
         </Route>
         <Route path="/legal">
-          <LegalPage title="特定商取引法に基づく表記" type="legal" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="特定商取引法に基づく表記" type="legal" />
+          </div>
         </Route>
         <Route path="/guidelines">
-          <LegalPage title="コンテンツガイドライン" type="guidelines" />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <LegalPage title="コンテンツガイドライン" type="guidelines" />
+          </div>
         </Route>
         <Route path="/help">
-          <Help />
+          <div className="h-[100svh] flex flex-col overflow-y-auto">
+            <Help />
+          </div>
         </Route>
         <Route path="/forgot-password">
           <ForgotPassword />
