@@ -434,6 +434,20 @@ export const emailTemplates = pgTable("email_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const inquiryStatusEnum = pgEnum("inquiry_status", ["new", "in_progress", "responded", "closed"]);
+
+export const contactInquiries = pgTable("contact_inquiries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  email: varchar("email").notNull(),
+  subject: varchar("subject").notNull(),
+  message: text("message").notNull(),
+  status: inquiryStatusEnum("status").default("new").notNull(),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCreatorApplicationSchema = createInsertSchema(creatorApplications).omit({ id: true, submittedAt: true, reviewedAt: true, reviewerId: true, status: true });

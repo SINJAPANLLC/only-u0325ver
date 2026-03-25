@@ -1187,7 +1187,7 @@ export default function AdminDashboard() {
                             <div key={row.label} className="flex items-center justify-between">
                               <span className="text-xs text-white/40">{row.label}</span>
                               {row.badge !== undefined ? (
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${row.urgent ? "bg-white/20 text-white" : "bg-white/10 text-white/50"} ${row.pulse ? "animate-pulse" : ""}`}>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${row.urgent ? "bg-white/20 text-white" : "bg-white/10 text-white/50"} ${'pulse' in row && row.pulse ? "animate-pulse" : ""}`}>
                                   {row.badge}
                                 </span>
                               ) : (

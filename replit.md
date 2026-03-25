@@ -41,6 +41,8 @@ Preferred communication style: Simple, everyday language.
 - **AI Content Moderation**: Uses OpenAI's Vision API (GPT-4o) to asynchronously analyze uploaded content for violations, notifying admins for review.
 - **Marketing System**: Admin marketing tab with AI-powered SNS post generation, SEO column article management (published at `/column`), and HTML email template editor with bulk sending capability.
 - **Column/Blog**: Public SEO column pages at `/column` (list) and `/column/:slug` (detail), managed from admin marketing tab.
+- **Contact Inquiries**: `contactInquiries` table stores user contact form submissions, viewable and manageable from admin dashboard inquiries tab.
+- **Automated Email Templates**: DB-managed automated email templates (`type:"automated"`) seeded at startup; CRUD via admin marketing tab.
 
 ## External Dependencies
 
