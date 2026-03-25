@@ -276,20 +276,24 @@ export default function LiveRoom() {
   const autoJoinDone = useRef(false);
   useEffect(() => {
     if (autoJoinDone.current) return;
-    if (!urlMode || !stream || !user || activeMode) return;
-    autoJoinDone.current = true;
+    // Wait until stream, user, AND userProfile are all loaded
+    if (!urlMode || !stream || !user || !userProfile || activeMode) return;
     if (urlMode === "twoshot") {
+      autoJoinDone.current = true;
       requestTwoshotMutation.mutate();
     } else if (urlMode === "party") {
       if (userPoints < partyRate) {
+        autoJoinDone.current = true;
         toast({ title: "ポイント不足", description: `パーティー参加には${partyRate}pt以上必要です`, variant: "destructive" });
         return;
       }
+      autoJoinDone.current = true;
       joinMutation.mutate(urlMode);
     } else {
+      autoJoinDone.current = true;
       joinMutation.mutate(urlMode);
     }
-  }, [urlMode, stream?.id, user?.id, userPoints, partyRate]);
+  }, [urlMode, stream?.id, user?.id, !!userProfile, userPoints, partyRate]);
 
   // Chat
   const { data: chatData } = useQuery<LiveChatMessage[]>({

@@ -714,7 +714,10 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Stream not found" });
       }
 
-      const ratePerMinute = mode === "party" ? stream.partyRatePerMinute : stream.twoshotRatePerMinute;
+      // null/undefined → fallback to DB default (party:50, twoshot:100)
+      const ratePerMinute = mode === "party"
+        ? (stream.partyRatePerMinute ?? 50)
+        : (stream.twoshotRatePerMinute ?? 100);
 
       // Get user's current points
       const [userProfile] = await db
@@ -727,8 +730,8 @@ export async function registerRoutes(
       }
 
       // Check if user has enough points for at least 1 minute
-      if ((userProfile.points || 0) < (ratePerMinute || 0)) {
-        return res.status(400).json({ message: "ポイントが不足しています", insufficientPoints: true });
+      if ((userProfile.points ?? 0) < ratePerMinute) {
+        return res.status(400).json({ message: `ポイントが不足しています（必要: ${ratePerMinute}pt）`, insufficientPoints: true });
       }
 
       // For 2shot mode, check if someone else is already in a session
