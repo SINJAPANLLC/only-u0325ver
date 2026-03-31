@@ -398,8 +398,8 @@ function VideoPage({
           data-testid={`button-avatar-${id}`}
         >
           <Avatar className="h-12 w-12 ring-2 ring-white shadow-xl">
-            <AvatarImage src={creatorAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face"} />
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
+            {creatorAvatar && <AvatarImage src={creatorAvatar} />}
+            <AvatarFallback delayMs={0} className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
