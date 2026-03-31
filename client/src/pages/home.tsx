@@ -390,7 +390,7 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-[100px] z-10 flex flex-col items-center gap-5">
+      <div className="absolute right-3 bottom-[120px] z-10 flex flex-col items-center gap-5">
         {/* Creator avatar */}
         <button
           onClick={handleAvatarClick}
@@ -457,7 +457,7 @@ function VideoPage({
       </div>
 
       {/* Bottom content info */}
-      <div className="absolute left-4 right-[68px] bottom-[84px] z-10">
+      <div className="absolute left-4 right-[68px] bottom-[104px] z-10">
         {/* Creator name row */}
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-white font-bold text-[15px] drop-shadow-sm" data-testid={`text-creator-${id}`}>
@@ -496,7 +496,7 @@ function VideoPage({
       {/* Progress bar */}
       <div
         ref={progressRef}
-        className="absolute bottom-[68px] left-0 right-0 h-1 bg-white/20 cursor-pointer touch-none z-10"
+        className="absolute bottom-[88px] left-0 right-0 h-1 bg-white/20 cursor-pointer touch-none z-10"
         onClick={handleProgressBarClick}
         onMouseDown={handleProgressDragStart}
         onMouseUp={handleProgressDragEnd}
