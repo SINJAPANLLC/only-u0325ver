@@ -305,7 +305,7 @@ function VideoPage({
 
   return (
     <motion.div 
-      className="snap-start h-[100svh] w-full relative flex-shrink-0 bg-black touch-pan-y [isolation:isolate]"
+      className="snap-start h-[100dvh] w-full relative flex-shrink-0 bg-black touch-pan-y [isolation:isolate]"
       data-testid={`video-page-${id}`}
       style={{ x, opacity }}
       drag="x"
@@ -615,7 +615,7 @@ export default function Home() {
   return (
     <>
       <Header variant="overlay" />
-      <div className="h-[100svh] bg-black overflow-hidden">
+      <div className="h-[100dvh] bg-black overflow-hidden">
         {isLoadingVideos ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">

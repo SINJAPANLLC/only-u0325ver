@@ -266,7 +266,7 @@ export default function Live() {
       <Header variant="overlay" />
       <div
         id="live-feed"
-        className="h-[100svh] overflow-hidden bg-black flex items-center justify-center"
+        className="h-[100dvh] overflow-hidden bg-black flex items-center justify-center"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
