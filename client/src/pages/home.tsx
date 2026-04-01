@@ -149,6 +149,15 @@ function VideoPage({
         hlsRef.current = hls;
         hls.loadSource(effectiveVideoUrl);
         hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+          const levels = data.levels;
+          if (levels && levels.length > 0) {
+            const level = levels[levels.length - 1];
+            if (level.width > 0 && level.height > 0) {
+              setVideoFit(level.width > level.height ? "contain" : "cover");
+            }
+          }
+        });
         hls.on(Hls.Events.ERROR, (_, data) => {
           if (data.fatal) console.error("HLS error:", data.type, data.details);
         });
