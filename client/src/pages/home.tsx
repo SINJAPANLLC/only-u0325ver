@@ -390,7 +390,7 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-[128px] z-10 flex flex-col items-center gap-5 [transform:translateZ(0)] [will-change:transform]">
+      <div className="absolute right-3 bottom-[100px] z-10 flex flex-col items-center gap-5 [transform:translateZ(0)] [will-change:transform]">
         {/* Creator avatar */}
         <button
           onClick={handleAvatarClick}
