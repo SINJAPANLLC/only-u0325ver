@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   Copy,
   Send,
-  Coins,
   Wifi,
   WifiOff,
 } from "lucide-react";
@@ -561,13 +560,6 @@ export default function CreatorLive() {
           )}
         </div>
 
-        {/* Stats */}
-        <div className="relative z-10 px-4 mt-2 flex justify-center">
-          <div className="bg-black/40 backdrop-blur rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-            <Coins className="h-3.5 w-3.5 text-yellow-400" />
-            <span className="text-white text-xs">{earnedPoints.toLocaleString()}pt</span>
-          </div>
-        </div>
 
         {/* LiveKit not configured warning */}
         {livekitStatus === "failed" && !import.meta.env.VITE_LIVEKIT_URL && (
