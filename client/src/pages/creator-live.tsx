@@ -41,7 +41,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { LiveStream, UserProfile } from "@shared/schema";
-import { Room, RoomEvent, ConnectionState, Track, VideoPresets } from "livekit-client";
+import { Room, RoomEvent, ConnectionState, Track, VideoPresets, AudioPresets } from "livekit-client";
 
 type ViewMode = "list" | "streaming";
 type LiveKitStatus = "idle" | "connecting" | "connected" | "failed";
@@ -153,19 +153,47 @@ export default function CreatorLive() {
       }
       const { token } = await res.json();
 
-      // Create room
+      // Create room with high-quality, low-latency settings
       const room = new Room({
         adaptiveStream: true,
         dynacast: true,
+        reconnectPolicy: {
+          nextRetryDelayInMs: (context) => {
+            if (context.retryCount <= 3) return 300;
+            if (context.retryCount <= 6) return 1000;
+            return 3000;
+          },
+        },
         videoCaptureDefaults: {
           resolution: VideoPresets.h1080.resolution,
           facingMode,
         },
-        videoEncoding: {
-          maxBitrate: 5_000_000,
-          maxFramerate: 30,
+        publishDefaults: {
+          videoCodec: "h264",
+          videoEncoding: {
+            maxBitrate: 6_000_000,
+            maxFramerate: 30,
+            priority: "high",
+          },
+          audioPreset: AudioPresets.musicHighQuality,
+          simulcast: true,
+          videoSimulcastLayers: [
+            VideoPresets.h180,
+            VideoPresets.h360,
+            VideoPresets.h720,
+          ],
+          screenShareEncoding: {
+            maxBitrate: 3_000_000,
+            maxFramerate: 15,
+            priority: "high",
+          },
         },
-        audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        audioCaptureDefaults: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+        },
       });
       roomRef.current = room;
 

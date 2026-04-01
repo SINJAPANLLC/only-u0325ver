@@ -102,7 +102,17 @@ export default function LiveRoom() {
       if (!res.ok) throw new Error("Token error");
       const { token } = await res.json();
 
-      const room = new Room({ adaptiveStream: true });
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: false,
+        reconnectPolicy: {
+          nextRetryDelayInMs: (context) => {
+            if (context.retryCount <= 3) return 300;
+            if (context.retryCount <= 6) return 1000;
+            return 3000;
+          },
+        },
+      });
       roomRef.current = room;
 
       room.on(RoomEvent.TrackSubscribed, (track) => {

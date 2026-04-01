@@ -448,22 +448,125 @@ interface VeniceModel {
   model_spec?: { name: string; traits?: string[] };
 }
 
-function VeniceImageGenerator() {
+async function generateVeniceImages(params: {
+  prompt: string; negativePrompt: string; model: string;
+  width: number; height: number; steps: number; count: number;
+  onProgress?: (done: number, total: number) => void;
+}): Promise<string[]> {
+  const frames: string[] = [];
+  for (let i = 0; i < params.count; i++) {
+    const frameSuffix = params.count > 1 ? `, scene ${i + 1} of ${params.count}, slightly different pose` : "";
+    const res = await fetch("/api/admin/venice/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        prompt: params.prompt + frameSuffix,
+        negativePrompt: params.negativePrompt,
+        model: params.model,
+        width: params.width,
+        height: params.height,
+        steps: params.steps,
+      }),
+    });
+    const data = await res.json();
+    if (data.images?.[0]) {
+      frames.push(`data:image/webp;base64,${data.images[0]}`);
+    }
+    params.onProgress?.(i + 1, params.count);
+  }
+  return frames;
+}
+
+function createVideoFromFrames(
+  frames: string[], canvasW: number, canvasH: number, durationMs: number
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext("2d")!;
+
+    const imgEls = frames.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    let loaded = 0;
+    const onLoad = () => {
+      loaded++;
+      if (loaded < imgEls.length) return;
+
+      const stream = canvas.captureStream(30);
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+        ? "video/webm;codecs=vp9"
+        : "video/webm";
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 3_000_000 });
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        resolve(URL.createObjectURL(blob));
+      };
+      recorder.onerror = (e) => reject(e);
+      recorder.start(100);
+
+      const startTime = performance.now();
+      const frameDuration = durationMs / frames.length;
+
+      function draw() {
+        const elapsed = performance.now() - startTime;
+        if (elapsed >= durationMs) {
+          ctx.drawImage(imgEls[imgEls.length - 1], 0, 0, canvasW, canvasH);
+          recorder.stop();
+          return;
+        }
+        const frameIdx = Math.floor(elapsed / frameDuration);
+        const current = Math.min(frameIdx, imgEls.length - 1);
+        const next = Math.min(current + 1, imgEls.length - 1);
+        const progress = (elapsed % frameDuration) / frameDuration;
+
+        ctx.globalAlpha = 1;
+        ctx.drawImage(imgEls[current], 0, 0, canvasW, canvasH);
+        if (progress > 0.7 && current !== next) {
+          ctx.globalAlpha = (progress - 0.7) / 0.3;
+          ctx.drawImage(imgEls[next], 0, 0, canvasW, canvasH);
+        }
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    };
+
+    imgEls.forEach(img => { img.onload = onLoad; img.onerror = onLoad; });
+    if (imgEls.length === 0) reject(new Error("No frames"));
+  });
+}
+
+function AiCreativeStudio() {
   const { toast } = useToast();
+  const [mode, setMode] = useState<"image" | "video">("image");
+
   const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("ugly, deformed, bad anatomy, watermark, text");
+  const [negativePrompt, setNegativePrompt] = useState("ugly, deformed, bad anatomy, watermark, text, logo");
   const [selectedModel, setSelectedModel] = useState("lustify-v7");
   const [width, setWidth] = useState("832");
   const [height, setHeight] = useState("1216");
   const [steps, setSteps] = useState("30");
+  const [frameCount, setFrameCount] = useState("6");
+  const [videoDuration, setVideoDuration] = useState("8");
+
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [genProgress, setGenProgress] = useState<{ done: number; total: number } | null>(null);
+  const [videoStatus, setVideoStatus] = useState("");
 
   const { data: models } = useQuery<VeniceModel[]>({
     queryKey: ["/api/admin/venice/models"],
   });
 
-  const generate = async () => {
+  const generateImage = async () => {
     if (!prompt.trim()) {
       toast({ title: "プロンプトを入力してください", variant: "destructive" });
       return;
@@ -471,12 +574,8 @@ function VeniceImageGenerator() {
     setIsGenerating(true);
     try {
       const res = await apiRequest("POST", "/api/admin/venice/generate", {
-        prompt,
-        negativePrompt,
-        model: selectedModel,
-        width: parseInt(width),
-        height: parseInt(height),
-        steps: parseInt(steps),
+        prompt, negativePrompt, model: selectedModel,
+        width: parseInt(width), height: parseInt(height), steps: parseInt(steps),
       });
       const data = await res.json();
       if (data.images?.length) {
@@ -491,168 +590,271 @@ function VeniceImageGenerator() {
     }
   };
 
-  const downloadImage = (dataUrl: string, index: number) => {
+  const generateVideo = async () => {
+    if (!prompt.trim()) {
+      toast({ title: "プロンプトを入力してください", variant: "destructive" });
+      return;
+    }
+    setIsGenerating(true);
+    setGenProgress(null);
+    setGeneratedVideoUrl(null);
+    const fc = parseInt(frameCount);
+    const dur = parseInt(videoDuration) * 1000;
+    try {
+      setVideoStatus(`フレーム生成中 (0/${fc})...`);
+      const frames = await generateVeniceImages({
+        prompt, negativePrompt, model: selectedModel,
+        width: parseInt(width), height: parseInt(height), steps: parseInt(steps),
+        count: fc,
+        onProgress: (done, total) => {
+          setGenProgress({ done, total });
+          setVideoStatus(`フレーム生成中 (${done}/${total})...`);
+        },
+      });
+      if (frames.length === 0) throw new Error("フレーム生成に失敗しました");
+      setVideoStatus("動画を合成中...");
+      const videoUrl = await createVideoFromFrames(frames, parseInt(width), parseInt(height), dur);
+      setGeneratedVideoUrl(videoUrl);
+      setVideoStatus("完成！");
+      toast({ title: "動画が生成されました" });
+    } catch (e: any) {
+      toast({ title: e.message || "エラーが発生しました", variant: "destructive" });
+      setVideoStatus("");
+    } finally {
+      setIsGenerating(false);
+      setGenProgress(null);
+    }
+  };
+
+  const downloadFile = (url: string, ext: string) => {
     const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `venice-ai-${Date.now()}-${index}.webp`;
+    a.href = url;
+    a.download = `venice-ai-${Date.now()}.${ext}`;
     a.click();
   };
+
+  const sharedControls = (
+    <Card className="bg-white/5 border-white/10">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-white text-sm">共通設定</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div>
+          <Label className="text-white/80 text-xs mb-1.5 block">モデル</Label>
+          <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger className="bg-white/5 border-white/10 text-white text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a2e] border-white/10">
+              {models?.map(m => (
+                <SelectItem key={m.id} value={m.id} className="text-white text-sm">
+                  {m.model_spec?.name || m.id}
+                  {m.model_spec?.traits?.includes("most_uncensored") && <span className="ml-1 text-xs text-pink-400">🔞</span>}
+                </SelectItem>
+              )) ?? (
+                <>
+                  <SelectItem value="lustify-v7" className="text-white text-sm">Lustify v7 🔞</SelectItem>
+                  <SelectItem value="lustify-sdxl" className="text-white text-sm">Lustify SDXL</SelectItem>
+                  <SelectItem value="flux-2-pro" className="text-white text-sm">Flux 2 Pro</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-white/80 text-xs mb-1.5 block">プロンプト</Label>
+          <Textarea
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder="beautiful japanese woman, portrait, high quality, 8k..."
+            className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none text-sm"
+            rows={4}
+          />
+        </div>
+        <div>
+          <Label className="text-white/80 text-xs mb-1.5 block">ネガティブ</Label>
+          <Textarea
+            value={negativePrompt}
+            onChange={e => setNegativePrompt(e.target.value)}
+            className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none text-sm"
+            rows={2}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[["幅", width, setWidth, ["512","640","768","832","1024","1280"]], ["高さ", height, setHeight, ["512","640","832","1024","1216","1536"]], ["ステップ", steps, setSteps, ["20","25","30","40","50"]]] .map(([label, val, setter, opts]: any) => (
+            <div key={label as string}>
+              <Label className="text-white/80 text-xs mb-1 block">{label}</Label>
+              <Select value={val} onValueChange={setter}>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/10">
+                  {(opts as string[]).map(v => <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Sparkles className="h-6 w-6 text-pink-400" />
-        <h2 className="text-2xl font-bold text-white">Venice AI 画像生成</h2>
+        <h2 className="text-2xl font-bold text-white">AI クリエイティブ スタジオ</h2>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          onClick={() => setMode("image")}
+          className={mode === "image" ? "bg-pink-600 hover:bg-pink-500 text-white" : "bg-white/10 hover:bg-white/20 text-white"}
+          size="sm"
+        >
+          <Sparkles className="h-4 w-4 mr-1.5" />画像生成
+        </Button>
+        <Button
+          onClick={() => setMode("video")}
+          className={mode === "video" ? "bg-purple-600 hover:bg-purple-500 text-white" : "bg-white/10 hover:bg-white/20 text-white"}
+          size="sm"
+        >
+          <Video className="h-4 w-4 mr-1.5" />動画生成
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Controls */}
         <div className="lg:col-span-1 space-y-4">
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-base">生成設定</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-white/80 text-sm mb-1.5 block">モデル</Label>
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a2e] border-white/10">
-                    {models?.map(m => (
-                      <SelectItem key={m.id} value={m.id} className="text-white">
-                        {m.model_spec?.name || m.id}
-                        {m.model_spec?.traits?.includes("most_uncensored") && (
-                          <span className="ml-1 text-xs text-pink-400">🔞</span>
-                        )}
-                      </SelectItem>
-                    )) ?? (
-                      <>
-                        <SelectItem value="lustify-v7" className="text-white">Lustify v7 🔞</SelectItem>
-                        <SelectItem value="lustify-sdxl" className="text-white">Lustify SDXL</SelectItem>
-                        <SelectItem value="flux-2-pro" className="text-white">Flux 2 Pro</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+          {sharedControls}
 
-              <div>
-                <Label className="text-white/80 text-sm mb-1.5 block">プロンプト</Label>
-                <Textarea
-                  value={prompt}
-                  onChange={e => setPrompt(e.target.value)}
-                  placeholder="beautiful japanese woman, portrait, high quality..."
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
-                  rows={5}
-                />
-              </div>
-
-              <div>
-                <Label className="text-white/80 text-sm mb-1.5 block">ネガティブプロンプト</Label>
-                <Textarea
-                  value={negativePrompt}
-                  onChange={e => setNegativePrompt(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label className="text-white/80 text-xs mb-1 block">幅</Label>
-                  <Select value={width} onValueChange={setWidth}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a2e] border-white/10">
-                      {["512","640","768","832","1024","1280"].map(v => (
-                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          {mode === "video" && (
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-sm">動画設定</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-white/50 text-xs">Venice AIでフレーム画像を複数生成し、ブラウザでクロスフェードアニメーション動画を作成します。</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-white/80 text-xs mb-1 block">フレーム数</Label>
+                    <Select value={frameCount} onValueChange={setFrameCount}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1a2e] border-white/10">
+                        {["3","4","5","6","8","10"].map(v => <SelectItem key={v} value={v} className="text-white text-xs">{v}枚</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white/80 text-xs mb-1 block">尺（秒）</Label>
+                    <Select value={videoDuration} onValueChange={setVideoDuration}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1a2e] border-white/10">
+                        {["5","8","10","15","20","30"].map(v => <SelectItem key={v} value={v} className="text-white text-xs">{v}秒</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-white/80 text-xs mb-1 block">高さ</Label>
-                  <Select value={height} onValueChange={setHeight}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a2e] border-white/10">
-                      {["512","640","768","832","1024","1216","1280","1536"].map(v => (
-                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-white/80 text-xs mb-1 block">ステップ</Label>
-                  <Select value={steps} onValueChange={setSteps}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a2e] border-white/10">
-                      {["20","25","30","40","50"].map(v => (
-                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
 
-              <Button
-                onClick={generate}
-                disabled={isGenerating || !prompt.trim()}
-                className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    画像を生成
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+          <Button
+            onClick={mode === "image" ? generateImage : generateVideo}
+            disabled={isGenerating || !prompt.trim()}
+            className={`w-full text-white ${mode === "image" ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"}`}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                {mode === "video" && genProgress ? `フレーム ${genProgress.done}/${genProgress.total}` : videoStatus || "生成中..."}
+              </>
+            ) : (
+              <>
+                {mode === "image" ? <Sparkles className="h-4 w-4 mr-2" /> : <Video className="h-4 w-4 mr-2" />}
+                {mode === "image" ? "画像を生成" : `動画を生成 (${frameCount}フレーム・${videoDuration}秒)`}
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Results */}
         <div className="lg:col-span-2">
-          {generatedImages.length === 0 && !isGenerating ? (
-            <div className="h-64 flex flex-col items-center justify-center text-white/40 border-2 border-dashed border-white/10 rounded-2xl">
-              <Sparkles className="h-12 w-12 mb-3 opacity-30" />
-              <p>プロンプトを入力して画像を生成してください</p>
-            </div>
+          {mode === "image" ? (
+            generatedImages.length === 0 && !isGenerating ? (
+              <div className="h-64 flex flex-col items-center justify-center text-white/40 border-2 border-dashed border-white/10 rounded-2xl">
+                <Sparkles className="h-12 w-12 mb-3 opacity-30" />
+                <p>プロンプトを入力して画像を生成してください</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {isGenerating && (
+                  <div className="aspect-[2/3] bg-white/5 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
+                    <p className="text-white/60 text-sm">生成中...</p>
+                  </div>
+                )}
+                {generatedImages.map((img, i) => (
+                  <div key={i} className="relative group rounded-xl overflow-hidden border border-white/10">
+                    <img src={img} alt={`generated-${i}`} className="w-full object-cover" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button size="sm" variant="outline" className="border-white/30 text-white bg-black/50 hover:bg-white/20"
+                        onClick={() => downloadFile(img, "webp")}>
+                        <ExternalLink className="h-4 w-4 mr-1" />DL
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               {isGenerating && (
-                <div className="aspect-[2/3] bg-white/5 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
-                  <p className="text-white/60 text-sm">生成中...</p>
+                <div className="h-64 bg-white/5 border border-purple-500/30 rounded-2xl flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="h-10 w-10 animate-spin text-purple-400" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/80 text-sm font-medium">{videoStatus || "準備中..."}</p>
+                    {genProgress && (
+                      <div className="mt-3 w-48">
+                        <div className="w-full bg-white/10 rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
+                            style={{ width: `${(genProgress.done / genProgress.total) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-white/40 text-xs mt-1">{genProgress.done} / {genProgress.total} フレーム</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              {generatedImages.map((img, i) => (
-                <div key={i} className="relative group rounded-xl overflow-hidden border border-white/10">
-                  <img src={img} alt={`generated-${i}`} className="w-full object-cover" />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              {generatedVideoUrl && !isGenerating && (
+                <div className="space-y-3">
+                  <div className="rounded-xl overflow-hidden border border-purple-500/30">
+                    <video src={generatedVideoUrl} controls autoPlay loop className="w-full" />
+                  </div>
+                  <div className="flex gap-2">
                     <Button
+                      onClick={() => downloadFile(generatedVideoUrl, "webm")}
+                      className="bg-purple-600 hover:bg-purple-500 text-white"
                       size="sm"
-                      variant="outline"
-                      className="border-white/30 text-white bg-black/50 hover:bg-white/20"
-                      onClick={() => downloadImage(img, i)}
                     >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      DL
+                      <ExternalLink className="h-4 w-4 mr-1.5" />動画をダウンロード (.webm)
                     </Button>
                   </div>
                 </div>
-              ))}
+              )}
+              {!generatedVideoUrl && !isGenerating && (
+                <div className="h-64 flex flex-col items-center justify-center text-white/40 border-2 border-dashed border-white/10 rounded-2xl">
+                  <Video className="h-12 w-12 mb-3 opacity-30" />
+                  <p>プロンプトを入力して動画を生成してください</p>
+                  <p className="text-xs mt-1 opacity-60">Venice AIが複数フレームを生成→動画に合成</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1145,7 +1347,7 @@ export default function AdminDashboard() {
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "moderation" as Tab, label: "AI審査", icon: ShieldAlert, badge: moderationUnreadCount?.count },
-    { id: "ai-generate" as Tab, label: "AI画像生成", icon: Sparkles },
+    { id: "ai-generate" as Tab, label: "AIクリエイティブ", icon: Sparkles },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -3305,7 +3507,7 @@ export default function AdminDashboard() {
           {activeTab === "marketing" && <AdminMarketing />}
 
           {/* AI Image Generation */}
-          {activeTab === "ai-generate" && <VeniceImageGenerator />}
+          {activeTab === "ai-generate" && <AiCreativeStudio />}
 
           {/* Settings */}
           {activeTab === "settings" && (
