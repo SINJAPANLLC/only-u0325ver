@@ -94,7 +94,7 @@ function CheckoutForm({
     });
 
     if (submitError) {
-      setError(submitError.message || "決済に失敗しました");
+      setError("カード情報を確認し、再度お試しください");
       setIsProcessing(false);
       return;
     }
@@ -109,10 +109,10 @@ function CheckoutForm({
         queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
         onSuccess(points);
       } else {
-        setError(result.message || "ポイントの付与に失敗しました");
+        setError("ポイントの付与に失敗しました");
       }
     } catch (err: any) {
-      setError(err.message || "決済確認に失敗しました");
+      setError("決済確認に失敗しました");
     }
 
     setIsProcessing(false);
@@ -230,7 +230,7 @@ export default function PointsPurchase() {
       }
     },
     onError: (error: any) => {
-      toast({ title: "決済の開始に失敗しました", description: error.message, variant: "destructive" });
+      toast({ title: "決済を開始できませんでした", description: "しばらく経ってから再度お試しください", variant: "destructive" });
     },
   });
 
