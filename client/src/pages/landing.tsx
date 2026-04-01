@@ -127,7 +127,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.7 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="relative z-10 text-center max-w-3xl mx-auto"
         >
           <h1 className="font-black leading-none tracking-tight mb-6 whitespace-nowrap" style={{ fontSize: "clamp(1.8rem, 4.5vw, 4rem)" }}>
@@ -195,7 +195,7 @@ export default function Landing({ onRegisterClick }: LandingProps) {
             { img: girl2, label: "Nana", hearts: "7.6k" },
           ].map((card, i) => (
             <div key={i} className="relative shrink-0 w-40 h-64 rounded-2xl overflow-hidden shadow-sm">
-              <img src={card.img} alt={card.label} className="w-full h-full object-cover object-top" />
+              <img src={card.img} alt={card.label} className="w-full h-full object-cover object-top" loading="lazy" decoding="async" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               <div className="absolute bottom-3 left-3 right-3">
                 <p className="text-white text-xs font-bold leading-none">{card.label}</p>

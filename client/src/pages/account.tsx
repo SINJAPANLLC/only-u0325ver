@@ -387,7 +387,7 @@ export default function Account() {
         {/* Logout */}
         <button
           className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium"
-          onClick={() => logout()}
+          onClick={() => { window.location.href = "/api/logout"; }}
           data-testid="button-logout"
         >
           <LogOut className="h-4 w-4" />
