@@ -303,7 +303,7 @@ function VideoPage({
         {effectiveVideoUrl && hasAccess ? (
           <video
             ref={videoRef}
-            className="absolute inset-0 w-full h-full object-contain object-top"
+            className="absolute inset-0 w-full h-full object-contain object-center"
             loop
             muted={isMuted}
             playsInline
