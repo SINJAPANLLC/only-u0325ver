@@ -303,7 +303,7 @@ function VideoPage({
         {effectiveVideoUrl && hasAccess ? (
           <video
             ref={videoRef}
-            className="absolute inset-0 w-full h-full object-contain"
+            className={`absolute inset-0 w-full h-full ${videoFit === "cover" ? "object-cover" : "object-contain"}`}
             loop
             muted={isMuted}
             playsInline
@@ -316,7 +316,7 @@ function VideoPage({
           <img 
             src={effectiveThumbnail} 
             alt="" 
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : null}
         
@@ -397,9 +397,9 @@ function VideoPage({
           className="relative"
           data-testid={`button-avatar-${id}`}
         >
-          <Avatar className="h-14 w-14 ring-2 ring-white shadow-xl">
+          <Avatar className="h-11 w-11 ring-2 ring-white shadow-xl">
             {creatorAvatar && <AvatarImage src={creatorAvatar} />}
-            <AvatarFallback delayMs={0} className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-base">
+            <AvatarFallback delayMs={0} className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -413,10 +413,10 @@ function VideoPage({
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className="h-12 w-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md transition-colors shadow-lg"
+            className="h-11 w-11 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md transition-colors shadow-lg"
           >
             <Heart
-              className={`h-7 w-7 transition-colors drop-shadow ${
+              className={`h-6 w-6 transition-colors drop-shadow ${
                 isLiked ? "text-pink-400 fill-pink-400" : "text-white"
               }`}
             />
@@ -432,8 +432,8 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg">
-            <Share2 className="h-7 w-7 text-white drop-shadow" />
+          <div className="h-11 w-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <Share2 className="h-6 w-6 text-white drop-shadow" />
           </div>
           <span className="text-[11px] text-white font-bold drop-shadow">シェア</span>
         </button>
@@ -444,13 +444,13 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className={`h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
+          <div className={`h-11 w-11 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
             isMuted ? "bg-black/40" : "bg-white/20"
           }`}>
             {isMuted ? (
-              <VolumeX className="h-7 w-7 text-white drop-shadow" />
+              <VolumeX className="h-5 w-5 text-white drop-shadow" />
             ) : (
-              <Volume2 className="h-7 w-7 text-white drop-shadow" />
+              <Volume2 className="h-5 w-5 text-white drop-shadow" />
             )}
           </div>
         </button>
