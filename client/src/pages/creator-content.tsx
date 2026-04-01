@@ -82,7 +82,7 @@ export default function CreatorContent() {
     isPublished: true,
   });
 
-  const { uploadFile } = useUpload({
+  const { uploadFile, progress: uploadProgress } = useUpload({
     onError: (error) => {
       toast({ title: "アップロードに失敗しました", description: error.message, variant: "destructive" });
     },
@@ -554,9 +554,20 @@ export default function CreatorContent() {
                     onClick={() => videoInputRef.current?.click()}
                   >
                     {isUploadingVideo ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                        <p className="text-sm text-muted-foreground">アップロード中...</p>
+                      <div className="flex flex-col items-center gap-3 py-2 w-full">
+                        <Loader2 className="h-6 w-6 animate-spin text-pink-500" />
+                        <div className="w-full">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>アップロード中...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     ) : form.videoPreview ? (
                       <div className="flex flex-col items-center gap-2">
@@ -570,6 +581,7 @@ export default function CreatorContent() {
                       <div className="flex flex-col items-center gap-2">
                         <Upload className="h-8 w-8 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
+                        <p className="text-xs text-muted-foreground/60">最大500MB</p>
                       </div>
                     )}
                   </div>
@@ -831,9 +843,20 @@ export default function CreatorContent() {
                 onClick={() => editVideoInputRef.current?.click()}
               >
                 {isUploadingEditVideo ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-                    <p className="text-sm text-muted-foreground">アップロード中...</p>
+                  <div className="flex flex-col items-center gap-3 py-2 w-full">
+                    <Loader2 className="h-6 w-6 animate-spin text-pink-500" />
+                    <div className="w-full">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                        <span>アップロード中...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : editForm.videoPreview ? (
                   <div className="flex flex-col items-center gap-2">
@@ -847,6 +870,7 @@ export default function CreatorContent() {
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="h-8 w-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">クリックして動画を選択</p>
+                    <p className="text-xs text-muted-foreground/60">最大500MB</p>
                   </div>
                 )}
               </div>
