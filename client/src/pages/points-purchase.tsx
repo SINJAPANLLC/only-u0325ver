@@ -121,11 +121,6 @@ function CheckoutForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <PaymentElement />
-      {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
-        </div>
-      )}
       <div className="flex gap-2">
         <Button
           type="button"
@@ -230,7 +225,6 @@ export default function PointsPurchase() {
       }
     },
     onError: (error: any) => {
-      toast({ title: "決済を開始できませんでした", description: "しばらく経ってから再度お試しください", variant: "destructive" });
     },
   });
 
