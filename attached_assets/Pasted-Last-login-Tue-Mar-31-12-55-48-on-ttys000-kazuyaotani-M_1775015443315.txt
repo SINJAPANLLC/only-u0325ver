@@ -1,0 +1,132 @@
+Last login: Tue Mar 31 12:55:48 on ttys000
+kazuyaotani@Mac ~ % ssh root@212.85.24.206
+root@212.85.24.206's password: 
+Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-88-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Apr  1 03:49:21 UTC 2026
+
+  System load:  0.08                Processes:             155
+  Usage of /:   15.8% of 192.69GB   Users logged in:       0
+  Memory usage: 29%                 IPv4 address for eth0: 212.85.24.206
+  Swap usage:   0%                  IPv6 address for eth0: 2a02:4780:59:cc86::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+21 updates can be applied immediately.
+3 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+13 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+*** System restart required ***
+Last login: Tue Mar 31 03:56:54 2026 from 182.249.44.96
+root@srv1087935:~# pm2 list
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 20   │ online    │ 0%       │ 216.6mb  │
+│ 20 │ keimatch           │ fork     │ 4    │ online    │ 0%       │ 623.5mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.2mb  │
+│ 34 │ onlyu              │ fork     │ 84   │ online    │ 0%       │ 144.4mb  │
+│ 37 │ sinjapan-crm-api   │ fork     │ 0    │ online    │ 0%       │ 134.3mb  │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 61.0mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 103.3mb  │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.6mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.2mb  │
+│ 39 │ sinjapanaisite-api │ fork     │ 4    │ online    │ 0%       │ 200.2mb  │
+│ 42 │ tiktokshindan      │ fork     │ 4    │ online    │ 0%       │ 155.3mb  │
+│ 38 │ tramatch           │ fork     │ 0    │ online    │ 0%       │ 227.2mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@srv1087935:~# cd /var/www/onlyu && git pull origin main && npm run build && pm2 restart onlyu
+remote: Enumerating objects: 80, done.
+remote: Counting objects: 100% (80/80), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 61 (delta 55), reused 61 (delta 55), pack-reused 0 (from 0)
+Unpacking objects: 100% (61/61), 17.30 KiB | 139.00 KiB/s, done.
+From https://github.com/SINJAPANLLC/only-u0325ver
+ * branch            main       -> FETCH_HEAD
+   7706549..ad1b42a  main       -> origin/main
+Updating 7706549..ad1b42a
+Fast-forward
+ .replit                              |   2 +-
+ client/src/hooks/use-upload.ts       |  84 ++++---
+ client/src/pages/account.tsx         |   2 +-
+ client/src/pages/admin-dashboard.tsx | 426 ++++++++++++++++++++++++++++++++++-
+ client/src/pages/creator-content.tsx |  72 ++++--
+ client/src/pages/creator-live.tsx    |  88 +++++---
+ client/src/pages/creator-shop.tsx    |  36 +--
+ client/src/pages/home.tsx            |  10 +-
+ client/src/pages/landing.tsx         |   4 +-
+ client/src/pages/live-room.tsx       |  12 +-
+ client/src/pages/messages.tsx        |   4 +-
+ client/src/pages/points-purchase.tsx |  12 +-
+ server/routes.ts                     |  45 ++++
+ 13 files changed, 684 insertions(+), 113 deletions(-)
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+transforming (1) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+transforming (17) src/pages/account.tsx
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+transforming (52) ../attached_assets/スクリーンショット_2026-03-23_22.39.41_1774✓ 2977 modules transformed.
+../dist/public/index.html                                                           2.47 kB │ gzip:   0.90 kB
+../dist/public/assets/IMG_9769_1768108334555-DBidn5qy.PNG                         109.72 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.30_1774273237701-C8h16fj9.png    268.14 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.18_1774273237693-DNxFAo-6.png    285.81 kB
+../dist/public/assets/スクリーンショット_2026-03-23_22.39.41_1774273237678-BAZmHXga.png    286.00 kB
+../dist/public/assets/nude_bedroom_1-TdmLPh1z.jpg                                 447.73 kB
+../dist/public/assets/lingerie_bed_3-CuToe3Lq.jpg                                 482.99 kB
+../dist/public/assets/nude_bath_2-XyNc0DeT.jpg                                    483.37 kB
+../dist/public/assets/nude_shower_4-C9DV9le3.jpg                                  506.46 kB
+../dist/public/assets/index-BdFwxvNn.css                                          166.27 kB │ gzip:  24.39 kB
+../dist/public/assets/index-CN3EphqT.js                                         2,167.10 kB │ gzip: 602.16 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 21.12s
+building server...
+
+  dist/index.cjs  1.8mb ⚠️
+
+⚡ Done in 1118ms
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [onlyu](ids: [ 34 ])
+[PM2] [onlyu](34) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 22 │ aiagent            │ fork     │ 20   │ online    │ 0%       │ 216.6mb  │
+│ 20 │ keimatch           │ fork     │ 4    │ online    │ 0%       │ 622.4mb  │
+│ 3  │ menz-esthe-town    │ fork     │ 0    │ online    │ 0%       │ 143.0mb  │
+│ 34 │ onlyu              │ fork     │ 85   │ online    │ 0%       │ 22.6mb   │
+│ 37 │ sinjapan-crm-api   │ fork     │ 0    │ online    │ 0%       │ 134.4mb  │
+│ 1  │ sinjapan-manager   │ fork     │ 0    │ online    │ 0%       │ 60.9mb   │
+│ 2  │ sinjapan-onlinesc… │ fork     │ 0    │ online    │ 0%       │ 103.6mb  │
+│ 25 │ sinjapanai         │ fork     │ 0    │ online    │ 0%       │ 112.3mb  │
+│ 30 │ sinjapanailive-api │ fork     │ 0    │ online    │ 0%       │ 117.6mb  │
+│ 39 │ sinjapanaisite-api │ fork     │ 4    │ online    │ 0%       │ 200.6mb  │
+│ 42 │ tiktokshindan      │ fork     │ 4    │ online    │ 0%       │ 154.7mb  │
+│ 38 │ tramatch           │ fork     │ 0    │ online    │ 0%       │ 226.6mb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@srv1087935:/var/www/onlyu# 
