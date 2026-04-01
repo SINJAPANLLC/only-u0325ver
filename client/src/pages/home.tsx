@@ -64,6 +64,7 @@ function VideoPage({
   const [progress, setProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [videoFit, setVideoFit] = useState<"cover" | "contain">("contain");
+  const videoFitDetected = useRef(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -143,6 +144,20 @@ function VideoPage({
     const video = videoRef.current;
     if (!video || !effectiveVideoUrl || !hasAccess) return;
 
+    videoFitDetected.current = false;
+    setVideoFit("contain");
+
+    const detectOrientation = () => {
+      const { videoWidth, videoHeight } = video;
+      if (videoWidth > 0 && videoHeight > 0 && !videoFitDetected.current) {
+        videoFitDetected.current = true;
+        setVideoFit(videoWidth > videoHeight ? "contain" : "cover");
+      }
+    };
+
+    video.addEventListener("loadedmetadata", detectOrientation);
+    video.addEventListener("canplay", detectOrientation);
+
     if (isHlsStream) {
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true, backBufferLength: 30 });
@@ -153,7 +168,8 @@ function VideoPage({
           const levels = data.levels;
           if (levels && levels.length > 0) {
             const level = levels[levels.length - 1];
-            if (level.width > 0 && level.height > 0) {
+            if (level.width > 0 && level.height > 0 && !videoFitDetected.current) {
+              videoFitDetected.current = true;
               setVideoFit(level.width > level.height ? "contain" : "cover");
             }
           }
@@ -169,6 +185,8 @@ function VideoPage({
     }
 
     return () => {
+      video.removeEventListener("loadedmetadata", detectOrientation);
+      video.removeEventListener("canplay", detectOrientation);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -186,15 +204,6 @@ function VideoPage({
       }
     }
   }, [isActive, isPaused, effectiveVideoUrl, hasAccess]);
-
-  const handleVideoMetadata = () => {
-    if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current;
-      if (videoWidth > 0 && videoHeight > 0) {
-        setVideoFit(videoWidth > videoHeight ? "contain" : "cover");
-      }
-    }
-  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current && !isDragging) {
@@ -317,7 +326,6 @@ function VideoPage({
             muted={isMuted}
             playsInline
             onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleVideoMetadata}
             controlsList="nodownload"
             onContextMenu={(e) => e.preventDefault()}
           />
