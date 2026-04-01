@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
+import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 import { ArrowLeft, Send, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,9 +88,9 @@ export default function ConversationPage() {
             data-testid="link-participant-profile"
           >
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarImage src={participantAvatar} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-sm font-bold">
-                {participantName.charAt(0)}
+              <AvatarImage src={participantAvatar || undefined} className="object-cover" />
+              <AvatarFallback className="bg-black p-1">
+                <img src={logoImage} alt="Only-U" className="w-full h-full object-contain brightness-0 invert" />
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -125,9 +126,9 @@ export default function ConversationPage() {
               >
                 {!isOwn && (
                   <Avatar className="h-7 w-7 flex-shrink-0 mt-auto">
-                    <AvatarImage src={participantAvatar} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-pink-400 to-rose-500 text-white text-xs">
-                      {participantName.charAt(0)}
+                    <AvatarImage src={participantAvatar || undefined} className="object-cover" />
+                    <AvatarFallback className="bg-black p-1">
+                      <img src={logoImage} alt="Only-U" className="w-full h-full object-contain brightness-0 invert" />
                     </AvatarFallback>
                   </Avatar>
                 )}
