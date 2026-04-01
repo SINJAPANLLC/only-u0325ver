@@ -390,19 +390,22 @@ function VideoPage({
       </div>
 
       {/* Right side actions */}
-      <div className="absolute right-3 bottom-[120px] z-10 flex flex-col items-center gap-5">
+      <div className="absolute right-3 bottom-[128px] z-10 flex flex-col items-center gap-5">
         {/* Creator avatar */}
         <button
           onClick={handleAvatarClick}
           className="relative"
           data-testid={`button-avatar-${id}`}
         >
-          <Avatar className="h-12 w-12 ring-2 ring-white shadow-xl">
+          <Avatar className="h-14 w-14 ring-2 ring-white shadow-xl">
             {creatorAvatar && <AvatarImage src={creatorAvatar} />}
-            <AvatarFallback delayMs={0} className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-sm">
+            <AvatarFallback delayMs={0} className="bg-gradient-to-br from-pink-400 to-rose-500 text-white font-bold text-base">
               {creatorName.charAt(0)}
             </AvatarFallback>
           </Avatar>
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full bg-pink-500 flex items-center justify-center border-2 border-black">
+            <span className="text-white text-[10px] font-bold leading-none">+</span>
+          </div>
         </button>
 
         {/* Like */}
@@ -413,10 +416,10 @@ function VideoPage({
         >
           <motion.div
             whileTap={{ scale: 1.3 }}
-            className="h-11 w-11 rounded-full flex items-center justify-center bg-black/30 backdrop-blur-md transition-colors shadow-lg"
+            className="h-12 w-12 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md transition-colors shadow-lg"
           >
             <Heart
-              className={`h-6 w-6 transition-colors drop-shadow ${
+              className={`h-7 w-7 transition-colors drop-shadow ${
                 isLiked ? "text-pink-400 fill-pink-400" : "text-white"
               }`}
             />
@@ -432,8 +435,8 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-share-${id}`}
         >
-          <div className="h-11 w-11 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center shadow-lg">
-            <Share2 className="h-6 w-6 text-white drop-shadow" />
+          <div className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <Share2 className="h-7 w-7 text-white drop-shadow" />
           </div>
           <span className="text-[11px] text-white font-bold drop-shadow">シェア</span>
         </button>
@@ -444,13 +447,13 @@ function VideoPage({
           className="flex flex-col items-center gap-1"
           data-testid={`button-volume-${id}`}
         >
-          <div className={`h-11 w-11 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
-            isMuted ? "bg-black/30" : "bg-white/20"
+          <div className={`h-12 w-12 rounded-full flex items-center justify-center backdrop-blur-md transition-colors shadow-lg ${
+            isMuted ? "bg-black/40" : "bg-white/20"
           }`}>
             {isMuted ? (
-              <VolumeX className="h-5 w-5 text-white drop-shadow" />
+              <VolumeX className="h-7 w-7 text-white drop-shadow" />
             ) : (
-              <Volume2 className="h-5 w-5 text-white drop-shadow" />
+              <Volume2 className="h-7 w-7 text-white drop-shadow" />
             )}
           </div>
         </button>
@@ -496,7 +499,7 @@ function VideoPage({
       {/* Progress bar */}
       <div
         ref={progressRef}
-        className="absolute bottom-[88px] left-0 right-0 h-1 bg-white/20 cursor-pointer touch-none z-10"
+        className="absolute bottom-[72px] left-0 right-0 h-[3px] bg-white/30 cursor-pointer touch-none z-20"
         onClick={handleProgressBarClick}
         onMouseDown={handleProgressDragStart}
         onMouseUp={handleProgressDragEnd}

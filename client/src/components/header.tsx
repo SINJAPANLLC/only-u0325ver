@@ -68,7 +68,7 @@ export function Header({ variant = "solid" }: HeaderProps) {
             <img
               src={logoImage}
               alt="Only-U"
-              className="h-16 object-contain brightness-0 invert"
+              className="h-20 object-contain brightness-0 invert"
               data-testid="img-logo"
             />
           </div>
