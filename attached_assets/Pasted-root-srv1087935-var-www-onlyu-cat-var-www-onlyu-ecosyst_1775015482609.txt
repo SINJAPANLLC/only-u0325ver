@@ -1,0 +1,48 @@
+root@srv1087935:/var/www/onlyu# cat /var/www/onlyu/ecosystem.config.cjs | grep -v "password\|secret\|key\|KEY\|SECRET"
+module.exports = {
+  apps: [{
+    name: 'onlyu',
+    script: 'dist/index.cjs',
+    cwd: '/var/www/onlyu',
+    env: {
+      NODE_ENV: 'production',
+      PORT: '5005',
+      DATABASE_URL: 'postgresql://neondb_owner:npg_eRl3Fnj6cbsK@ep-steep-wind-an8qito9-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+      ADMIN_EMAIL: 'info@sinjapan.jp',
+      ADMIN_PASSWORD: 'Kazuya8008',
+      BUNNY_LIBRARY_ID: '623903',
+      BUNNY_CDN_HOSTNAME: 'vz-edb8f34c-88a.b-cdn.net',
+      VITE_BUNNY_CDN_HOSTNAME: 'vz-edb8f34c-88a.b-cdn.net',
+      BUNNY_STORAGE_ZONE_NAME: 'only-u',
+      BUNNY_STORAGE_HOST: 'storage.bunnycdn.com',
+      BUNNY_STORAGE_CDN_URL: 'https://only-u.b-cdn.net/',
+      SMTP_HOST: 'smtp.hostinger.com',
+      SMTP_PORT: '465',
+      SMTP_USER: 'noreply@only-u.fun',
+      SMTP_PASS: '@Kazuya8008',
+      VITE_LIVEKIT_URL: 'wss://only-u.fun',
+    }
+  }]
+}
+root@srv1087935:/var/www/onlyu# # LiveKitプロセス確認
+systemctl status livekit-server 2>/dev/null || pm2 list | grep livekit || ss -tlnp | grep 7880
+LISTEN 0      4096               *:7880             *:*    users:(("livekit-server",pid=1445508,fd=6))                                                                                                                  
+root@srv1087935:/var/www/onlyu# pm2 env 34 | grep -i "livekit\|vite\|bunny\|stripe\|smtp\|venice"
+BUNNY_CDN_HOSTNAME: vz-edb8f34c-88a.b-cdn.net
+BUNNY_STORAGE_CDN_URL: https://only-u.b-cdn.net/
+SMTP_HOST: smtp.hostinger.com
+LIVEKIT_API_KEY: APIFqp5doGaHWEw
+BUNNY_LIBRARY_ID: 623903
+SMTP_USER: noreply@only-u.fun
+VITE_STRIPE_PUBLIC_KEY: pk_live_51SJLZVQXzSGbl6lJ6uiGIHc5dIir5GbtrS0I9g4S3SokXhDuH3eXcK3F7KD4RjdWGtwtuBzcqMyT50pBV1GB1tOs00WNjwwGnW
+VITE_BUNNY_CDN_HOSTNAME: vz-edb8f34c-88a.b-cdn.net
+SMTP_PORT: 465
+LIVEKIT_API_SECRET: f9zNBveQrFsuS9XpolhJHK3zpDdb83sXypj9EpbuJd3
+SMTP_PASS: @Kazuya8008
+BUNNY_STORAGE_ZONE_NAME: only-u
+BUNNY_STORAGE_API_KEY: cc4b3e50-ced8-4acf-9c8b5f5377c1-93ed-4593
+STRIPE_SECRET_KEY: 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
+BUNNY_API_KEY: 50797876-3c40-4460-bd371d6d3c20-2a3b-406e
+VITE_LIVEKIT_URL: wss://only-u-dsfwr2fk.livekit.cloud
+BUNNY_STORAGE_HOST: storage.bunnycdn.com
+root@srv1087935:/var/www/onlyu# 
