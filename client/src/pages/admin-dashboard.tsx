@@ -83,7 +83,7 @@ import {
 import type { CreatorApplication, BankTransferRequest } from "@shared/schema";
 import logoImage from "@assets/IMG_9769_1768973936225.PNG";
 
-type Tab = "dashboard" | "sales" | "users" | "user-audit" | "creators" | "livestreams" | "content" | "shop" | "marketing" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "settings";
+type Tab = "dashboard" | "sales" | "users" | "user-audit" | "creators" | "livestreams" | "content" | "shop" | "marketing" | "messages" | "transfers" | "withdrawals" | "inquiries" | "notifications" | "moderation" | "ai-generate" | "settings";
 
 interface DashboardStats {
   totalUsers: number;
@@ -439,6 +439,224 @@ function BunnyChannelManager({ channels, onRefresh }: { channels: any[]; onRefre
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+interface VeniceModel {
+  id: string;
+  model_spec?: { name: string; traits?: string[] };
+}
+
+function VeniceImageGenerator() {
+  const { toast } = useToast();
+  const [prompt, setPrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("ugly, deformed, bad anatomy, watermark, text");
+  const [selectedModel, setSelectedModel] = useState("lustify-v7");
+  const [width, setWidth] = useState("832");
+  const [height, setHeight] = useState("1216");
+  const [steps, setSteps] = useState("30");
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const { data: models } = useQuery<VeniceModel[]>({
+    queryKey: ["/api/admin/venice/models"],
+  });
+
+  const generate = async () => {
+    if (!prompt.trim()) {
+      toast({ title: "プロンプトを入力してください", variant: "destructive" });
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const res = await apiRequest("POST", "/api/admin/venice/generate", {
+        prompt,
+        negativePrompt,
+        model: selectedModel,
+        width: parseInt(width),
+        height: parseInt(height),
+        steps: parseInt(steps),
+      });
+      const data = await res.json();
+      if (data.images?.length) {
+        setGeneratedImages(prev => [...data.images.map((b64: string) => `data:image/webp;base64,${b64}`), ...prev]);
+      } else {
+        toast({ title: "生成に失敗しました", variant: "destructive" });
+      }
+    } catch (e: any) {
+      toast({ title: e.message || "エラーが発生しました", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadImage = (dataUrl: string, index: number) => {
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `venice-ai-${Date.now()}-${index}.webp`;
+    a.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Sparkles className="h-6 w-6 text-pink-400" />
+        <h2 className="text-2xl font-bold text-white">Venice AI 画像生成</h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Controls */}
+        <div className="lg:col-span-1 space-y-4">
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-base">生成設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="text-white/80 text-sm mb-1.5 block">モデル</Label>
+                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a2e] border-white/10">
+                    {models?.map(m => (
+                      <SelectItem key={m.id} value={m.id} className="text-white">
+                        {m.model_spec?.name || m.id}
+                        {m.model_spec?.traits?.includes("most_uncensored") && (
+                          <span className="ml-1 text-xs text-pink-400">🔞</span>
+                        )}
+                      </SelectItem>
+                    )) ?? (
+                      <>
+                        <SelectItem value="lustify-v7" className="text-white">Lustify v7 🔞</SelectItem>
+                        <SelectItem value="lustify-sdxl" className="text-white">Lustify SDXL</SelectItem>
+                        <SelectItem value="flux-2-pro" className="text-white">Flux 2 Pro</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-white/80 text-sm mb-1.5 block">プロンプト</Label>
+                <Textarea
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  placeholder="beautiful japanese woman, portrait, high quality..."
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
+                  rows={5}
+                />
+              </div>
+
+              <div>
+                <Label className="text-white/80 text-sm mb-1.5 block">ネガティブプロンプト</Label>
+                <Textarea
+                  value={negativePrompt}
+                  onChange={e => setNegativePrompt(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-white/80 text-xs mb-1 block">幅</Label>
+                  <Select value={width} onValueChange={setWidth}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a2e] border-white/10">
+                      {["512","640","768","832","1024","1280"].map(v => (
+                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs mb-1 block">高さ</Label>
+                  <Select value={height} onValueChange={setHeight}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a2e] border-white/10">
+                      {["512","640","768","832","1024","1216","1280","1536"].map(v => (
+                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs mb-1 block">ステップ</Label>
+                  <Select value={steps} onValueChange={setSteps}>
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a2e] border-white/10">
+                      {["20","25","30","40","50"].map(v => (
+                        <SelectItem key={v} value={v} className="text-white text-xs">{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button
+                onClick={generate}
+                disabled={isGenerating || !prompt.trim()}
+                className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    生成中...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    画像を生成
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Results */}
+        <div className="lg:col-span-2">
+          {generatedImages.length === 0 && !isGenerating ? (
+            <div className="h-64 flex flex-col items-center justify-center text-white/40 border-2 border-dashed border-white/10 rounded-2xl">
+              <Sparkles className="h-12 w-12 mb-3 opacity-30" />
+              <p>プロンプトを入力して画像を生成してください</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {isGenerating && (
+                <div className="aspect-[2/3] bg-white/5 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-pink-400" />
+                  <p className="text-white/60 text-sm">生成中...</p>
+                </div>
+              )}
+              {generatedImages.map((img, i) => (
+                <div key={i} className="relative group rounded-xl overflow-hidden border border-white/10">
+                  <img src={img} alt={`generated-${i}`} className="w-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-white/30 text-white bg-black/50 hover:bg-white/20"
+                      onClick={() => downloadImage(img, i)}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      DL
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -927,6 +1145,7 @@ export default function AdminDashboard() {
     { id: "inquiries" as Tab, label: "お問い合わせ", icon: HelpCircle },
     { id: "notifications" as Tab, label: "通知管理", icon: Bell },
     { id: "moderation" as Tab, label: "AI審査", icon: ShieldAlert, badge: moderationUnreadCount?.count },
+    { id: "ai-generate" as Tab, label: "AI画像生成", icon: Sparkles },
     { id: "settings" as Tab, label: "設定", icon: Settings },
   ];
 
@@ -3084,6 +3303,9 @@ export default function AdminDashboard() {
 
           {/* Marketing */}
           {activeTab === "marketing" && <AdminMarketing />}
+
+          {/* AI Image Generation */}
+          {activeTab === "ai-generate" && <VeniceImageGenerator />}
 
           {/* Settings */}
           {activeTab === "settings" && (

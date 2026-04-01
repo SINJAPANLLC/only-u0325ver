@@ -7304,5 +7304,50 @@ ${urlEntries}
     }
   });
 
+  // Venice AI Image Generation
+  app.get("/api/admin/venice/models", isAdminSession, async (req, res) => {
+    try {
+      const response = await fetch("https://api.venice.ai/api/v1/models?type=image", {
+        headers: { Authorization: `Bearer ${process.env.VENICE_API_KEY}` },
+      });
+      const data = await response.json() as any;
+      res.json(data.data || []);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.post("/api/admin/venice/generate", isAdminSession, async (req, res) => {
+    try {
+      const { prompt, model, width, height, steps, negativePrompt } = req.body;
+      if (!prompt || !model) return res.status(400).json({ message: "prompt and model are required" });
+
+      const body: any = {
+        model,
+        prompt,
+        width: width || 832,
+        height: height || 1216,
+        steps: steps || 30,
+        return_binary: false,
+      };
+      if (negativePrompt) body.negative_prompt = negativePrompt;
+
+      const response = await fetch("https://api.venice.ai/api/v1/image/generate", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.VENICE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json() as any;
+      if (!response.ok) return res.status(response.status).json({ message: data.error || "Venice API error" });
+      // images is array of base64 strings (WebP)
+      res.json({ images: data.images || [] });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   return httpServer;
 }
