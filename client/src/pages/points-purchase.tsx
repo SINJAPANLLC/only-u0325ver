@@ -45,9 +45,15 @@ let stripePromise: Promise<Stripe | null> | null = null;
 
 function getStripePromise() {
   if (!stripePromise) {
-    stripePromise = fetch("/api/stripe/publishable-key")
-      .then((res) => res.json())
-      .then(({ publishableKey }) => loadStripe(publishableKey));
+    const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+    if (pk) {
+      stripePromise = loadStripe(pk);
+    } else {
+      // fallback: fetch from backend (should not be needed if env var is set)
+      stripePromise = fetch("/api/stripe/publishable-key")
+        .then((res) => res.json())
+        .then(({ publishableKey }) => loadStripe(publishableKey));
+    }
   }
   return stripePromise;
 }
