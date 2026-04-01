@@ -78,6 +78,7 @@ export default function LiveRoom() {
 
   // LiveKit state
   const [videoReady, setVideoReady] = useState(false);
+  const [videoFit, setVideoFit] = useState<"cover" | "contain">("cover");
   const [lkStatus, setLkStatus] = useState<"idle" | "connecting" | "connected" | "failed">("idle");
   const videoRef = useRef<HTMLVideoElement>(null);
   const roomRef = useRef<Room | null>(null);
@@ -119,6 +120,16 @@ export default function LiveRoom() {
         if (track.kind === Track.Kind.Video && videoRef.current) {
           track.attach(videoRef.current);
           setVideoReady(true);
+          const detectFit = () => {
+            const v = videoRef.current;
+            if (v && v.videoWidth > 0 && v.videoHeight > 0) {
+              setVideoFit(v.videoHeight >= 1900 ? "cover" : "contain");
+              v.removeEventListener("loadedmetadata", detectFit);
+              v.removeEventListener("canplay", detectFit);
+            }
+          };
+          videoRef.current.addEventListener("loadedmetadata", detectFit);
+          videoRef.current.addEventListener("canplay", detectFit);
         }
         if (track.kind === Track.Kind.Audio) {
           const el = track.attach() as HTMLAudioElement;
@@ -460,7 +471,7 @@ export default function LiveRoom() {
           ref={videoRef}
           autoPlay
           playsInline
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${videoReady ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 w-full h-full ${videoFit === "cover" ? "object-cover" : "object-contain object-center"} transition-opacity duration-500 ${videoReady ? "opacity-100" : "opacity-0"}`}
           onContextMenu={e => e.preventDefault()}
         />
 

@@ -155,24 +155,28 @@ function StreamCard({ stream, onEnterClick }: { stream: StreamData; onEnterClick
           <span className="text-white font-bold text-sm drop-shadow">{stream.creatorName}</span>
         </button>
         <p className="text-white/90 text-sm drop-shadow leading-snug mb-3 line-clamp-2">{stream.title}</p>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-col gap-2">
           <button
             onClick={handleEnter}
-            className="bg-pink-500 active:bg-pink-700 text-white text-sm font-bold px-5 py-2 rounded-full shadow-lg"
+            className="self-start bg-pink-500 active:bg-pink-700 text-white text-sm font-bold px-5 py-2 rounded-full shadow-lg"
             data-testid={`button-enter-${stream.id}`}
           >
             入室する
           </button>
-          {stream.partyRatePerMinute != null && (
-            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <span className="text-pink-300 text-[10px] font-bold">パーティー</span>
-              <span className="text-white text-[10px] font-bold">{stream.partyRatePerMinute}pt/分</span>
-            </div>
-          )}
-          {stream.twoshotRatePerMinute != null && (
-            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
-              <span className="text-pink-300 text-[10px] font-bold">2ショット</span>
-              <span className="text-white text-[10px] font-bold">{stream.twoshotRatePerMinute}pt/分</span>
+          {(stream.partyRatePerMinute != null || stream.twoshotRatePerMinute != null) && (
+            <div className="flex items-center gap-2">
+              {stream.partyRatePerMinute != null && (
+                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                  <span className="text-pink-300 text-[10px] font-bold">パーティー</span>
+                  <span className="text-white text-[10px] font-bold">{stream.partyRatePerMinute}pt/分</span>
+                </div>
+              )}
+              {stream.twoshotRatePerMinute != null && (
+                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                  <span className="text-pink-300 text-[10px] font-bold">2ショット</span>
+                  <span className="text-white text-[10px] font-bold">{stream.twoshotRatePerMinute}pt/分</span>
+                </div>
+              )}
             </div>
           )}
         </div>
