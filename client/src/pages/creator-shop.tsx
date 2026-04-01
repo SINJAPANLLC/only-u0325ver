@@ -372,7 +372,7 @@ export default function CreatorShop() {
 
   return (
     <motion.div 
-      className="h-full bg-background overflow-y-auto scrollbar-hide"
+      className="h-full bg-black text-white overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
@@ -383,11 +383,11 @@ export default function CreatorShop() {
           <Button 
             size="icon" 
             variant="ghost"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5 text-white" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <h1 className="font-bold text-base text-white">ショップ管理</h1>
         </div>
@@ -405,17 +405,17 @@ export default function CreatorShop() {
       <div className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full" />
           </div>
         ) : myProducts && myProducts.length > 0 ? (
-          <div className="space-y-3">
+          <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
             {myProducts.map((product) => (
               <div 
                 key={product.id}
-                className="flex gap-3 p-3 bg-muted/40 rounded-lg"
+                className="flex gap-3 p-3"
                 data-testid={`product-item-${product.id}`}
               >
-                <div className="w-20 h-20 bg-muted rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-20 h-20 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {product.imageUrl ? (
                     <img 
                       src={product.imageUrl} 
@@ -423,19 +423,19 @@ export default function CreatorShop() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Package className="h-6 w-6 text-muted-foreground" />
+                    <Package className="h-6 w-6 text-white/30" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{product.name}</h3>
-                  <p className="text-lg font-bold text-pink-500 mt-1">
+                  <h3 className="font-medium text-sm truncate text-white">{product.name}</h3>
+                  <p className="text-lg font-bold text-pink-400 mt-1">
                     {formatPrice(product.price)}pt
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="text-[10px]">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/50">
                       {product.productType === "digital" ? "デジタル" : "物販"}
-                    </Badge>
-                    <span className={`text-xs ${product.isAvailable ? "text-green-500" : "text-yellow-500"}`}>
+                    </span>
+                    <span className={`text-xs ${product.isAvailable ? "text-green-400" : "text-yellow-400"}`}>
                       {product.isAvailable ? "販売中" : "非公開"}
                     </span>
                   </div>
@@ -444,7 +444,7 @@ export default function CreatorShop() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
                     onClick={() => openEditDialog(product)}
                     data-testid={`button-edit-${product.id}`}
                   >
@@ -453,7 +453,7 @@ export default function CreatorShop() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 text-destructive"
+                    className="h-8 w-8 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
                     onClick={() => deleteProductMutation.mutate(product.id)}
                     data-testid={`button-delete-${product.id}`}
                   >
@@ -464,10 +464,10 @@ export default function CreatorShop() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-60 text-muted-foreground">
-            <Package className="h-12 w-12 mb-3 opacity-50" />
+          <div className="flex flex-col items-center justify-center h-60 text-white/30">
+            <Package className="h-12 w-12 mb-3 opacity-40" />
             <p>まだ商品がありません</p>
-            <p className="text-sm mt-1">商品追加ボタンから商品を登録しましょう</p>
+            <p className="text-sm mt-1 text-white/20">商品追加ボタンから商品を登録しましょう</p>
           </div>
         )}
       </div>

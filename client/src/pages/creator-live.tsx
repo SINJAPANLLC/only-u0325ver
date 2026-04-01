@@ -640,33 +640,35 @@ export default function CreatorLive() {
   // ─── LIST VIEW ────────────────────────────────────────────────────────────
   return (
     <motion.div
-      className="h-full bg-background overflow-y-auto scrollbar-hide"
+      className="h-full bg-black text-white overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "tween", duration: 0.3 }}
     >
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-        <Button size="icon" variant="ghost" onClick={() => setLocation("/account")} data-testid="button-back">
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-lg font-bold">ライブ配信</h1>
+      <div className="flex items-center justify-between h-14 px-4 border-b border-white/10 bg-black/95 backdrop-blur-xl sticky top-0 z-20">
+        <div className="flex items-center gap-2">
+          <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10" onClick={() => setLocation("/account")} data-testid="button-back">
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="font-bold text-base">ライブ配信</h1>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
         {/* Start card */}
         <div className="p-6 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-2xl text-center border border-pink-500/30">
-          <div className="h-20 w-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg">
+          <div className="h-20 w-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
             <Radio className="h-10 w-10 text-white" />
           </div>
-          <h3 className="font-bold text-xl mb-1">ライブ配信を開始</h3>
-          <p className="text-sm text-muted-foreground mb-5">
+          <h3 className="font-bold text-xl mb-1 text-white">ライブ配信を開始</h3>
+          <p className="text-sm text-white/50 mb-5">
             ブラウザのカメラで今すぐ配信できます
           </p>
           <Button
             size="lg"
             onClick={() => setIsTitleDialogOpen(true)}
-            className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 w-full"
+            className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 w-full shadow-lg shadow-pink-500/20"
             disabled={startLiveMutation.isPending}
             data-testid="button-start-live"
           >
@@ -683,31 +685,31 @@ export default function CreatorLive() {
 
         {/* Past streams */}
         <div>
-          <h2 className="font-semibold mb-3 text-sm text-muted-foreground">配信履歴</h2>
+          <p className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-3 px-1">配信履歴</p>
           {isLoading ? (
             <div className="flex items-center justify-center h-16">
-              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+              <div className="animate-spin h-5 w-5 border-2 border-pink-500 border-t-transparent rounded-full" />
             </div>
           ) : pastStreams.length > 0 ? (
-            <div className="space-y-2">
+            <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
               {pastStreams.map((s) => (
                 <div
                   key={s.id}
-                  className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border/50"
+                  className="flex items-center gap-3 p-3"
                   data-testid={`stream-item-${s.id}`}
                 >
-                  <div className="w-12 h-10 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {s.thumbnailUrl ? (
-                      <img src={s.thumbnailUrl} className="w-full h-full object-cover rounded-lg" alt="" />
+                      <img src={s.thumbnailUrl} className="w-full h-full object-cover" alt="" />
                     ) : (
-                      <Radio className="h-4 w-4 text-muted-foreground" />
+                      <Radio className="h-4 w-4 text-white/30" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{s.title}</p>
+                    <p className="font-medium text-sm truncate text-white">{s.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">終了</Badge>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/50">終了</span>
+                      <span className="text-xs text-white/40 flex items-center gap-1">
                         <Users className="h-3 w-3" />{s.viewerCount || 0}人
                       </span>
                     </div>
@@ -715,7 +717,7 @@ export default function CreatorLive() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 text-destructive/70 hover:text-destructive"
+                    className="h-8 w-8 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
                     onClick={() => deleteLiveMutation.mutate(s.id)}
                     data-testid={`button-delete-${s.id}`}
                   >
@@ -725,8 +727,8 @@ export default function CreatorLive() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-10 text-muted-foreground">
-              <Clock className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            <div className="text-center py-10 text-white/30">
+              <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
               <p className="text-sm">配信履歴はありません</p>
             </div>
           )}

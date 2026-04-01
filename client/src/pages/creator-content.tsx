@@ -407,7 +407,7 @@ export default function CreatorContent() {
 
   return (
     <motion.div 
-      className="h-full bg-background overflow-y-auto scrollbar-hide"
+      className="h-full bg-black text-white overflow-y-auto scrollbar-hide"
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
@@ -418,11 +418,11 @@ export default function CreatorContent() {
           <Button 
             size="icon" 
             variant="ghost"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-white/70 hover:text-white hover:bg-white/10"
             onClick={() => setLocation("/account")}
             data-testid="button-back"
           >
-            <ChevronLeft className="h-5 w-5 text-white" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <h1 className="font-bold text-base text-white">コンテンツ管理</h1>
         </div>
@@ -440,17 +440,17 @@ export default function CreatorContent() {
       <div className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full" />
           </div>
         ) : myVideos && myVideos.length > 0 ? (
-          <div className="space-y-3">
+          <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden divide-y divide-white/10">
             {myVideos.map((video) => (
               <div 
                 key={video.id}
-                className="flex gap-3 p-3 bg-muted/40 rounded-lg"
+                className="flex gap-3 p-3"
                 data-testid={`video-item-${video.id}`}
               >
-                <div className="w-24 h-16 bg-muted rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-24 h-16 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {video.thumbnailUrl ? (
                     <img 
                       src={video.thumbnailUrl} 
@@ -458,16 +458,16 @@ export default function CreatorContent() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Video className="h-6 w-6 text-muted-foreground" />
+                    <Video className="h-6 w-6 text-white/30" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{video.title}</h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className={video.isPublished ? "text-green-500" : "text-yellow-500"}>
+                  <h3 className="font-medium text-sm truncate text-white">{video.title}</h3>
+                  <div className="flex items-center gap-3 mt-1 text-xs">
+                    <span className={video.isPublished ? "text-green-400" : "text-yellow-400"}>
                       {video.isPublished ? "公開中" : "非公開"}
                     </span>
-                    <span className={video.contentType === "premium" ? "text-pink-500" : ""}>
+                    <span className={video.contentType === "premium" ? "text-pink-400" : "text-white/40"}>
                       {video.contentType === "premium" ? getPlanName(video.requiredTier || 1) : "無料"}
                     </span>
                   </div>
@@ -476,7 +476,7 @@ export default function CreatorContent() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
                     onClick={() => openEditDialog(video)}
                     data-testid={`button-edit-${video.id}`}
                   >
@@ -485,7 +485,7 @@ export default function CreatorContent() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-8 w-8 text-destructive"
+                    className="h-8 w-8 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
                     onClick={() => deleteVideoMutation.mutate(video.id)}
                     data-testid={`button-delete-${video.id}`}
                   >
@@ -496,10 +496,10 @@ export default function CreatorContent() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-60 text-muted-foreground">
-            <Video className="h-12 w-12 mb-3 opacity-50" />
+          <div className="flex flex-col items-center justify-center h-60 text-white/30">
+            <Video className="h-12 w-12 mb-3 opacity-40" />
             <p>まだコンテンツがありません</p>
-            <p className="text-sm mt-1">新規投稿ボタンからコンテンツを追加しましょう</p>
+            <p className="text-sm mt-1 text-white/20">新規投稿ボタンからコンテンツを追加しましょう</p>
           </div>
         )}
       </div>
