@@ -151,9 +151,7 @@ function VideoPage({
       const { videoWidth, videoHeight } = video;
       if (videoWidth > 0 && videoHeight > 0 && !videoFitDetected.current) {
         videoFitDetected.current = true;
-        const ratio = videoHeight / videoWidth;
-        const isPortrait = ratio > 1.0;
-        console.log(`[VideoFit] ${videoWidth}x${videoHeight} ratio=${ratio.toFixed(2)} -> ${isPortrait ? "縦(cover)" : "横(contain)"}`);
+        const isPortrait = videoHeight >= 1900;
         setVideoFit(isPortrait ? "cover" : "contain");
       }
     };
